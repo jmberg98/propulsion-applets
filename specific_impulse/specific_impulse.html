@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thrust &amp; Specific Impulse — In-Space</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', system-ui, Arial, sans-serif;
+  background: #07080e;
+  color: #a8b2c8;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr {
+  width: 872px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+#hdr h1 { font-size: 17px; font-weight: 700; color: #e4e8f2; letter-spacing: .3px; }
+.badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; padding: 2px 8px;
+  border: 1px solid #00bcd4; border-radius: 3px;
+  color: #00bcd4; background: rgba(0,188,212,.07);
+}
+
+#app {
+  width: 872px;
+  display: flex;
+  flex-direction: column;
+  background: #0b0d18;
+  border: 1px solid #181b2c;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 4px 28px rgba(0,0,0,.6);
+}
+
+#top-row { display: flex; }
+
+#cv-wrap { flex-shrink: 0; line-height: 0; border-right: 1px solid #181b2c; }
+
+canvas { display: block; width: 620px; height: 400px; }
+
+#rp {
+  flex: 1;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.sect-hdr {
+  font-size: 9.5px; font-weight: 700; color: #00bcd4;
+  letter-spacing: 1.2px; text-transform: uppercase;
+  padding-bottom: 5px; border-bottom: 1px solid #15202d; margin-bottom: 7px;
+}
+
+.radio-row {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; padding: 3px 0; cursor: pointer; user-select: none;
+}
+.radio-row input[type=radio] { accent-color: #00bcd4; cursor: pointer; }
+
+.sl-group { display: flex; flex-direction: column; gap: 5px; }
+.sl-label { font-size: 9.5px; color: #4e6078; letter-spacing: .7px; text-transform: uppercase; }
+.sl-row { display: flex; align-items: center; gap: 7px; }
+.sl-row input[type=range] { flex: 1; accent-color: #00bcd4; cursor: pointer; }
+.sl-row input[type=text] {
+  width: 60px; padding: 3px 4px;
+  font-size: 11px; font-family: 'Courier New', monospace; text-align: center;
+  background: #060810; color: #00e5ff;
+  border: 1px solid #1a2535; border-radius: 3px;
+}
+.sl-row input[type=text]:focus {
+  outline: none; border-color: #00bcd4;
+  box-shadow: 0 0 0 2px rgba(0,188,212,.12);
+}
+
+#out-bar { display: flex; border-top: 1px solid #181b2c; }
+.out-cell {
+  flex: 1; padding: 9px 14px 10px;
+  background: #080912; border-right: 1px solid #181b2c;
+}
+.out-cell:last-child { border-right: none; }
+.out-label { font-size: 9px; color: #323a50; letter-spacing: .7px; text-transform: uppercase; margin-bottom: 3px; }
+.out-val   { font-size: 17px; font-weight: 600; font-family: 'Courier New', monospace; }
+.out-sub   { font-size: 11.5px; font-family: 'Courier New', monospace; margin-top: 2px; }
+
+footer { margin-top: 10px; font-size: 11px; color: #252c3c; }
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <h1>Thrust &amp; Specific Impulse</h1>
+  <span class="badge">In-Space</span>
+</div>
+
+<div id="app">
+  <div id="top-row">
+    <div id="cv-wrap">
+      <canvas id="cnv" width="620" height="400"></canvas>
+    </div>
+
+    <div id="rp">
+      <div>
+        <div class="sect-hdr">Propellant</div>
+        <div id="radio-wrap"></div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-label">Flow Rate &nbsp;(mol / s)</div>
+        <div class="sl-row">
+          <input type="range" id="sl-flow"  min="0" max="10"   step="0.0001" value="0.5">
+          <input type="text"  id="tb-flow"  value="0.5">
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-label">Power &nbsp;(kW)</div>
+        <div class="sl-row">
+          <input type="range" id="sl-power" min="0" max="5000" step="0.1" value="10">
+          <input type="text"  id="tb-power" value="10">
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-label">Efficiency &nbsp;&#951;</div>
+        <div class="sl-row">
+          <input type="range" id="sl-eta" min="0" max="1" step="0.01" value="0.5">
+          <input type="text"  id="tb-eta" value="0.5">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="out-bar">
+    <div class="out-cell">
+      <div class="out-label">Thrust</div>
+      <div class="out-val" id="o-thrust" style="color:#e4e8f2">0 N</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Mass Flow Rate</div>
+      <div class="out-val" id="o-mdot" style="color:#ff9100">0 kg/s</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Specific Impulse</div>
+      <div class="out-val" id="o-isp" style="color:#00e5ff">0 s</div>
+      <div class="out-sub" id="o-ve"  style="color:#69f0ae">or 0 m/s</div>
+    </div>
+  </div>
+</div>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+//  Constants
+// ═══════════════════════════════════════════════════════
+const G0 = 9.80665;
+
+const PROP_KEYS = ['H\u2082O', 'Hydrazine', 'Argon', 'Lithium'];
+
+const M_MOLAR = {
+  'H\u2082O':  0.018015,
+  'Hydrazine': 0.032045,
+  'Argon':     0.039948,
+  'Lithium':   0.006941
+};
+
+const ORB_COLOR = {
+  'H\u2082O':  '#00e5ff',
+  'Hydrazine': '#ff6d00',
+  'Argon':     '#d500f9',
+  'Lithium':   '#ff1744'
+};
+
+const ORB_GLOW = {
+  'H\u2082O':  'rgba(0,229,255,0.22)',
+  'Hydrazine': 'rgba(255,109,0,0.22)',
+  'Argon':     'rgba(213,0,249,0.22)',
+  'Lithium':   'rgba(255,23,68,0.22)'
+};
+
+const ORB_R = {
+  'H\u2082O':  3.5,
+  'Hydrazine': 4.5,
+  'Argon':     5.0,
+  'Lithium':   3.0
+};
+
+const MAX_THRUST_VIS = 2000;
+const MAX_VE_VIS     = 50000;
+const MAX_ORBS       = 450;
+
+// ═══════════════════════════════════════════════════════
+//  Physics
+// ═══════════════════════════════════════════════════════
+function compute(flowMolS, powerKW, eta, mMolar) {
+  const mdot = flowMolS * mMolar;
+  const pJet = powerKW * 1000.0 * eta;
+  if (mdot < 1e-12 || pJet < 1e-12) return { T: 0, mdot: 0, ve: 0, isp: 0 };
+  const ve = Math.sqrt(2.0 * pJet / mdot);
+  return { T: mdot * ve, mdot, ve, isp: ve / G0 };
+}
+
+// ═══════════════════════════════════════════════════════
+//  Formatting
+// ═══════════════════════════════════════════════════════
+function fmt4g(v) {
+  if (!isFinite(v) || v === 0) return '0';
+  const s = v.toPrecision(4);
+  if (s.includes('e')) return s.replace(/\.?0+(e)/, '$1');
+  return String(parseFloat(s));
+}
+
+// ═══════════════════════════════════════════════════════
+//  Canvas
+// ═══════════════════════════════════════════════════════
+const canvas = document.getElementById('cnv');
+const ctx    = canvas.getContext('2d');
+const CW = canvas.width;   // 620
+const CH = canvas.height;  // 400
+
+// ═══════════════════════════════════════════════════════
+//  Spacecraft geometry
+// ═══════════════════════════════════════════════════════
+//
+//  Matches reference image:
+//    • Body is solid WHITE, large rectangle
+//    • Two short stubby shelves protrude from the right wall
+//    • A small gap between the shelves = nozzle exit (particles spawn here)
+//    • Arrow points left from the left face of the body
+//
+//  Layout diagram:
+//
+//   ┌──────────────────┐
+//   │                  ├──┐  ← upper shelf (solid white, short & stubby)
+//   │   BODY (white)   │  │
+//   │                  │     ← small nozzle exit gap
+//   │                  │  │
+//   │                  ├──┘  ← lower shelf
+//   └──────────────────┘
+//   ←▶  (large red arrow + "acc.")
+
+// Body
+const BX = 160, BY = 82, BW = 198, BH = 198;
+const BX2 = BX + BW;          // right edge of body  = 358
+const CY  = BY + BH / 2;      // vertical centre     = 181
+
+// Nozzle shelves — small stubby tabs as in the reference image
+//   SHELF_W : how far the tab extends right of the body
+//   SHELF_H : height of each tab (thin)
+//   GAP_H   : nozzle exit opening between the two tabs (small)
+const SHELF_W = 48;
+const SHELF_H = 26;
+const GAP_H   = 22;
+
+const EX = BX2 + SHELF_W;     // nozzle exit x       = 406
+
+// Derived vertical positions
+const US_TOP = CY - GAP_H / 2 - SHELF_H;   // upper shelf top    = 142
+const US_BOT = CY - GAP_H / 2;              // upper shelf bottom = 170  (= gap top)
+const LS_TOP = CY + GAP_H / 2;              // lower shelf top    = 192  (= gap bottom)
+const LS_BOT = CY + GAP_H / 2 + SHELF_H;   // lower shelf bottom = 218
+
+// Arrow tail sits flush against the left face of the body
+const ARR_TAIL_X = BX - 4;    // = 156
+
+// ═══════════════════════════════════════════════════════
+//  Stars
+// ═══════════════════════════════════════════════════════
+const STARS = Array.from({ length: 200 }, () => ({
+  x: Math.random() * CW,
+  y: Math.random() * CH,
+  r: Math.random() * 1.1 + 0.15,
+  a: Math.random() * 0.5 + 0.2
+}));
+
+// ═══════════════════════════════════════════════════════
+//  App state
+// ═══════════════════════════════════════════════════════
+let selectedProp = PROP_KEYS[0];
+let particles    = [];
+let spawnTimer   = 0;
+let lastTime     = null;
+
+// ═══════════════════════════════════════════════════════
+//  DOM references
+// ═══════════════════════════════════════════════════════
+const slFlow  = document.getElementById('sl-flow');
+const slPower = document.getElementById('sl-power');
+const slEta   = document.getElementById('sl-eta');
+const tbFlow  = document.getElementById('tb-flow');
+const tbPower = document.getElementById('tb-power');
+const tbEta   = document.getElementById('tb-eta');
+const oThrust = document.getElementById('o-thrust');
+const oMdot   = document.getElementById('o-mdot');
+const oIsp    = document.getElementById('o-isp');
+const oVe     = document.getElementById('o-ve');
+
+// ═══════════════════════════════════════════════════════
+//  Build radio buttons
+// ═══════════════════════════════════════════════════════
+(function buildRadios() {
+  const wrap = document.getElementById('radio-wrap');
+  PROP_KEYS.forEach((key, i) => {
+    const lbl       = document.createElement('label');
+    lbl.className   = 'radio-row';
+    lbl.style.color = ORB_COLOR[key];
+
+    const inp   = document.createElement('input');
+    inp.type    = 'radio';
+    inp.name    = 'propellant';
+    inp.value   = key;
+    inp.checked = (i === 0);
+
+    lbl.appendChild(inp);
+    lbl.appendChild(document.createTextNode(
+      '\u00a0' + key + '\u00a0\u00a0(' + fmt4g(M_MOLAR[key] * 1e3) + '\u00a0g/mol)'
+    ));
+    wrap.appendChild(lbl);
+
+    inp.addEventListener('change', () => {
+      if (inp.checked) { selectedProp = key; particles = []; spawnTimer = 0; }
+    });
+  });
+}());
+
+// ═══════════════════════════════════════════════════════
+//  Slider ↔ TextBox links
+// ═══════════════════════════════════════════════════════
+function snapStep(val, min, step) {
+  if (!step || step <= 0) return val;
+  const dp = Math.max(0, -Math.floor(Math.log10(step)));
+  return parseFloat((min + Math.round((val - min) / step) * step).toFixed(dp));
+}
+
+function linkSliderTb(slider, tb) {
+  slider.addEventListener('input', () => { tb.value = fmt4g(parseFloat(slider.value)); });
+
+  function apply() {
+    const raw = parseFloat(tb.value);
+    if (!isFinite(raw)) { tb.value = fmt4g(parseFloat(slider.value)); return; }
+    const val = snapStep(
+      Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), raw)),
+      parseFloat(slider.min), parseFloat(slider.step)
+    );
+    slider.value = val;
+    tb.value     = fmt4g(val);
+  }
+
+  tb.addEventListener('keydown', e => { if (e.key === 'Enter') { apply(); tb.blur(); } });
+  tb.addEventListener('blur', apply);
+}
+
+linkSliderTb(slFlow,  tbFlow);
+linkSliderTb(slPower, tbPower);
+linkSliderTb(slEta,   tbEta);
+
+// ═══════════════════════════════════════════════════════
+//  Drawing
+// ═══════════════════════════════════════════════════════
+
+function drawBackground() {
+  ctx.fillStyle = '#000009';
+  ctx.fillRect(0, 0, CW, CH);
+  for (const s of STARS) {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
+    ctx.fill();
+  }
+}
+
+function drawSpacecraft(thrust) {
+  // ── Solid white body + shelves (no outline — matches reference image) ──
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(BX,  BY,     BW,      BH);           // main body
+  ctx.fillRect(BX2, US_TOP, SHELF_W, SHELF_H);       // upper nozzle shelf
+  ctx.fillRect(BX2, LS_TOP, SHELF_W, SHELF_H);       // lower nozzle shelf
+  // The space between US_BOT and LS_TOP on the right wall is the
+  // nozzle exit — left intentionally unfilled so the background shows through.
+
+  // ── Thrust arrow ────────────────────────────────────────────────────────
+  // Scales from 50 px (tiny thrust) to 200 px (MAX_THRUST_VIS).
+  // Points LEFT — spacecraft accelerates left.
+  if (thrust > 1e-12) {
+    const frac  = Math.min(thrust / MAX_THRUST_VIS, 1.0);
+    const len   = 50 + 150 * frac;              // 50 – 200 px total length
+    const tipX  = ARR_TAIL_X - len;             // leftmost x of arrowhead
+    const hLen  = Math.min(40, len * 0.36);     // arrowhead axial length
+    const hW    = hLen * 0.90;                  // arrowhead half-width (tall head)
+
+    ctx.save();
+    ctx.strokeStyle = '#ff1744';
+    ctx.fillStyle   = '#ff1744';
+    ctx.lineWidth   = 10;
+    ctx.lineCap     = 'butt';
+
+    // Shaft
+    ctx.beginPath();
+    ctx.moveTo(ARR_TAIL_X,  CY);
+    ctx.lineTo(tipX + hLen, CY);
+    ctx.stroke();
+
+    // Arrowhead — solid filled triangle
+    ctx.beginPath();
+    ctx.moveTo(tipX,        CY);
+    ctx.lineTo(tipX + hLen, CY - hW);
+    ctx.lineTo(tipX + hLen, CY + hW);
+    ctx.closePath();
+    ctx.fill();
+
+    // "acc." — page font (Segoe UI / system-ui), regular weight, red
+    // Positioned just to the right of the arrowhead base
+    ctx.font         = '20px "Segoe UI", system-ui, Arial, sans-serif';
+    ctx.textAlign    = 'left';
+    ctx.textBaseline = 'middle';
+    //ctx.fillText('acc.', tipX + hLen + 40, CY);
+
+    ctx.restore();
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    const r = ORB_R[p.prop];
+
+    // Soft glow halo
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 2.8, 0, Math.PI * 2);
+    ctx.fillStyle   = ORB_GLOW[p.prop];
+    ctx.globalAlpha = 1.0;
+    ctx.fill();
+
+    // Bright solid core
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle   = ORB_COLOR[p.prop];
+    ctx.globalAlpha = 1.0;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1.0;
+}
+
+// ═══════════════════════════════════════════════════════
+//  Output readouts
+// ═══════════════════════════════════════════════════════
+function updateOutputs(res) {
+  oThrust.textContent = fmt4g(res.T)    + ' N';
+  oMdot  .textContent = fmt4g(res.mdot) + ' kg/s';
+  oIsp   .textContent = fmt4g(res.isp)  + ' s';
+  oVe    .textContent = 'or ' + fmt4g(res.ve) + ' m/s';
+}
+
+// ═══════════════════════════════════════════════════════
+//  Animation loop
+// ═══════════════════════════════════════════════════════
+function animate(ts) {
+  if (lastTime === null) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 1000.0, 0.1);
+  lastTime = ts;
+
+  const flow  = parseFloat(slFlow.value);
+  const power = parseFloat(slPower.value);
+  const eta   = parseFloat(slEta.value);
+
+  const res = compute(flow, power, eta, M_MOLAR[selectedProp]);
+  updateOutputs(res);
+
+  // Particle speed scales with exhaust velocity
+  const veNorm = Math.sqrt(Math.min(res.ve / MAX_VE_VIS, 1.0));
+  const vPxS   = (0.5 + 11.5 * veNorm) * (CW / 10.0);
+
+  for (const p of particles) p.vx = vPxS;
+
+  // Spawn — dense stream, minimum 30 particles/s
+  if (res.T > 1e-12) {
+    spawnTimer += dt;
+    const spawnRate = Math.max(flow * 20.0, 30.0);
+    const interval  = 1.0 / spawnRate;
+
+    while (spawnTimer >= interval) {
+      spawnTimer -= interval;
+      if (particles.length < MAX_ORBS) {
+        // Spawn within the nozzle exit gap (GAP_H tall, centred on CY)
+        const halfGap = (GAP_H / 2) * 0.80;
+        const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
+        particles.push({ x: EX, y: CY + yOff, vx: vPxS, prop: selectedProp });
+      }
+    }
+  } else {
+    spawnTimer = 0;
+  }
+
+  // Advance and cull
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].x += particles[i].vx * dt;
+    if (particles[i].x > CW + 20) particles.splice(i, 1);
+  }
+
+  drawBackground();
+  drawSpacecraft(res.T);
+  drawParticles();
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
