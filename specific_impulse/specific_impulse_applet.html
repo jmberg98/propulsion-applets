@@ -11,7 +11,7 @@
   onload="renderMathInElement(document.body,{
     delimiters:[
       {left:'$$',right:'$$',display:true},
-      {left:'$',right:'$',display:false}
+      {left:'$$',right:'$$',display:false}
     ],
     throwOnError:false
   })"></script>
@@ -31,7 +31,7 @@ body {
 }
 
 #hdr {
-  width: 872px;
+  width: 960px;
   display: flex; align-items: baseline; gap: 12px;
   margin-bottom: 8px;
 }
@@ -45,14 +45,14 @@ body {
 }
 
 .page-intro {
-  width: 872px;
+  width: 960px;
   font-size: 12.5px; line-height: 1.72; color: #8898b4;
   margin-bottom: 18px;
 }
 .page-intro strong { color: #b8c4d8; }
 
 #theory {
-  width: 872px;
+  width: 960px;
   display: flex; flex-direction: column; gap: 14px;
   margin-bottom: 16px;
 }
@@ -62,6 +62,7 @@ body {
   border: 1px solid #1e2a42;
   border-radius: 5px;
   padding: 18px 22px 16px;
+  overflow: visible;
 }
 
 .th-hdr {
@@ -90,7 +91,8 @@ body {
   background: #101828;
   border: 1px solid #1a2840;
   border-radius: 4px;
-  padding: 12px 28px 12px;
+  padding: 12px 22px 14px;
+  overflow: visible;
 }
 
 .eq-step-label {
@@ -115,21 +117,21 @@ body {
 .hl-E { color: #b388ff; }
 
 .demo-hdr-row {
-  width: 872px;
+  width: 960px;
   display: flex; align-items: baseline; gap: 10px;
   margin-bottom: 6px;
 }
 .demo-hdr-row h2 { font-size: 13px; font-weight: 700; color: #e8ecf5; }
 
 .demo-blurb {
-  width: 872px;
+  width: 960px;
   font-size: 12px; line-height: 1.65; color: #8898b4;
   margin-bottom: 8px;
 }
 .demo-blurb strong { color: #b8c4d8; }
 
 #app {
-  width: 872px;
+  width: 960px;
   display: flex; flex-direction: column;
   background: #141c2e;
   border: 1px solid #1e2a42;
@@ -140,7 +142,7 @@ body {
 
 #top-row { display: flex; }
 #cv-wrap { flex-shrink: 0; line-height: 0; border-right: 1px solid #1e2a42; }
-canvas { display: block; width: 620px; height: 400px; }
+canvas { display: block; width: 700px; height: 400px; }
 
 #rp {
   flex: 1; padding: 16px 14px;
@@ -186,7 +188,8 @@ canvas { display: block; width: 620px; height: 400px; }
 
 footer { margin-top: 10px; font-size: 11px; color: #384555; }
 
-.katex-display { margin: 3px 0 !important; overflow-x: auto; }
+/* KaTeX — no per-equation scroll bars; containers are wide enough */
+.katex-display { margin: 3px 0 !important; overflow-x: visible; }
 .katex { font-size: 1.02em; }
 </style>
 </head>
@@ -200,592 +203,99 @@ footer { margin-top: 10px; font-size: 11px; color: #384555; }
 <p class="page-intro">
   An electric thruster expels propellant to generate thrust. Two key metrics govern performance:
   <strong>thrust</strong> — the instantaneous force produced — and
-  <strong>specific impulse</strong> ($I_{sp}$) — the impulse per unit propellant mass,
+  <strong>specific impulse</strong> ($$I_{sp}$$) — the impulse per unit propellant mass,
   the primary figure of merit for propellant efficiency.
 </p>
 
 <div id="theory">
 
-  <!-- Block 1: Thrust -->
+  <!-- ═══════════════════════════════════════════════════
+       Block 1 : Thrust — C.V. Analysis
+  ════════════════════════════════════════════════════ -->
   <div class="theory-block">
     <div class="th-hdr">Thrust — Control Volume Analysis</div>
 
     <p class="th-body">
-      Apply conservation laws to a <strong>control volume (C.V.)</strong> enclosing the nozzle exit.
-      Assume <strong>steady-state</strong> operation, no viscous forces, and a uniform exit stream
-      at velocity $v_e$, exit area $A_e$, and pressure $P_e$, exhausting into ambient $P_{amb}$.
-      The thruster stand exerts reaction force $F_N$ on the vehicle.
+      Apply conservation laws to a <strong>control volume (C.V.)</strong> enclosing the nozzle
+      exit. Assume <strong>steady-state</strong> operation, no viscous forces, and a uniform exit
+      stream at velocity $$v_e$$, exit area $$A_e$$, and pressure $$P_e$$, exhausting into ambient
+      pressure $$P_{amb}$$. The thruster stand exerts reaction force $$F_N$$ on the vehicle.
     </p>
 
     <!-- C.V. Diagram -->
     <div class="cv-diagram">
-      <svg viewBox="0 0 820 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+      <svg viewBox="0 0 820 170" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;display:block;">
         <defs>
           <marker id="arr-ex" markerWidth="10" markerHeight="7"
                   refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#00e5ff"/>
+            <polygon points="0 0,10 3.5,0 7" fill="#00e5ff"/>
           </marker>
           <marker id="arr-fn" markerWidth="10" markerHeight="7"
                   refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0, 10 3.5, 0 7" fill="#ff4060"/>
-          </marker>
-          <marker id="arr-pa" markerWidth="8" markerHeight="5.6"
-                  refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0, 8 2.8, 0 5.6" fill="#69f0ae" opacity="0.75"/>
+            <polygon points="0 0,10 3.5,0 7" fill="#ff4060"/>
           </marker>
           <marker id="arr-md" markerWidth="8" markerHeight="5.6"
                   refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0, 8 2.8, 0 5.6" fill="#ff9100"/>
+            <polygon points="0 0,8 2.8,0 5.6" fill="#ff9100"/>
           </marker>
         </defs>
 
+        <!-- background -->
         <rect width="820" height="170" fill="#0d1624"/>
 
-        <!-- C.V. dashed boundary -->
-        <rect x="18" y="10" width="784" height="150" fill="none"
-              stroke="#26415e" stroke-width="1.4" stroke-dasharray="7 4" rx="2"/>
-        <text x="28" y="25" fill="#26415e" font-size="9.5"
+        <!-- C.V. dashed boundary — gap matches exhaust stream y=75..95 -->
+        <path d="M46 36 L46 134 L170 134 L170 126
+                 L206 126 L206 95  L170 95  L170 75
+                 L206 75  L206 44  L170 44  L170 36 Z"
+              fill="none" stroke="#26415e" stroke-width="1.8" stroke-dasharray="7 4"/>
+        <text x="52" y="30" fill="#26415e" font-size="9.5"
               font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="1.5">C.V.</text>
 
-        <!-- Spacecraft body -->
-        <rect x="52" y="40" width="115" height="90" fill="#d6deed" rx="1"/>
-        <rect x="52" y="40" width="115" height="7"  fill="#c2ccde" rx="1"/>
+        <!-- spacecraft body -->
+        <rect x="52"  y="40" width="115" height="90" fill="#d6deed" rx="1"/>
+        <rect x="52"  y="40" width="115" height="7"  fill="#c2ccde" rx="1"/>
 
-        <!-- Nozzle shelves — gap y = 71..99 -->
+        <!-- nozzle shelves — gap y = 71..99 -->
         <rect x="167" y="48" width="36" height="23" fill="#d6deed"/>
         <rect x="167" y="99" width="36" height="23" fill="#d6deed"/>
 
-        <!-- Exhaust glow strip -->
-        <rect x="203" y="71" width="560" height="28" fill="rgba(0,180,220,0.04)" rx="1"/>
+        <!-- exhaust glow strip — exit plane (x=203) to arrow tips (x=470) only -->
+        <rect x="203" y="71" width="267" height="28"
+              fill="rgba(0,180,220,0.09)" rx="1"/>
 
-        <!-- Exhaust velocity arrows -->
-        <line x1="203" y1="75" x2="385" y2="75"
-              stroke="#00e5ff" stroke-width="1.3" opacity="0.55" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="80" x2="435" y2="80"
-              stroke="#00e5ff" stroke-width="1.7" opacity="0.78" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="85" x2="468" y2="85"
-              stroke="#00e5ff" stroke-width="2.1" opacity="1.00" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="90" x2="435" y2="90"
-              stroke="#00e5ff" stroke-width="1.7" opacity="0.78" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="95" x2="385" y2="95"
-              stroke="#00e5ff" stroke-width="1.3" opacity="0.55" marker-end="url(#arr-ex)"/>
+        <!-- exhaust velocity arrows (span the exhaust stream) -->
+        <line x1="203" y1="75" x2="470" y2="75" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="80" x2="470" y2="80" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="85" x2="470" y2="85" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="90" x2="470" y2="90" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="95" x2="470" y2="95" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
 
-        <!-- Exit plane dashed line -->
-        <line x1="203" y1="30" x2="203" y2="140"
-              stroke="#ff9100" stroke-width="1" stroke-dasharray="4 3" opacity="0.38"/>
-        <text x="206" y="29" fill="#ff9100" font-size="8.5"
-              font-family="'Segoe UI',sans-serif" opacity="0.45" letter-spacing="0.3">exit plane</text>
+        <!-- exit plane dashed line — spans exactly the exhaust stream (y=75 to y=95) -->
+        <line x1="203" y1="75" x2="203" y2="95"
+              stroke="#ff9100" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.70"/>
+        <text x="207" y="73" fill="#ff9100" font-size="8.5"
+              font-family="'Segoe UI',sans-serif" opacity="0.65" letter-spacing="0.3">exit plane</text>
 
-        <!-- ṁ label -->
+        <!-- ṁ label + arrow -->
         <text x="283" y="61" fill="#ff9100" font-size="13"
               font-family="'Courier New',monospace">ṁ</text>
         <line x1="298" y1="57" x2="328" y2="57"
               stroke="#ff9100" stroke-width="1.2" opacity="0.60" marker-end="url(#arr-md)"/>
 
-        <!-- Exit labels: ve, Ae, Pe -->
-        <text x="488" y="74" fill="#00e5ff"  font-size="12" font-family="'Courier New',monospace" font-style="italic">v</text>
-        <text x="497" y="77" fill="#00e5ff"  font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="88" fill="#b8c4d8"  font-size="12" font-family="'Courier New',monospace" font-style="italic">A</text>
-        <text x="497" y="91" fill="#b8c4d8"  font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="102" fill="#69f0ae" font-size="12" font-family="'Courier New',monospace" font-style="italic">P</text>
-        <text x="497" y="105" fill="#69f0ae" font-size="9"  font-family="'Courier New',monospace">e</text>
+        <!-- exit-stream property labels: ve, Ae, Pe -->
+        <text x="488" y="74"  fill="#00e5ff"  font-size="12" font-family="'Courier New',monospace" font-style="italic">v</text>
+        <text x="497" y="77"  fill="#00e5ff"  font-size="9"  font-family="'Courier New',monospace">e</text>
+        <text x="488" y="88"  fill="#b8c4d8"  font-size="12" font-family="'Courier New',monospace" font-style="italic">A</text>
+        <text x="497" y="91"  fill="#b8c4d8"  font-size="9"  font-family="'Courier New',monospace">e</text>
+        <text x="488" y="102" fill="#69f0ae"  font-size="12" font-family="'Courier New',monospace" font-style="italic">P</text>
+        <text x="497" y="105" fill="#69f0ae"  font-size="9"  font-family="'Courier New',monospace">e</text>
 
-        <!-- Pamb top arrows (pointing down = inward) -->
-        <line x1="592" y1="10" x2="592" y2="26" stroke="#69f0ae" stroke-width="1.3" opacity="0.52" marker-end="url(#arr-pa)"/>
-        <line x1="652" y1="10" x2="652" y2="26" stroke="#69f0ae" stroke-width="1.3" opacity="0.52" marker-end="url(#arr-pa)"/>
-        <line x1="712" y1="10" x2="712" y2="26" stroke="#69f0ae" stroke-width="1.3" opacity="0.52" marker-end="url(#arr-pa)"/>
+        <!-- Pamb labels in ambient region (above and below exhaust stream) -->
+        <text x="610" y="48"  fill="#69f0ae" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
+        <text x="621" y="51"  fill="#69f0ae" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
+        <text x="610" y="126" fill="#69f0ae" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
+        <text x="621" y="129" fill="#69f0ae" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
 
-        <!-- Pamb bottom arrows (pointing up = inward) -->
-        <line x1="592" y1="160" x2="592" y2="144" stroke="#69f0ae" stroke-width="1.3" opacity="0.52" marker-end="url(#arr-pa)"/>
-        <line x1="652" y1="160" x2="652" y2="144" stroke="#69f0ae" stroke-width="1.3" opacity="0.52" marker-end="url(#arr-pa)"/>
-        <line x1="712" y1="160" x2="712" y2="144" stroke="#69f0ae" stroke-width="1.3" opacity="0.52" marker-end="url(#arr-pa)"/>
-
-        <!-- Pamb label -->
-        <text x="728" y="82"  fill="#69f0ae" font-size="12" font-family="'Courier New',monospace" font-style="italic" opacity="0.68">P</text>
-        <text x="737" y="85"  fill="#69f0ae" font-size="9"  font-family="'Courier New',monospace" opacity="0.68">amb</text>
-
-        <!-- FN arrow pointing left -->
+        <!-- FN arrow (thrust reaction, pointing left) -->
         <line x1="52" y1="85" x2="18" y2="85"
-              stroke="#ff4060" stroke-width="2.5" marker-end="url(#arr-fn)"/>
-        <text x="18" y="78" fill="#ff4060" font-size="12" font-family="'Courier New',monospace" font-style="italic">F</text>
-        <text x="27" y="81" fill="#ff4060" font-size="9"  font-family="'Courier New',monospace">N</text>
-
-        <!-- Assumption note -->
-        <text x="196" y="162" fill="#263545" font-size="9"
-              font-family="'Segoe UI',sans-serif" letter-spacing="0.3">
-          Steady state · Uniform exit stream · No viscous forces · Propellant initially at rest on vehicle
-        </text>
-      </svg>
-    </div>
-
-    <div class="eq-panel">
-      <span class="eq-step-label">Conservation of Mass — net mass outflow = 0 at steady state</span>
-      $$0 = -\textcolor{#ff9100}{\dot{m}} + \rho\,v_e\,A_e
-        \qquad\Longrightarrow\qquad
-        \textcolor{#ff9100}{\dot{m}} = \rho\,v_e\,A_e$$
-
-      <span class="eq-step-label">Conservation of Momentum — Reynolds Transport Theorem, time-derivative vanishes at steady state</span>
-      $$\underbrace{\dfrac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV}_{=\;0}
-        \;+\;
-        \oint_{CS}\rho\,\mathbf{V}\!\left(\mathbf{V}\cdot\hat{n}\right)dS
-        \;=\;
-        \sum\mathbf{F}_{ext}$$
-
-      <span class="eq-step-label">Axial component — only the exit plane contributes momentum flux; pressure acts on all C.V. surfaces</span>
-      $$\textcolor{#c8d4e8}{F_N}
-        \;=\;
-        \underbrace{\textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{v_e}}_{\text{kinetic thrust}}
-        \;+\;
-        \underbrace{\textcolor{#69f0ae}{(P_e - P_{amb})\,A_e}}_{\text{pressure thrust}}$$
-
-      <div class="eq-divider"></div>
-
-      <span class="eq-step-label">Define effective exhaust velocity $c$ — unifies kinetic and pressure contributions into one term</span>
-      $$\textcolor{#00e5ff}{c}
-        \;\equiv\;
-        \textcolor{#00e5ff}{v_e}
-        + \frac{\textcolor{#69f0ae}{(P_e - P_{amb})\,A_e}}{\textcolor{#ff9100}{\dot{m}}}
-        \qquad\Longrightarrow\qquad
-        \boxed{\;\textcolor{#c8d4e8}{F_N} = \textcolor{#ff9100}{\dot{m}}\cdot\textcolor{#00e5ff}{c}\;}$$
-
-      <span class="eq-caption">
-        <span class="hl-F">Thrust</span> =
-        <span class="hl-m">mass flow rate</span> &times;
-        <span class="hl-v">effective exhaust velocity</span>.
-        &nbsp;When $P_e = P_{amb}$, pressure terms cancel and $c = v_e$.
-      </span>
-    </div>
-  </div>
-
-  <!-- Block 2: Specific Impulse & Power -->
-  <div class="theory-block">
-    <div class="th-hdr">Specific Impulse &amp; Input Power</div>
-
-    <p class="th-body">
-      Propellant is carried at a premium — every kilogram displaces payload.
-      <strong>Specific impulse</strong> normalises total impulse by propellant mass (or Earth weight),
-      making it the universal efficiency metric. In the spacecraft frame, expelled propellant
-      carries kinetic energy, directly linking <strong>electrical input power</strong> to exhaust velocity.
-    </p>
-
-    <div class="eq-panel">
-      <span class="eq-step-label">Total impulse — integrate thrust over burn time for constant $c$</span>
-      $$\text{Impulse}
-        = \int \textcolor{#c8d4e8}{F_N}\,dt
-        = \int \textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}\,dt
-        = \textcolor{#00e5ff}{c}\int \textcolor{#ff9100}{\dot{m}}\,dt
-        = \textcolor{#00e5ff}{c}\cdot m_\text{prop}$$
-
-      <span class="eq-step-label">Specific impulse — two equivalent conventions; seconds is historical, m/s is physical</span>
-      $$\textcolor{#00e5ff}{I_{sp}}
-        = \frac{\text{Impulse}}{m_\text{prop}\,g_0}
-        = \frac{\textcolor{#00e5ff}{c}}{g_0}\;\;[\text{s}]
-        \qquad\text{or}\qquad
-        \textcolor{#00e5ff}{I_{sp}}
-        = \frac{\text{Impulse}}{m_\text{prop}}
-        = \textcolor{#00e5ff}{c}\;\;[\text{m/s}]$$
-
-      <div class="eq-divider"></div>
-
-      <span class="eq-step-label">Jet power — kinetic energy delivered to exhaust per unit time in the spacecraft frame</span>
-      $$\textcolor{#b388ff}{P_{jet}}
-        = \frac{d}{dt}\!\left(\tfrac{1}{2}\,m_\text{prop}\,\textcolor{#00e5ff}{c}^2\right)
-        = \tfrac{1}{2}\,\textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
-        = \tfrac{1}{2}\,\textcolor{#c8d4e8}{F_N}\cdot\textcolor{#00e5ff}{c}$$
-
-      <span class="eq-step-label">Couple to electrical input through efficiency $\eta$, then solve for $c$ and $F_N$</span>
-      $$\textcolor{#b388ff}{P_{jet}} = \eta\,\textcolor{#b388ff}{P_{input}}
-        \;\;\Longrightarrow\;\;
-        \tfrac{1}{2}\,\textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
-        = \eta\,\textcolor{#b388ff}{P_{input}}$$
-
-      <span class="eq-step-label">Final results</span>
-      $$\boxed{\;\textcolor{#00e5ff}{c}
-          = \sqrt{\dfrac{2\,\eta\,\textcolor{#b388ff}{P_{input}}}{\textcolor{#ff9100}{\dot{m}}}}\;}
-        \qquad\qquad
-        \boxed{\;\textcolor{#c8d4e8}{F_N}
-          = \sqrt{2\,\eta\,\textcolor{#b388ff}{P_{input}}\cdot\textcolor{#ff9100}{\dot{m}}}\;}$$
-
-      <span class="eq-caption">
-        Higher <span class="hl-E">input power</span> or lower <span class="hl-m">mass flow</span>
-        both raise <span class="hl-v">exhaust velocity &amp; $I_{sp}$</span> —
-        but reducing $\dot{m}$ also reduces <span class="hl-F">thrust</span>.
-        Explore the trade-off below.
-      </span>
-    </div>
-  </div>
-
-</div><!-- /#theory -->
-
-<div class="demo-hdr-row">
-  <h2>Interactive Simulator</h2>
-  <span class="badge">Demo</span>
-</div>
-<p class="demo-blurb">
-  Assume <strong>no gravity</strong>, <strong>no drag</strong>, and vacuum
-  ($P_{amb} = 0$, $P_e \approx 0$). Effective and actual exhaust velocity are equal:
-  $c = v_e = \sqrt{2\,\eta\,P_{input}/\dot{m}}$, and thrust reduces to $F_N = \dot{m}\,v_e$.
-</p>
-
-<div id="app">
-  <div id="top-row">
-    <div id="cv-wrap">
-      <canvas id="cnv" width="620" height="400"></canvas>
-    </div>
-    <div id="rp">
-      <div>
-        <div class="sect-hdr">Propellant</div>
-        <div id="radio-wrap"></div>
-      </div>
-      <div class="sl-group">
-        <div class="sl-label">Flow Rate &nbsp;(mol / s)</div>
-        <div class="sl-row">
-          <input type="range" id="sl-flow"  min="0" max="10"   step="0.0001" value="0.5">
-          <input type="text"  id="tb-flow"  value="0.5">
-        </div>
-      </div>
-      <div class="sl-group">
-        <div class="sl-label">Power &nbsp;(kW)</div>
-        <div class="sl-row">
-          <input type="range" id="sl-power" min="0" max="5000" step="0.1" value="10">
-          <input type="text"  id="tb-power" value="10">
-        </div>
-      </div>
-      <div class="sl-group">
-        <div class="sl-label">Efficiency &nbsp;&#951;</div>
-        <div class="sl-row">
-          <input type="range" id="sl-eta" min="0" max="1" step="0.01" value="0.5">
-          <input type="text"  id="tb-eta" value="0.5">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="out-bar">
-    <div class="out-cell">
-      <div class="out-label">Thrust</div>
-      <div class="out-val" id="o-thrust" style="color:#e8ecf5">0 N</div>
-    </div>
-    <div class="out-cell">
-      <div class="out-label">Mass Flow Rate</div>
-      <div class="out-val" id="o-mdot" style="color:#ff9100">0 kg/s</div>
-    </div>
-    <div class="out-cell">
-      <div class="out-label">Specific Impulse</div>
-      <div class="out-val" id="o-isp" style="color:#00e5ff">0 s</div>
-      <div class="out-sub" id="o-ve"  style="color:#69f0ae">or 0 m/s</div>
-    </div>
-  </div>
-</div>
-
-<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
-
-<script>
-'use strict';
-
-// ═══════════════════════════════════════════════════════
-//  Constants
-// ═══════════════════════════════════════════════════════
-const G0 = 9.80665;
-
-const PROP_KEYS = ['H\u2082O', 'Hydrazine', 'Argon', 'Lithium'];
-
-const M_MOLAR = {
-  'H\u2082O':  0.018015,
-  'Hydrazine': 0.032045,
-  'Argon':     0.039948,
-  'Lithium':   0.006941
-};
-
-const ORB_COLOR = {
-  'H\u2082O':  '#00e5ff',
-  'Hydrazine': '#ff6d00',
-  'Argon':     '#d500f9',
-  'Lithium':   '#ff1744'
-};
-
-const ORB_GLOW = {
-  'H\u2082O':  'rgba(0,229,255,0.22)',
-  'Hydrazine': 'rgba(255,109,0,0.22)',
-  'Argon':     'rgba(213,0,249,0.22)',
-  'Lithium':   'rgba(255,23,68,0.22)'
-};
-
-const ORB_R = {
-  'H\u2082O':  3.5,
-  'Hydrazine': 4.5,
-  'Argon':     5.0,
-  'Lithium':   3.0
-};
-
-const MAX_THRUST_VIS = 2000;
-const MAX_VE_VIS     = 50000;
-const MAX_ORBS       = 450;
-
-// ═══════════════════════════════════════════════════════
-//  Physics
-// ═══════════════════════════════════════════════════════
-function compute(flowMolS, powerKW, eta, mMolar) {
-  const mdot = flowMolS * mMolar;
-  const pJet = powerKW * 1000.0 * eta;
-  if (mdot < 1e-12 || pJet < 1e-12) return { T: 0, mdot: 0, ve: 0, isp: 0 };
-  const ve = Math.sqrt(2.0 * pJet / mdot);
-  return { T: mdot * ve, mdot, ve, isp: ve / G0 };
-}
-
-// ═══════════════════════════════════════════════════════
-//  Formatting
-// ═══════════════════════════════════════════════════════
-function fmt4g(v) {
-  if (!isFinite(v) || v === 0) return '0';
-  const s = v.toPrecision(4);
-  if (s.includes('e')) return s.replace(/\.?0+(e)/, '$1');
-  return String(parseFloat(s));
-}
-
-// ═══════════════════════════════════════════════════════
-//  Canvas setup
-// ═══════════════════════════════════════════════════════
-const canvas = document.getElementById('cnv');
-const ctx    = canvas.getContext('2d');
-const CW = canvas.width;
-const CH = canvas.height;
-
-// ── Spacecraft geometry ──────────────────────────────
-const BX = 160, BY = 82, BW = 198, BH = 198;
-const BX2 = BX + BW;
-const CY  = BY + BH / 2;
-
-const SHELF_W = 48;
-const SHELF_H = 26;
-const GAP_H   = 22;
-
-const EX = BX2 + SHELF_W;
-
-const US_TOP = CY - GAP_H / 2 - SHELF_H;
-const LS_TOP = CY + GAP_H / 2;
-
-const ARR_TAIL_X = BX - 4;
-
-// ═══════════════════════════════════════════════════════
-//  Stars
-// ═══════════════════════════════════════════════════════
-const STARS = Array.from({ length: 200 }, () => ({
-  x: Math.random() * CW,
-  y: Math.random() * CH,
-  r: Math.random() * 1.1 + 0.15,
-  a: Math.random() * 0.5 + 0.2
-}));
-
-// ═══════════════════════════════════════════════════════
-//  App state
-// ═══════════════════════════════════════════════════════
-let selectedProp = PROP_KEYS[0];
-let particles    = [];
-let spawnTimer   = 0;
-let lastTime     = null;
-
-// ═══════════════════════════════════════════════════════
-//  DOM references
-// ═══════════════════════════════════════════════════════
-const slFlow  = document.getElementById('sl-flow');
-const slPower = document.getElementById('sl-power');
-const slEta   = document.getElementById('sl-eta');
-const tbFlow  = document.getElementById('tb-flow');
-const tbPower = document.getElementById('tb-power');
-const tbEta   = document.getElementById('tb-eta');
-const oThrust = document.getElementById('o-thrust');
-const oMdot   = document.getElementById('o-mdot');
-const oIsp    = document.getElementById('o-isp');
-const oVe     = document.getElementById('o-ve');
-
-// ═══════════════════════════════════════════════════════
-//  Build radio buttons
-// ═══════════════════════════════════════════════════════
-(function buildRadios() {
-  const wrap = document.getElementById('radio-wrap');
-  PROP_KEYS.forEach((key, i) => {
-    const lbl     = document.createElement('label');
-    lbl.className = 'radio-row';
-    lbl.style.color = ORB_COLOR[key];
-
-    const inp   = document.createElement('input');
-    inp.type    = 'radio';
-    inp.name    = 'propellant';
-    inp.value   = key;
-    inp.checked = (i === 0);
-
-    lbl.appendChild(inp);
-    lbl.appendChild(document.createTextNode(
-      '\u00a0' + key + '\u00a0\u00a0(' + fmt4g(M_MOLAR[key] * 1e3) + '\u00a0g/mol)'
-    ));
-    wrap.appendChild(lbl);
-
-    inp.addEventListener('change', () => {
-      if (inp.checked) { selectedProp = key; particles = []; spawnTimer = 0; }
-    });
-  });
-}());
-
-// ═══════════════════════════════════════════════════════
-//  Slider <-> TextBox links
-// ═══════════════════════════════════════════════════════
-function snapStep(val, min, step) {
-  if (!step || step <= 0) return val;
-  const dp = Math.max(0, -Math.floor(Math.log10(step)));
-  return parseFloat((min + Math.round((val - min) / step) * step).toFixed(dp));
-}
-
-function linkSliderTb(slider, tb) {
-  slider.addEventListener('input', () => { tb.value = fmt4g(parseFloat(slider.value)); });
-
-  function apply() {
-    const raw = parseFloat(tb.value);
-    if (!isFinite(raw)) { tb.value = fmt4g(parseFloat(slider.value)); return; }
-    const val = snapStep(
-      Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), raw)),
-      parseFloat(slider.min), parseFloat(slider.step)
-    );
-    slider.value = val;
-    tb.value     = fmt4g(val);
-  }
-
-  tb.addEventListener('keydown', e => { if (e.key === 'Enter') { apply(); tb.blur(); } });
-  tb.addEventListener('blur', apply);
-}
-
-linkSliderTb(slFlow,  tbFlow);
-linkSliderTb(slPower, tbPower);
-linkSliderTb(slEta,   tbEta);
-
-// ═══════════════════════════════════════════════════════
-//  Drawing
-// ═══════════════════════════════════════════════════════
-function drawBackground() {
-  ctx.fillStyle = '#080f1c';
-  ctx.fillRect(0, 0, CW, CH);
-  for (const s of STARS) {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
-    ctx.fill();
-  }
-}
-
-function drawSpacecraft(thrust) {
-  ctx.fillStyle = '#d6deed';
-  ctx.fillRect(BX,  BY,     BW,      BH);
-  ctx.fillRect(BX2, US_TOP, SHELF_W, SHELF_H);
-  ctx.fillRect(BX2, LS_TOP, SHELF_W, SHELF_H);
-
-  if (thrust > 1e-12) {
-    const frac  = Math.min(thrust / MAX_THRUST_VIS, 1.0);
-    const len   = 50 + 150 * frac;
-    const tipX  = ARR_TAIL_X - len;
-    const hLen  = Math.min(40, len * 0.36);
-    const hW    = hLen * 0.90;
-
-    ctx.save();
-    ctx.strokeStyle = '#ff1744';
-    ctx.fillStyle   = '#ff1744';
-    ctx.lineWidth   = 10;
-    ctx.lineCap     = 'butt';
-
-    ctx.beginPath();
-    ctx.moveTo(ARR_TAIL_X,  CY);
-    ctx.lineTo(tipX + hLen, CY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(tipX,        CY);
-    ctx.lineTo(tipX + hLen, CY - hW);
-    ctx.lineTo(tipX + hLen, CY + hW);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.restore();
-  }
-}
-
-function drawParticles() {
-  for (const p of particles) {
-    const r = ORB_R[p.prop];
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r * 2.8, 0, Math.PI * 2);
-    ctx.fillStyle   = ORB_GLOW[p.prop];
-    ctx.globalAlpha = 1.0;
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.fillStyle   = ORB_COLOR[p.prop];
-    ctx.globalAlpha = 1.0;
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1.0;
-}
-
-// ═══════════════════════════════════════════════════════
-//  Output readouts
-// ═══════════════════════════════════════════════════════
-function updateOutputs(res) {
-  oThrust.textContent = fmt4g(res.T)    + ' N';
-  oMdot  .textContent = fmt4g(res.mdot) + ' kg/s';
-  oIsp   .textContent = fmt4g(res.isp)  + ' s';
-  oVe    .textContent = 'or ' + fmt4g(res.ve) + ' m/s';
-}
-
-// ═══════════════════════════════════════════════════════
-//  Animation loop
-// ═══════════════════════════════════════════════════════
-function animate(ts) {
-  if (lastTime === null) lastTime = ts;
-  const dt = Math.min((ts - lastTime) / 1000.0, 0.1);
-  lastTime = ts;
-
-  const flow  = parseFloat(slFlow.value);
-  const power = parseFloat(slPower.value);
-  const eta   = parseFloat(slEta.value);
-
-  const res = compute(flow, power, eta, M_MOLAR[selectedProp]);
-  updateOutputs(res);
-
-  const veNorm = Math.sqrt(Math.min(res.ve / MAX_VE_VIS, 1.0));
-  const vPxS   = (0.5 + 11.5 * veNorm) * (CW / 10.0);
-
-  for (const p of particles) p.vx = vPxS;
-
-  if (res.T > 1e-12) {
-    spawnTimer += dt;
-    const spawnRate = Math.max(flow * 20.0, 30.0);
-    const interval  = 1.0 / spawnRate;
-
-    while (spawnTimer >= interval) {
-      spawnTimer -= interval;
-      if (particles.length < MAX_ORBS) {
-        const halfGap = (GAP_H / 2) * 0.80;
-        const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
-        particles.push({ x: EX, y: CY + yOff, vx: vPxS, prop: selectedProp });
-      }
-    }
-  } else {
-    spawnTimer = 0;
-  }
-
-  for (let i = particles.length - 1; i >= 0; i--) {
-    particles[i].x += particles[i].vx * dt;
-    if (particles[i].x > CW + 20) particles.splice(i, 1);
-  }
-
-  drawBackground();
-  drawSpacecraft(res.T);
-  drawParticles();
-
-  requestAnimationFrame(animate);
-}
-
-requestAnimationFrame(animate);
-</script>
-</body>
-</html>
