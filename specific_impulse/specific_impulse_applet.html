@@ -10,13 +10,24 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
   onload="renderMathInElement(document.body,{
     delimiters:[
-      {left:'$$',right:'$$',display:true},
-      {left:'$$',right:'$$',display:false}
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
     ],
     throwOnError:false
   })"></script>
 
 <style>
+:root {
+  --page-w: min(1040px, calc(100vw - 32px));
+  --c-thrust: #ff4060;
+  --c-ve:     #00e5ff;
+  --c-mass:   #ff9100;
+  --c-power:  #b388ff;
+  --c-press:  #69f0ae;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -30,33 +41,141 @@ body {
   padding: 22px 16px 36px;
 }
 
+#hdr,
+.page-intro,
+.clarify-section,
+#theory,
+.demo-hdr-row,
+.demo-blurb,
+#app {
+  width: var(--page-w);
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
 #hdr {
-  width: 960px;
-  display: flex; align-items: baseline; gap: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
   margin-bottom: 8px;
 }
-#hdr h1 { font-size: 17px; font-weight: 700; color: #e8ecf5; letter-spacing: .3px; }
-
+#hdr h1 {
+  font-size: 17px;
+  font-weight: 700;
+  color: #e8ecf5;
+  letter-spacing: .3px;
+}
 .badge {
-  font-size: 10px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; padding: 2px 8px;
-  border: 1px solid #00bcd4; border-radius: 3px;
-  color: #00bcd4; background: rgba(0,188,212,.09);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid #00bcd4;
+  border-radius: 3px;
+  color: #00bcd4;
+  background: rgba(0,188,212,.09);
 }
 
+/* ── Page intro ──────────────────────────────────────────────── */
 .page-intro {
-  width: 960px;
-  font-size: 12.5px; line-height: 1.72; color: #8898b4;
-  margin-bottom: 18px;
+  font-size: 12.5px;
+  line-height: 1.72;
+  color: #8898b4;
+  margin-bottom: 14px;
 }
 .page-intro strong { color: #b8c4d8; }
 
-#theory {
-  width: 960px;
-  display: flex; flex-direction: column; gap: 14px;
-  margin-bottom: 16px;
+/* ── Colour-highlight utility classes ────────────────────────── */
+.hl-thrust, .hl-F { color: var(--c-thrust); }
+.hl-ve,     .hl-v { color: var(--c-ve);     }
+.hl-mass,   .hl-m { color: var(--c-mass);   }
+.hl-power,  .hl-E { color: var(--c-power);  }
+.hl-press,  .hl-P { color: var(--c-press);  }
+
+/* ── Colour-key legend strip ─────────────────────────────────── */
+.colour-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-bottom: 20px;
+  padding: 9px 14px;
+  background: #111828;
+  border: 1px solid #1e2a42;
+  border-radius: 5px;
+  font-size: 11px;
+}
+.ck-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ck-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
+/* ── Clarifying-points accordion ─────────────────────────────── */
+.clarify-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #00bcd4;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+details.clarify-detail {
+  background: #141c2e;
+  border: 1px solid #1e2a42;
+  border-radius: 5px;
+  overflow: hidden;
+}
+details.clarify-detail > summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #b8c4d8;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  user-select: none;
+  transition: background .15s;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '▶';
+  font-size: 8px;
+  color: #00bcd4;
+  flex-shrink: 0;
+  transition: transform .2s ease;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:hover { background: #1a2540; }
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid #1e2a42;
+  font-size: 12.5px;
+  line-height: 1.70;
+  color: #8898b4;
+}
+.clarify-body strong { color: #b8c4d8; }
+
+/* ── Theory blocks ──────────────────────────────────────────── */
+#theory {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 16px;
+}
 .theory-block {
   background: #141c2e;
   border: 1px solid #1e2a42;
@@ -64,16 +183,20 @@ body {
   padding: 18px 22px 16px;
   overflow: visible;
 }
-
 .th-hdr {
-  font-size: 9.5px; font-weight: 700; color: #00bcd4;
-  letter-spacing: 1.2px; text-transform: uppercase;
-  padding-bottom: 5px; border-bottom: 1px solid #1c2a3c;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #00bcd4;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #1c2a3c;
   margin-bottom: 12px;
 }
-
 .th-body {
-  font-size: 12.5px; line-height: 1.70; color: #8898b4;
+  font-size: 12.5px;
+  line-height: 1.70;
+  color: #8898b4;
   margin-bottom: 14px;
 }
 .th-body strong { color: #b8c4d8; }
@@ -91,141 +214,417 @@ body {
   background: #101828;
   border: 1px solid #1a2840;
   border-radius: 4px;
-  padding: 12px 22px 14px;
+  padding: 12px 24px 14px;
   overflow: visible;
 }
-
 .eq-step-label {
   display: block;
-  font-size: 9px; letter-spacing: .8px; text-transform: uppercase;
+  font-size: 9px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
   color: #3a5068;
-  margin-top: 10px; margin-bottom: 0;
+  margin-top: 10px;
+  margin-bottom: 0;
 }
 .eq-step-label:first-child { margin-top: 2px; }
-
-.eq-divider { width: 100%; height: 1px; background: #141e30; margin: 12px 0 2px; }
-
+.eq-divider {
+  width: 100%;
+  height: 1px;
+  background: #141e30;
+  margin: 12px 0 2px;
+}
 .eq-caption {
   display: block;
-  font-size: 11px; color: #455870; text-align: center;
-  margin-top: 8px; padding-top: 8px; border-top: 1px solid #141e30;
+  font-size: 11px;
+  color: #455870;
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #141e30;
 }
-.hl-F { color: #c8d4e8; }
-.hl-m { color: #ff9100; }
-.hl-v { color: #00e5ff; }
-.hl-P { color: #69f0ae; }
-.hl-E { color: #b388ff; }
 
+/* ── Derivation dropdown (inside eq-panel) ──────────────────── */
+details.deriv-detail {
+  margin: 10px 0 6px;
+  border: 1px solid #1c2e44;
+  border-radius: 4px;
+  overflow: hidden;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  padding: 7px 14px;
+  background: #0c1824;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: #00bcd4;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  transition: background .15s;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '▶';
+  font-size: 7px;
+  color: #00bcd4;
+  flex-shrink: 0;
+  transition: transform .18s ease;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:hover { background: #0e1e30; }
+.deriv-inner {
+  padding: 6px 14px 12px;
+  background: #08111e;
+  border-top: 1px solid #1c2e44;
+}
+.deriv-inner .eq-step-label { color: #2a3d52; }
+.deriv-inner .eq-step-label:first-child { margin-top: 4px; }
+
+/* ── KaTeX ──────────────────────────────────────────────────── */
+.katex-display {
+  margin: 4px 0 !important;
+  overflow-x: visible;
+  overflow-y: visible;
+}
+.katex { font-size: 1.01em; }
+
+/* ── Demo ───────────────────────────────────────────────────── */
 .demo-hdr-row {
-  width: 960px;
-  display: flex; align-items: baseline; gap: 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
   margin-bottom: 6px;
 }
-.demo-hdr-row h2 { font-size: 13px; font-weight: 700; color: #e8ecf5; }
-
+.demo-hdr-row h2 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e8ecf5;
+}
 .demo-blurb {
-  width: 960px;
-  font-size: 12px; line-height: 1.65; color: #8898b4;
+  font-size: 12px;
+  line-height: 1.65;
+  color: #8898b4;
   margin-bottom: 8px;
 }
 .demo-blurb strong { color: #b8c4d8; }
 
+/* ── Applet ─────────────────────────────────────────────────── */
 #app {
-  width: 960px;
-  display: flex; flex-direction: column;
+  display: flex;
+  flex-direction: column;
   background: #141c2e;
   border: 1px solid #1e2a42;
   border-radius: 5px;
   overflow: hidden;
   box-shadow: 0 4px 28px rgba(0,0,0,.4);
+  margin-bottom: 20px;
 }
-
-#top-row { display: flex; }
-#cv-wrap { flex-shrink: 0; line-height: 0; border-right: 1px solid #1e2a42; }
-canvas { display: block; width: 700px; height: 400px; }
-
+#top-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+#cv-wrap {
+  flex: 0 0 700px;
+  max-width: 100%;
+  line-height: 0;
+  border-right: 1px solid #1e2a42;
+}
+canvas {
+  display: block;
+  width: 700px;
+  height: 400px;
+  max-width: 100%;
+}
 #rp {
-  flex: 1; padding: 16px 14px;
-  display: flex; flex-direction: column; gap: 18px;
+  flex: 1 1 300px;
+  min-width: 280px;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
-
 .sect-hdr {
-  font-size: 9.5px; font-weight: 700; color: #00bcd4;
-  letter-spacing: 1.2px; text-transform: uppercase;
-  padding-bottom: 5px; border-bottom: 1px solid #1c2a3c; margin-bottom: 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #00bcd4;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #1c2a3c;
+  margin-bottom: 7px;
 }
-
 .radio-row {
-  display: flex; align-items: center; gap: 7px;
-  font-size: 12px; padding: 3px 0; cursor: pointer; user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  padding: 3px 0;
+  cursor: pointer;
+  user-select: none;
 }
-.radio-row input[type=radio] { accent-color: #00bcd4; cursor: pointer; }
-
-.sl-group { display: flex; flex-direction: column; gap: 5px; }
-.sl-label { font-size: 9.5px; color: #566878; letter-spacing: .7px; text-transform: uppercase; }
-.sl-row { display: flex; align-items: center; gap: 7px; }
-.sl-row input[type=range] { flex: 1; accent-color: #00bcd4; cursor: pointer; }
+.radio-row input[type=radio] {
+  accent-color: #00bcd4;
+  cursor: pointer;
+}
+.sl-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sl-label {
+  font-size: 9.5px;
+  color: #566878;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.sl-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.sl-row input[type=range] {
+  flex: 1;
+  accent-color: #00bcd4;
+  cursor: pointer;
+}
 .sl-row input[type=text] {
-  width: 60px; padding: 3px 4px;
-  font-size: 11px; font-family: 'Courier New', monospace; text-align: center;
-  background: #0c1220; color: #00e5ff;
-  border: 1px solid #1e2c44; border-radius: 3px;
+  width: 66px;
+  padding: 3px 4px;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  background: #0c1220;
+  color: #00e5ff;
+  border: 1px solid #1e2c44;
+  border-radius: 3px;
 }
 .sl-row input[type=text]:focus {
-  outline: none; border-color: #00bcd4;
+  outline: none;
+  border-color: #00bcd4;
   box-shadow: 0 0 0 2px rgba(0,188,212,.12);
 }
-
-#out-bar { display: flex; border-top: 1px solid #1e2a42; }
+#out-bar {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid #1e2a42;
+}
 .out-cell {
-  flex: 1; padding: 9px 14px 10px;
-  background: #111828; border-right: 1px solid #1e2a42;
+  flex: 1 1 180px;
+  padding: 9px 14px 10px;
+  background: #111828;
+  border-right: 1px solid #1e2a42;
 }
 .out-cell:last-child { border-right: none; }
-.out-label { font-size: 9px; color: #445060; letter-spacing: .7px; text-transform: uppercase; margin-bottom: 3px; }
-.out-val   { font-size: 17px; font-weight: 600; font-family: 'Courier New', monospace; }
-.out-sub   { font-size: 11.5px; font-family: 'Courier New', monospace; margin-top: 2px; }
+.out-label {
+  font-size: 9px;
+  color: #445060;
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.out-val {
+  font-size: 17px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+}
+.out-sub {
+  font-size: 11.5px;
+  font-family: 'Courier New', monospace;
+  margin-top: 2px;
+}
 
-footer { margin-top: 10px; font-size: 11px; color: #384555; }
+footer {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #384555;
+  width: var(--page-w);
+}
 
-/* KaTeX — no per-equation scroll bars; containers are wide enough */
-.katex-display { margin: 3px 0 !important; overflow-x: visible; }
-.katex { font-size: 1.02em; }
+@media (max-width: 980px) {
+  #cv-wrap {
+    flex-basis: 100%;
+    border-right: none;
+    border-bottom: 1px solid #1e2a42;
+  }
+  canvas { width: 100%; height: auto; }
+}
+@media (max-width: 720px) {
+  #out-bar { flex-direction: column; }
+  .out-cell { border-right: none; border-bottom: 1px solid #1e2a42; }
+  .out-cell:last-child { border-bottom: none; }
+}
 </style>
 </head>
 <body>
 
+<!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
   <h1>Thrust &amp; Specific Impulse</h1>
   <span class="badge">In-Space</span>
 </div>
 
+<!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  An electric thruster expels propellant to generate thrust. Two key metrics govern performance:
-  <strong>thrust</strong> — the instantaneous force produced — and
-  <strong>specific impulse</strong> ($$I_{sp}$$) — the impulse per unit propellant mass,
-  the primary figure of merit for propellant efficiency.
+  Propulsion systems expel propellant to generate
+  <strong class="hl-thrust">thrust</strong> and ultimately change the momentum of the vehicle.
+  Propulsion systems must be designed with key design constraints in mind. Engineers must consider
+  <strong>mass budget</strong>, <strong class="hl-power">power budget</strong>, and meet the
+  required <strong class="hl-thrust">mission time</strong>. These requirements dictate the
+  <strong class="hl-ve">exhaust velocity</strong>,
+  <strong class="hl-power">input power</strong>, and
+  <strong class="hl-thrust">thrust</strong> of the propulsion system respectively.
 </p>
 
+<!-- ════════════════════ COLOUR KEY ════════════════════ -->
+<div class="colour-key" style="width:var(--page-w);margin-bottom:18px;">
+  <span style="font-size:9px;letter-spacing:.9px;text-transform:uppercase;color:#3a5068;align-self:center;margin-right:4px;">Colour key</span>
+  <span class="ck-item"><span class="ck-swatch" style="background:var(--c-thrust)"></span><span class="hl-thrust">Thrust · F<sub>N</sub> · Mission&nbsp;time</span></span>
+  <span class="ck-item"><span class="ck-swatch" style="background:var(--c-ve)"></span><span class="hl-ve">Exhaust velocity · c · I<sub>sp</sub> · Mass&nbsp;efficiency</span></span>
+  <span class="ck-item"><span class="ck-swatch" style="background:var(--c-mass)"></span><span class="hl-mass">Mass flow rate · ṁ · Propellant mass</span></span>
+  <span class="ck-item"><span class="ck-swatch" style="background:var(--c-power)"></span><span class="hl-power">Input power · Power&nbsp;budget · Efficiency · η</span></span>
+  <span class="ck-item"><span class="ck-swatch" style="background:var(--c-press)"></span><span class="hl-press">Pressure terms · P<sub>e</sub> · P<sub>amb</sub></span></span>
+</div>
+
+<!-- ════════════════════ DEMO HEADER ════════════════════ -->
+<div class="demo-hdr-row">
+  <h2>Interactive Simulator</h2>
+  <span class="badge">Demo</span>
+</div>
+
+<p class="demo-blurb">
+  In general, <span class="hl-thrust">thrust</span> is
+  $\textcolor{#ff4060}{F_N} =
+   \textcolor{#ff9100}{\dot{m}}\textcolor{#00e5ff}{v_e} +
+   (\textcolor{#69f0ae}{P_e - P_{amb}})A_e =
+   \textcolor{#ff9100}{\dot{m}}\textcolor{#00e5ff}{c}$.
+  For this interactive demo, assume <strong>no gravity</strong>, <strong>no drag</strong>, and
+  vacuum with negligible pressure mismatch
+  ($\textcolor{#69f0ae}{P_{amb}=0}$, $\textcolor{#69f0ae}{P_e \approx 0}$),
+  so the pressure term vanishes. Then
+  $\textcolor{#00e5ff}{c = v_e}$ and
+  $\textcolor{#00e5ff}{v_e} =
+   \sqrt{2\textcolor{#b388ff}{\eta P_{\mathrm{input}}}/\textcolor{#ff9100}{\dot{m}}}$,&nbsp;
+  $\textcolor{#ff4060}{F_N} =
+   \textcolor{#ff9100}{\dot{m}}\textcolor{#00e5ff}{v_e}$,&nbsp;
+  and
+  $\textcolor{#00e5ff}{I_{sp}} =
+   \textcolor{#00e5ff}{v_e}/g_0$.
+</p>
+
+<!-- ════════════════════ APPLET ════════════════════ -->
+<div id="app">
+  <div id="top-row">
+    <div id="cv-wrap">
+      <canvas id="cnv" width="700" height="400"></canvas>
+    </div>
+
+    <div id="rp">
+      <div>
+        <div class="sect-hdr">Propellant</div>
+        <div id="radio-wrap"></div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-label">Flow Rate &nbsp;(mol / s)</div>
+        <div class="sl-row">
+          <input type="range" id="sl-flow"  min="0" max="10"   step="0.0001" value="0.5">
+          <input type="text"  id="tb-flow"  value="0.5">
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-label">Power &nbsp;(kW)</div>
+        <div class="sl-row">
+          <input type="range" id="sl-power" min="0" max="5000" step="0.0001" value="10">
+          <input type="text"  id="tb-power" value="10">
+        </div>
+      </div>
+
+      <div class="sl-group">
+        <div class="sl-label">Efficiency</div>
+        <div class="sl-row">
+          <input type="range" id="sl-eta"   min="0" max="1"    step="0.001"  value="0.5">
+          <input type="text"  id="tb-eta"   value="0.5">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="out-bar">
+    <div class="out-cell">
+      <div class="out-label">Thrust</div>
+      <div class="out-val" id="o-thrust" style="color:#ff4060">0 N</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Mass Flow Rate</div>
+      <div class="out-val" id="o-mdot"   style="color:#ff9100">0 kg/s</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Specific Impulse</div>
+      <div class="out-val" id="o-isp"    style="color:#00e5ff">0 s</div>
+      <div class="out-sub" id="o-ve"     style="color:#69f0ae">or 0 m/s</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════ CLARIFYING POINTS ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Clarifying Points</div>
+
+  <details class="clarify-detail">
+    <summary>Why do we care about mass efficiency? Can't we just carry more propellant or refuel?</summary>
+    <div class="clarify-body">
+      In space, propellant is carried at a premium: every kg of propellant takes from the
+      <strong>mass budget</strong>, leaving less mass available for payload and other important
+      subsystems. Carrying extra propellant increases the mass of the vehicle, meaning the
+      propulsion system must additionally handle the increased mass (more on this in the Ideal
+      Rocket Equation!). Additionally, refueling introduces complexity and is not always possible,
+      especially for deep-space missions.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>Where does the input power for the propulsion system come from?</summary>
+    <div class="clarify-body">
+      Ground-based propulsion systems exclusively rely on the stored chemical energy of rocket fuel
+      and oxidizer for <strong class="hl-power">power</strong> to escape Earth's gravity. Once in
+      space, other <strong class="hl-power">power sources</strong> become available. Spacecraft
+      rely on solar or nuclear power to run their payloads — leftover energy can be used to drive
+      an electric propulsion system. This simulation assumes that
+      <strong class="hl-power">input power</strong> and
+      <strong class="hl-mass">mass flow rate</strong> are decoupled, which is true for electric
+      propulsion. Traditional chemical engines rely on combustion, so
+      <strong class="hl-power">input power</strong> and
+      <strong class="hl-mass">mass flow rate</strong> are inherently coupled.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════════ THEORY ════════════════════ -->
 <div id="theory">
 
-  <!-- ═══════════════════════════════════════════════════
-       Block 1 : Thrust — C.V. Analysis
-  ════════════════════════════════════════════════════ -->
+  <!-- ══════════════════ BLOCK 1 : THRUST ══════════════════ -->
   <div class="theory-block">
-    <div class="th-hdr">Thrust — Control Volume Analysis</div>
+    <div class="th-hdr">Thrust</div>
 
     <p class="th-body">
-      Apply conservation laws to a <strong>control volume (C.V.)</strong> enclosing the nozzle
-      exit. Assume <strong>steady-state</strong> operation, no viscous forces, and a uniform exit
-      stream at velocity $$v_e$$, exit area $$A_e$$, and pressure $$P_e$$, exhausting into ambient
-      pressure $$P_{amb}$$. The thruster stand exerts reaction force $$F_N$$ on the vehicle.
+      Let's derive the <strong class="hl-thrust">thrust</strong> of a general rocket propulsion
+      device — a device that carries its own propellant. Apply conservation laws to a
+      <strong>control volume</strong>. Assume <strong>steady-state</strong> operation, no viscous
+      forces, and a uniform exit stream with density $\rho_e$,
+      <strong class="hl-ve">velocity $v_e$</strong>, area $A_e$, and exit pressure
+      <strong class="hl-press">$P_e$</strong>, expelling into ambient pressure
+      <strong class="hl-press">$P_{amb}$</strong>. Let $\hat{\mathbf{i}}$ denote the axial
+      direction. The thrust stand measures the reaction force,
+      i.e.&nbsp;the <strong class="hl-thrust">thrust</strong>, on the vehicle.
     </p>
 
-    <!-- C.V. Diagram -->
     <div class="cv-diagram">
-      <svg viewBox="0 0 820 170" xmlns="http://www.w3.org/2000/svg"
-           style="width:100%;display:block;">
+      <svg viewBox="0 0 820 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
         <defs>
           <marker id="arr-ex" markerWidth="10" markerHeight="7"
                   refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
@@ -240,62 +639,586 @@ footer { margin-top: 10px; font-size: 11px; color: #384555; }
             <polygon points="0 0,8 2.8,0 5.6" fill="#ff9100"/>
           </marker>
         </defs>
-
-        <!-- background -->
         <rect width="820" height="170" fill="#0d1624"/>
-
-        <!-- C.V. dashed boundary — gap matches exhaust stream y=75..95 -->
-        <path d="M46 36 L46 134 L170 134 L170 126
-                 L206 126 L206 95  L170 95  L170 75
-                 L206 75  L206 44  L170 44  L170 36 Z"
+        <path d="M46 36 L46 134 L170 134 L170 126 L206 126 L206 99 L170 99 L170 71 L206 71 L206 44 L170 44 L170 36 Z"
               fill="none" stroke="#26415e" stroke-width="1.8" stroke-dasharray="7 4"/>
         <text x="52" y="30" fill="#26415e" font-size="9.5"
               font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="1.5">C.V.</text>
-
-        <!-- spacecraft body -->
-        <rect x="52"  y="40" width="115" height="90" fill="#d6deed" rx="1"/>
-        <rect x="52"  y="40" width="115" height="7"  fill="#c2ccde" rx="1"/>
-
-        <!-- nozzle shelves — gap y = 71..99 -->
-        <rect x="167" y="48" width="36" height="23" fill="#d6deed"/>
-        <rect x="167" y="99" width="36" height="23" fill="#d6deed"/>
-
-        <!-- exhaust glow strip — exit plane (x=203) to arrow tips (x=470) only -->
-        <rect x="203" y="71" width="267" height="28"
-              fill="rgba(0,180,220,0.09)" rx="1"/>
-
-        <!-- exhaust velocity arrows (span the exhaust stream) -->
+        <rect x="52" y="40" width="115" height="90" fill="#d6deed" rx="1"/>
+        <rect x="52" y="40" width="115" height="7"  fill="#c2ccde" rx="1"/>
+        <rect x="167" y="48"  width="36" height="23" fill="#d6deed"/>
+        <rect x="167" y="99"  width="36" height="23" fill="#d6deed"/>
+        <rect x="203" y="71"  width="267" height="28" fill="rgba(0,180,220,0.09)" rx="1"/>
+        <line x1="203" y1="71" x2="203" y2="99"
+              stroke="#ff9100" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.72"/>
+        <text x="207" y="68" fill="#ff9100" font-size="8.5"
+              font-family="'Segoe UI',sans-serif" opacity="0.65" letter-spacing="0.3">exit plane</text>
         <line x1="203" y1="75" x2="470" y2="75" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
         <line x1="203" y1="80" x2="470" y2="80" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
         <line x1="203" y1="85" x2="470" y2="85" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
         <line x1="203" y1="90" x2="470" y2="90" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
         <line x1="203" y1="95" x2="470" y2="95" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <text x="283" y="61" fill="#ff9100" font-size="13" font-family="'Courier New',monospace">ṁ</text>
+        <line x1="298" y1="57" x2="328" y2="57" stroke="#ff9100" stroke-width="1.2" opacity="0.60" marker-end="url(#arr-md)"/>
+        <text x="488" y="74"  fill="#00e5ff" font-size="12" font-family="'Courier New',monospace" font-style="italic">v</text>
+        <text x="497" y="77"  fill="#00e5ff" font-size="9"  font-family="'Courier New',monospace">e</text>
+        <text x="488" y="88"  fill="#b8c4d8" font-size="12" font-family="'Courier New',monospace" font-style="italic">A</text>
+        <text x="497" y="91"  fill="#b8c4d8" font-size="9"  font-family="'Courier New',monospace">e</text>
+        <text x="488" y="102" fill="#69f0ae" font-size="12" font-family="'Courier New',monospace" font-style="italic">P</text>
+        <text x="497" y="105" fill="#69f0ae" font-size="9"  font-family="'Courier New',monospace">e</text>
+        <text x="230" y="126" fill="#69f0ae" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
+        <text x="241" y="129" fill="#69f0ae" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
+        <line x1="52" y1="85" x2="18" y2="85" stroke="#ff4060" stroke-width="2.5" marker-end="url(#arr-fn)"/>
+        <text x="18" y="78" fill="#ff4060" font-size="12" font-family="'Courier New',monospace" font-style="italic">F</text>
+        <text x="27" y="81" fill="#ff4060" font-size="9"  font-family="'Courier New',monospace">N</text>
+        <text x="196" y="162" fill="#263545" font-size="9"
+              font-family="'Segoe UI',sans-serif" letter-spacing="0.3">
+          Steady state · Uniform exit stream · No viscous forces · Propellant initially at rest on vehicle
+        </text>
+      </svg>
+    </div>
 
-        <!-- exit plane dashed line — spans exactly the exhaust stream (y=75 to y=95) -->
-        <line x1="203" y1="75" x2="203" y2="95"
-              stroke="#ff9100" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.70"/>
-        <text x="207" y="73" fill="#ff9100" font-size="8.5"
-              font-family="'Segoe UI',sans-serif" opacity="0.65" letter-spacing="0.3">exit plane</text>
+    <div class="eq-panel">
 
-        <!-- ṁ label + arrow -->
-        <text x="283" y="61" fill="#ff9100" font-size="13"
-              font-family="'Courier New',monospace">ṁ</text>
-        <line x1="298" y1="57" x2="328" y2="57"
-              stroke="#ff9100" stroke-width="1.2" opacity="0.60" marker-end="url(#arr-md)"/>
+      <span class="eq-step-label">Conservation of Mass — at steady state there is no mass accumulation inside the control volume</span>
+      $$
+      \begin{aligned}
+      0 &= -\textcolor{#ff9100}{\dot{m}} + \rho_e \textcolor{#00e5ff}{v_e} A_e \\[3pt]
+      \Rightarrow\quad \textcolor{#ff9100}{\dot{m}} &= \rho_e \textcolor{#00e5ff}{v_e} A_e
+      \end{aligned}
+      $$
 
-        <!-- exit-stream property labels: ve, Ae, Pe -->
-        <text x="488" y="74"  fill="#00e5ff"  font-size="12" font-family="'Courier New',monospace" font-style="italic">v</text>
-        <text x="497" y="77"  fill="#00e5ff"  font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="88"  fill="#b8c4d8"  font-size="12" font-family="'Courier New',monospace" font-style="italic">A</text>
-        <text x="497" y="91"  fill="#b8c4d8"  font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="102" fill="#69f0ae"  font-size="12" font-family="'Courier New',monospace" font-style="italic">P</text>
-        <text x="497" y="105" fill="#69f0ae"  font-size="9"  font-family="'Courier New',monospace">e</text>
+      <span class="eq-step-label">Conservation of Momentum — Reynolds Transport Theorem for linear momentum</span>
+      $$
+      \frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
+      \;+\;
+      \oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+      \;=\;
+      \sum\mathbf{F}_{ext}
+      $$
 
-        <!-- Pamb labels in ambient region (above and below exhaust stream) -->
-        <text x="610" y="48"  fill="#69f0ae" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
-        <text x="621" y="51"  fill="#69f0ae" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
-        <text x="610" y="126" fill="#69f0ae" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
-        <text x="621" y="129" fill="#69f0ae" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
+      <details class="deriv-detail">
+        <summary>Show detailed derivation — axial projection, steady-state reduction, force balance</summary>
+        <div class="deriv-inner">
 
-        <!-- FN arrow (thrust reaction, pointing left) -->
-        <line x1="52" y1="85" x2="18" y2="85"
+          <span class="eq-step-label">Project onto the axial direction with a dot product against $\hat{\mathbf{i}}$</span>
+          $$
+          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
+          \;+\;
+          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+          \;=\;
+          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
+          $$
+
+          <span class="eq-step-label">Steady state — the unsteady volume integral vanishes</span>
+          $$
+          \begin{aligned}
+          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV &= 0
+          \\[5pt]
+          \Rightarrow\quad
+          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+          &= \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
+          \end{aligned}
+          $$
+
+          <span class="eq-step-label">Momentum flux term — only the exit plane contributes; propellant is initially at rest on the vehicle</span>
+          $$
+          \begin{aligned}
+          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+          &= \rho_e v_e^2 A_e \\
+          &= \bigl(\rho_e v_e A_e\bigr)v_e \\
+          &= \dot{m}\,v_e
+          \end{aligned}
+          $$
+
+          <span class="eq-step-label">External forces — thrust-stand reaction plus net pressure force at the exit plane</span>
+          $$
+          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
+          \;=\;
+          F_N + \bigl(P_{amb} - P_e\bigr)A_e
+          $$
+
+        </div>
+      </details>
+
+      <span class="eq-step-label">Equate momentum flux and external forces, then isolate thrust</span>
+      $$
+      F_N + \bigl(P_{amb} - P_e\bigr)A_e = \dot{m}\,v_e
+      $$
+      $$
+      \boxed{
+        \textcolor{#ff4060}{F_N}
+        \;=\;
+        \textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{v_e}
+        \;+\;
+        \bigl(\textcolor{#69f0ae}{P_e - P_{amb}}\bigr)A_e
+      }
+      $$
+
+      <div class="eq-divider"></div>
+
+      <span class="eq-step-label">Define effective exhaust velocity $c$ to absorb the pressure correction into a single quantity</span>
+      $$
+      \boxed{
+        \textcolor{#00e5ff}{c}
+        \;\equiv\;
+        \textcolor{#00e5ff}{v_e}
+        \;+\;
+        \frac{\bigl(\textcolor{#69f0ae}{P_e - P_{amb}}\bigr)A_e}{\textcolor{#ff9100}{\dot{m}}}
+      }
+      \qquad\Rightarrow\qquad
+      \textcolor{#ff4060}{F_N} = \textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}
+      $$
+
+      <span class="eq-caption">
+        <span class="hl-F">Thrust</span> =
+        <span class="hl-m">mass flow rate</span> &times;
+        <span class="hl-v">effective exhaust velocity</span>.
+        The pressure correction appears explicitly as
+        $\left(\textcolor{#69f0ae}{P_e - P_{amb}}\right)A_e$.
+      </span>
+    </div>
+  </div>
+
+  <!-- ══════════════ BLOCK 2 : SPECIFIC IMPULSE & POWER ══════════════ -->
+  <div class="theory-block">
+    <div class="th-hdr">Specific Impulse &amp; Input Power</div>
+
+    <p class="th-body">
+      A propulsion system is designed to give a <strong>change in momentum</strong>, or impulse, to
+      the spacecraft. Recall that propellant is limited in space, so we normalise the impulse by
+      propellant mass (or historically, propellant weight on Earth). In the spacecraft frame of
+      reference, the expelled propellant flow begins at rest and is accelerated to leave with
+      <strong class="hl-ve">effective exhaust velocity $c$</strong>, so the propellant stream has
+      jet power equivalent to <strong class="hl-power">input power</strong> times the
+      <strong class="hl-power">power system's efficiency</strong> factor.
+    </p>
+
+    <div class="eq-panel">
+
+      <span class="eq-step-label">Total impulse — assume constant effective exhaust velocity during the burn</span>
+      $$
+      \begin{aligned}
+      \text{Impulse}
+      &= \int \textcolor{#ff4060}{F_N}\,dt
+       = \int \textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}\,dt
+       = \textcolor{#00e5ff}{c}\int \textcolor{#ff9100}{\dot{m}}\,dt
+       = \textcolor{#00e5ff}{c}\,\textcolor{#ff9100}{m_{\mathrm{prop}}}
+      \end{aligned}
+      $$
+
+      <span class="eq-step-label">Normalise by propellant mass — impulse per unit propellant mass equals effective exhaust velocity</span>
+      $$
+      \frac{\text{Impulse}}{\textcolor{#ff9100}{m_{\mathrm{prop}}}}
+      = \textcolor{#00e5ff}{c}
+      \qquad[\mathrm{m/s}]
+      $$
+
+      <span class="eq-step-label">Historical convention — divide by $g_0$ to obtain specific impulse in seconds</span>
+      $$
+      \boxed{
+        \textcolor{#00e5ff}{I_{sp}}
+        = \frac{\text{Impulse}}{\textcolor{#ff9100}{m_{\mathrm{prop}}}\,g_0}
+        = \frac{\textcolor{#00e5ff}{c}}{g_0}
+        \qquad[\mathrm{s}]
+      }
+      $$
+
+      <div class="eq-divider"></div>
+
+      <details class="deriv-detail">
+        <summary>Show jet power derivation — kinetic energy argument</summary>
+        <div class="deriv-inner">
+
+          <span class="eq-step-label">Jet kinetic energy — in the spacecraft frame the propellant starts at rest, so all KE comes from the propulsion system</span>
+          $$
+          \begin{aligned}
+          E_{\mathrm{jet}}
+          &= \tfrac{1}{2}\,\textcolor{#ff9100}{m_{\mathrm{prop}}}\,\textcolor{#00e5ff}{c}^2
+          \\[5pt]
+          P_{\mathrm{jet}}
+          = \frac{dE_{\mathrm{jet}}}{dt}
+          &= \tfrac{1}{2}\,\textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
+          \end{aligned}
+          $$
+
+          <span class="eq-step-label">Use the thrust relation $F_N = \dot{m}\,c$ to rewrite jet power</span>
+          $$
+          P_{\mathrm{jet}}
+          = \tfrac{1}{2}\,\textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
+          = \tfrac{1}{2}\,\textcolor{#ff4060}{F_N}\,\textcolor{#00e5ff}{c}
+          $$
+
+        </div>
+      </details>
+
+      <span class="eq-step-label">Relate jet power to input power through system efficiency $\eta$</span>
+      $$
+      \boxed{
+        P_{\mathrm{jet}} = \textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}
+        \qquad\Rightarrow\qquad
+        \tfrac{1}{2}\,\textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
+        = \textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}
+      }
+      $$
+
+      <span class="eq-step-label">Solve for exhaust velocity, thrust, and specific impulse</span>
+      $$
+      \boxed{
+        \textcolor{#00e5ff}{c}
+        = \sqrt{\frac{2\,\textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}}{\textcolor{#ff9100}{\dot{m}}}}
+      }
+      \qquad
+      \boxed{
+        \textcolor{#ff4060}{F_N}
+        = \textcolor{#ff9100}{\dot{m}}\,\textcolor{#00e5ff}{c}
+        = \sqrt{2\,\textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}\,\textcolor{#ff9100}{\dot{m}}}
+      }
+      $$
+      $$
+      \boxed{
+        \textcolor{#00e5ff}{I_{sp}}
+        = \frac{1}{g_0}
+          \sqrt{\frac{2\,\textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}}{\textcolor{#ff9100}{\dot{m}}}}
+      }
+      $$
+
+      <span class="eq-caption">
+        For fixed <span class="hl-power">input power</span>, lowering
+        <span class="hl-mass">mass flow rate</span> raises
+        <span class="hl-ve">exhaust velocity / $I_{sp}$</span>,
+        but it also reduces the rate at which momentum is delivered as
+        <span class="hl-thrust">thrust</span>.
+        Electric propulsion is fundamentally a
+        <span class="hl-thrust">thrust</span>&ndash;<span class="hl-ve">$I_{sp}$</span> trade.
+      </span>
+    </div>
+  </div>
+
+</div>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// Constants
+// ═══════════════════════════════════════════════════════
+const G0 = 9.80665;
+
+const PROP_KEYS = ['H\u2082O', 'Hydrazine', 'Argon', 'Lithium'];
+
+const M_MOLAR = {
+  'H\u2082O':  0.018015,
+  'Hydrazine': 0.032045,
+  'Argon':     0.039948,
+  'Lithium':   0.006941
+};
+
+const ORB_COLOR = {
+  'H\u2082O':  '#ffb17a',
+  'Hydrazine': '#ff6d00',
+  'Argon':     '#d500f9',
+  'Lithium':   '#ff1744'
+};
+
+const ORB_GLOW = {
+  'H\u2082O':  'rgba(255,177,122,0.22)',
+  'Hydrazine': 'rgba(255,109,0,0.22)',
+  'Argon':     'rgba(213,0,249,0.22)',
+  'Lithium':   'rgba(255,23,68,0.22)'
+};
+
+const ORB_R = {
+  'H\u2082O':  3.5,
+  'Hydrazine': 4.5,
+  'Argon':     5.0,
+  'Lithium':   3.0
+};
+
+const MAX_THRUST_VIS = 2000;
+const MAX_VE_VIS     = 50000;
+const MAX_ORBS       = 450;
+
+// ═══════════════════════════════════════════════════════
+// Physics
+// ═══════════════════════════════════════════════════════
+function compute(flowMolS, powerKW, eta, mMolar) {
+  const mdot = flowMolS * mMolar;
+  const pJet = powerKW * 1000.0 * eta;
+
+  if (mdot < 1e-12 || pJet < 1e-12) {
+    return { T: 0, mdot: 0, ve: 0, isp: 0 };
+  }
+
+  const ve = Math.sqrt(2.0 * pJet / mdot);
+  return { T: mdot * ve, mdot, ve, isp: ve / G0 };
+}
+
+// ═══════════════════════════════════════════════════════
+// Formatting
+// ═══════════════════════════════════════════════════════
+function fmt4g(v) {
+  if (!isFinite(v) || v === 0) return '0';
+  const s = v.toPrecision(4);
+  if (s.includes('e')) return s.replace(/\.?0+(e)/, '$1');
+  return String(parseFloat(s));
+}
+
+// ═══════════════════════════════════════════════════════
+// Canvas setup
+// ═══════════════════════════════════════════════════════
+const canvas = document.getElementById('cnv');
+const ctx    = canvas.getContext('2d');
+const CW = canvas.width;
+const CH = canvas.height;
+
+const BX = 175, BY = 82, BW = 205, BH = 198;
+const BX2 = BX + BW;
+const CY  = BY + BH / 2;
+
+const SHELF_W = 50;
+const SHELF_H = 26;
+const GAP_H   = 22;
+
+const EX = BX2 + SHELF_W;
+
+const US_TOP = CY - GAP_H / 2 - SHELF_H;
+const LS_TOP = CY + GAP_H / 2;
+
+const ARR_TAIL_X = BX - 6;
+
+// ═══════════════════════════════════════════════════════
+// Stars
+// ═══════════════════════════════════════════════════════
+const STARS = Array.from({ length: 220 }, () => ({
+  x: Math.random() * CW,
+  y: Math.random() * CH,
+  r: Math.random() * 1.1 + 0.15,
+  a: Math.random() * 0.5 + 0.2
+}));
+
+// ═══════════════════════════════════════════════════════
+// App state
+// ═══════════════════════════════════════════════════════
+let selectedProp = PROP_KEYS[0];
+let particles    = [];
+let spawnTimer   = 0;
+let lastTime     = null;
+
+// ═══════════════════════════════════════════════════════
+// DOM references
+// ═══════════════════════════════════════════════════════
+const slFlow  = document.getElementById('sl-flow');
+const slPower = document.getElementById('sl-power');
+const slEta   = document.getElementById('sl-eta');
+
+const tbFlow  = document.getElementById('tb-flow');
+const tbPower = document.getElementById('tb-power');
+const tbEta   = document.getElementById('tb-eta');
+
+const oThrust = document.getElementById('o-thrust');
+const oMdot   = document.getElementById('o-mdot');
+const oIsp    = document.getElementById('o-isp');
+const oVe     = document.getElementById('o-ve');
+
+// ═══════════════════════════════════════════════════════
+// Build radio buttons
+// ═══════════════════════════════════════════════════════
+(function buildRadios() {
+  const wrap = document.getElementById('radio-wrap');
+
+  PROP_KEYS.forEach((key, i) => {
+    const lbl = document.createElement('label');
+    lbl.className = 'radio-row';
+    lbl.style.color = ORB_COLOR[key];
+
+    const inp = document.createElement('input');
+    inp.type    = 'radio';
+    inp.name    = 'propellant';
+    inp.value   = key;
+    inp.checked = (i === 0);
+
+    lbl.appendChild(inp);
+    lbl.appendChild(document.createTextNode(
+      '\u00a0' + key + '\u00a0\u00a0(' + fmt4g(M_MOLAR[key] * 1e3) + '\u00a0g/mol)'
+    ));
+
+    wrap.appendChild(lbl);
+
+    inp.addEventListener('change', () => {
+      if (inp.checked) {
+        selectedProp = key;
+        particles    = [];
+        spawnTimer   = 0;
+      }
+    });
+  });
+}());
+
+// ═══════════════════════════════════════════════════════
+// Slider <-> textbox linking
+// ═══════════════════════════════════════════════════════
+function snapStep(val, min, step) {
+  if (!step || step <= 0) return val;
+  const dp = Math.max(0, -Math.floor(Math.log10(step)));
+  return parseFloat((min + Math.round((val - min) / step) * step).toFixed(dp));
+}
+
+function linkSliderTb(slider, tb) {
+  slider.addEventListener('input', () => {
+    tb.value = fmt4g(parseFloat(slider.value));
+  });
+
+  function apply() {
+    const raw = parseFloat(tb.value);
+    if (!isFinite(raw)) { tb.value = fmt4g(parseFloat(slider.value)); return; }
+    const val = snapStep(
+      Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), raw)),
+      parseFloat(slider.min),
+      parseFloat(slider.step)
+    );
+    slider.value = val;
+    tb.value     = fmt4g(val);
+  }
+
+  tb.addEventListener('keydown', e => { if (e.key === 'Enter') { apply(); tb.blur(); } });
+  tb.addEventListener('blur', apply);
+}
+
+linkSliderTb(slFlow,  tbFlow);
+linkSliderTb(slPower, tbPower);
+linkSliderTb(slEta,   tbEta);
+
+// ═══════════════════════════════════════════════════════
+// Drawing helpers
+// ═══════════════════════════════════════════════════════
+function drawBackground() {
+  ctx.fillStyle = '#080f1c';
+  ctx.fillRect(0, 0, CW, CH);
+  for (const s of STARS) {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
+    ctx.fill();
+  }
+}
+
+function drawSpacecraft(thrust) {
+  ctx.fillStyle = '#d6deed';
+  ctx.fillRect(BX,  BY,     BW,      BH);
+  ctx.fillRect(BX2, US_TOP, SHELF_W, SHELF_H);
+  ctx.fillRect(BX2, LS_TOP, SHELF_W, SHELF_H);
+
+  if (thrust > 1e-12) {
+    const frac = Math.min(thrust / MAX_THRUST_VIS, 1.0);
+    const len  = 50 + 150 * frac;
+    const tipX = ARR_TAIL_X - len;
+    const hLen = Math.min(40, len * 0.36);
+    const hW   = hLen * 0.90;
+
+    ctx.save();
+    ctx.strokeStyle = '#ff1744';
+    ctx.fillStyle   = '#ff1744';
+    ctx.lineWidth   = 10;
+    ctx.lineCap     = 'butt';
+
+    ctx.beginPath();
+    ctx.moveTo(ARR_TAIL_X, CY);
+    ctx.lineTo(tipX + hLen, CY);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(tipX, CY);
+    ctx.lineTo(tipX + hLen, CY - hW);
+    ctx.lineTo(tipX + hLen, CY + hW);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    const r = ORB_R[p.prop];
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r * 2.8, 0, Math.PI * 2);
+    ctx.fillStyle   = ORB_GLOW[p.prop];
+    ctx.globalAlpha = 1.0;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fillStyle   = ORB_COLOR[p.prop];
+    ctx.globalAlpha = 1.0;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1.0;
+}
+
+// ═══════════════════════════════════════════════════════
+// Outputs
+// ═══════════════════════════════════════════════════════
+function updateOutputs(res) {
+  oThrust.textContent = fmt4g(res.T)    + ' N';
+  oMdot.textContent   = fmt4g(res.mdot) + ' kg/s';
+  oIsp.textContent    = fmt4g(res.isp)  + ' s';
+  oVe.textContent     = 'or ' + fmt4g(res.ve) + ' m/s';
+}
+
+// ═══════════════════════════════════════════════════════
+// Animation loop
+// ═══════════════════════════════════════════════════════
+function animate(ts) {
+  if (lastTime === null) lastTime = ts;
+  const dt = Math.min((ts - lastTime) / 1000.0, 0.1);
+  lastTime = ts;
+
+  const flow  = parseFloat(slFlow.value);
+  const power = parseFloat(slPower.value);
+  const eta   = parseFloat(slEta.value);
+
+  const res    = compute(flow, power, eta, M_MOLAR[selectedProp]);
+  updateOutputs(res);
+
+  const veNorm = Math.sqrt(Math.min(res.ve / MAX_VE_VIS, 1.0));
+  const vPxS   = (0.5 + 11.5 * veNorm) * (CW / 10.0);
+
+  for (const p of particles) p.vx = vPxS;
+
+  if (res.T > 1e-12) {
+    spawnTimer += dt;
+    const spawnRate = Math.max(flow * 20.0, 30.0);
+    const interval  = 1.0 / spawnRate;
+
+    while (spawnTimer >= interval) {
+      spawnTimer -= interval;
+      if (particles.length < MAX_ORBS) {
+        const halfGap = (GAP_H / 2) * 0.80;
+        const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
+        particles.push({ x: EX, y: CY + yOff, vx: vPxS, prop: selectedProp });
+      }
+    }
+  } else {
+    spawnTimer = 0;
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].x += particles[i].vx * dt;
+    if (particles[i].x > CW + 20) particles.splice(i, 1);
+  }
+
+  drawBackground();
+  drawSpacecraft(res.T);
+  drawParticles();
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
