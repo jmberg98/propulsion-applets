@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Thrust &amp; Specific Impulse — In-Space</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
@@ -21,19 +25,19 @@
 <style>
 :root {
   --page-w: min(1040px, calc(100vw - 32px));
-  --c-thrust: #ff4060;
-  --c-ve:     #00e5ff;
-  --c-mass:   #ff4060;
-  --c-power:  #b388ff;
-  --c-press:  #69f0ae;
+  --c-thrust: #c62828;
+  --c-ve:     #00838f;
+  --c-mass:   #c62828;
+  --c-power:  #6a1b9a;
+  --c-press:  #2e7d32;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'Segoe UI', system-ui, Arial, sans-serif;
-  background: #0e1422;
-  color: #b8c4d8;
+  font-family: 'Barlow', sans-serif;
+  background: #ecedee;
+  color: #3b3c3d;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -61,7 +65,7 @@ body {
 #hdr h1 {
   font-size: 17px;
   font-weight: 700;
-  color: #e8ecf5;
+  color: #0b0b0c;
   letter-spacing: .3px;
 }
 .badge {
@@ -70,20 +74,20 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 2px 8px;
-  border: 1px solid #00bcd4;
+  border: 1px solid #00838f;
   border-radius: 3px;
-  color: #00bcd4;
-  background: rgba(0,188,212,.09);
+  color: #00838f;
+  background: rgba(0,131,143,.09);
 }
 
 /* ── Page intro ──────────────────────────────────────────────── */
 .page-intro {
   font-size: 12.5px;
   line-height: 1.72;
-  color: #8898b4;
+  color: #3b3c3d;
   margin-bottom: 14px;
 }
-.page-intro strong:not([class]) { color: #b8c4d8; }
+.page-intro strong:not([class]) { color: #0b0b0c; }
 
 /* ── Color-highlight utility classes ────────────────────────── */
 .hl-thrust, .hl-F { color: var(--c-thrust); }
@@ -117,14 +121,14 @@ strong.hl-press, strong.hl-P,
 .clarify-hdr {
   font-size: 9.5px;
   font-weight: 700;
-  color: #00bcd4;
+  color: #00838f;
   letter-spacing: 1.2px;
   text-transform: uppercase;
   margin-bottom: 2px;
 }
 details.clarify-detail {
-  background: #141c2e;
-  border: 1px solid #1e2a42;
+  background: #dadada;
+  border: 1px solid #b8b9ba;
   border-radius: 5px;
   overflow: hidden;
 }
@@ -133,7 +137,7 @@ details.clarify-detail > summary {
   padding: 10px 14px;
   font-size: 12.5px;
   font-weight: 600;
-  color: #b8c4d8;
+  color: #0b0b0c;
   list-style: none;
   display: flex;
   align-items: center;
@@ -145,20 +149,20 @@ details.clarify-detail > summary::-webkit-details-marker { display: none; }
 details.clarify-detail > summary::before {
   content: '▶';
   font-size: 8px;
-  color: #00bcd4;
+  color: #00838f;
   flex-shrink: 0;
   transition: transform .2s ease;
 }
 details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
-details.clarify-detail > summary:hover { background: #1a2540; }
+details.clarify-detail > summary:hover { background: #cfcfcf; }
 .clarify-body {
   padding: 10px 18px 14px;
-  border-top: 1px solid #1e2a42;
+  border-top: 1px solid #b8b9ba;
   font-size: 12.5px;
   line-height: 1.70;
-  color: #8898b4;
+  color: #3b3c3d;
 }
-.clarify-body strong:not([class]) { color: #b8c4d8; }
+.clarify-body strong:not([class]) { color: #0b0b0c; }
 
 /* ── Theory blocks ──────────────────────────────────────────── */
 #theory {
@@ -168,8 +172,8 @@ details.clarify-detail > summary:hover { background: #1a2540; }
   margin-bottom: 16px;
 }
 .theory-block {
-  background: #141c2e;
-  border: 1px solid #1e2a42;
+  background: #dadada;
+  border: 1px solid #b8b9ba;
   border-radius: 5px;
   padding: 18px 22px 16px;
   overflow: visible;
@@ -177,24 +181,24 @@ details.clarify-detail > summary:hover { background: #1a2540; }
 .th-hdr {
   font-size: 9.5px;
   font-weight: 700;
-  color: #00bcd4;
+  color: #00838f;
   letter-spacing: 1.2px;
   text-transform: uppercase;
   padding-bottom: 5px;
-  border-bottom: 1px solid #1c2a3c;
+  border-bottom: 1px solid #c0c1c2;
   margin-bottom: 12px;
 }
 .th-body {
   font-size: 12.5px;
   line-height: 1.70;
-  color: #8898b4;
+  color: #3b3c3d;
   margin-bottom: 14px;
 }
-.th-body strong:not([class]) { color: #b8c4d8; }
+.th-body strong:not([class]) { color: #0b0b0c; }
 
 .cv-diagram {
   background: #0d1624;
-  border: 1px solid #1a2840;
+  border: 1px solid #aabac8;
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 14px;
@@ -202,8 +206,8 @@ details.clarify-detail > summary:hover { background: #1a2540; }
 }
 
 .eq-panel {
-  background: #101828;
-  border: 1px solid #1a2840;
+  background: #e8e9ea;
+  border: 1px solid #c0c1c2;
   border-radius: 4px;
   padding: 12px 24px 14px;
   overflow: visible;
@@ -213,7 +217,7 @@ details.clarify-detail > summary:hover { background: #1a2540; }
   font-size: 9px;
   letter-spacing: .8px;
   text-transform: uppercase;
-  color: #3a5068;
+  color: #8a8b8c;
   margin-top: 10px;
   margin-bottom: 0;
 }
@@ -221,35 +225,35 @@ details.clarify-detail > summary:hover { background: #1a2540; }
 .eq-divider {
   width: 100%;
   height: 1px;
-  background: #141e30;
+  background: #c8c9ca;
   margin: 12px 0 2px;
 }
 .eq-caption {
   display: block;
   font-size: 11px;
-  color: #455870;
+  color: #6b6c6d;
   text-align: center;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #141e30;
+  border-top: 1px solid #c8c9ca;
 }
 
 /* ── Derivation dropdown (inside eq-panel) ──────────────────── */
 details.deriv-detail {
   margin: 10px 0 6px;
-  border: 1px solid #1c2e44;
+  border: 1px solid #c0c1c2;
   border-radius: 4px;
   overflow: hidden;
 }
 details.deriv-detail > summary {
   cursor: pointer;
   padding: 7px 14px;
-  background: #0c1824;
+  background: #dfe0e2;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .9px;
   text-transform: uppercase;
-  color: #00bcd4;
+  color: #00838f;
   list-style: none;
   display: flex;
   align-items: center;
@@ -261,18 +265,18 @@ details.deriv-detail > summary::-webkit-details-marker { display: none; }
 details.deriv-detail > summary::before {
   content: '▶';
   font-size: 7px;
-  color: #00bcd4;
+  color: #00838f;
   flex-shrink: 0;
   transition: transform .18s ease;
 }
 details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
-details.deriv-detail > summary:hover { background: #0e1e30; }
+details.deriv-detail > summary:hover { background: #d4d5d7; }
 .deriv-inner {
   padding: 6px 14px 12px;
-  background: #08111e;
-  border-top: 1px solid #1c2e44;
+  background: #e4e5e6;
+  border-top: 1px solid #c0c1c2;
 }
-.deriv-inner .eq-step-label { color: #2a3d52; }
+.deriv-inner .eq-step-label { color: #9a9b9c; }
 .deriv-inner .eq-step-label:first-child { margin-top: 4px; }
 
 /* ── KaTeX ──────────────────────────────────────────────────── */
@@ -293,25 +297,25 @@ details.deriv-detail > summary:hover { background: #0e1e30; }
 .demo-hdr-row h2 {
   font-size: 13px;
   font-weight: 700;
-  color: #e8ecf5;
+  color: #0b0b0c;
 }
 .demo-blurb {
   font-size: 12px;
   line-height: 1.65;
-  color: #8898b4;
+  color: #3b3c3d;
   margin-bottom: 8px;
 }
-.demo-blurb strong:not([class]) { color: #b8c4d8; }
+.demo-blurb strong:not([class]) { color: #0b0b0c; }
 
 /* ── Applet ─────────────────────────────────────────────────── */
 #app {
   display: flex;
   flex-direction: column;
-  background: #141c2e;
-  border: 1px solid #1e2a42;
+  background: #dadada;
+  border: 1px solid #b8b9ba;
   border-radius: 5px;
   overflow: hidden;
-  box-shadow: 0 4px 28px rgba(0,0,0,.4);
+  box-shadow: 0 4px 28px rgba(0,0,0,.12);
   margin-bottom: 20px;
 }
 #top-row {
@@ -322,7 +326,7 @@ details.deriv-detail > summary:hover { background: #0e1e30; }
   flex: 0 0 700px;
   max-width: 100%;
   line-height: 0;
-  border-right: 1px solid #1e2a42;
+  border-right: 1px solid #b8b9ba;
 }
 canvas {
   display: block;
@@ -337,15 +341,16 @@ canvas {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  background: #dadada;
 }
 .sect-hdr {
   font-size: 9.5px;
   font-weight: 700;
-  color: #00bcd4;
+  color: #00838f;
   letter-spacing: 1.2px;
   text-transform: uppercase;
   padding-bottom: 5px;
-  border-bottom: 1px solid #1c2a3c;
+  border-bottom: 1px solid #c0c1c2;
   margin-bottom: 7px;
 }
 .radio-row {
@@ -358,17 +363,20 @@ canvas {
   user-select: none;
 }
 .radio-row input[type=radio] {
-  accent-color: #00bcd4;
+  accent-color: #00838f;
   cursor: pointer;
 }
 .sl-group {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  background: #dfe0e2;
+  padding: 8px 10px;
+  border-radius: 4px;
 }
 .sl-label {
   font-size: 9.5px;
-  color: #566878;
+  color: #5a5b5c;
   letter-spacing: .7px;
   text-transform: uppercase;
 }
@@ -379,7 +387,7 @@ canvas {
 }
 .sl-row input[type=range] {
   flex: 1;
-  accent-color: #00bcd4;
+  accent-color: #00838f;
   cursor: pointer;
 }
 .sl-row input[type=text] {
@@ -388,31 +396,31 @@ canvas {
   font-size: 11px;
   font-family: 'Courier New', monospace;
   text-align: center;
-  background: #0c1220;
-  color: #00e5ff;
-  border: 1px solid #1e2c44;
+  background: #f0f1f2;
+  color: #00838f;
+  border: 1px solid #c0c1c2;
   border-radius: 3px;
 }
 .sl-row input[type=text]:focus {
   outline: none;
-  border-color: #00bcd4;
-  box-shadow: 0 0 0 2px rgba(0,188,212,.12);
+  border-color: #00838f;
+  box-shadow: 0 0 0 2px rgba(0,131,143,.12);
 }
 #out-bar {
   display: flex;
   flex-wrap: wrap;
-  border-top: 1px solid #1e2a42;
+  border-top: 1px solid #b8b9ba;
 }
 .out-cell {
   flex: 1 1 180px;
   padding: 9px 14px 10px;
-  background: #111828;
-  border-right: 1px solid #1e2a42;
+  background: #dfe0e2;
+  border-right: 1px solid #b8b9ba;
 }
 .out-cell:last-child { border-right: none; }
 .out-label {
   font-size: 9px;
-  color: #445060;
+  color: #6a6b6c;
   letter-spacing: .7px;
   text-transform: uppercase;
   margin-bottom: 3px;
@@ -431,7 +439,7 @@ canvas {
 footer {
   margin-top: 10px;
   font-size: 11px;
-  color: #384555;
+  color: #6b6c6d;
   width: var(--page-w);
 }
 
@@ -439,13 +447,13 @@ footer {
   #cv-wrap {
     flex-basis: 100%;
     border-right: none;
-    border-bottom: 1px solid #1e2a42;
+    border-bottom: 1px solid #b8b9ba;
   }
   canvas { width: 100%; height: auto; }
 }
 @media (max-width: 720px) {
   #out-bar { flex-direction: column; }
-  .out-cell { border-right: none; border-bottom: 1px solid #1e2a42; }
+  .out-cell { border-right: none; border-bottom: 1px solid #b8b9ba; }
   .out-cell:last-child { border-bottom: none; }
 }
 </style>
@@ -504,14 +512,14 @@ footer {
 <p class="demo-blurb">
   For this interactive demo, assume <strong>no gravity</strong>, <strong>no drag</strong>, and
   <strong>steady-state operation</strong> in vacuum. Assume the exhaust stream to have <strong>negligible exit pressure</strong>. Then
-  $\textcolor{#00e5ff}{c = v_e}$ and
-  $\textcolor{#00e5ff}{v_e} =
-   \sqrt{2\textcolor{#b388ff}{\eta P_{\mathrm{input}}}/\textcolor{#ff4060}{\dot{m}}}$,&nbsp;
-  $\textcolor{#ff4060}{F_N} =
-   \textcolor{#ff4060}{\dot{m}}\textcolor{#00e5ff}{v_e}$,&nbsp;
+  $\textcolor{#00838f}{c = v_e}$ and
+  $\textcolor{#00838f}{v_e} =
+   \sqrt{2\textcolor{#6a1b9a}{\eta P_{\mathrm{input}}}/\textcolor{#c62828}{\dot{m}}}$,&nbsp;
+  $\textcolor{#c62828}{F_N} =
+   \textcolor{#c62828}{\dot{m}}\textcolor{#00838f}{v_e}$,&nbsp;
   and
-  $\textcolor{#00e5ff}{I_{sp}} =
-   \textcolor{#00e5ff}{v_e}/g_0$.
+  $\textcolor{#00838f}{I_{sp}} =
+   \textcolor{#00838f}{v_e}/g_0$.
 </p>
 
 <!-- ════════════════════ APPLET ════════════════════ -->
@@ -556,16 +564,16 @@ footer {
   <div id="out-bar">
     <div class="out-cell">
       <div class="out-label">Thrust</div>
-      <div class="out-val" id="o-thrust" style="color:#ff4060">0 N</div>
+      <div class="out-val" id="o-thrust" style="color:#c62828">0 N</div>
     </div>
     <div class="out-cell">
       <div class="out-label">Mass Flow Rate</div>
-      <div class="out-val" id="o-mdot"   style="color:#ff4060">0 kg/s</div>
+      <div class="out-val" id="o-mdot"   style="color:#c62828">0 kg/s</div>
     </div>
     <div class="out-cell">
       <div class="out-label">Specific Impulse</div>
-      <div class="out-val" id="o-isp"    style="color:#00e5ff">0 s</div>
-      <div class="out-sub" id="o-ve"     style="color:#69f0ae">or 0 m/s</div>
+      <div class="out-val" id="o-isp"    style="color:#00838f">0 s</div>
+      <div class="out-sub" id="o-ve"     style="color:#2e7d32">or 0 m/s</div>
     </div>
   </div>
 </div>
@@ -682,8 +690,8 @@ footer {
       <span class="eq-step-label">Conservation of Mass — at steady state there is no mass accumulation inside the control volume</span>
       $$
       \begin{aligned}
-      0 &= -\textcolor{#ff4060}{\dot{m}} + \rho_e \textcolor{#00e5ff}{v_e} A_e \\[3pt]
-      \Rightarrow\quad \textcolor{#ff4060}{\dot{m}} &= \rho_e \textcolor{#00e5ff}{v_e} A_e
+      0 &= -\textcolor{#c62828}{\dot{m}} + \rho_e \textcolor{#00838f}{v_e} A_e \\[3pt]
+      \Rightarrow\quad \textcolor{#c62828}{\dot{m}} &= \rho_e \textcolor{#00838f}{v_e} A_e
       \end{aligned}
       $$
 
@@ -746,11 +754,11 @@ footer {
       $$
       $$
       \boxed{
-        \textcolor{#ff4060}{F_N}
+        \textcolor{#c62828}{F_N}
         \;=\;
-        \textcolor{#ff4060}{\dot{m}}\,\textcolor{#00e5ff}{v_e}
+        \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{v_e}
         \;+\;
-        \bigl(\textcolor{#69f0ae}{P_e - P_{amb}}\bigr)A_e
+        \bigl(\textcolor{#2e7d32}{P_e - P_{amb}}\bigr)A_e
       }
       $$
 
@@ -759,14 +767,14 @@ footer {
       <span class="eq-step-label">Define effective exhaust velocity $c$ to absorb the pressure correction into a single quantity</span>
       $$
       \boxed{
-        \textcolor{#00e5ff}{c}
+        \textcolor{#00838f}{c}
         \;\equiv\;
-        \textcolor{#00e5ff}{v_e}
+        \textcolor{#00838f}{v_e}
         \;+\;
-        \frac{\bigl(\textcolor{#69f0ae}{P_e - P_{amb}}\bigr)A_e}{\textcolor{#ff4060}{\dot{m}}}
+        \frac{\bigl(\textcolor{#2e7d32}{P_e - P_{amb}}\bigr)A_e}{\textcolor{#c62828}{\dot{m}}}
       }
       \qquad\Rightarrow\qquad
-      \textcolor{#ff4060}{F_N} = \textcolor{#ff4060}{\dot{m}}\,\textcolor{#00e5ff}{c}
+      \textcolor{#c62828}{F_N} = \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}
       $$
 
       <span class="eq-caption">
@@ -797,26 +805,26 @@ footer {
       $$
       \begin{aligned}
       \text{Impulse}
-      &= \int \textcolor{#ff4060}{F_N}\,dt
-       = \int \textcolor{#ff4060}{\dot{m}}\,\textcolor{#00e5ff}{c}\,dt
-       = \textcolor{#00e5ff}{c}\int \textcolor{#ff4060}{\dot{m}}\,dt
-       = \textcolor{#00e5ff}{c}\,\textcolor{#00e5ff}{m_{\mathrm{prop}}}
+      &= \int \textcolor{#c62828}{F_N}\,dt
+       = \int \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}\,dt
+       = \textcolor{#00838f}{c}\int \textcolor{#c62828}{\dot{m}}\,dt
+       = \textcolor{#00838f}{c}\,\textcolor{#00838f}{m_{\mathrm{prop}}}
       \end{aligned}
       $$
 
       <span class="eq-step-label">Normalize by propellant mass — impulse per unit propellant mass equals effective exhaust velocity</span>
       $$
-      \frac{\text{Impulse}}{\textcolor{#00e5ff}{m_{\mathrm{prop}}}}
-      = \textcolor{#00e5ff}{c}
+      \frac{\text{Impulse}}{\textcolor{#00838f}{m_{\mathrm{prop}}}}
+      = \textcolor{#00838f}{c}
       \qquad[\mathrm{m/s}]
       $$
 
       <span class="eq-step-label">Historical convention — divide by $g_0$ to obtain specific impulse in seconds</span>
       $$
       \boxed{
-        \textcolor{#00e5ff}{I_{sp}}
-        = \frac{\text{Impulse}}{\textcolor{#00e5ff}{m_{\mathrm{prop}}}\,g_0}
-        = \frac{\textcolor{#00e5ff}{c}}{g_0}
+        \textcolor{#00838f}{I_{sp}}
+        = \frac{\text{Impulse}}{\textcolor{#00838f}{m_{\mathrm{prop}}}\,g_0}
+        = \frac{\textcolor{#00838f}{c}}{g_0}
         \qquad[\mathrm{s}]
       }
       $$
@@ -831,19 +839,19 @@ footer {
           $$
           \begin{aligned}
           E_{\mathrm{jet}}
-          &= \tfrac{1}{2}\,\textcolor{#00e5ff}{m_{\mathrm{prop}}}\,\textcolor{#00e5ff}{c}^2
+          &= \tfrac{1}{2}\,\textcolor{#00838f}{m_{\mathrm{prop}}}\,\textcolor{#00838f}{c}^2
           \\[5pt]
           P_{\mathrm{jet}}
           = \frac{dE_{\mathrm{jet}}}{dt}
-          &= \tfrac{1}{2}\,\textcolor{#ff4060}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
+          &= \tfrac{1}{2}\,\textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}^2
           \end{aligned}
           $$
 
           <span class="eq-step-label">Use the thrust relation $F_N = \dot{m}\,c$ to rewrite jet power</span>
           $$
           P_{\mathrm{jet}}
-          = \tfrac{1}{2}\,\textcolor{#ff4060}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
-          = \tfrac{1}{2}\,\textcolor{#ff4060}{F_N}\,\textcolor{#00e5ff}{c}
+          = \tfrac{1}{2}\,\textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}^2
+          = \tfrac{1}{2}\,\textcolor{#c62828}{F_N}\,\textcolor{#00838f}{c}
           $$
 
         </div>
@@ -852,31 +860,31 @@ footer {
       <span class="eq-step-label">Relate jet power to input power through system efficiency $\eta$</span>
       $$
       \boxed{
-        P_{\mathrm{jet}} = \textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}
+        P_{\mathrm{jet}} = \textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}
         \qquad\Rightarrow\qquad
-        \tfrac{1}{2}\,\textcolor{#ff4060}{\dot{m}}\,\textcolor{#00e5ff}{c}^2
-        = \textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}
+        \tfrac{1}{2}\,\textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}^2
+        = \textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}
       }
       $$
 
       <span class="eq-step-label">Solve for exhaust velocity, thrust, and specific impulse</span>
       $$
       \boxed{
-        \textcolor{#00e5ff}{c}
-        = \sqrt{\frac{2\,\textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}}{\textcolor{#ff4060}{\dot{m}}}}
+        \textcolor{#00838f}{c}
+        = \sqrt{\frac{2\,\textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}}{\textcolor{#c62828}{\dot{m}}}}
       }
       \qquad
       \boxed{
-        \textcolor{#ff4060}{F_N}
-        = \textcolor{#ff4060}{\dot{m}}\,\textcolor{#00e5ff}{c}
-        = \sqrt{2\,\textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}\,\textcolor{#ff4060}{\dot{m}}}
+        \textcolor{#c62828}{F_N}
+        = \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}
+        = \sqrt{2\,\textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}\,\textcolor{#c62828}{\dot{m}}}
       }
       $$
       $$
       \boxed{
-        \textcolor{#00e5ff}{I_{sp}}
+        \textcolor{#00838f}{I_{sp}}
         = \frac{1}{g_0}
-          \sqrt{\frac{2\,\textcolor{#b388ff}{\eta\,P_{\mathrm{input}}}}{\textcolor{#ff4060}{\dot{m}}}}
+          \sqrt{\frac{2\,\textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}}{\textcolor{#c62828}{\dot{m}}}}
       }
       $$
 
@@ -1188,8 +1196,6 @@ function animate(ts) {
   if (res.T > 1e-12) {
     spawnTimer += dt;
     const molarFlow = mdot / M_MOLAR[selectedProp];
-    // Clamp visual spawn rate so we never hit MAX_ORBS (which would
-    // otherwise create persistent transient clumps in the stream).
     const spawnRate = Math.max(Math.min(molarFlow * 30.0, 250.0), 0.5);
     const interval  = 1.0 / spawnRate;
 
@@ -1198,12 +1204,6 @@ function animate(ts) {
       if (particles.length < MAX_ORBS) {
         const halfGap = (GAP_H / 2) * 0.80;
         const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
-        // Retroactively offset x by how far the particle would have already
-        // travelled: after each decrement, spawnTimer equals exactly the
-        // elapsed time since this particle was due, so vPxS * spawnTimer is
-        // the distance it should have already covered.  The main position
-        // update (+= vPxS * dt) below then advances it correctly to the end
-        // of the current frame, keeping inter-particle spacing perfectly even.
         particles.push({ x: EX + vPxS * spawnTimer, y: CY + yOff, vx: vPxS, prop: selectedProp });
       }
     }
