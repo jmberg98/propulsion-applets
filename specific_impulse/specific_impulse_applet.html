@@ -92,7 +92,6 @@ body {
 .hl-power,  .hl-E { color: var(--c-power);  }
 .hl-press,  .hl-P { color: var(--c-press);  }
 
-/* Ensure highlights always win over generic strong color rules */
 strong.hl-thrust, strong.hl-F,
 .hl-thrust, .hl-F { color: var(--c-thrust) !important; }
 
@@ -531,7 +530,7 @@ footer {
       <div class="sl-group">
         <div class="sl-label">Mass Flow Rate &nbsp;(kg / s)</div>
         <div class="sl-row">
-          <input type="range" id="sl-flow"  min="0" max="0.5" step="0.0001" value="0.01">
+          <input type="range" id="sl-flow"  min="0" max="5" step="0.0001" value="0.01">
           <input type="text"  id="tb-flow"  value="0.01">
         </div>
       </div>
@@ -936,7 +935,7 @@ const ORB_R = {
 
 const MAX_THRUST_VIS = 2000;
 const MAX_VE_VIS     = 50000;
-const MAX_ORBS       = 450;
+const MAX_ORBS       = 2000;
 
 // ═══════════════════════════════════════════════════════
 // Physics
@@ -1110,7 +1109,7 @@ function drawSpacecraft(thrust) {
 
   if (thrust > 1e-12) {
     const frac = Math.min(thrust / MAX_THRUST_VIS, 1.0);
-    const len  = 50 + 150 * frac;
+    const len  = Math.min(50 + 150 * frac, ARR_TAIL_X - 8);
     const tipX = ARR_TAIL_X - len;
     const hLen = Math.min(40, len * 0.36);
     const hW   = hLen * 0.90;
@@ -1189,7 +1188,9 @@ function animate(ts) {
   if (res.T > 1e-12) {
     spawnTimer += dt;
     const molarFlow = mdot / M_MOLAR[selectedProp];
-    const spawnRate = Math.max(molarFlow * 60.0, 0.5);
+    // Clamp visual spawn rate so we never hit MAX_ORBS (which would
+    // otherwise create persistent transient clumps in the stream).
+    const spawnRate = Math.max(Math.min(molarFlow * 30.0, 250.0), 0.5);
     const interval  = 1.0 / spawnRate;
 
     while (spawnTimer >= interval) {
@@ -1197,7 +1198,13 @@ function animate(ts) {
       if (particles.length < MAX_ORBS) {
         const halfGap = (GAP_H / 2) * 0.80;
         const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
-        particles.push({ x: EX, y: CY + yOff, vx: vPxS, prop: selectedProp });
+        // Retroactively offset x by how far the particle would have already
+        // travelled: after each decrement, spawnTimer equals exactly the
+        // elapsed time since this particle was due, so vPxS * spawnTimer is
+        // the distance it should have already covered.  The main position
+        // update (+= vPxS * dt) below then advances it correctly to the end
+        // of the current frame, keeping inter-particle spacing perfectly even.
+        particles.push({ x: EX + vPxS * spawnTimer, y: CY + yOff, vx: vPxS, prop: selectedProp });
       }
     }
   } else {
