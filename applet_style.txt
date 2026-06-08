@@ -1,0 +1,341 @@
+================================================================================
+  STYLE GUIDE — MIT Propulsion Applet Series
+  Jordan Bergmann · MIT · 2026
+================================================================================
+
+--------------------------------------------------------------------------------
+  TYPOGRAPHY
+--------------------------------------------------------------------------------
+
+  Primary Font      : Barlow (Google Fonts)
+  Code / Mono Font  : 'Courier New', monospace
+  UI Fallback       : 'Segoe UI', sans-serif (SVG diagrams only)
+
+  Import URL:
+    https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap
+
+  Font Sizes (body / UI text):
+    Page heading (h1)       : 21px  weight 700
+    Section heading (h2)    : 17px  weight 700
+    Page intro paragraph    : 16.5px
+    Clarify body / th-body  : 16.5px  line-height 1.70
+    Demo blurb              : 16px    line-height 1.65
+    Radio row labels        : 16px
+    Badge text              : 12px  weight 700  letter-spacing 1px
+    Section header label    : 13px  weight 700  letter-spacing 1.2px
+    Slider label (sl-label) : 13px  uppercase   letter-spacing 0.7px
+    Slider textbox          : 14.5px  monospace
+    Eq step label           : 11px  uppercase   letter-spacing 0.8px
+    Eq caption              : 14.5px
+    Deriv detail summary    : 12px  weight 700  letter-spacing 0.9px
+    Footer                  : 14.5px
+    Clarify detail summary  : 16.5px  weight 600
+
+  Simulation Output (UNCHANGED — do not modify):
+    .out-label              : 9px   uppercase   letter-spacing 0.7px
+    .out-val                : 19px  weight 600  monospace
+    .out-sub                : 11.5px            monospace
+
+--------------------------------------------------------------------------------
+  COLOR PALETTE — PHYSICS QUANTITIES
+--------------------------------------------------------------------------------
+
+  These colors are semantically tied to physical quantities.
+  Use them CONSISTENTLY across all applet pages.
+
+  Thrust / Mass Flow Rate   : #FF4400   (orange-red)
+  Exhaust Velocity / Isp    : #3DBFFF   (sky blue)
+  Input Power / Efficiency  : #C060FF   (violet)
+  Pressure terms            : #00DDB5   (teal-green)
+
+  CSS custom properties:
+    --c-thrust : #FF4400
+    --c-ve     : #3DBFFF
+    --c-mass   : #FF4400   (same as thrust — mass flow is a thrust-family quantity)
+    --c-power  : #C060FF
+    --c-press  : #00DDB5
+
+  Highlight classes (apply inline to <strong> or <span>):
+    .hl-thrust  →  color: #FF4400
+    .hl-F       →  color: #FF4400   (force / thrust)
+    .hl-m       →  color: #FF4400   (mass flow)
+    .hl-ve      →  color: #3DBFFF
+    .hl-v       →  color: #3DBFFF   (velocity)
+    .hl-mass    →  color: #FF4400
+    .hl-power   →  color: #C060FF
+    .hl-press   →  color: #00DDB5
+
+--------------------------------------------------------------------------------
+  COLOR PALETTE — UI CHROME
+--------------------------------------------------------------------------------
+
+  Accent (borders, labels, badges, form controls):
+    --c-accent      : #a0a0a0
+    --c-accent-bg   : rgba(160,160,160,0.07)
+    --c-accent-glow : rgba(160,160,160,0.13)
+
+  Text:
+    --text-main      : #d6d6d6   (body copy)
+    --text-secondary : #aaaaaa   (secondary body)
+    --text-muted     : #7a7a7a   (labels, captions, footer)
+    --text-heading   : #f0f0f0   (headings, summary text)
+
+  Borders:
+    --border : #282828
+
+--------------------------------------------------------------------------------
+  COLOR PALETTE — BACKGROUNDS
+--------------------------------------------------------------------------------
+
+  --bg-page     : #090909   (outermost page background)
+  --bg-panel-1  : #0e0e0e   (primary panel / card background)
+  --bg-panel-2  : #121212   (summary / collapsed state background)
+  --bg-panel-3  : #171717   (mid-level panel)
+  --bg-panel-4  : #1d1d1d   (slider textbox background)
+  --bg-input    : #191919   (deriv-detail summary background)
+  --bg-out-cell : #0c0c0c   (output bar cells)
+  --bg-canvas   : #090909   (simulation canvas background)
+  --bg-diagram  : #0e0e0e   (SVG diagram background)
+
+  Note: bg-page and bg-canvas are intentionally the same.
+  The canvas blends flush into the page background.
+
+--------------------------------------------------------------------------------
+  PROPELLANT PARTICLE COLORS (simulation canvas only)
+--------------------------------------------------------------------------------
+
+  H₂O         : #ffb17a   glow rgba(255,177,122,0.22)   radius 3.5px
+  Hydrazine   : #ff6d00   glow rgba(255,109,0,0.22)     radius 4.5px
+  Argon       : #d500f9   glow rgba(213,0,249,0.22)     radius 5.0px
+  Lithium     : #ff1744   glow rgba(255,23,68,0.22)     radius 3.0px
+
+  Particle glow drawn at 2.8× particle radius, full opacity, then
+  solid core drawn at 1× radius on top.
+
+--------------------------------------------------------------------------------
+  LAYOUT
+--------------------------------------------------------------------------------
+
+  Page max-width  : min(1040px, calc(100vw - 32px))
+                    stored as --page-w
+                    applied to: #hdr, .page-intro, .clarify-section,
+                                #theory, .demo-hdr-row, .demo-blurb,
+                                #app, footer
+
+  Page padding    : 22px 16px 36px (top / sides / bottom)
+
+  Body layout     : flex column, align-items center
+
+  Section vertical rhythm:
+    Between major sections   : margin-bottom 20px
+    Theory blocks            : margin-bottom 16px
+    Theory block padding     : 16px 18px
+    Clarify body padding     : 10px 18px 14px
+    Output cell padding      : 10px 14px
+
+  Simulation app (#app):
+    Top row      : flex row, canvas left (flex 0 0 auto), controls right (flex 1 1 auto)
+    Canvas size  : 700 × 400 px (intrinsic); scales down on narrow viewports
+    Output bar   : flex row of 3 equal cells, border-top separating from canvas
+
+  Responsive breakpoints:
+    ≤ 980px : canvas stacks above controls (flex-wrap wrap, full width)
+    ≤ 720px : output bar stacks vertically
+
+--------------------------------------------------------------------------------
+  COMPONENT SPECIFICATIONS
+--------------------------------------------------------------------------------
+
+  BADGE
+    font-size       : 12px
+    font-weight     : 700
+    letter-spacing  : 1px
+    text-transform  : uppercase
+    padding         : 2px 8px
+    border          : 1px solid #a0a0a0
+    border-radius   : 3px
+    color           : #a0a0a0
+    background      : rgba(160,160,160,0.07)
+    white-space     : nowrap
+
+  SECTION HEADER LABELS  (.sect-hdr, .th-hdr, .clarify-hdr)
+    font-size       : 13px
+    font-weight     : 700
+    color           : #a0a0a0
+    letter-spacing  : 1.2px
+    text-transform  : uppercase
+    padding-bottom  : 5px
+    border-bottom   : 1px solid #282828
+    margin-bottom   : 7px (sect-hdr) / 12px (th-hdr)
+
+  CLARIFY / ACCORDION SECTION  (.clarify-section)
+    border          : 1px solid #282828
+    border-radius   : 6px
+    overflow        : hidden
+    background      : #0e0e0e
+
+    summary styling:
+      list-style    : none  (removes default arrow)
+      ::before      : ▶ triangle, 10px, color #a0a0a0
+                      rotates 90° when [open], transition 0.15s ease
+      padding       : 10px 14px
+      background    : #121212
+      font-size     : 16.5px  weight 600  color #f0f0f0
+
+    body styling:
+      padding       : 10px 18px 14px
+      border-top    : 1px solid #282828
+      background    : #0e0e0e
+
+  DERIVATION DETAILS  (details.deriv-detail)
+    border          : 1px solid #282828
+    border-radius   : 4px
+    margin          : 8px 0
+
+    summary:
+      background    : #191919
+      font-size     : 12px  weight 700  letter-spacing 0.9px  uppercase
+      color         : #a0a0a0
+      ::before      : ▶ 9px, same rotation behavior as clarify
+
+    inner body (.deriv-inner):
+      padding       : 10px 14px 14px
+      background    : #0e0e0e
+      border-top    : 1px solid #282828
+
+  EQUATION STEP LABEL  (.eq-step-label)
+    display         : block
+    font-size       : 11px
+    letter-spacing  : 0.8px
+    text-transform  : uppercase
+    color           : #8a8b8c
+    margin-top      : 10px
+
+  EQUATION CAPTION  (.eq-caption)
+    display         : block
+    font-size       : 14.5px
+    color           : #7a7a7a
+    text-align      : center
+    margin-top      : 8px
+    padding-top     : 8px
+    border-top      : 1px solid #282828
+
+  EQUATION DIVIDER  (.eq-divider)
+    height          : 1px
+    background      : #282828
+    margin          : 14px 0
+
+  SLIDER GROUP  (.sl-group)
+    layout          : flex column, gap 5px
+
+    label (.sl-label):
+      font-size     : 13px
+      color         : #7a7a7a
+      uppercase, letter-spacing 0.7px
+
+    range input:
+      flex          : 1 1 auto
+      accent-color  : #a0a0a0
+
+    text input:
+      flex          : 0 0 66px  (fixed width, never shrinks)
+      font-size     : 14.5px  monospace
+      background    : #1d1d1d
+      color         : #a0a0a0
+      border        : 1px solid #282828
+      border-radius : 3px
+      text-align    : center
+
+  OUTPUT BAR CELLS  (.out-cell)
+    flex            : 1 1 0  (equal width)
+    padding         : 10px 14px
+    background      : #0c0c0c
+    border-right    : 1px solid #282828
+
+    .out-label : 9px    uppercase  letter-spacing 0.7px  color #7a7a7a
+    .out-val   : 19px   weight 600  monospace  (color set per-quantity inline)
+    .out-sub   : 11.5px monospace  (color set per-quantity inline)
+
+--------------------------------------------------------------------------------
+  MATH RENDERING
+--------------------------------------------------------------------------------
+
+  Library         : KaTeX 0.16.9  (CDN)
+  CSS             : https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css
+  JS              : https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js
+  Auto-render     : https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js
+
+  Delimiters configured:
+    Display block  : $$...$$  or  \[...\]
+    Inline         : $...$    or  \(...\)
+
+  Color in equations:
+    Use \textcolor{#RRGGBB}{...} with the physics-quantity hex codes above.
+    Example: \textcolor{#FF4400}{\dot{m}}  for mass flow rate
+
+  Boxed results:
+    Use \boxed{...} for final derived expressions.
+
+--------------------------------------------------------------------------------
+  SVG DIAGRAM CONVENTIONS
+--------------------------------------------------------------------------------
+
+  Background fill       : #0e0e0e  (matches --bg-diagram)
+  Control volume dashes : stroke #404040  stroke-width 1.8  dasharray 7 4
+  CV label text         : fill #404040  font-size 9.5  letter-spacing 1.5  weight 700
+  Assumption caption    : fill #404040  font-size 9  letter-spacing 0.3
+
+  Arrow marker colors match physics-quantity palette:
+    Exhaust velocity arrows  : #3DBFFF
+    Thrust / force arrows    : #FF4400
+    Mass flow indicator      : #FF4400
+
+  Spacecraft body fill      : #d6deed  (light blue-gray)
+  Spacecraft shading strip  : #c2ccde  (slightly darker)
+  Exhaust plume channel     : rgba(0,180,220,0.09)
+
+  Label fonts in SVG        : 'Courier New', monospace  (italic for variable names)
+  Subscript offset          : +3px y from variable baseline
+
+  Exit plane dashed line    : stroke #FF4400  stroke-width 1.4  dasharray 4 3  opacity 0.72
+  Ambient pressure labels   : opacity 0.38  (intentionally de-emphasized)
+
+--------------------------------------------------------------------------------
+  STAR FIELD (simulation background)
+--------------------------------------------------------------------------------
+
+  Count           : 220 stars
+  Position        : random over full canvas extent
+  Radius          : random 0.15 – 1.25 px
+  Opacity         : random 0.2 – 0.7
+  Color           : rgba(255,255,255,α)
+  Regenerated     : once on page load, static thereafter
+
+--------------------------------------------------------------------------------
+  CONSTANTS (JavaScript)
+--------------------------------------------------------------------------------
+
+  G0              : 9.80665  m/s²
+  MAX_THRUST_VIS  : 2000 N   (thrust arrow scales to this)
+  MAX_VE_VIS      : 50000 m/s (particle speed scales to this)
+  MAX_ORBS        : 2000     (particle count cap)
+
+--------------------------------------------------------------------------------
+  NAMING CONVENTIONS
+--------------------------------------------------------------------------------
+
+  IDs             : kebab-case   e.g. #out-bar, #cv-wrap, #sl-flow
+  Classes         : kebab-case   e.g. .clarify-section, .eq-step-label
+  JS variables    : camelCase
+  JS constants    : UPPER_SNAKE_CASE
+  CSS variables   : --prefix-name
+
+  Section header labels always:  uppercase, letter-spacing 1.2px, color #a0a0a0
+
+  All accordion summaries use custom ::before triangle rather than
+  native browser disclosure widget (list-style: none on summary,
+  ::-webkit-details-marker hidden).
+
+--------------------------------------------------------------------------------
+  END OF STYLE GUIDE
+--------------------------------------------------------------------------------
