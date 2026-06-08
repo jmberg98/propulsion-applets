@@ -24,20 +24,48 @@
 
 <style>
 :root {
+  /* ── Physics-quantity colors ─────────────────────────── */
+  --c-thrust: #FF4400;
+  --c-ve:     #3DBFFF;
+  --c-mass:   #FF4400;
+  --c-power:  #C060FF;
+  --c-press:  #00DDB5;
+
+  /* ── UI accent — badges, section labels, form controls ── */
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  /* ── Backgrounds (jet black / neutral gray) ──────────── */
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  /* ── Borders ─────────────────────────────────────────── */
+  --border:      #282828;
+
+  /* ── Text ────────────────────────────────────────────── */
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  /* ── Layout ──────────────────────────────────────────── */
   --page-w: min(1040px, calc(100vw - 32px));
-  --c-thrust: #c62828;
-  --c-ve:     #00838f;
-  --c-mass:   #c62828;
-  --c-power:  #6a1b9a;
-  --c-press:  #2e7d32;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Barlow', sans-serif;
-  background: #ecedee;
-  color: #3b3c3d;
+  background: var(--bg-page);
+  color: var(--text-main);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -63,9 +91,9 @@ body {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 700;
-  color: #0b0b0c;
+  color: #f0f0f0;
   letter-spacing: .3px;
 }
 .badge {
@@ -74,20 +102,20 @@ body {
   letter-spacing: 1px;
   text-transform: uppercase;
   padding: 2px 8px;
-  border: 1px solid #00838f;
+  border: 1px solid var(--c-accent);
   border-radius: 3px;
-  color: #00838f;
-  background: rgba(0,131,143,.09);
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
 }
 
 /* ── Page intro ──────────────────────────────────────────────── */
 .page-intro {
-  font-size: 12.5px;
+  font-size: 14.5px;
   line-height: 1.72;
-  color: #3b3c3d;
+  color: var(--text-main);
   margin-bottom: 14px;
 }
-.page-intro strong:not([class]) { color: #0b0b0c; }
+.page-intro strong:not([class]) { color: #f0f0f0; }
 
 /* ── Color-highlight utility classes ────────────────────────── */
 .hl-thrust, .hl-F { color: var(--c-thrust); }
@@ -119,25 +147,25 @@ strong.hl-press, strong.hl-P,
   margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: #00838f;
+  color: var(--c-accent);
   letter-spacing: 1.2px;
   text-transform: uppercase;
   margin-bottom: 2px;
 }
 details.clarify-detail {
-  background: #dadada;
-  border: 1px solid #b8b9ba;
+  background: var(--bg-panel-1);
+  border: 1px solid var(--border);
   border-radius: 5px;
   overflow: hidden;
 }
 details.clarify-detail > summary {
   cursor: pointer;
   padding: 10px 14px;
-  font-size: 12.5px;
+  font-size: 14.5px;
   font-weight: 600;
-  color: #0b0b0c;
+  color: #f0f0f0;
   list-style: none;
   display: flex;
   align-items: center;
@@ -149,20 +177,20 @@ details.clarify-detail > summary::-webkit-details-marker { display: none; }
 details.clarify-detail > summary::before {
   content: '▶';
   font-size: 8px;
-  color: #00838f;
+  color: var(--c-accent);
   flex-shrink: 0;
   transition: transform .2s ease;
 }
 details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
-details.clarify-detail > summary:hover { background: #cfcfcf; }
+details.clarify-detail > summary:hover { background: #1e1e1e; }
 .clarify-body {
   padding: 10px 18px 14px;
-  border-top: 1px solid #b8b9ba;
-  font-size: 12.5px;
+  border-top: 1px solid var(--border);
+  font-size: 14.5px;
   line-height: 1.70;
-  color: #3b3c3d;
+  color: var(--text-main);
 }
-.clarify-body strong:not([class]) { color: #0b0b0c; }
+.clarify-body strong:not([class]) { color: #f0f0f0; }
 
 /* ── Theory blocks ──────────────────────────────────────────── */
 #theory {
@@ -172,33 +200,33 @@ details.clarify-detail > summary:hover { background: #cfcfcf; }
   margin-bottom: 16px;
 }
 .theory-block {
-  background: #dadada;
-  border: 1px solid #b8b9ba;
+  background: var(--bg-panel-1);
+  border: 1px solid var(--border);
   border-radius: 5px;
   padding: 18px 22px 16px;
   overflow: visible;
 }
 .th-hdr {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: #00838f;
+  color: var(--c-accent);
   letter-spacing: 1.2px;
   text-transform: uppercase;
   padding-bottom: 5px;
-  border-bottom: 1px solid #c0c1c2;
+  border-bottom: 1px solid var(--border);
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 12.5px;
+  font-size: 14.5px;
   line-height: 1.70;
-  color: #3b3c3d;
+  color: var(--text-main);
   margin-bottom: 14px;
 }
-.th-body strong:not([class]) { color: #0b0b0c; }
+.th-body strong:not([class]) { color: #f0f0f0; }
 
 .cv-diagram {
-  background: #0d1624;
-  border: 1px solid #aabac8;
+  background: var(--bg-diagram);
+  border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
   margin-bottom: 14px;
@@ -206,8 +234,8 @@ details.clarify-detail > summary:hover { background: #cfcfcf; }
 }
 
 .eq-panel {
-  background: #e8e9ea;
-  border: 1px solid #c0c1c2;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
   border-radius: 4px;
   padding: 12px 24px 14px;
   overflow: visible;
@@ -225,35 +253,35 @@ details.clarify-detail > summary:hover { background: #cfcfcf; }
 .eq-divider {
   width: 100%;
   height: 1px;
-  background: #c8c9ca;
+  background: var(--border);
   margin: 12px 0 2px;
 }
 .eq-caption {
   display: block;
-  font-size: 11px;
-  color: #6b6c6d;
+  font-size: 12.5px;
+  color: var(--text-muted);
   text-align: center;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid #c8c9ca;
+  border-top: 1px solid var(--border);
 }
 
 /* ── Derivation dropdown (inside eq-panel) ──────────────────── */
 details.deriv-detail {
   margin: 10px 0 6px;
-  border: 1px solid #c0c1c2;
+  border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
 }
 details.deriv-detail > summary {
   cursor: pointer;
   padding: 7px 14px;
-  background: #dfe0e2;
+  background: var(--bg-input);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .9px;
   text-transform: uppercase;
-  color: #00838f;
+  color: var(--c-accent);
   list-style: none;
   display: flex;
   align-items: center;
@@ -265,16 +293,16 @@ details.deriv-detail > summary::-webkit-details-marker { display: none; }
 details.deriv-detail > summary::before {
   content: '▶';
   font-size: 7px;
-  color: #00838f;
+  color: var(--c-accent);
   flex-shrink: 0;
   transition: transform .18s ease;
 }
 details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
-details.deriv-detail > summary:hover { background: #d4d5d7; }
+details.deriv-detail > summary:hover { background: #242424; }
 .deriv-inner {
   padding: 6px 14px 12px;
-  background: #e4e5e6;
-  border-top: 1px solid #c0c1c2;
+  background: var(--bg-panel-3);
+  border-top: 1px solid var(--border);
 }
 .deriv-inner .eq-step-label { color: #9a9b9c; }
 .deriv-inner .eq-step-label:first-child { margin-top: 4px; }
@@ -295,24 +323,24 @@ details.deriv-detail > summary:hover { background: #d4d5d7; }
   margin-bottom: 6px;
 }
 .demo-hdr-row h2 {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
-  color: #0b0b0c;
+  color: #f0f0f0;
 }
 .demo-blurb {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
-  color: #3b3c3d;
+  color: var(--text-main);
   margin-bottom: 8px;
 }
-.demo-blurb strong:not([class]) { color: #0b0b0c; }
+.demo-blurb strong:not([class]) { color: #f0f0f0; }
 
 /* ── Applet ─────────────────────────────────────────────────── */
 #app {
   display: flex;
   flex-direction: column;
-  background: #dadada;
-  border: 1px solid #b8b9ba;
+  background: var(--bg-panel-3);
+  border: 1px solid var(--border);
   border-radius: 5px;
   overflow: hidden;
   box-shadow: 0 4px 28px rgba(0,0,0,.12);
@@ -326,7 +354,7 @@ details.deriv-detail > summary:hover { background: #d4d5d7; }
   flex: 0 0 700px;
   max-width: 100%;
   line-height: 0;
-  border-right: 1px solid #b8b9ba;
+  border-right: 1px solid var(--border);
 }
 canvas {
   display: block;
@@ -341,42 +369,42 @@ canvas {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  background: #dadada;
+  background: var(--bg-panel-1);
 }
 .sect-hdr {
-  font-size: 9.5px;
+  font-size: 11px;
   font-weight: 700;
-  color: #00838f;
+  color: var(--c-accent);
   letter-spacing: 1.2px;
   text-transform: uppercase;
   padding-bottom: 5px;
-  border-bottom: 1px solid #c0c1c2;
+  border-bottom: 1px solid var(--border);
   margin-bottom: 7px;
 }
 .radio-row {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: 12px;
+  font-size: 14px;
   padding: 3px 0;
   cursor: pointer;
   user-select: none;
 }
 .radio-row input[type=radio] {
-  accent-color: #00838f;
+  accent-color: var(--c-accent);
   cursor: pointer;
 }
 .sl-group {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  background: #dfe0e2;
+  background: var(--bg-input);
   padding: 8px 10px;
   border-radius: 4px;
 }
 .sl-label {
-  font-size: 9.5px;
-  color: #5a5b5c;
+  font-size: 11px;
+  color: var(--text-muted);
   letter-spacing: .7px;
   text-transform: uppercase;
 }
@@ -387,46 +415,46 @@ canvas {
 }
 .sl-row input[type=range] {
   flex: 1;
-  accent-color: #00838f;
+  accent-color: var(--c-accent);
   cursor: pointer;
 }
 .sl-row input[type=text] {
   width: 66px;
   padding: 3px 4px;
-  font-size: 11px;
+  font-size: 12.5px;
   font-family: 'Courier New', monospace;
   text-align: center;
-  background: #f0f1f2;
-  color: #00838f;
-  border: 1px solid #c0c1c2;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
   border-radius: 3px;
 }
 .sl-row input[type=text]:focus {
   outline: none;
-  border-color: #00838f;
-  box-shadow: 0 0 0 2px rgba(0,131,143,.12);
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 2px var(--c-accent-glow);
 }
 #out-bar {
   display: flex;
   flex-wrap: wrap;
-  border-top: 1px solid #b8b9ba;
+  border-top: 1px solid var(--border);
 }
 .out-cell {
   flex: 1 1 180px;
   padding: 9px 14px 10px;
-  background: #dfe0e2;
-  border-right: 1px solid #b8b9ba;
+  background: var(--bg-out-cell);
+  border-right: 1px solid var(--border);
 }
 .out-cell:last-child { border-right: none; }
 .out-label {
   font-size: 9px;
-  color: #6a6b6c;
+  color: var(--text-muted);
   letter-spacing: .7px;
   text-transform: uppercase;
   margin-bottom: 3px;
 }
 .out-val {
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 600;
   font-family: 'Courier New', monospace;
 }
@@ -438,8 +466,8 @@ canvas {
 
 footer {
   margin-top: 10px;
-  font-size: 11px;
-  color: #6b6c6d;
+  font-size: 12.5px;
+  color: var(--text-muted);
   width: var(--page-w);
 }
 
@@ -447,13 +475,13 @@ footer {
   #cv-wrap {
     flex-basis: 100%;
     border-right: none;
-    border-bottom: 1px solid #b8b9ba;
+    border-bottom: 1px solid var(--border);
   }
   canvas { width: 100%; height: auto; }
 }
 @media (max-width: 720px) {
   #out-bar { flex-direction: column; }
-  .out-cell { border-right: none; border-bottom: 1px solid #b8b9ba; }
+  .out-cell { border-right: none; border-bottom: 1px solid var(--border); }
   .out-cell:last-child { border-bottom: none; }
 }
 </style>
@@ -478,7 +506,7 @@ footer {
   <strong class="hl-thrust">thrust</strong> of the propulsion system respectively.
 </p>
 
-<!-- ════════════════════ NEW CLARIFYING POINTS (ABOVE APPLET) ════════════════════ -->
+<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Conceptual Questions</div>
 
@@ -512,14 +540,14 @@ footer {
 <p class="demo-blurb">
   For this interactive demo, assume <strong>no gravity</strong>, <strong>no drag</strong>, and
   <strong>steady-state operation</strong> in vacuum. Assume the exhaust stream to have <strong>negligible exit pressure</strong>. Then
-  $\textcolor{#00838f}{c = v_e}$ and
-  $\textcolor{#00838f}{v_e} =
-   \sqrt{2\textcolor{#6a1b9a}{\eta P_{\mathrm{input}}}/\textcolor{#c62828}{\dot{m}}}$,&nbsp;
-  $\textcolor{#c62828}{F_N} =
-   \textcolor{#c62828}{\dot{m}}\textcolor{#00838f}{v_e}$,&nbsp;
+  $\textcolor{#3DBFFF}{c = v_e}$ and
+  $\textcolor{#3DBFFF}{v_e} =
+   \sqrt{2\textcolor{#C060FF}{\eta P_{\mathrm{input}}}/\textcolor{#FF4400}{\dot{m}}}$,&nbsp;
+  $\textcolor{#FF4400}{F_N} =
+   \textcolor{#FF4400}{\dot{m}}\textcolor{#3DBFFF}{v_e}$,&nbsp;
   and
-  $\textcolor{#00838f}{I_{sp}} =
-   \textcolor{#00838f}{v_e}/g_0$.
+  $\textcolor{#3DBFFF}{I_{sp}} =
+   \textcolor{#3DBFFF}{v_e}/g_0$.
 </p>
 
 <!-- ════════════════════ APPLET ════════════════════ -->
@@ -564,16 +592,16 @@ footer {
   <div id="out-bar">
     <div class="out-cell">
       <div class="out-label">Thrust</div>
-      <div class="out-val" id="o-thrust" style="color:#c62828">0 N</div>
+      <div class="out-val" id="o-thrust" style="color:#FF4400">0 N</div>
     </div>
     <div class="out-cell">
       <div class="out-label">Mass Flow Rate</div>
-      <div class="out-val" id="o-mdot"   style="color:#c62828">0 kg/s</div>
+      <div class="out-val" id="o-mdot"   style="color:#FF4400">0 kg/s</div>
     </div>
     <div class="out-cell">
       <div class="out-label">Specific Impulse</div>
-      <div class="out-val" id="o-isp"    style="color:#00838f">0 s</div>
-      <div class="out-sub" id="o-ve"     style="color:#2e7d32">or 0 m/s</div>
+      <div class="out-val" id="o-isp"    style="color:#3DBFFF">0 s</div>
+      <div class="out-sub" id="o-ve"     style="color:#3DBFFF">or 0 m/s</div>
     </div>
   </div>
 </div>
@@ -635,21 +663,22 @@ footer {
         <defs>
           <marker id="arr-ex" markerWidth="10" markerHeight="7"
                   refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,10 3.5,0 7" fill="#00e5ff"/>
+            <polygon points="0 0,10 3.5,0 7" fill="#3DBFFF"/>
           </marker>
           <marker id="arr-fn" markerWidth="10" markerHeight="7"
                   refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,10 3.5,0 7" fill="#ff4060"/>
+            <polygon points="0 0,10 3.5,0 7" fill="#FF4400"/>
           </marker>
           <marker id="arr-md" markerWidth="8" markerHeight="5.6"
                   refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,8 2.8,0 5.6" fill="#ff4060"/>
+            <polygon points="0 0,8 2.8,0 5.6" fill="#FF4400"/>
           </marker>
         </defs>
-        <rect width="820" height="170" fill="#0d1624"/>
+        <!-- background: matches --bg-diagram -->
+        <rect width="820" height="170" fill="#0e0e0e"/>
         <path d="M46 36 L46 134 L170 134 L170 126 L206 126 L206 99 L170 99 L170 71 L206 71 L206 44 L170 44 L170 36 Z"
-              fill="none" stroke="#26415e" stroke-width="1.8" stroke-dasharray="7 4"/>
-        <text x="52" y="30" fill="#26415e" font-size="9.5"
+              fill="none" stroke="#404040" stroke-width="1.8" stroke-dasharray="7 4"/>
+        <text x="52" y="30" fill="#404040" font-size="9.5"
               font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="1.5">C.V.</text>
         <rect x="52" y="40" width="115" height="90" fill="#d6deed" rx="1"/>
         <rect x="52" y="40" width="115" height="7"  fill="#c2ccde" rx="1"/>
@@ -657,28 +686,28 @@ footer {
         <rect x="167" y="99"  width="36" height="23" fill="#d6deed"/>
         <rect x="203" y="71"  width="267" height="28" fill="rgba(0,180,220,0.09)" rx="1"/>
         <line x1="203" y1="71" x2="203" y2="99"
-              stroke="#ff4060" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.72"/>
-        <text x="207" y="68" fill="#ff4060" font-size="8.5"
+              stroke="#FF4400" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.72"/>
+        <text x="207" y="68" fill="#FF4400" font-size="8.5"
               font-family="'Segoe UI',sans-serif" opacity="0.65" letter-spacing="0.3">exit plane</text>
-        <line x1="203" y1="75" x2="470" y2="75" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="80" x2="470" y2="80" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="85" x2="470" y2="85" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="90" x2="470" y2="90" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="95" x2="470" y2="95" stroke="#00e5ff" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <text x="283" y="61" fill="#ff4060" font-size="13" font-family="'Courier New',monospace">ṁ</text>
-        <line x1="298" y1="57" x2="328" y2="57" stroke="#ff4060" stroke-width="1.2" opacity="0.60" marker-end="url(#arr-md)"/>
-        <text x="488" y="74"  fill="#00e5ff" font-size="12" font-family="'Courier New',monospace" font-style="italic">v</text>
-        <text x="497" y="77"  fill="#00e5ff" font-size="9"  font-family="'Courier New',monospace">e</text>
+        <line x1="203" y1="75" x2="470" y2="75" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="80" x2="470" y2="80" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="85" x2="470" y2="85" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="90" x2="470" y2="90" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="203" y1="95" x2="470" y2="95" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <text x="283" y="61" fill="#FF4400" font-size="13" font-family="'Courier New',monospace">ṁ</text>
+        <line x1="298" y1="57" x2="328" y2="57" stroke="#FF4400" stroke-width="1.2" opacity="0.60" marker-end="url(#arr-md)"/>
+        <text x="488" y="74"  fill="#3DBFFF" font-size="12" font-family="'Courier New',monospace" font-style="italic">v</text>
+        <text x="497" y="77"  fill="#3DBFFF" font-size="9"  font-family="'Courier New',monospace">e</text>
         <text x="488" y="88"  fill="#b8c4d8" font-size="12" font-family="'Courier New',monospace" font-style="italic">A</text>
         <text x="497" y="91"  fill="#b8c4d8" font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="102" fill="#69f0ae" font-size="12" font-family="'Courier New',monospace" font-style="italic">P</text>
-        <text x="497" y="105" fill="#69f0ae" font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="230" y="126" fill="#69f0ae" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
-        <text x="241" y="129" fill="#69f0ae" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
-        <line x1="52" y1="85" x2="18" y2="85" stroke="#ff4060" stroke-width="2.5" marker-end="url(#arr-fn)"/>
-        <text x="18" y="78" fill="#ff4060" font-size="12" font-family="'Courier New',monospace" font-style="italic">F</text>
-        <text x="27" y="81" fill="#ff4060" font-size="9"  font-family="'Courier New',monospace">N</text>
-        <text x="196" y="162" fill="#263545" font-size="9"
+        <text x="488" y="102" fill="#00DDB5" font-size="12" font-family="'Courier New',monospace" font-style="italic">P</text>
+        <text x="497" y="105" fill="#00DDB5" font-size="9"  font-family="'Courier New',monospace">e</text>
+        <text x="230" y="126" fill="#00DDB5" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
+        <text x="241" y="129" fill="#00DDB5" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
+        <line x1="52" y1="85" x2="18" y2="85" stroke="#FF4400" stroke-width="2.5" marker-end="url(#arr-fn)"/>
+        <text x="18" y="78" fill="#FF4400" font-size="12" font-family="'Courier New',monospace" font-style="italic">F</text>
+        <text x="27" y="81" fill="#FF4400" font-size="9"  font-family="'Courier New',monospace">N</text>
+        <text x="196" y="162" fill="#404040" font-size="9"
               font-family="'Segoe UI',sans-serif" letter-spacing="0.3">
           Steady state · Uniform exit stream · No viscous forces · Propellant initially at rest on vehicle
         </text>
@@ -690,8 +719,8 @@ footer {
       <span class="eq-step-label">Conservation of Mass — at steady state there is no mass accumulation inside the control volume</span>
       $$
       \begin{aligned}
-      0 &= -\textcolor{#c62828}{\dot{m}} + \rho_e \textcolor{#00838f}{v_e} A_e \\[3pt]
-      \Rightarrow\quad \textcolor{#c62828}{\dot{m}} &= \rho_e \textcolor{#00838f}{v_e} A_e
+      0 &= -\textcolor{#FF4400}{\dot{m}} + \rho_e \textcolor{#3DBFFF}{v_e} A_e \\[3pt]
+      \Rightarrow\quad \textcolor{#FF4400}{\dot{m}} &= \rho_e \textcolor{#3DBFFF}{v_e} A_e
       \end{aligned}
       $$
 
@@ -754,11 +783,11 @@ footer {
       $$
       $$
       \boxed{
-        \textcolor{#c62828}{F_N}
+        \textcolor{#FF4400}{F_N}
         \;=\;
-        \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{v_e}
+        \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{v_e}
         \;+\;
-        \bigl(\textcolor{#2e7d32}{P_e - P_{amb}}\bigr)A_e
+        \bigl(\textcolor{#00DDB5}{P_e - P_{amb}}\bigr)A_e
       }
       $$
 
@@ -767,14 +796,14 @@ footer {
       <span class="eq-step-label">Define effective exhaust velocity $c$ to absorb the pressure correction into a single quantity</span>
       $$
       \boxed{
-        \textcolor{#00838f}{c}
+        \textcolor{#3DBFFF}{c}
         \;\equiv\;
-        \textcolor{#00838f}{v_e}
+        \textcolor{#3DBFFF}{v_e}
         \;+\;
-        \frac{\bigl(\textcolor{#2e7d32}{P_e - P_{amb}}\bigr)A_e}{\textcolor{#c62828}{\dot{m}}}
+        \frac{\bigl(\textcolor{#00DDB5}{P_e - P_{amb}}\bigr)A_e}{\textcolor{#FF4400}{\dot{m}}}
       }
       \qquad\Rightarrow\qquad
-      \textcolor{#c62828}{F_N} = \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}
+      \textcolor{#FF4400}{F_N} = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
       $$
 
       <span class="eq-caption">
@@ -805,26 +834,26 @@ footer {
       $$
       \begin{aligned}
       \text{Impulse}
-      &= \int \textcolor{#c62828}{F_N}\,dt
-       = \int \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}\,dt
-       = \textcolor{#00838f}{c}\int \textcolor{#c62828}{\dot{m}}\,dt
-       = \textcolor{#00838f}{c}\,\textcolor{#00838f}{m_{\mathrm{prop}}}
+      &= \int \textcolor{#FF4400}{F_N}\,dt
+       = \int \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\,dt
+       = \textcolor{#3DBFFF}{c}\int \textcolor{#FF4400}{\dot{m}}\,dt
+       = \textcolor{#3DBFFF}{c}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}
       \end{aligned}
       $$
 
       <span class="eq-step-label">Normalize by propellant mass — impulse per unit propellant mass equals effective exhaust velocity</span>
       $$
-      \frac{\text{Impulse}}{\textcolor{#00838f}{m_{\mathrm{prop}}}}
-      = \textcolor{#00838f}{c}
+      \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}}
+      = \textcolor{#3DBFFF}{c}
       \qquad[\mathrm{m/s}]
       $$
 
       <span class="eq-step-label">Historical convention — divide by $g_0$ to obtain specific impulse in seconds</span>
       $$
       \boxed{
-        \textcolor{#00838f}{I_{sp}}
-        = \frac{\text{Impulse}}{\textcolor{#00838f}{m_{\mathrm{prop}}}\,g_0}
-        = \frac{\textcolor{#00838f}{c}}{g_0}
+        \textcolor{#3DBFFF}{I_{sp}}
+        = \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,g_0}
+        = \frac{\textcolor{#3DBFFF}{c}}{g_0}
         \qquad[\mathrm{s}]
       }
       $$
@@ -839,19 +868,19 @@ footer {
           $$
           \begin{aligned}
           E_{\mathrm{jet}}
-          &= \tfrac{1}{2}\,\textcolor{#00838f}{m_{\mathrm{prop}}}\,\textcolor{#00838f}{c}^2
+          &= \tfrac{1}{2}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,\textcolor{#3DBFFF}{c}^2
           \\[5pt]
           P_{\mathrm{jet}}
           = \frac{dE_{\mathrm{jet}}}{dt}
-          &= \tfrac{1}{2}\,\textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}^2
+          &= \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
           \end{aligned}
           $$
 
           <span class="eq-step-label">Use the thrust relation $F_N = \dot{m}\,c$ to rewrite jet power</span>
           $$
           P_{\mathrm{jet}}
-          = \tfrac{1}{2}\,\textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}^2
-          = \tfrac{1}{2}\,\textcolor{#c62828}{F_N}\,\textcolor{#00838f}{c}
+          = \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+          = \tfrac{1}{2}\,\textcolor{#FF4400}{F_N}\,\textcolor{#3DBFFF}{c}
           $$
 
         </div>
@@ -860,31 +889,31 @@ footer {
       <span class="eq-step-label">Relate jet power to input power through system efficiency $\eta$</span>
       $$
       \boxed{
-        P_{\mathrm{jet}} = \textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}
+        P_{\mathrm{jet}} = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
         \qquad\Rightarrow\qquad
-        \tfrac{1}{2}\,\textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}^2
-        = \textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}
+        \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+        = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
       }
       $$
 
       <span class="eq-step-label">Solve for exhaust velocity, thrust, and specific impulse</span>
       $$
       \boxed{
-        \textcolor{#00838f}{c}
-        = \sqrt{\frac{2\,\textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}}{\textcolor{#c62828}{\dot{m}}}}
+        \textcolor{#3DBFFF}{c}
+        = \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
       }
       \qquad
       \boxed{
-        \textcolor{#c62828}{F_N}
-        = \textcolor{#c62828}{\dot{m}}\,\textcolor{#00838f}{c}
-        = \sqrt{2\,\textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}\,\textcolor{#c62828}{\dot{m}}}
+        \textcolor{#FF4400}{F_N}
+        = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
+        = \sqrt{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}\,\textcolor{#FF4400}{\dot{m}}}
       }
       $$
       $$
       \boxed{
-        \textcolor{#00838f}{I_{sp}}
+        \textcolor{#3DBFFF}{I_{sp}}
         = \frac{1}{g_0}
-          \sqrt{\frac{2\,\textcolor{#6a1b9a}{\eta\,P_{\mathrm{input}}}}{\textcolor{#c62828}{\dot{m}}}}
+          \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
       }
       $$
 
@@ -1099,7 +1128,8 @@ linkSliderTb(slEta,   tbEta);
 // Drawing helpers
 // ═══════════════════════════════════════════════════════
 function drawBackground() {
-  ctx.fillStyle = '#080f1c';
+  // matches --bg-canvas: #090909
+  ctx.fillStyle = '#090909';
   ctx.fillRect(0, 0, CW, CH);
   for (const s of STARS) {
     ctx.beginPath();
@@ -1123,8 +1153,8 @@ function drawSpacecraft(thrust) {
     const hW   = hLen * 0.90;
 
     ctx.save();
-    ctx.strokeStyle = '#ff1744';
-    ctx.fillStyle   = '#ff1744';
+    ctx.strokeStyle = '#FF4400';
+    ctx.fillStyle   = '#FF4400';
     ctx.lineWidth   = 10;
     ctx.lineCap     = 'butt';
 
@@ -1219,7 +1249,6 @@ function animate(ts) {
   drawBackground();
   drawSpacecraft(res.T);
   drawParticles();
-
   requestAnimationFrame(animate);
 }
 
