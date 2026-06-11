@@ -1,0 +1,7 @@
+Creating the actual interactive demo with generative AI is far easier and simpler than anticipated,
+but I need to spend more time structuring each page with the desired self-contained experience. I should
+try to draft a page by hand or using word-processing software. Most of the time I was spending for the first
+applet was wasted trying to format and change the text in the final html webpage. Instead, I should have all
+of the desired explanations and derivations ready for the AI to process to minimze token usage and maximize
+the time I have in developing these applets. This approach may also better motivate an applet demo, rather than
+trying to make a page around a demo. These lessons will be incorporated in the Rocket Equation applet.
