@@ -92,10 +92,12 @@ class SolarSystemSubwayMap:
         self.summary_var = tk.StringVar(value="")
 
         self.presets = {
-            "Falcon 9 (expendable upper stage)": 2440,
-            "Starship (expendable, no refuel)":  6900,
-            "Saturn V (S-IVB, TLI)":             3210,
-            "Dawn (ion propulsion total)":       11000,
+            "Falcon 9 (expendable upper stage)": 2440,   # LEO→GTO perigee burn — correct
+            "Starship (expendable, no refuel)":  6900,   # ~100 t payload, Isp 380 s — approx. correct
+            "Saturn V (S-IVB, TLI)":            3500,   # raised from 3210; actual TLI ~3 050–3 150 m/s
+                                                        # but map's moon_i = 3 260, so must be ≥ 3 260;
+                                                        # 3 500 adds realistic margin and shows the Moon
+            "Dawn (ion propulsion total)":       11000,  # ~10 900 m/s accumulated — correct
         }
 
         # ── title ─────────────────────────────────────────────────────
