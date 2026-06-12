@@ -16,19 +16,20 @@ class SolarSystemSubwayMap:
         self.reachable_nodes = set()
         self.reachable_edges = set()
         self.current_budget = None
+        self.selected_node = None
 
         container = tk.Frame(root, bg="#f3f3f3")
         container.pack(fill="both", expand=True)
 
-        # Smaller map so the calculator is always visible
         self.canvas = tk.Canvas(
             container,
             width=1180,
-            height=650,
+            height=520,
             bg="#f3f3f3",
             highlightthickness=0
         )
         self.canvas.pack(side="bottom", fill="x")
+        self.canvas.bind("<Button-1>", self.on_canvas_click)
 
         self.control_frame = tk.Frame(
             container,
@@ -40,7 +41,6 @@ class SolarSystemSubwayMap:
         )
         self.control_frame.pack(side="top", fill="x")
 
-        # Smaller scale than before
         self.x_scale = 1.15
         self.y_scale = 0.5
 
@@ -48,92 +48,131 @@ class SolarSystemSubwayMap:
         self.dy = 40
 
         self._build_map_data()
-        self._compute_shortest_paths_from_earth()
+        self._compute_shortest_paths_from_leo()
         self._build_controls()
         self.draw_map()
 
-    def _build_controls(self):
-        self.isp_var = tk.StringVar(value="450")
-        self.propellant_var = tk.StringVar(value="600000")
-        self.structural_var = tk.StringVar(value="40000")
-        self.payload_var = tk.StringVar(value="10000")
+    # ------------------------------------------------------------------
+    # click handler
+    # ------------------------------------------------------------------
+    def on_canvas_click(self, event):
+        """Select the nearest node within HIT_RADIUS pixels; toggle off if already selected."""
+        HIT_RADIUS = 22
+        closest_node = None
+        closest_dist = float("inf")
 
-        self.result_var = tk.StringVar(value="Enter rocket parameters below to calculate a Delta-V budget.")
-        self.status_var = tk.StringVar(value="")
+        for node_id, node in self.nodes.items():
+            nx, ny = self.t(node["x"], node["y"])
+            dist = math.hypot(event.x - nx, event.y - ny)
+            if dist < closest_dist:
+                closest_dist = dist
+                closest_node = node_id
+
+        if closest_dist <= HIT_RADIUS:
+            self.selected_node = None if self.selected_node == closest_node else closest_node
+        else:
+            self.selected_node = None
+
+        self.draw_map()
+
+    # ------------------------------------------------------------------
+    # controls — rocket equation + direct Δv entry + presets
+    # ------------------------------------------------------------------
+    def _build_controls(self):
+        # ── StringVars ────────────────────────────────────────────────
+        self.lambda_var  = tk.StringVar(value="0.100")
+        self.epsilon_var = tk.StringVar(value="0.063")
+        self.c_var       = tk.StringVar(value="4413")
+        self.dv_var      = tk.StringVar(value="")
+
+        self.result_var  = tk.StringVar(
+            value="Enter rocket parameters or a Δv budget to highlight reachable destinations from LEO."
+        )
+        self.status_var  = tk.StringVar(value="")
         self.summary_var = tk.StringVar(value="")
 
+        self.presets = {
+            "Falcon 9 (expendable upper stage)": 2440,
+            "Starship (expendable, no refuel)":  6900,
+            "Saturn V (S-IVB, TLI)":             3210,
+            "Dawn (ion propulsion total)":       11000,
+        }
+
+        # ── title ─────────────────────────────────────────────────────
         tk.Label(
             self.control_frame,
-            text="Rocket calculator",
+            text="Delta-V Budget (from LEO)",
             bg="#e6e6e6",
             fg="#111111",
             font=("Arial", 12, "bold")
-        ).grid(row=0, column=0, columnspan=10, sticky="w", pady=(0, 8))
+        ).grid(row=0, column=0, columnspan=12, sticky="w", pady=(0, 4))
 
+        # ── formula row ───────────────────────────────────────────────
         tk.Label(
             self.control_frame,
-            text="Δv = Isp × g0 × ln((propellant + structural + payload) / (structural + payload))",
+            text=(
+                "Δv = c × ln((1 + λ) / (λ + ε))"
+                "          Mass Ratio  MR = (1 + λ) / (λ + ε)"
+                "          where  λ = m\u209A\u2090\u1D67 / (m\u209A + m\u209B),  "
+                "ε = m\u209B / (m\u209A + m\u209B)"
+            ),
             bg="#e6e6e6",
             fg="#222222",
             font=("Arial", 10)
-        ).grid(row=1, column=0, columnspan=10, sticky="w", pady=(0, 10))
+        ).grid(row=1, column=0, columnspan=12, sticky="w", pady=(0, 6))
 
+        # ── λ ─────────────────────────────────────────────────────────
         tk.Label(
             self.control_frame,
-            text="Specific impulse Isp (s):",
+            text="Payload ratio  λ [-]  (λ ≥ 0):",
             bg="#e6e6e6",
             font=("Arial", 10)
         ).grid(row=2, column=0, sticky="w", padx=(0, 6))
 
-        tk.Entry(
+        lambda_entry = tk.Entry(
             self.control_frame,
-            textvariable=self.isp_var,
+            textvariable=self.lambda_var,
             width=10,
             font=("Arial", 10)
-        ).grid(row=2, column=1, sticky="w", padx=(0, 18))
+        )
+        lambda_entry.grid(row=2, column=1, sticky="w", padx=(0, 14))
+        lambda_entry.bind("<Return>", lambda e: self.calculate_from_inputs())
 
+        # ── ε ─────────────────────────────────────────────────────────
         tk.Label(
             self.control_frame,
-            text="Propellant mass (kg):",
+            text="Structural coeff.  ε [-]  (0 ≤ ε ≤ 1):",
             bg="#e6e6e6",
             font=("Arial", 10)
         ).grid(row=2, column=2, sticky="w", padx=(0, 6))
 
-        tk.Entry(
+        epsilon_entry = tk.Entry(
             self.control_frame,
-            textvariable=self.propellant_var,
-            width=12,
+            textvariable=self.epsilon_var,
+            width=10,
             font=("Arial", 10)
-        ).grid(row=2, column=3, sticky="w", padx=(0, 18))
+        )
+        epsilon_entry.grid(row=2, column=3, sticky="w", padx=(0, 14))
+        epsilon_entry.bind("<Return>", lambda e: self.calculate_from_inputs())
 
+        # ── c ─────────────────────────────────────────────────────────
         tk.Label(
             self.control_frame,
-            text="Structural mass (kg):",
+            text="Specific impulse  c [m/s]:",
             bg="#e6e6e6",
             font=("Arial", 10)
         ).grid(row=2, column=4, sticky="w", padx=(0, 6))
 
-        tk.Entry(
+        c_entry = tk.Entry(
             self.control_frame,
-            textvariable=self.structural_var,
-            width=12,
+            textvariable=self.c_var,
+            width=10,
             font=("Arial", 10)
-        ).grid(row=2, column=5, sticky="w", padx=(0, 18))
+        )
+        c_entry.grid(row=2, column=5, sticky="w", padx=(0, 14))
+        c_entry.bind("<Return>", lambda e: self.calculate_from_inputs())
 
-        tk.Label(
-            self.control_frame,
-            text="Payload mass (kg):",
-            bg="#e6e6e6",
-            font=("Arial", 10)
-        ).grid(row=2, column=6, sticky="w", padx=(0, 6))
-
-        tk.Entry(
-            self.control_frame,
-            textvariable=self.payload_var,
-            width=12,
-            font=("Arial", 10)
-        ).grid(row=2, column=7, sticky="w", padx=(0, 18))
-
+        # ── Calculate button ──────────────────────────────────────────
         tk.Button(
             self.control_frame,
             text="Calculate",
@@ -142,8 +181,9 @@ class SolarSystemSubwayMap:
             font=("Arial", 10, "bold"),
             padx=10,
             pady=3
-        ).grid(row=2, column=8, sticky="w", padx=(0, 8))
+        ).grid(row=2, column=6, sticky="w", padx=(0, 8))
 
+        # ── Clear button ──────────────────────────────────────────────
         tk.Button(
             self.control_frame,
             text="Clear",
@@ -152,12 +192,66 @@ class SolarSystemSubwayMap:
             font=("Arial", 10),
             padx=10,
             pady=3
-        ).grid(row=2, column=9, sticky="w")
+        ).grid(row=2, column=7, sticky="w", padx=(0, 20))
 
-        for child in self.control_frame.winfo_children():
-            if isinstance(child, tk.Entry):
-                child.bind("<Return>", lambda event: self.calculate_from_inputs())
+        # ── divider label ─────────────────────────────────────────────
+        tk.Label(
+            self.control_frame,
+            text="— or enter Δv directly —",
+            bg="#e6e6e6",
+            fg="#555555",
+            font=("Arial", 9, "italic")
+        ).grid(row=2, column=8, sticky="w", padx=(0, 8))
 
+        # ── direct Δv entry ───────────────────────────────────────────
+        tk.Label(
+            self.control_frame,
+            text="Δv [m/s]:",
+            bg="#e6e6e6",
+            font=("Arial", 10)
+        ).grid(row=2, column=9, sticky="w", padx=(0, 4))
+
+        dv_entry = tk.Entry(
+            self.control_frame,
+            textvariable=self.dv_var,
+            width=10,
+            font=("Arial", 10)
+        )
+        dv_entry.grid(row=2, column=10, sticky="w", padx=(0, 6))
+        dv_entry.bind("<Return>", lambda e: self.apply_custom_dv())
+
+        tk.Button(
+            self.control_frame,
+            text="Apply",
+            command=self.apply_custom_dv,
+            bg="#ffffff",
+            font=("Arial", 10, "bold"),
+            padx=8,
+            pady=3
+        ).grid(row=2, column=11, sticky="w")
+
+        # ── preset buttons ────────────────────────────────────────────
+        preset_label = tk.Label(
+            self.control_frame,
+            text="Upper-stage presets:",
+            bg="#e6e6e6",
+            fg="#333333",
+            font=("Arial", 9, "italic")
+        )
+        preset_label.grid(row=3, column=0, sticky="w", padx=(0, 8), pady=(6, 0))
+
+        for i, (name, dv) in enumerate(self.presets.items()):
+            tk.Button(
+                self.control_frame,
+                text=name,
+                command=lambda n=name, d=dv: self.apply_preset(n, d),
+                bg="#ffffff",
+                font=("Arial", 9),
+                padx=8,
+                pady=3
+            ).grid(row=3, column=i + 1, sticky="w", padx=(0, 6), pady=(6, 0))
+
+        # ── output rows ───────────────────────────────────────────────
         tk.Label(
             self.control_frame,
             textvariable=self.result_var,
@@ -166,7 +260,7 @@ class SolarSystemSubwayMap:
             font=("Arial", 10, "bold"),
             justify="left",
             anchor="w"
-        ).grid(row=3, column=0, columnspan=10, sticky="w", pady=(12, 2))
+        ).grid(row=4, column=0, columnspan=12, sticky="w", pady=(10, 2))
 
         tk.Label(
             self.control_frame,
@@ -176,7 +270,7 @@ class SolarSystemSubwayMap:
             font=("Arial", 10),
             justify="left",
             anchor="w"
-        ).grid(row=4, column=0, columnspan=10, sticky="w", pady=(0, 2))
+        ).grid(row=5, column=0, columnspan=12, sticky="w", pady=(0, 2))
 
         tk.Label(
             self.control_frame,
@@ -187,7 +281,7 @@ class SolarSystemSubwayMap:
             justify="left",
             anchor="w",
             wraplength=1100
-        ).grid(row=5, column=0, columnspan=10, sticky="w", pady=(6, 0))
+        ).grid(row=6, column=0, columnspan=12, sticky="w", pady=(6, 0))
 
     def _build_map_data(self):
         C = {
@@ -204,10 +298,10 @@ class SolarSystemSubwayMap:
             "tan":    "#BE9755",
         }
 
+        # Earth node removed; LEO is now the origin
         self.nodes = {
-            "earth":    {"x": 392, "y": 895, "kind": "circle",   "label": "Earth", "offset": (0, 20)},
             "leo":      {"x": 392, "y": 792, "kind": "transfer", "orientation": "h", "length": 64,
-                         "label": "Low Earth Orbit\n(150 km)", "offset": (42, 0)},
+                         "label": "Low Earth Orbit\n(150 km) — Origin", "offset": (42, 0)},
             "ei":       {"x": 392, "y": 646, "kind": "transfer", "orientation": "h", "length": 118,
                          "label": "Earth Intercept", "offset": (86, 0)},
             "inter":    {"x": 392, "y": 305, "kind": "transfer", "orientation": "h", "length": 118,
@@ -273,8 +367,8 @@ class SolarSystemSubwayMap:
             "phobos":   {"x": 10,  "y": 425, "kind": "circle",   "label": "Phobos", "offset": (-16, 0)},
         }
 
+        # Earth→LEO segment removed; all Δv values now originate from LEO
         self.segments = [
-            {"parent": "earth",   "child": "leo",      "dv": 9400,  "color": C["blue"]},
             {"parent": "leo",     "child": "ei",       "dv": 3210,  "color": C["blue"]},
             {"parent": "ei",      "child": "inter",    "dv": 3360,  "color": C["red"]},
             {"parent": "inter",   "child": "j_lo",     "dv": 17200, "color": C["brown"]},
@@ -383,7 +477,10 @@ class SolarSystemSubwayMap:
             {"text": "Intercept", "x": 548, "y": 597, "angle": 49},
         ]
 
-    def _compute_shortest_paths_from_earth(self):
+    # ------------------------------------------------------------------
+    # Dijkstra — rooted at LEO
+    # ------------------------------------------------------------------
+    def _compute_shortest_paths_from_leo(self):
         adjacency = defaultdict(list)
 
         for seg in self.segments:
@@ -392,8 +489,8 @@ class SolarSystemSubwayMap:
         dist = {node_id: math.inf for node_id in self.nodes}
         prev = {}
 
-        dist["earth"] = 0
-        heap = [(0, "earth")]
+        dist["leo"] = 0
+        heap = [(0, "leo")]
 
         while heap:
             cur_dist, node = heapq.heappop(heap)
@@ -407,7 +504,7 @@ class SolarSystemSubwayMap:
                     prev[neighbor] = node
                     heapq.heappush(heap, (new_dist, neighbor))
 
-        self.shortest_dv = {k: v for k, v in dist.items() if v < math.inf}
+        self.shortest_dv   = {k: v for k, v in dist.items() if v < math.inf}
         self.shortest_prev = prev
 
     def t(self, x, y):
@@ -440,36 +537,70 @@ class SolarSystemSubwayMap:
             raise ValueError(f"{name} cannot be negative.")
         return value
 
+    # ------------------------------------------------------------------
+    # rocket-equation calculator (λ, ε, c  →  Δv)
+    # ------------------------------------------------------------------
     def calculate_from_inputs(self):
         try:
-            isp = self.parse_positive_float(self.isp_var.get(), "Specific impulse Isp")
-            propellant = self.parse_nonnegative_float(self.propellant_var.get(), "Propellant mass")
-            structural = self.parse_nonnegative_float(self.structural_var.get(), "Structural mass")
-            payload = self.parse_nonnegative_float(self.payload_var.get(), "Payload mass")
+            lambda_  = self.parse_nonnegative_float(self.lambda_var.get(),  "Payload ratio λ")
+            epsilon  = self.parse_nonnegative_float(self.epsilon_var.get(), "Structural coefficient ε")
+            c        = self.parse_positive_float(self.c_var.get(),          "Specific impulse c")
 
-            if propellant <= 0:
-                raise ValueError("Propellant mass must be greater than 0.")
+            if epsilon > 1.0:
+                raise ValueError("Structural coefficient ε must be between 0 and 1  (ε ≤ 1).")
 
-            mf = structural + payload
-            m0 = propellant + mf
+            if lambda_ + epsilon <= 0:
+                raise ValueError(
+                    "λ + ε must be > 0  (at least one of payload ratio or structural "
+                    "coefficient must be positive)."
+                )
 
-            if mf <= 0:
-                raise ValueError("Structural mass + payload mass must be greater than 0.")
+            mass_ratio = (1.0 + lambda_) / (lambda_ + epsilon)
+            budget     = c * math.log(mass_ratio)
 
-            budget = isp * self.G0 * math.log(m0 / mf)
-            mass_ratio = m0 / mf
+            # Mirror the computed Δv into the direct-entry field so both
+            # displays stay consistent with each other.
+            self.dv_var.set(f"{budget:.1f}")
 
             self.current_budget = budget
             self.status_var.set("")
             self.result_var.set(
-                f"m0 = {m0:,.1f} kg, mf = {mf:,.1f} kg, mass ratio = {mass_ratio:.3f}, "
-                f"Delta-V budget = {budget:,.1f} m/s ({budget / 1000:.2f} km/s)"
+                f"λ = {lambda_:.4f},  ε = {epsilon:.4f},  c = {c:,.1f} m/s  →  "
+                f"Mass ratio MR = {mass_ratio:.4f},  "
+                f"Δv = {budget:,.1f} m/s  ({budget / 1000:.3f} km/s)  [from LEO]"
             )
 
             self.update_reachability(budget)
 
         except ValueError as e:
             self.status_var.set(str(e))
+
+    # ------------------------------------------------------------------
+    # direct Δv entry
+    # ------------------------------------------------------------------
+    def apply_custom_dv(self):
+        try:
+            dv = self.parse_nonnegative_float(self.dv_var.get(), "Delta-V")
+            self.current_budget = dv
+            self.status_var.set("")
+            self.result_var.set(
+                f"Custom Δv = {dv:,.0f} m/s  ({dv / 1000:.2f} km/s) from LEO"
+            )
+            self.update_reachability(dv)
+        except ValueError as e:
+            self.status_var.set(str(e))
+
+    # ------------------------------------------------------------------
+    # preset buttons
+    # ------------------------------------------------------------------
+    def apply_preset(self, name, dv):
+        self.dv_var.set(str(dv))
+        self.current_budget = dv
+        self.status_var.set("")
+        self.result_var.set(
+            f"{name}:  Δv = {dv:,.0f} m/s  ({dv / 1000:.2f} km/s) from LEO"
+        )
+        self.update_reachability(dv)
 
     def update_reachability(self, budget):
         self.reachable_nodes = {
@@ -503,17 +634,32 @@ class SolarSystemSubwayMap:
                 "; ".join(f"{label} ({dv:,.0f} m/s)" for dv, label in items)
             )
         else:
-            self.summary_var.set("No labeled nodes are reachable with the current Delta-V budget.")
+            self.summary_var.set(
+                "No labeled nodes are reachable with the current Delta-V budget."
+            )
 
     def clear_highlights(self):
         self.reachable_nodes.clear()
         self.reachable_edges.clear()
         self.current_budget = None
-        self.result_var.set("Enter rocket parameters below to calculate a Delta-V budget.")
+        self.selected_node  = None
+        self.dv_var.set("")
+        self.result_var.set(
+            "Enter rocket parameters or a Δv budget to highlight reachable destinations from LEO."
+        )
         self.status_var.set("")
         self.summary_var.set("")
         self.draw_map()
 
+    def _node_display_name(self, node_id):
+        label = self.nodes[node_id].get("label", "")
+        if label:
+            return label.replace("\n", " ")
+        return node_id.replace("_", " ").title()
+
+    # ------------------------------------------------------------------
+    # drawing
+    # ------------------------------------------------------------------
     def draw_map(self):
         self.canvas.delete("all")
 
@@ -532,14 +678,63 @@ class SolarSystemSubwayMap:
             font=("Arial", 13, "bold")
         )
 
+        top_right_x = 1160
+        line_y = 18
+
         if self.current_budget is not None:
             self.canvas.create_text(
-                1160, 18,
-                text=f"Budget: {self.current_budget:,.0f} m/s",
+                top_right_x, line_y,
+                text=(f"Budget from LEO: {self.current_budget:,.0f} m/s"
+                      f"  ({self.current_budget / 1000:.2f} km/s)"),
                 anchor="ne",
                 fill="#222222",
                 font=("Arial", 11, "bold")
             )
+            line_y += 22
+
+        if self.selected_node is not None:
+            dest_name   = self._node_display_name(self.selected_node)
+            dv_required = self.shortest_dv.get(self.selected_node)
+
+            self.canvas.create_text(
+                top_right_x, line_y,
+                text=f"Destination: {dest_name}",
+                anchor="ne",
+                fill="#003080",
+                font=("Arial", 11, "bold")
+            )
+            line_y += 20
+
+            if dv_required is not None:
+                self.canvas.create_text(
+                    top_right_x, line_y,
+                    text=(f"Delta-V required (from LEO):  "
+                          f"{dv_required:,.0f} m/s  ({dv_required / 1000:.2f} km/s)"),
+                    anchor="ne",
+                    fill="#222222",
+                    font=("Arial", 11)
+                )
+                line_y += 20
+
+                if self.current_budget is not None:
+                    remaining       = self.current_budget - dv_required
+                    remaining_color = "#006622" if remaining >= 0 else "#B22222"
+                    self.canvas.create_text(
+                        top_right_x, line_y,
+                        text=(f"Remaining Delta-V Budget:  "
+                              f"{remaining:+,.0f} m/s  ({remaining / 1000:+.2f} km/s)"),
+                        anchor="ne",
+                        fill=remaining_color,
+                        font=("Arial", 11)
+                    )
+            else:
+                self.canvas.create_text(
+                    top_right_x, line_y,
+                    text="Delta-V required:  N/A (not reachable from LEO)",
+                    anchor="ne",
+                    fill="#B22222",
+                    font=("Arial", 11)
+                )
 
         for seg in self.segments:
             self.draw_segment(seg)
@@ -576,7 +771,7 @@ class SolarSystemSubwayMap:
         x2, y2 = self.t(c["x"], c["y"])
 
         width_outer = max(10, self.tsu(16))
-        width_inner = max(6, self.tsu(10))
+        width_inner = max(6,  self.tsu(10))
 
         highlighted = (seg["parent"], seg["child"]) in self.reachable_edges
 
@@ -616,14 +811,14 @@ class SolarSystemSubwayMap:
         ux = dx / length
         uy = dy / length
         px = -uy
-        py = ux
+        py =  ux
 
-        frac = 0.72 if length > 60 else 0.58
+        frac  = 0.72 if length > 60 else 0.58
         tip_x = x1 + dx * frac
         tip_y = y1 + dy * frac
 
         arrow_len = max(7, self.tsu(9))
-        arrow_w = max(5, self.tsu(6))
+        arrow_w   = max(5, self.tsu(6))
 
         if highlighted:
             arrow_w += 2
@@ -653,10 +848,8 @@ class SolarSystemSubwayMap:
         my += self.tsy(sy)
 
         angle = math.degrees(math.atan2(y2 - y1, x2 - x1))
-        if angle > 90:
-            angle -= 180
-        if angle < -90:
-            angle += 180
+        if angle >  90: angle -= 180
+        if angle < -90: angle += 180
 
         highlighted = (seg["parent"], seg["child"]) in self.reachable_edges
 
@@ -679,6 +872,7 @@ class SolarSystemSubwayMap:
         x, y = self.t(node["x"], node["y"])
         r = max(4, self.tsu(6))
         highlighted = node_id in self.reachable_nodes
+        selected    = node_id == self.selected_node
 
         if highlighted:
             glow = r + 6
@@ -686,6 +880,16 @@ class SolarSystemSubwayMap:
                 x - glow, y - glow, x + glow, y + glow,
                 fill="#FFD54A",
                 outline=""
+            )
+
+        if selected:
+            sel_r = r + 9
+            self.canvas.create_oval(
+                x - sel_r, y - sel_r, x + sel_r, y + sel_r,
+                fill="",
+                outline="#0055CC",
+                width=2,
+                dash=(5, 3)
             )
 
         self.canvas.create_oval(
@@ -698,6 +902,7 @@ class SolarSystemSubwayMap:
     def draw_transfer_node(self, node_id, node):
         x, y = self.t(node["x"], node["y"])
         highlighted = node_id in self.reachable_nodes
+        selected    = node_id == self.selected_node
 
         if node["orientation"] == "h":
             length = self.tsx(node.get("length", 60))
@@ -712,6 +917,15 @@ class SolarSystemSubwayMap:
                 fill="#FFD54A",
                 width=max(14, self.tsu(20)),
                 capstyle=tk.ROUND
+            )
+
+        if selected:
+            self.canvas.create_line(
+                x1, y1, x2, y2,
+                fill="#0055CC",
+                width=max(18, self.tsu(26)),
+                capstyle=tk.ROUND,
+                dash=(5, 3)
             )
 
         self.canvas.create_line(
