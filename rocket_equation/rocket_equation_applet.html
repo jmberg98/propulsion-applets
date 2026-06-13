@@ -235,14 +235,14 @@ details.deriv-detail > summary:focus-visible {
 .theory-block.subway-host .th-hdr {
   margin: 0 18px 12px;
 }
+
+/* ── No scroll wrapper needed — applet fills width ── */
 #subway-applet-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding-bottom: 6px;
+  overflow: visible;
 }
+
 #subway-applet {
-  min-width: 1248px;
-  width: max-content;
+  width: 100%;
   background: var(--bg-page);
 }
 
@@ -271,8 +271,7 @@ details.deriv-detail > summary:focus-visible {
   box-sizing: border-box;
 }
 #subway-applet .container {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
   overflow: visible;
   height: auto;
 }
@@ -281,17 +280,19 @@ details.deriv-detail > summary:focus-visible {
   background: var(--bg-canvas);
   padding: 24px 24px 18px 24px;
   overflow: visible;
-  min-width: max-content;
+  width: 100%;
   height: auto;
 }
 #subway-applet canvas {
   background: var(--bg-canvas);
   cursor: crosshair;
   display: block;
+  width: 100%;   /* CSS-scale to fill; logical buffer stays 1200×1180 */
+  height: auto;
 }
 #subway-applet .info-panel-frame {
   position: absolute;
-  top: 40px;
+  top: 20px;
   right: 48px;
   width: 360px;
   max-width: calc(100% - 80px);
@@ -337,8 +338,7 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .control-frame {
   position: relative;
   margin: 4px 24px 28px 24px;
-  width: 1200px;
-  max-width: none;
+  width: calc(100% - 48px); /* was hard-coded 1200px */
   background: rgba(8, 8, 8, 0.97);
   border: 1px solid #252525;
   border-radius: 12px;
@@ -364,7 +364,7 @@ details.deriv-detail > summary:focus-visible {
 
 #subway-applet .cf-body {
   display: grid;
-  grid-template-columns: 1.25fr 1fr 1.5fr 1.4fr;
+  grid-template-columns: 1.6fr 1.25fr 1.45fr 1.1fr;
   gap: 22px;
   align-items: stretch;
 }
@@ -559,7 +559,7 @@ footer {
 </div>
 
 <p class="page-intro">
-  The overall change in velocity of a spacecraft is determined by both the difference in its initial and final mass and by its specific impulse. While higher specific impulse most significantly increases the total “Delta-V” of the spacecraft, recall that higher specific impulses require higher total power to achieve the same mission time. However, higher total power is not trivial, as higher power requirements necessitate higher power + propulsion system mass or greater technology levels.
+  The overall change in velocity of a spacecraft is determined by both the difference in its initial and final mass and by its specific impulse. While higher specific impulse most significantly increases the total "Delta-V" of the spacecraft, recall that higher specific impulses require higher total power to achieve the same mission time. However, higher total power is not trivial, as higher power requirements necessitate higher power + propulsion system mass or greater technology levels.
 </p>
 
 <div id="theory">
@@ -671,7 +671,7 @@ footer {
       <div id="subway-applet">
         <div class="container">
           <div class="canvas-container">
-            <canvas id="mapCanvas" width="1200" height="1180"></canvas>
+            <canvas id="mapCanvas" width="1200" height="1280"></canvas>
             <div class="info-panel-frame" id="infoPanelFrame"></div>
           </div>
 
@@ -759,7 +759,7 @@ footer {
           </div>
 
           <div class="credits">
-            <strong>Credits:</strong> Subway map design inspired by Ulysse Carion. Δv labels adopted from Reddit user /u/CuriousMetaphor.<br>
+            <strong>Credits:</strong> Subway map design inspired by Ulysse Carion. Δv label values adopted from Reddit user /u/CuriousMetaphor.<br>
             Map concept inspired by <a href="https://www.kerbalspaceprogram.com" target="_blank">Kerbal Space Program</a>.
           </div>
         </div>
@@ -1024,7 +1024,7 @@ footer {
     }
   }
 
-  const xScale = 1.15, yScale = 1.20, ox = 110, oy = 110;
+  const xScale = 1.15, yScale = 1.20, ox = 110, oy = 240;
   const T   = (x, y) => [ox + x * xScale, oy + y * yScale];
   const tsx = v => v * xScale;
   const tsy = v => v * yScale;
@@ -1453,13 +1453,13 @@ footer {
 
     ctx.textBaseline = "alphabetic";
     ctx.textAlign    = "left";
-    ctx.font         = "700 38px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.font         = "700 44px Barlow, Segoe UI, Arial, sans-serif";
     ctx.fillStyle    = "#ffffff";
-    ctx.fillText("The Solar System", 24, 52);
+    ctx.fillText("The Solar System", 24, 32);
 
-    ctx.font      = "700 17px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.font      = "700 23px Barlow, Segoe UI, Arial, sans-serif";
     ctx.fillStyle = "#dcdcdc";
-    ctx.fillText("A SUBWAY MAP", 24, 82);
+    ctx.fillText("A SUBWAY MAP", 24, 72);
 
     for (const seg of state.segments) drawSegment(seg);
     for (const id in state.nodes) if (state.nodes[id].kind === "transfer") drawTransferNode(id);
