@@ -287,7 +287,7 @@ details.deriv-detail > summary:focus-visible {
   background: var(--bg-canvas);
   cursor: crosshair;
   display: block;
-  width: 100%;   /* CSS-scale to fill; logical buffer stays 1200×1180 */
+  width: 100%;
   height: auto;
 }
 #subway-applet .info-panel-frame {
@@ -338,7 +338,7 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .control-frame {
   position: relative;
   margin: 4px 24px 28px 24px;
-  width: calc(100% - 48px); /* was hard-coded 1200px */
+  width: calc(100% - 48px);
   background: rgba(8, 8, 8, 0.97);
   border: 1px solid #252525;
   border-radius: 12px;
@@ -388,25 +388,6 @@ details.deriv-detail > summary:focus-visible {
 }
 #subway-applet .cf-eq .katex-display { margin: 4px 0 !important; }
 #subway-applet .cf-eq .katex { font-size: 0.85em; }
-
-#subway-applet .cf-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-#subway-applet .cf-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: #686868;
-}
-#subway-applet .cf-legend-swatch {
-  width: 22px;
-  height: 3px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
 
 #subway-applet .cf-sect {
   font-size: 10px; font-weight: 700; letter-spacing: 1px;
@@ -627,38 +608,6 @@ footer {
           }
           $$
 
-          $$
-          \textcolor{#3DBFFF}{\Delta v}
-          =
-          \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}+\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_f}}\right)
-          =
-          \textcolor{#3DBFFF}{c}\ln\!\left(1+\frac{\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_f}}\right)
-          $$
-
-          $$
-          e^{\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
-          =
-          \frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}
-          $$
-
-          $$
-          \textcolor{#FF4400}{m_0}
-          =
-          \textcolor{#FF4400}{m_f}e^{\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
-          $$
-
-          $$
-          \textcolor{#FF4400}{m_p}
-          =
-          \textcolor{#FF4400}{m_0}-\textcolor{#FF4400}{m_f}
-          $$
-
-          $$
-          \textcolor{#FF4400}{m_f}
-          =
-          \textcolor{#FF4400}{m_0}e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
-          $$
-
         </div>
       </details>
     </div>
@@ -683,21 +632,11 @@ footer {
 
             <div class="cf-body">
 
+              <!-- ① Equation column — legend removed from here -->
               <div class="cf-col">
                 <div class="cf-eq">
                   \[\Delta v = c\ln\!\left(\frac{m_0}{m_f}\right), \quad \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}\]
                   \[\lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}, \quad \varepsilon = \frac{m_{\mathrm{wet}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}\]
-                </div>
-                <div class="cf-sect">Legend</div>
-                <div class="cf-legend">
-                  <div class="cf-legend-item">
-                    <div class="cf-legend-swatch" style="background:#3DBFFF;"></div>
-                    <span>Reachable (standard \(\Delta v\))</span>
-                  </div>
-                  <div class="cf-legend-item">
-                    <div class="cf-legend-swatch" style="background:#9FE6FF;"></div>
-                    <span>Reachable with aerobraking</span>
-                  </div>
                 </div>
               </div>
 
@@ -743,14 +682,16 @@ footer {
 
                 <div class="cf-sect cf-sect-spacer">Upper-Stage Presets</div>
                 <div class="cf-preset-btns">
-                  <button onclick="applyPreset(2440)">Falcon 9</button>
-                  <button onclick="applyPreset(6900)">Starship</button>
+                  <button onclick="applyPreset(300)">Falcon 9</button>
+                  <button onclick="applyPreset(600)">Starship (no refuel)</button>
+                  <button onclick="applyPreset(6900)">Starship (w/ refuel)</button>
                   <button onclick="applyPreset(3500)">Saturn V</button>
                   <button onclick="applyPreset(11000)">Dawn</button>
                 </div>
               </div>
 
               <div class="cf-col">
+                <div class="cf-sect">Mass Ratio Output</div>
                 <div class="cf-mr-label">m&#x2080;&thinsp;/&thinsp;m<sub>f</sub></div>
                 <div class="cf-mr-value" id="result">—</div>
               </div>
@@ -768,7 +709,7 @@ footer {
   </div>
 
   <div class="theory-block">
-    <div class="th-hdr">Specific Impulse &amp; Input Power</div>
+    <div class="th-hdr">Specific Impulse</div>
 
     <details class="deriv-detail">
       <summary>Show derivation</summary>
@@ -800,63 +741,6 @@ footer {
           \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,g_0}
           =
           \frac{\textcolor{#3DBFFF}{c}}{g_0}
-        }
-        $$
-
-        <span class="eq-step-label">Jet power</span>
-        $$
-        \begin{aligned}
-        E_{\mathrm{jet}}
-        &= \tfrac{1}{2}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,\textcolor{#3DBFFF}{c}^2 \\[5pt]
-        P_{\mathrm{jet}}
-        = \frac{dE_{\mathrm{jet}}}{dt}
-        &= \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-        \end{aligned}
-        $$
-
-        $$
-        P_{\mathrm{jet}}
-        =
-        \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-        =
-        \tfrac{1}{2}\,\textcolor{#FF4400}{F_N}\,\textcolor{#3DBFFF}{c}
-        $$
-
-        <span class="eq-step-label">Relate jet power to input power</span>
-        $$
-        \boxed{
-          P_{\mathrm{jet}} = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
-          \qquad\Rightarrow\qquad
-          \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-          = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
-        }
-        $$
-
-        <span class="eq-step-label">Solve for exhaust velocity, thrust, and specific impulse</span>
-        $$
-        \boxed{
-          \textcolor{#3DBFFF}{c}
-          =
-          \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
-        }
-        $$
-
-        $$
-        \boxed{
-          \textcolor{#FF4400}{F_N}
-          =
-          \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
-          =
-          \sqrt{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}\,\textcolor{#FF4400}{\dot{m}}}
-        }
-        $$
-
-        $$
-        \boxed{
-          \textcolor{#3DBFFF}{I_{sp}}
-          =
-          \frac{1}{g_0}
-          \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
         }
         $$
 
@@ -1440,6 +1324,46 @@ footer {
     drawMap();
   }
 
+  // ── Draw the canvas-embedded legend ───────────────────────────────────────
+  // Placed just below the "A SUBWAY MAP" subtitle on the canvas.
+  function drawLegend() {
+    const items = [
+      { color: "#3DBFFF", label: "Reachable (standard \u0394v)" },
+      { color: "#9FE6FF", label: "Reachable with aerobraking"   }
+    ];
+
+    const legX      = 24;   // left-align with the title text
+    const legY0     = 98;   // first item baseline; "A SUBWAY MAP" sits at y=72
+    const itemH     = 30;   // vertical gap between items
+    const swatchW   = 26;   // swatch line length
+    const swatchThk = 3;    // swatch line thickness
+    const textGap   = 9;    // gap between swatch and label
+
+    ctx.save();
+    ctx.lineCap      = "round";
+    ctx.textAlign    = "left";
+    ctx.textBaseline = "middle";
+    ctx.font         = "400 19px Barlow, Segoe UI, Arial, sans-serif";
+
+    for (let i = 0; i < items.length; i++) {
+      const iy = legY0 + i * itemH;
+
+      // Coloured swatch line
+      ctx.strokeStyle = items[i].color;
+      ctx.lineWidth   = swatchThk;
+      ctx.beginPath();
+      ctx.moveTo(legX, iy);
+      ctx.lineTo(legX + swatchW, iy);
+      ctx.stroke();
+
+      // Label text
+      ctx.fillStyle = "#888888";
+      ctx.fillText(items[i].label, legX + swatchW + textGap, iy);
+    }
+
+    ctx.restore();
+  }
+
   function drawMap() {
     ctx.fillStyle = "#090909";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1460,6 +1384,9 @@ footer {
     ctx.font      = "700 23px Barlow, Segoe UI, Arial, sans-serif";
     ctx.fillStyle = "#dcdcdc";
     ctx.fillText("A SUBWAY MAP", 24, 72);
+
+    // ── Legend sits directly below the subtitle ──
+    drawLegend();
 
     for (const seg of state.segments) drawSegment(seg);
     for (const id in state.nodes) if (state.nodes[id].kind === "transfer") drawTransferNode(id);
