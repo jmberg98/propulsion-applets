@@ -119,6 +119,98 @@ footer {
 }
 
 /* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+
+.clarify-hdr {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Plain (non-interactive) question rows ──────────── */
+.clarify-plain {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+}
+.clarify-plain + .clarify-plain {
+  border-top: 1px solid var(--border);
+}
+.clarify-plain-marker {
+  font-size: 8px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 7px;
+  opacity: 0.75;
+}
+
+/* ── Interactive (dropdown) detail rows ─────────────── */
+details.clarify-detail {
+  border-top: 1px solid var(--border);
+}
+details.clarify-detail:first-of-type {
+  border-top: none;
+}
+
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '▶';
+  font-size: 10px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 4px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before {
+  transform: rotate(90deg);
+}
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 16.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
    THEORY SECTION
    ══════════════════════════════════════════════════════ */
 #theory {
@@ -534,87 +626,53 @@ footer {
 </head>
 <body>
 
+<!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
   <h1>Delta-V &amp; The Ideal Rocket Equation</h1>
   <span class="badge">In-Space</span>
 </div>
 
+<!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The overall change in velocity of a spacecraft is determined by both the difference in its initial and final mass and by its specific impulse. While higher specific impulse most significantly increases the total "Delta-V" of the spacecraft, recall that higher specific impulses require higher total power to achieve the same mission time. However, higher total power is not trivial, as higher power requirements necessitate higher power + propulsion system mass or greater technology levels.
+  The overall change in velocity of a spacecraft is determined by both the difference in its initial
+  and final mass and by its specific impulse. While higher
+  <strong class="hl-ve">specific impulse</strong> most significantly increases the total
+  <strong class="hl-ve">$\Delta v$</strong> of the spacecraft, recall that higher specific impulses
+  require higher total <strong class="hl-power">power</strong> to achieve the same mission time.
+  However, higher total <strong class="hl-power">power</strong> is not trivial, as higher
+  <strong class="hl-power">power</strong> requirements necessitate higher
+  <strong class="hl-power">power</strong> + propulsion system
+  <strong class="hl-mass">mass</strong> or greater technology levels.
 </p>
 
 <div id="theory">
 
-  <div class="theory-block">
-    <div class="th-hdr">Ideal Rocket Equation</div>
+  <!-- ════════════════ CONCEPTUAL QUESTIONS — no dropdown ════════════════ -->
+  <div class="clarify-section">
+    <div class="clarify-hdr">Conceptual Questions</div>
 
-    <div class="eq-panel">
-      <span class="eq-step-label">Ideal Rocket Equation</span>
-      $$
-      \boxed{
-      \textcolor{#3DBFFF}{\Delta v}
-      =
-      \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
-      }
-      $$
+    <div class="clarify-plain">
+      <span class="clarify-plain-marker">◆</span>
+      <span>How does the <strong class="hl-ve">effective exhaust velocity $c$</strong> influence
+      the <strong class="hl-mass">mass ratio</strong> required to achieve a given
+      <strong class="hl-ve">$\Delta v$</strong>? Use the applet to compare a chemical stage
+      ($c \approx 4{,}400\ \mathrm{m/s}$) with an ion engine ($c \approx 30{,}000\ \mathrm{m/s}$)
+      for a Mars transfer — how different are the required
+      <strong class="hl-mass">mass ratios</strong> and propellant fractions?</span>
+    </div>
 
-      <details class="deriv-detail">
-        <summary>Show derivation</summary>
-        <div class="deriv-inner">
-
-          <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
-
-          <span class="eq-step-label">Conservation of Mass</span>
-          $$
-          0 = \frac{d\textcolor{#FF4400}{m(t)}}{dt} + \textcolor{#FF4400}{\dot{m}}
-          $$
-
-          <span class="eq-step-label">Momentum</span>
-          $$
-          P(t)=\textcolor{#FF4400}{m(t)}\,\textcolor{#3DBFFF}{v(t)}
-          +\delta \textcolor{#FF4400}{m}\!\left(t'\right)\!
-          \left[\textcolor{#3DBFFF}{v}\!\left(t'\right)-\textcolor{#3DBFFF}{c}\!\left(t'\right)\right]
-          $$
-
-          <span class="eq-step-label">Conservation of Momentum</span>
-          $$
-          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
-          +\textcolor{#3DBFFF}{c(t)}\,d\textcolor{#FF4400}{m(t)}
-          $$
-
-          $$
-          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
-          +\textcolor{#3DBFFF}{c}\,d\textcolor{#FF4400}{m(t)}
-          $$
-
-          <span class="eq-step-label">Integrate</span>
-          $$
-          \int d\textcolor{#3DBFFF}{v(t)}
-          =
-          -\textcolor{#3DBFFF}{c}\int \frac{d\textcolor{#FF4400}{m}}{\textcolor{#FF4400}{m}}
-          $$
-
-          $$
-          \textcolor{#3DBFFF}{v_f-v_0}
-          =
-          -\textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}}{\textcolor{#FF4400}{m_0}}\right)
-          $$
-
-          $$
-          \boxed{
-          \textcolor{#3DBFFF}{\Delta v}
-          =
-          \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
-          }
-          $$
-
-        </div>
-      </details>
+    <div class="clarify-plain">
+      <span class="clarify-plain-marker">◆</span>
+      <span>For a fixed <strong class="hl-ve">$\Delta v$</strong> target, why does adding more
+      and more <strong class="hl-mass">propellant</strong> yield diminishing returns? What
+      structural or practical constraint ultimately limits how large the
+      <strong class="hl-mass">mass ratio</strong> $m_0/m_f$ can be for a single stage?</span>
     </div>
   </div>
 
+  <!-- ════════════════ SUBWAY APPLET ════════════════ -->
   <div class="theory-block subway-host">
-    <div class="th-hdr">Δv Budget Applet</div>
+    <div class="th-hdr">Δv Demo</div>
 
     <div id="subway-applet-scroll">
       <div id="subway-applet">
@@ -632,7 +690,6 @@ footer {
 
             <div class="cf-body">
 
-              <!-- ① Equation column — legend removed from here -->
               <div class="cf-col">
                 <div class="cf-eq">
                   \[\Delta v = c\ln\!\left(\frac{m_0}{m_f}\right), \quad \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}\]
@@ -708,6 +765,170 @@ footer {
     </div>
   </div>
 
+  <!-- ════════════════ CLARIFYING POINTS — with dropdown ════════════════ -->
+  <div class="clarify-section">
+    <div class="clarify-hdr">Clarifying Points</div>
+
+    <details class="clarify-detail">
+      <summary>What assumptions does the Ideal Rocket Equation make, and when do they break down in practice?</summary>
+      <div class="clarify-body">
+        The derivation assumes (1) <strong>no external forces</strong> — neither gravity nor
+        drag — so the vehicle's momentum change equals exactly the exhaust momentum flux;
+        (2) a <strong class="hl-ve">constant effective exhaust velocity $c$</strong> throughout
+        the entire burn; (3) the expelled propellant begins at rest relative to the vehicle; and
+        (4) steady-state operation with no attitude-control propellant consumption. In practice,
+        every non-instantaneous maneuver incurs <strong>gravity losses</strong> — extra
+        <strong class="hl-ve">$\Delta v$</strong> spent fighting gravity while thrusting — and
+        ascent trajectories must overcome atmospheric drag. Mission designers therefore add margin
+        to the idealized <strong class="hl-ve">$\Delta v$</strong> budget. For example, a typical
+        launch to low Earth orbit requires a total <strong class="hl-ve">$\Delta v$</strong> budget
+        of roughly $9{,}400\ \mathrm{m/s}$ even though the orbital velocity is only
+        $\sim\!7{,}800\ \mathrm{m/s}$.
+      </div>
+    </details>
+
+    <details class="clarify-detail">
+      <summary>What is the structural coefficient ε, and why can't it be made arbitrarily small?</summary>
+      <div class="clarify-body">
+        The <strong>structural coefficient</strong>
+        $\varepsilon = m_\text{wet}/(m_\text{dry}+m_\text{wet})$ captures the
+        <strong class="hl-mass">propellant mass</strong> as a fraction of total stage mass. It
+        represents the unavoidable dead mass — tank walls, feed lines, valves, engines, and
+        supporting structure — that must be built to contain and deliver the propellant.
+        Materials have finite <strong>strength-to-mass ratios</strong>, so tanks holding large
+        quantities of propellant cannot be made infinitesimally thin or light. Thermal insulation,
+        pressurization systems, and manufacturing tolerances further set a practical floor.
+        Typical chemical upper stages achieve $\varepsilon \approx 0.05$–$0.10$; reducing below
+        this range requires advanced lightweight composites, unconventional tank architectures, or
+        accepting higher risk. The structural coefficient directly sets the maximum achievable
+        <strong class="hl-mass">mass ratio</strong>: even with zero payload ($\lambda = 0$),
+        $m_0/m_f = 1/\varepsilon$, which caps the single-stage
+        <strong class="hl-ve">$\Delta v$</strong> at $c\ln(1/\varepsilon)$.
+      </div>
+    </details>
+  </div>
+
+  <!-- ════════════════ CONCEPTUAL QUESTIONS — with dropdown ════════════════ -->
+  <div class="clarify-section">
+    <div class="clarify-hdr">Conceptual Questions</div>
+
+    <details class="clarify-detail">
+      <summary>How does the effective exhaust velocity $c$ influence the mass ratio required to achieve a given $\Delta v$? Compare a chemical stage and an ion engine for a Mars transfer.</summary>
+      <div class="clarify-body">
+        Rearranging the Ideal Rocket Equation gives the required
+        <strong class="hl-mass">mass ratio</strong>
+        $m_0/m_f = e^{\Delta v/c}$.
+        Because the exponent is $\Delta v/c$, increasing
+        <strong class="hl-ve">$c$</strong> dramatically reduces the required ratio.
+        For a Mars transfer requiring $\Delta v \approx 5{,}600\ \mathrm{m/s}$:
+        <br><br>
+        A <strong>chemical stage</strong> with $c = 4{,}413\ \mathrm{m/s}$
+        ($I_{sp} \approx 450\ \mathrm{s}$) needs
+        $m_0/m_f = e^{5600/4413} \approx 3.57$,
+        meaning roughly <strong class="hl-mass">72 %</strong> of the initial mass must be
+        propellant. An <strong>ion engine</strong> with $c = 30{,}000\ \mathrm{m/s}$ needs only
+        $m_0/m_f = e^{5600/30000} \approx 1.20$,
+        meaning just <strong class="hl-mass">17 %</strong> propellant — a profound
+        <strong class="hl-ve">mass budget</strong> saving. The trade-off is that achieving
+        $c = 30{,}000\ \mathrm{m/s}$ requires a substantial
+        <strong class="hl-power">power budget</strong>, which carries its own
+        <strong class="hl-mass">mass</strong> cost in solar panels or a reactor.
+      </div>
+    </details>
+
+    <details class="clarify-detail">
+      <summary>For a fixed $\Delta v$ target, why does adding more and more propellant yield diminishing returns? What limits the mass ratio of a single stage in practice?</summary>
+      <div class="clarify-body">
+        $\Delta v = c\ln(m_0/m_f)$ grows only <strong>logarithmically</strong> with mass ratio.
+        Doubling the <strong class="hl-mass">mass ratio</strong> — regardless of where you start
+        — adds only $c\ln 2 \approx 0.693c$ to the
+        <strong class="hl-ve">$\Delta v$</strong>. To gain another equal increment you must
+        double the ratio again, squaring the original ratio and requiring an exponentially larger
+        amount of additional <strong class="hl-mass">propellant</strong>. Every kilogram of extra
+        propellant must itself be carried through the earlier phases of the burn, compounding the
+        cost.
+        <br><br>
+        In practice the <strong>structural coefficient</strong> $\varepsilon$ sets a hard ceiling:
+        even a massless payload gives $m_0/m_f \leq 1/\varepsilon$, and typical
+        $\varepsilon \approx 0.06$ limits a single chemical stage to
+        $\Delta v \lesssim c\ln(17) \approx 2.8c \approx 12{,}000\ \mathrm{m/s}$.
+        <strong>Staging</strong> circumvents this by jettisoning spent stages and their structural
+        mass, applying a fresh logarithmic increment for each stage and making very large total
+        <strong class="hl-ve">$\Delta v$</strong> missions feasible.
+      </div>
+    </details>
+  </div>
+
+  <!-- ════════════════ IDEAL ROCKET EQUATION ════════════════ -->
+  <div class="theory-block">
+    <div class="th-hdr">Ideal Rocket Equation</div>
+
+    <div class="eq-panel">
+      <span class="eq-step-label">Ideal Rocket Equation</span>
+      $$
+      \boxed{
+      \textcolor{#3DBFFF}{\Delta v}
+      =
+      \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+      }
+      $$
+
+      <details class="deriv-detail">
+        <summary>Show derivation</summary>
+        <div class="deriv-inner">
+
+          <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
+
+          <span class="eq-step-label">Conservation of Mass</span>
+          $$
+          0 = \frac{d\textcolor{#FF4400}{m(t)}}{dt} + \textcolor{#FF4400}{\dot{m}}
+          $$
+
+          <span class="eq-step-label">Momentum</span>
+          $$
+          P(t)=\textcolor{#FF4400}{m(t)}\,\textcolor{#3DBFFF}{v(t)}
+          +\delta \textcolor{#FF4400}{m}\!\left(t'\right)\!
+          \left[\textcolor{#3DBFFF}{v}\!\left(t'\right)-\textcolor{#3DBFFF}{c}\!\left(t'\right)\right]
+          $$
+
+          <span class="eq-step-label">Conservation of Momentum</span>
+          $$
+          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+          +\textcolor{#3DBFFF}{c(t)}\,d\textcolor{#FF4400}{m(t)}
+          $$
+
+          $$
+          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+          +\textcolor{#3DBFFF}{c}\,d\textcolor{#FF4400}{m(t)}
+          $$
+
+          <span class="eq-step-label">Integrate</span>
+          $$
+          \int d\textcolor{#3DBFFF}{v(t)}
+          =
+          -\textcolor{#3DBFFF}{c}\int \frac{d\textcolor{#FF4400}{m}}{\textcolor{#FF4400}{m}}
+          $$
+
+          $$
+          \textcolor{#3DBFFF}{v_f-v_0}
+          =
+          -\textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}}{\textcolor{#FF4400}{m_0}}\right)
+          $$
+
+          $$
+          \boxed{
+          \textcolor{#3DBFFF}{\Delta v}
+          =
+          \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+          }
+          $$
+
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ════════════════ SPECIFIC IMPULSE ════════════════ -->
   <div class="theory-block">
     <div class="th-hdr">Specific Impulse</div>
 
@@ -748,6 +969,7 @@ footer {
     </details>
   </div>
 
+  <!-- ════════════════ MOTIVATION FOR ELECTRIC PROPULSION ════════════════ -->
   <div class="theory-block">
     <div class="th-hdr">Motivation for Electric Propulsion</div>
 
@@ -1324,20 +1546,18 @@ footer {
     drawMap();
   }
 
-  // ── Draw the canvas-embedded legend ───────────────────────────────────────
-  // Placed just below the "A SUBWAY MAP" subtitle on the canvas.
   function drawLegend() {
     const items = [
       { color: "#3DBFFF", label: "Reachable (standard \u0394v)" },
       { color: "#9FE6FF", label: "Reachable with aerobraking"   }
     ];
 
-    const legX      = 24;   // left-align with the title text
-    const legY0     = 98;   // first item baseline; "A SUBWAY MAP" sits at y=72
-    const itemH     = 30;   // vertical gap between items
-    const swatchW   = 26;   // swatch line length
-    const swatchThk = 3;    // swatch line thickness
-    const textGap   = 9;    // gap between swatch and label
+    const legX      = 24;
+    const legY0     = 98;
+    const itemH     = 30;
+    const swatchW   = 26;
+    const swatchThk = 3;
+    const textGap   = 9;
 
     ctx.save();
     ctx.lineCap      = "round";
@@ -1348,7 +1568,6 @@ footer {
     for (let i = 0; i < items.length; i++) {
       const iy = legY0 + i * itemH;
 
-      // Coloured swatch line
       ctx.strokeStyle = items[i].color;
       ctx.lineWidth   = swatchThk;
       ctx.beginPath();
@@ -1356,7 +1575,6 @@ footer {
       ctx.lineTo(legX + swatchW, iy);
       ctx.stroke();
 
-      // Label text
       ctx.fillStyle = "#888888";
       ctx.fillText(items[i].label, legX + swatchW + textGap, iy);
     }
@@ -1385,7 +1603,6 @@ footer {
     ctx.fillStyle = "#dcdcdc";
     ctx.fillText("A SUBWAY MAP", 24, 72);
 
-    // ── Legend sits directly below the subtitle ──
     drawLegend();
 
     for (const seg of state.segments) drawSegment(seg);
