@@ -1,1 +1,1801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Delta-V &amp; The Ideal Rocket Equation — In-Space</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  --c-thrust: #FF4400;
+  --c-ve:     #3DBFFF;
+  --c-mass:   #FF4400;
+  --c-power:  #C060FF;
+  --c-press:  #00DDB5;
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --page-w: min(1040px, calc(100vw - 32px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+#theory,
+footer {
+  width: var(--page-w);
+}
+
+/* ── Highlight classes ─────────────────────────────── */
+.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
+.hl-ve, .hl-v             { color: var(--c-ve); }
+.hl-mass                  { color: var(--c-mass); }
+.hl-power                 { color: var(--c-power); }
+.hl-press                 { color: var(--c-press); }
+
+/* ── Header ────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ─────────────────────────────────────────── */
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ────────────────────────────────────── */
+.page-intro {
+  font-size: 16.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY SECTION
+   ══════════════════════════════════════════════════════ */
+#theory {
+  margin-bottom: 20px;
+}
+
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.th-hdr {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.th-body {
+  font-size: 16.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+
+.eq-panel {
+  margin-top: 8px;
+}
+
+.eq-step-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.eq-caption {
+  display: block;
+  font-size: 14.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.eq-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 14px 0;
+}
+
+/* ── Derivation details ───────────────────────────── */
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '▶';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before {
+  transform: rotate(90deg);
+}
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Embedded subway applet host ──────────────────── */
+.theory-block.subway-host {
+  padding: 16px 0 0;
+}
+.theory-block.subway-host .th-hdr {
+  margin: 0 18px 12px;
+}
+#subway-applet-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 6px;
+}
+#subway-applet {
+  min-width: 1248px;
+  width: max-content;
+  background: var(--bg-page);
+}
+
+/* ── Scoped subway applet styles ──────────────────── */
+#subway-applet {
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+  --border:         #282828;
+  --bg-page:        #090909;
+  --bg-panel-1:     #0e0e0e;
+  --bg-panel-2:     #121212;
+  --bg-panel-3:     #171717;
+  --bg-panel-4:     #1d1d1d;
+  --bg-canvas:      #090909;
+  font-family: 'Barlow', 'Segoe UI', sans-serif;
+  color: var(--text-main);
+}
+#subway-applet *,
+#subway-applet *::before,
+#subway-applet *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+#subway-applet .container {
+  width: max-content;
+  min-width: 100%;
+  overflow: visible;
+  height: auto;
+}
+#subway-applet .canvas-container {
+  position: relative;
+  background: var(--bg-canvas);
+  padding: 24px 24px 18px 24px;
+  overflow: visible;
+  min-width: max-content;
+  height: auto;
+}
+#subway-applet canvas {
+  background: var(--bg-canvas);
+  cursor: crosshair;
+  display: block;
+}
+#subway-applet .info-panel-frame {
+  position: absolute;
+  top: 40px;
+  right: 48px;
+  width: 360px;
+  max-width: calc(100% - 80px);
+  display: none;
+  z-index: 20;
+  background: rgba(5,5,5,0.92);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  padding: 14px 18px 14px 28px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.55);
+}
+#subway-applet .info-panel-frame::before {
+  content: "";
+  position: absolute;
+  left: 8px; top: 8px; bottom: 8px;
+  width: 6px;
+  background: rgba(61,191,255,0.9);
+  border-radius: 4px;
+}
+#subway-applet .info-panel-kicker {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #bfc7ce; margin-bottom: 4px;
+}
+#subway-applet .info-panel-heading {
+  font-size: 22px; font-weight: 700; line-height: 1.18;
+  color: #ffffff; margin-bottom: 12px;
+}
+#subway-applet .info-panel-grid { display: grid; grid-template-columns: 1fr; gap: 6px 12px; }
+#subway-applet .info-panel-item { font-size: 13px; line-height: 1.45; color: var(--text-secondary); }
+#subway-applet .info-panel-item strong                 { color: #ffffff; font-weight: 700; }
+#subway-applet .info-panel-item.accent strong          { color: #9FE6FF; }
+#subway-applet .info-panel-item.good strong            { color: #dff6ff; }
+#subway-applet .info-panel-item.bad strong             { color: #ffb0b0; }
+#subway-applet .info-panel-item.status-standard strong { color: #8fe3ff; }
+#subway-applet .info-panel-item.status-aero strong     { color: #9FE6FF; }
+#subway-applet .info-panel-item.status-bad strong      { color: #ff8e8e; }
+#subway-applet .info-panel-note {
+  margin-top: 10px; font-size: 11px; line-height: 1.45; color: var(--text-muted);
+}
+
+#subway-applet .control-frame {
+  position: relative;
+  margin: 4px 24px 28px 24px;
+  width: 1200px;
+  max-width: none;
+  background: rgba(8, 8, 8, 0.97);
+  border: 1px solid #252525;
+  border-radius: 12px;
+  padding: 18px 24px 18px 24px;
+  box-shadow: 0 16px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+#subway-applet .cf-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+#subway-applet .cf-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+#subway-applet .cf-subtitle {
+  font-size: 11px; color: #505050; font-style: italic;
+}
+
+#subway-applet .cf-body {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 1.5fr 1.4fr;
+  gap: 22px;
+  align-items: stretch;
+}
+#subway-applet .cf-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+#subway-applet .cf-col + .cf-col {
+  border-left: 1px solid var(--border);
+  padding-left: 22px;
+}
+
+#subway-applet .cf-eq {
+  background: rgba(255,255,255,0.022);
+  border: 1px solid #1d1d1d;
+  border-radius: 8px;
+  padding: 8px 12px 4px 12px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+#subway-applet .cf-eq .katex-display { margin: 4px 0 !important; }
+#subway-applet .cf-eq .katex { font-size: 0.85em; }
+
+#subway-applet .cf-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+#subway-applet .cf-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #686868;
+}
+#subway-applet .cf-legend-swatch {
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+#subway-applet .cf-sect {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #545454; margin-bottom: 8px;
+}
+#subway-applet .cf-sect.cf-sect-spacer { margin-top: 14px; }
+
+#subway-applet .cf-param-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 76px 28px;
+  align-items: center;
+  column-gap: 8px;
+  margin-bottom: 7px;
+}
+#subway-applet .cf-sym {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+#subway-applet .cf-desc {
+  font-size: 12px;
+  color: #727272;
+  line-height: 1.3;
+}
+#subway-applet .cf-inp {
+  width: 100%;
+  padding: 5px 7px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  text-align: right;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: border-color 0.15s, background 0.15s;
+}
+#subway-applet .cf-inp:focus {
+  outline: none;
+  border-color: #484848;
+  background: #202020;
+}
+#subway-applet .cf-unit {
+  font-size: 11px;
+  color: #444;
+  white-space: nowrap;
+}
+
+#subway-applet .cf-btn {
+  padding: 6px 14px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  background: var(--bg-panel-3);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+#subway-applet .cf-btn:hover {
+  background: var(--bg-panel-4);
+  color: var(--text-main);
+  border-color: #484848;
+}
+
+#subway-applet .cf-btn-row {
+  display: flex;
+  gap: 7px;
+  margin-top: 10px;
+}
+#subway-applet .cf-btn-primary { flex: 1; border-color: #383838; color: var(--text-heading); }
+#subway-applet .cf-btn-ghost   { color: #5a5a5a; }
+
+#subway-applet .cf-dv-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto 28px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+#subway-applet .cf-dv-row .cf-sym { width: auto; }
+#subway-applet .cf-dv-row .cf-inp {
+  width: 100%;
+  min-width: 0;
+}
+
+#subway-applet .cf-preset-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+#subway-applet .cf-preset-btns button {
+  padding: 4px 10px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  background: var(--bg-panel-2);
+  color: #6a6a6a;
+  border: 1px solid #1e1e1e;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#subway-applet .cf-preset-btns button:hover {
+  background: var(--bg-panel-4);
+  color: var(--text-main);
+  border-color: #404040;
+}
+
+#subway-applet .cf-mr-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #545454; margin-bottom: 6px;
+}
+#subway-applet .cf-mr-value {
+  font-family: 'Courier New', monospace;
+  font-size: 28px; font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+#subway-applet .cf-status { font-size: 11px; color: #FF6B6B; margin-top: 8px; min-height: 0; }
+
+#subway-applet .credits {
+  margin: 28px 24px 24px 24px;
+  padding: 16px;
+  font-size: 13px;
+  color: #686868;
+  text-align: center;
+  border-top: 1px solid #282828;
+}
+#subway-applet .credits a {
+  color: #9FE6FF;
+  text-decoration: none;
+}
+
+/* ── Footer ───────────────────────────────────────── */
+footer {
+  margin-top: 10px;
+  font-size: 14.5px;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<div id="hdr">
+  <h1>Delta-V &amp; The Ideal Rocket Equation</h1>
+  <span class="badge">In-Space</span>
+</div>
+
+<p class="page-intro">
+  The overall change in velocity of a spacecraft is determined by both the difference in its initial and final mass and by its specific impulse. While higher specific impulse most significantly increases the total “Delta-V” of the spacecraft, recall that higher specific impulses require higher total power to achieve the same mission time. However, higher total power is not trivial, as higher power requirements necessitate higher power + propulsion system mass or greater technology levels.
+</p>
+
+<div id="theory">
+
+  <div class="theory-block">
+    <div class="th-hdr">Ideal Rocket Equation</div>
+
+    <div class="eq-panel">
+      <span class="eq-step-label">Ideal Rocket Equation</span>
+      $$
+      \boxed{
+      \textcolor{#3DBFFF}{\Delta v}
+      =
+      \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+      }
+      $$
+
+      <details class="deriv-detail">
+        <summary>Show derivation</summary>
+        <div class="deriv-inner">
+
+          <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
+
+          <span class="eq-step-label">Conservation of Mass</span>
+          $$
+          0 = \frac{d\textcolor{#FF4400}{m(t)}}{dt} + \textcolor{#FF4400}{\dot{m}}
+          $$
+
+          <span class="eq-step-label">Momentum</span>
+          $$
+          P(t)=\textcolor{#FF4400}{m(t)}\,\textcolor{#3DBFFF}{v(t)}
+          +\delta \textcolor{#FF4400}{m}\!\left(t'\right)\!
+          \left[\textcolor{#3DBFFF}{v}\!\left(t'\right)-\textcolor{#3DBFFF}{c}\!\left(t'\right)\right]
+          $$
+
+          <span class="eq-step-label">Conservation of Momentum</span>
+          $$
+          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+          +\textcolor{#3DBFFF}{c(t)}\,d\textcolor{#FF4400}{m(t)}
+          $$
+
+          $$
+          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+          +\textcolor{#3DBFFF}{c}\,d\textcolor{#FF4400}{m(t)}
+          $$
+
+          <span class="eq-step-label">Integrate</span>
+          $$
+          \int d\textcolor{#3DBFFF}{v(t)}
+          =
+          -\textcolor{#3DBFFF}{c}\int \frac{d\textcolor{#FF4400}{m}}{\textcolor{#FF4400}{m}}
+          $$
+
+          $$
+          \textcolor{#3DBFFF}{v_f-v_0}
+          =
+          -\textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}}{\textcolor{#FF4400}{m_0}}\right)
+          $$
+
+          $$
+          \boxed{
+          \textcolor{#3DBFFF}{\Delta v}
+          =
+          \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+          }
+          $$
+
+          $$
+          \textcolor{#3DBFFF}{\Delta v}
+          =
+          \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}+\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_f}}\right)
+          =
+          \textcolor{#3DBFFF}{c}\ln\!\left(1+\frac{\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_f}}\right)
+          $$
+
+          $$
+          e^{\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
+          =
+          \frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}
+          $$
+
+          $$
+          \textcolor{#FF4400}{m_0}
+          =
+          \textcolor{#FF4400}{m_f}e^{\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
+          $$
+
+          $$
+          \textcolor{#FF4400}{m_p}
+          =
+          \textcolor{#FF4400}{m_0}-\textcolor{#FF4400}{m_f}
+          $$
+
+          $$
+          \textcolor{#FF4400}{m_f}
+          =
+          \textcolor{#FF4400}{m_0}e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
+          $$
+
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <div class="theory-block subway-host">
+    <div class="th-hdr">Δv Budget Applet</div>
+
+    <div id="subway-applet-scroll">
+      <div id="subway-applet">
+        <div class="container">
+          <div class="canvas-container">
+            <canvas id="mapCanvas" width="1200" height="1180"></canvas>
+            <div class="info-panel-frame" id="infoPanelFrame"></div>
+          </div>
+
+          <div class="control-frame">
+            <div class="cf-header">
+              <span class="cf-title">Δv Budget Calculator</span>
+              <span class="cf-subtitle">from Low Earth Orbit</span>
+            </div>
+
+            <div class="cf-body">
+
+              <div class="cf-col">
+                <div class="cf-eq">
+                  \[\Delta v = c\ln\!\left(\frac{m_0}{m_f}\right), \quad \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}\]
+                  \[\lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}, \quad \varepsilon = \frac{m_{\mathrm{wet}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}\]
+                </div>
+                <div class="cf-sect">Legend</div>
+                <div class="cf-legend">
+                  <div class="cf-legend-item">
+                    <div class="cf-legend-swatch" style="background:#3DBFFF;"></div>
+                    <span>Reachable (standard \(\Delta v\))</span>
+                  </div>
+                  <div class="cf-legend-item">
+                    <div class="cf-legend-swatch" style="background:#9FE6FF;"></div>
+                    <span>Reachable with aerobraking</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="cf-col">
+                <div class="cf-sect">Rocket Parameters</div>
+
+                <div class="cf-param-row">
+                  <div class="cf-sym">\(\lambda\)</div>
+                  <div class="cf-desc">Payload ratio</div>
+                  <input type="number" id="lambda" value="0.100" step="0.001" min="0" class="cf-inp">
+                  <div class="cf-unit">≥ 0</div>
+                </div>
+
+                <div class="cf-param-row">
+                  <div class="cf-sym">\(\varepsilon\)</div>
+                  <div class="cf-desc">Structural coeff.</div>
+                  <input type="number" id="epsilon" value="0.063" step="0.001" min="0" max="1" class="cf-inp">
+                  <div class="cf-unit">0–1</div>
+                </div>
+
+                <div class="cf-param-row">
+                  <div class="cf-sym">\(c\)</div>
+                  <div class="cf-desc">Specific impulse</div>
+                  <input type="number" id="c" value="4413" step="1" min="1" class="cf-inp">
+                  <div class="cf-unit">m/s</div>
+                </div>
+
+                <div class="cf-btn-row">
+                  <button class="cf-btn cf-btn-primary" onclick="calculateFromInputs()">Calculate</button>
+                  <button class="cf-btn cf-btn-ghost" onclick="clearHighlights()">Clear</button>
+                </div>
+              </div>
+
+              <div class="cf-col">
+                <div class="cf-sect">Direct \(\Delta v\) Input</div>
+                <div class="cf-dv-row">
+                  <div class="cf-sym">\(\Delta v\)</div>
+                  <input type="number" id="dv" step="1" min="0" class="cf-inp">
+                  <button class="cf-btn" onclick="applyCustomDv()">Apply</button>
+                  <span class="cf-unit">m/s</span>
+                </div>
+                <div class="cf-status" id="status"></div>
+
+                <div class="cf-sect cf-sect-spacer">Upper-Stage Presets</div>
+                <div class="cf-preset-btns">
+                  <button onclick="applyPreset(2440)">Falcon 9</button>
+                  <button onclick="applyPreset(6900)">Starship</button>
+                  <button onclick="applyPreset(3500)">Saturn V</button>
+                  <button onclick="applyPreset(11000)">Dawn</button>
+                </div>
+              </div>
+
+              <div class="cf-col">
+                <div class="cf-mr-label">m&#x2080;&thinsp;/&thinsp;m<sub>f</sub></div>
+                <div class="cf-mr-value" id="result">—</div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="credits">
+            <strong>Credits:</strong> Subway map design inspired by Ulysse Carion. Δv labels adopted from Reddit user /u/CuriousMetaphor.<br>
+            Map concept inspired by <a href="https://www.kerbalspaceprogram.com" target="_blank">Kerbal Space Program</a>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="theory-block">
+    <div class="th-hdr">Specific Impulse &amp; Input Power</div>
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Total impulse</span>
+        $$
+        \begin{aligned}
+        \text{Impulse}
+        &= \int \textcolor{#FF4400}{F_N}\,dt
+         = \int \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\,dt
+         = \textcolor{#3DBFFF}{c}\int \textcolor{#FF4400}{\dot{m}}\,dt
+         = \textcolor{#3DBFFF}{c}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}
+        \end{aligned}
+        $$
+
+        <span class="eq-step-label">Normalize by propellant mass</span>
+        $$
+        \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}}
+        =
+        \textcolor{#3DBFFF}{c}
+        $$
+
+        <span class="eq-step-label">Specific impulse</span>
+        $$
+        \boxed{
+          \textcolor{#3DBFFF}{I_{sp}}
+          =
+          \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,g_0}
+          =
+          \frac{\textcolor{#3DBFFF}{c}}{g_0}
+        }
+        $$
+
+        <span class="eq-step-label">Jet power</span>
+        $$
+        \begin{aligned}
+        E_{\mathrm{jet}}
+        &= \tfrac{1}{2}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,\textcolor{#3DBFFF}{c}^2 \\[5pt]
+        P_{\mathrm{jet}}
+        = \frac{dE_{\mathrm{jet}}}{dt}
+        &= \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+        \end{aligned}
+        $$
+
+        $$
+        P_{\mathrm{jet}}
+        =
+        \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+        =
+        \tfrac{1}{2}\,\textcolor{#FF4400}{F_N}\,\textcolor{#3DBFFF}{c}
+        $$
+
+        <span class="eq-step-label">Relate jet power to input power</span>
+        $$
+        \boxed{
+          P_{\mathrm{jet}} = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
+          \qquad\Rightarrow\qquad
+          \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+          = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
+        }
+        $$
+
+        <span class="eq-step-label">Solve for exhaust velocity, thrust, and specific impulse</span>
+        $$
+        \boxed{
+          \textcolor{#3DBFFF}{c}
+          =
+          \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
+        }
+        $$
+
+        $$
+        \boxed{
+          \textcolor{#FF4400}{F_N}
+          =
+          \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
+          =
+          \sqrt{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}\,\textcolor{#FF4400}{\dot{m}}}
+        }
+        $$
+
+        $$
+        \boxed{
+          \textcolor{#3DBFFF}{I_{sp}}
+          =
+          \frac{1}{g_0}
+          \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
+        }
+        $$
+
+      </div>
+    </details>
+  </div>
+
+  <div class="theory-block">
+    <div class="th-hdr">Motivation for Electric Propulsion</div>
+
+    <p class="th-body">
+      <strong class="hl-ve">$c$</strong> is clearly the greatest driver for achieving high
+      <strong class="hl-ve">$\Delta V$</strong> or meeting a
+      <strong class="hl-ve">$\Delta V$</strong> specification using less propellant.
+    </p>
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Energy per unit mass</span>
+        $$
+        E=\frac{1}{2}\textcolor{#3DBFFF}{c}^2
+        \qquad\Rightarrow\qquad
+        \boxed{
+        \textcolor{#3DBFFF}{c}=\sqrt{2E}
+        }
+        $$
+
+        <span class="eq-step-label">For chemical rockets, the power is coupled to the propellant</span>
+        <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
+          Suppose we use LH$_2$ &amp; LOX combustion
+        </p>
+
+        $$
+        2H_2 + O_2 \rightarrow 2H_2O
+        $$
+
+        <span class="eq-step-label">The reaction has energy per unit mass</span>
+        $$
+        E = 1.34\times10^7\ \mathrm{J/kg}
+        $$
+
+        $$
+        \Rightarrow\quad
+        \textcolor{#3DBFFF}{c} = 4927\ \mathrm{m/s}
+        \qquad\text{or}\qquad
+        \textcolor{#3DBFFF}{I_{sp}} = 502\ \mathrm{s}
+        $$
+
+        <span class="eq-step-label">For electric rockets, however, power and propellant are decoupled from each other</span>
+        <p class="th-body" style="margin-top:8px; margin-bottom:0;">
+          $E$ can be higher by using a large amount of <strong class="hl-power">power</strong> to accelerate a small amount of propellant.
+        </p>
+
+      </div>
+    </details>
+  </div>
+
+</div>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<script>
+(function () {
+  const C_TRACK_OUTER  = "#181818";
+  const C_TRACK_INNER  = "#404040";
+  const C_NODE_FILL    = "#0e0e0e";
+  const C_NODE_STROKE  = "#8a8a8a";
+  const C_HUB_INNER    = "#1b1b1b";
+
+  const C_HI           = "#3DBFFF";
+  const C_HI_GLOW_A    = "rgba(61,191,255,0.08)";
+  const C_HI_GLOW_B    = "rgba(61,191,255,0.15)";
+  const C_HI_NODE_GLOW = "rgba(61,191,255,0.18)";
+  const C_HI_HUB_INNER = "rgba(61,191,255,0.58)";
+
+  const C_AERO           = "#9FE6FF";
+  const C_AERO_GLOW_A    = "rgba(159,230,255,0.07)";
+  const C_AERO_GLOW_B    = "rgba(159,230,255,0.14)";
+  const C_AERO_NODE_GLOW = "rgba(159,230,255,0.20)";
+  const C_AERO_HUB_INNER = "rgba(159,230,255,0.58)";
+
+  const DISPLAY_NAMES = {
+    leo:          "Low Earth Orbit (150 km) — Origin",
+    ei:           "Earth Intercept",
+    inter:        "Jupiter Intercept",
+    j_lo:         "Jupiter Low Orbit",
+    jupiter:      "Jupiter",
+    moon_i:       "Moon Intercept",
+    moon_lo:      "Moon Low Orbit",
+    moon:         "Moon",
+    geo:          "Geostationary Orbit",
+    merc_i:       "Mercury Intercept",
+    merc_lo:      "Mercury Low Orbit",
+    mercury:      "Mercury",
+    venus_i:      "Venus Intercept",
+    venus_lo:     "Venus Low Orbit",
+    venus:        "Venus",
+    saturn_i_hub: "Saturn Intercept",
+    saturn_lo:    "Saturn Low Orbit",
+    saturn:       "Saturn",
+    titan_i:      "Titan Intercept",
+    titan_lo:     "Titan Low Orbit",
+    titan:        "Titan",
+    uranus_i:     "Uranus Intercept",
+    uranus_lo:    "Uranus Low Orbit",
+    uranus:       "Uranus",
+    nept_i:       "Neptune Intercept",
+    nept_lo:      "Neptune Low Orbit",
+    neptune:      "Neptune",
+    io_i:         "Io Intercept",
+    io_lo:        "Io Low Orbit",
+    io:           "Io",
+    eu_i:         "Europa Intercept",
+    eu_lo:        "Europa Low Orbit",
+    europa:       "Europa",
+    call_i:       "Callisto Intercept",
+    call_lo:      "Callisto Low Orbit",
+    callisto:     "Callisto",
+    gan_i:        "Ganymede Intercept",
+    gan_lo:       "Ganymede Low Orbit",
+    ganymede:     "Ganymede",
+    mars_i_hub:   "Mars Intercept",
+    mars_lo:      "Mars Low Orbit",
+    mars:         "Mars",
+    dei_i:        "Deimos Intercept",
+    dei_lo:       "Deimos Low Orbit",
+    deimos:       "Deimos",
+    pho_i:        "Phobos Intercept",
+    pho_lo:       "Phobos Low Orbit",
+    phobos:       "Phobos"
+  };
+
+  const state = {
+    currentBudget:      null,
+    selectedNode:       null,
+    reachableNodes:     new Set(),
+    reachableEdges:     new Set(),
+    reachableAeroNodes: new Set(),
+    reachableAeroEdges: new Set(),
+    shortestDv:         {},
+    shortestPrev:       {},
+    shortestDvAero:     {},
+    shortestPrevAero:   {},
+    nodes:              {},
+    segments:           []
+  };
+
+  const canvas = document.getElementById('mapCanvas');
+  const ctx    = canvas.getContext('2d');
+  const HIT_RADIUS = 30;
+
+  let stars = [];
+
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < 340; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: 0.2 + Math.random() * 1.25,
+        a: +(0.18 + Math.random() * 0.55).toFixed(2)
+      });
+    }
+  }
+
+  const xScale = 1.15, yScale = 1.20, ox = 110, oy = 110;
+  const T   = (x, y) => [ox + x * xScale, oy + y * yScale];
+  const tsx = v => v * xScale;
+  const tsy = v => v * yScale;
+  const tsu = v => v * Math.min(xScale, yScale);
+
+  function formatDv(value, maxFractionDigits = 1) {
+    if (value === undefined || value === null || !isFinite(value)) return "—";
+    const rounded = Math.abs(value - Math.round(value)) < 1e-9;
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: rounded ? 0 : maxFractionDigits
+    });
+  }
+
+  function formatSignedDv(value, maxFractionDigits = 1) {
+    return `${value >= 0 ? "+" : ""}${formatDv(value, maxFractionDigits)}`;
+  }
+
+  function setMR(mr) {
+    document.getElementById('result').textContent =
+      isFinite(mr) ? mr.toFixed(4) : "—";
+  }
+
+  function buildMapData() {
+    state.nodes = {
+      leo:           { x:392, y:792, kind:"transfer", orientation:"h", length:64,  label:"Low Earth Orbit\n(150 km) — Origin", offset:[48,0] },
+      ei:            { x:392, y:646, kind:"transfer", orientation:"h", length:118, label:"Earth Intercept", offset:[92,0] },
+      inter:         { x:392, y:305, kind:"transfer", orientation:"h", length:118, label:"Jupiter Intercept", offset:[0,30] },
+
+      j_lo:          { x:392, y:162, kind:"circle" },
+      jupiter:       { x:392, y: 62, kind:"circle", label:"Jupiter", offset:[0,-22] },
+
+      moon_i:        { x:285, y:715, kind:"circle" },
+      moon_lo:       { x:170, y:715, kind:"circle" },
+      moon:          { x: 55, y:715, kind:"circle", label:"Moon", offset:[-20,-14] },
+
+      geo:           { x:505, y:715, kind:"circle", label:"Geostationary Orbit", offset:[18,0] },
+
+      merc_i:        { x:285, y:590, kind:"circle" },
+      merc_lo:       { x:170, y:590, kind:"circle" },
+      mercury:       { x: 55, y:590, kind:"circle", label:"Mercury", offset:[-20,0] },
+
+      venus_i:       { x:285, y:480, kind:"circle" },
+      venus_lo:      { x:160, y:480, kind:"circle" },
+      venus:         { x: 35, y:480, kind:"circle", label:"Venus", offset:[-20,0] },
+
+      saturn_i_hub:  { x:555, y:392, kind:"transfer", orientation:"v", length:48, label:"Saturn Intercept", offset:[-20,0] },
+
+      saturn_lo:     { x:705, y:392, kind:"circle" },
+      saturn:        { x:855, y:392, kind:"circle", label:"Saturn", offset:[20,0] },
+
+      titan_i:       { x:640, y:315, kind:"circle" },
+      titan_lo:      { x:730, y:315, kind:"circle" },
+      titan:         { x:855, y:315, kind:"circle", label:"Titan", offset:[20,0] },
+
+      uranus_i:      { x:555, y:500, kind:"circle" },
+      uranus_lo:     { x:705, y:500, kind:"circle" },
+      uranus:        { x:855, y:500, kind:"circle", label:"Uranus", offset:[20,0] },
+
+      nept_i:        { x:555, y:595, kind:"circle" },
+      nept_lo:       { x:705, y:595, kind:"circle" },
+      neptune:       { x:855, y:595, kind:"circle", label:"Neptune", offset:[20,0] },
+
+      io_i:          { x:330, y:232, kind:"circle" },
+      io_lo:         { x:245, y:232, kind:"circle" },
+      io:            { x:165, y:232, kind:"circle", label:"Io", offset:[-18,0] },
+
+      eu_i:          { x:285, y:172, kind:"circle" },
+      eu_lo:         { x:245, y:128, kind:"circle" },
+      europa:        { x:195, y: 80, kind:"circle", label:"Europa", offset:[-18,-8] },
+
+      call_i:        { x:470, y:205, kind:"circle" },
+      call_lo:       { x:545, y:205, kind:"circle" },
+      callisto:      { x:640, y:205, kind:"circle", label:"Callisto", offset:[18,0] },
+
+      gan_i:         { x:460, y:148, kind:"circle" },
+      gan_lo:        { x:535, y:102, kind:"circle" },
+      ganymede:      { x:620, y: 58, kind:"circle", label:"Ganymede", offset:[18,0] },
+
+      mars_i_hub:    { x:235, y:350, kind:"transfer", orientation:"v", length:56, label:"Mars Intercept", offset:[20,0] },
+      mars_lo:       { x: 65, y:350, kind:"circle" },
+      mars:          { x:-10, y:350, kind:"circle", label:"Mars", offset:[-18,0] },
+
+      dei_i:         { x: 65, y:278, kind:"circle" },
+      dei_lo:        { x: 20, y:278, kind:"circle" },
+      deimos:        { x:-15, y:278, kind:"circle", label:"Deimos", offset:[-18,0] },
+
+      pho_i:         { x: 65, y:438, kind:"circle" },
+      pho_lo:        { x: 20, y:438, kind:"circle" },
+      phobos:        { x:-15, y:438, kind:"circle", label:"Phobos", offset:[-18,0] }
+    };
+
+    state.segments = [
+      { parent:"leo",          child:"ei",           dv:3210  },
+      { parent:"ei",           child:"inter",        dv:3360  },
+
+      { parent:"inter",        child:"j_lo",         dv:17200, aero:true },
+      { parent:"j_lo",         child:"jupiter",      dv:45000, aero:true },
+
+      { parent:"leo",          child:"moon_i",       dv:3260  },
+      { parent:"moon_i",       child:"moon_lo",      dv:680   },
+      { parent:"moon_lo",      child:"moon",         dv:1730  },
+
+      { parent:"leo",          child:"geo",          dv:3910  },
+
+      { parent:"ei",           child:"merc_i",       dv:8650,  shift:[0,14] },
+      { parent:"merc_i",       child:"merc_lo",      dv:1220  },
+      { parent:"merc_lo",      child:"mercury",      dv:3060  },
+
+      { parent:"ei",           child:"venus_i",      dv:340,   labelT:0.42, shift:[-25,-6] },
+      { parent:"venus_i",      child:"venus_lo",     dv:2940,  aero:true, shift:[0,-14] },
+      { parent:"venus_lo",     child:"venus",        dv:27000, aero:true, shift:[0,14] },
+
+      { parent:"ei",           child:"saturn_i_hub", dv:4500,  shift:[-4,-12] },
+      { parent:"saturn_i_hub", child:"saturn_lo",    dv:10230, aero:true },
+      { parent:"saturn_lo",    child:"saturn",       dv:30000, aero:true },
+
+      { parent:"saturn_i_hub", child:"titan_i",      dv:3060,  shift:[0,-12] },
+      { parent:"titan_i",      child:"titan_lo",     dv:660,   shift:[0,-10] },
+      { parent:"titan_lo",     child:"titan",        dv:7600,  aero:true },
+
+      { parent:"ei",           child:"uranus_i",     dv:5380,  shift:[0,-8] },
+      { parent:"uranus_i",     child:"uranus_lo",    dv:6120,  aero:true },
+      { parent:"uranus_lo",    child:"uranus",       dv:18000, aero:true },
+
+      { parent:"ei",           child:"nept_i",       dv:5390,  shift:[0,10] },
+      { parent:"nept_i",       child:"nept_lo",      dv:6750,  aero:true },
+      { parent:"nept_lo",      child:"neptune",      dv:19000, aero:true },
+
+      { parent:"inter",        child:"io_i",         dv:1030,  shift:[0,12] },
+      { parent:"io_i",         child:"io_lo",        dv:730   },
+      { parent:"io_lo",        child:"io",           dv:1850  },
+
+      { parent:"io_i",         child:"eu_i",         dv:890,   shift:[0,-12] },
+      { parent:"eu_i",         child:"eu_lo",        dv:580   },
+      { parent:"eu_lo",        child:"europa",       dv:1480  },
+
+      { parent:"inter",        child:"call_i",       dv:5140,  shift:[6,18] },
+      { parent:"call_i",       child:"call_lo",      dv:70,    shift:[0,-10] },
+      { parent:"call_lo",      child:"callisto",     dv:1760  },
+
+      { parent:"inter",        child:"gan_i",        dv:6700,  shift:[0,14] },
+      { parent:"gan_i",        child:"gan_lo",       dv:700   },
+      { parent:"gan_lo",       child:"ganymede",     dv:1970  },
+
+      { parent:"ei",           child:"mars_i_hub",   dv:1060,  labelT:0.68, shift:[20,-4] },
+      { parent:"mars_i_hub",   child:"mars_lo",      dv:1440,  aero:true, shift:[0,-14] },
+      { parent:"mars_lo",      child:"mars",         dv:3800,  aero:true, shift:[0,-12] },
+
+      { parent:"mars_i_hub",   child:"dei_i",        dv:990,   shift:[0,-12] },
+      { parent:"dei_i",        child:"dei_lo",       dv:2,     shift:[0,-10] },
+      { parent:"dei_lo",       child:"deimos",       dv:4,     shift:[0,-10] },
+
+      { parent:"mars_i_hub",   child:"pho_i",        dv:1280,  shift:[0,12] },
+      { parent:"pho_i",        child:"pho_lo",       dv:3,     shift:[0,10]  },
+      { parent:"pho_lo",       child:"phobos",       dv:8,     shift:[0,10]  }
+    ];
+  }
+
+  function computeShortestPathsFromLeo() {
+    const adj = {};
+    for (const id in state.nodes) adj[id] = [];
+    for (const s of state.segments) adj[s.parent].push([s.child, s.dv]);
+
+    const dist = {}, prev = {};
+    for (const id in state.nodes) dist[id] = Infinity;
+    dist["leo"] = 0;
+    const heap = [[0, "leo"]];
+
+    while (heap.length) {
+      heap.sort((a, b) => a[0] - b[0]);
+      const [d, node] = heap.shift();
+      if (d !== dist[node]) continue;
+      for (const [nb, w] of adj[node]) {
+        const nd = d + w;
+        if (nd < dist[nb]) {
+          dist[nb] = nd;
+          prev[nb] = node;
+          heap.push([nd, nb]);
+        }
+      }
+    }
+
+    state.shortestDv   = {};
+    state.shortestPrev = prev;
+    for (const id in dist) if (dist[id] < Infinity) state.shortestDv[id] = dist[id];
+
+    const adjA = {};
+    for (const id in state.nodes) adjA[id] = [];
+    for (const s of state.segments)
+      adjA[s.parent].push([s.child, s.aero ? 0 : s.dv, !!s.aero]);
+
+    const distA = {}, prevA = {};
+    for (const id in state.nodes) distA[id] = Infinity;
+    distA["leo"] = 0;
+    const heapA = [[0, "leo"]];
+
+    while (heapA.length) {
+      heapA.sort((a, b) => a[0] - b[0]);
+      const [d, node] = heapA.shift();
+      if (d !== distA[node]) continue;
+      for (const [nb, w, isAero] of adjA[node]) {
+        const nd = d + w;
+        if (nd < distA[nb]) {
+          distA[nb] = nd;
+          prevA[nb] = { from: node, aero: isAero };
+          heapA.push([nd, nb]);
+        }
+      }
+    }
+
+    state.shortestDvAero   = {};
+    state.shortestPrevAero = prevA;
+    for (const id in distA) if (distA[id] < Infinity) state.shortestDvAero[id] = distA[id];
+  }
+
+  function parsePositiveFloat(text, name) {
+    text = text.trim().replace(/,/g, "");
+    if (!text) throw new Error(`${name} is required.`);
+    const v = parseFloat(text);
+    if (isNaN(v) || v <= 0) throw new Error(`${name} must be > 0.`);
+    return v;
+  }
+
+  function parseNonnegativeFloat(text, name) {
+    text = text.trim().replace(/,/g, "");
+    if (!text) throw new Error(`${name} is required.`);
+    const v = parseFloat(text);
+    if (isNaN(v) || v < 0) throw new Error(`${name} cannot be negative.`);
+    return v;
+  }
+
+  function getDisplayName(nodeId) {
+    if (DISPLAY_NAMES[nodeId]) return DISPLAY_NAMES[nodeId];
+    const node = state.nodes[nodeId];
+    if (node && node.label) return node.label.replace(/\n/g, " ");
+    return nodeId.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function getNodeBudgetInfo(nodeId) {
+    const dvStandard = state.shortestDv[nodeId];
+    const dvAero     = state.shortestDvAero[nodeId];
+    const budget     = state.currentBudget;
+
+    const remainingUsesAero = dvAero !== undefined && (dvStandard === undefined || dvAero < dvStandard);
+    const remainingCost = remainingUsesAero ? dvAero : dvStandard;
+    const remaining = (budget !== null && remainingCost !== undefined) ? budget - remainingCost : undefined;
+
+    const reachableStandard = budget !== null && dvStandard !== undefined && dvStandard <= budget;
+    const reachableAero     = budget !== null && dvAero !== undefined && dvAero <= budget;
+    const hasAeroBenefit    = dvAero !== undefined && dvStandard !== undefined && dvAero < dvStandard;
+
+    let statusText = "", statusClass = "";
+    if (budget !== null) {
+      if (reachableStandard)  { statusText = "Reachable";                  statusClass = "status-standard"; }
+      else if (reachableAero) { statusText = "Reachable with aerobraking"; statusClass = "status-aero"; }
+      else                    { statusText = "Not reachable";              statusClass = "status-bad"; }
+    }
+
+    return { dvStandard, dvAero, remainingUsesAero, remainingCost, remaining,
+             reachableStandard, reachableAero, hasAeroBenefit, statusText, statusClass };
+  }
+
+  function makeInfoItem(label, value, cls = "") {
+    return `<div class="info-panel-item${cls ? " " + cls : ""}">${label}: <strong>${value}</strong></div>`;
+  }
+
+  function renderInfoPanel() {
+    const panel = document.getElementById('infoPanelFrame');
+
+    if (state.selectedNode === null && state.currentBudget === null) {
+      panel.style.display = "none";
+      panel.innerHTML = "";
+      return;
+    }
+
+    panel.style.display = "block";
+
+    if (state.selectedNode !== null) {
+      const name = getDisplayName(state.selectedNode);
+      const info = getNodeBudgetInfo(state.selectedNode);
+      const rows = [];
+
+      if (info.dvStandard !== undefined)
+        rows.push(makeInfoItem("Δv from LEO", `${formatDv(info.dvStandard)} m/s`));
+      if (info.hasAeroBenefit)
+        rows.push(makeInfoItem("Δv with aerobraking", `${formatDv(info.dvAero)} m/s`, "accent"));
+      if (state.currentBudget !== null) {
+        rows.push(makeInfoItem("Budget", `${formatDv(state.currentBudget)} m/s`));
+        if (info.remaining !== undefined)
+          rows.push(makeInfoItem(
+            "Remaining Δv",
+            `${formatSignedDv(info.remaining)} m/s${info.remainingUsesAero ? " (aero)" : ""}`,
+            info.remaining >= 0 ? "good" : "bad"
+          ));
+        rows.push(makeInfoItem("Status", info.statusText, info.statusClass));
+      }
+
+      panel.innerHTML = `
+        <div class="info-panel-kicker">Selected destination</div>
+        <div class="info-panel-heading">${name}</div>
+        <div class="info-panel-grid">${rows.join("")}</div>
+      `;
+      return;
+    }
+
+    panel.innerHTML = `
+      <div class="info-panel-kicker">Current budget</div>
+      <div class="info-panel-heading">${formatDv(state.currentBudget)} m/s</div>
+    `;
+  }
+
+  function calculateFromInputs() {
+    try {
+      const lambda  = parseNonnegativeFloat(document.getElementById('lambda').value,  "λ");
+      const epsilon = parseNonnegativeFloat(document.getElementById('epsilon').value, "ε");
+      const c       = parsePositiveFloat(document.getElementById('c').value,          "c");
+
+      if (epsilon > 1.0)         throw new Error("ε must be between 0 and 1.");
+      if (lambda + epsilon <= 0) throw new Error("λ + ε must be > 0.");
+
+      const MR     = (1 + lambda) / (lambda + epsilon);
+      const budget = c * Math.log(MR);
+
+      document.getElementById('dv').value = budget.toFixed(1);
+      document.getElementById('status').textContent = "";
+      setMR(MR);
+
+      state.currentBudget = budget;
+      updateReachability(budget);
+    } catch (e) {
+      document.getElementById('status').textContent = e.message;
+    }
+  }
+
+  function applyCustomDv() {
+    try {
+      const dv = parseNonnegativeFloat(document.getElementById('dv').value, "Δv");
+      const c  = parsePositiveFloat(document.getElementById('c').value,     "c");
+      const MR = Math.exp(dv / c);
+
+      document.getElementById('status').textContent = "";
+      setMR(MR);
+
+      state.currentBudget = dv;
+      updateReachability(dv);
+    } catch (e) {
+      document.getElementById('status').textContent = e.message;
+    }
+  }
+
+  function applyPreset(dv) {
+    document.getElementById('dv').value = dv;
+    try {
+      const c  = parsePositiveFloat(document.getElementById('c').value, "c");
+      const MR = Math.exp(dv / c);
+      document.getElementById('status').textContent = "";
+      setMR(MR);
+    } catch (e) {
+      document.getElementById('status').textContent = e.message;
+    }
+    state.currentBudget = dv;
+    updateReachability(dv);
+  }
+
+  function updateReachability(budget) {
+    state.reachableNodes.clear();
+    state.reachableEdges.clear();
+    state.reachableAeroNodes.clear();
+    state.reachableAeroEdges.clear();
+
+    for (const id in state.shortestDv)
+      if (state.shortestDv[id] <= budget) state.reachableNodes.add(id);
+
+    for (const id of state.reachableNodes) {
+      let cur = id;
+      while (cur in state.shortestPrev) {
+        const par = state.shortestPrev[cur];
+        state.reachableEdges.add(`${par},${cur}`);
+        cur = par;
+      }
+    }
+
+    for (const id in state.shortestDvAero) {
+      if (state.shortestDvAero[id] <= budget && !state.reachableNodes.has(id))
+        state.reachableAeroNodes.add(id);
+    }
+
+    for (const id of state.reachableAeroNodes) {
+      let cur = id;
+      while (cur in state.shortestPrevAero) {
+        const { from } = state.shortestPrevAero[cur];
+        const key = `${from},${cur}`;
+        if (!state.reachableEdges.has(key)) state.reachableAeroEdges.add(key);
+        cur = from;
+        if (state.reachableNodes.has(cur)) break;
+      }
+    }
+
+    drawMap();
+  }
+
+  function clearHighlights() {
+    state.reachableNodes.clear();
+    state.reachableEdges.clear();
+    state.reachableAeroNodes.clear();
+    state.reachableAeroEdges.clear();
+    state.currentBudget = null;
+    state.selectedNode  = null;
+    document.getElementById('dv').value           = "";
+    document.getElementById('result').textContent = "—";
+    document.getElementById('status').textContent = "";
+    drawMap();
+  }
+
+  function drawMap() {
+    ctx.fillStyle = "#090909";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for (const s of stars) {
+      ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign    = "left";
+    ctx.font         = "700 38px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.fillStyle    = "#ffffff";
+    ctx.fillText("The Solar System", 24, 52);
+
+    ctx.font      = "700 17px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.fillStyle = "#dcdcdc";
+    ctx.fillText("A SUBWAY MAP", 24, 82);
+
+    for (const seg of state.segments) drawSegment(seg);
+    for (const id in state.nodes) if (state.nodes[id].kind === "transfer") drawTransferNode(id);
+    for (const seg of state.segments) drawArrowOverlay(seg);
+    for (const seg of state.segments) drawSegmentLabel(seg);
+    for (const id in state.nodes) if (state.nodes[id].kind === "circle") drawCircleNode(id);
+    for (const id in state.nodes) if (state.nodes[id].label) drawNodeLabel(id);
+
+    renderInfoPanel();
+  }
+
+  function drawSegment(seg) {
+    const p  = state.nodes[seg.parent];
+    const ch = state.nodes[seg.child];
+    const [x1, y1] = T(p.x, p.y);
+    const [x2, y2] = T(ch.x, ch.y);
+    const wO = Math.max(14, tsu(22));
+    const wI = Math.max(8,  tsu(13));
+    const key  = `${seg.parent},${seg.child}`;
+    const hi   = state.reachableEdges.has(key);
+    const aero = state.reachableAeroEdges.has(key);
+
+    ctx.lineCap  = "round";
+    ctx.lineJoin = "round";
+
+    if (hi || aero) {
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_A : C_HI_GLOW_A;
+      ctx.lineWidth   = wO + 18;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_B : C_HI_GLOW_B;
+      ctx.lineWidth   = wO + 8;
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+
+    ctx.strokeStyle = C_TRACK_OUTER;
+    ctx.lineWidth   = wO;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+    ctx.strokeStyle = hi ? C_HI : (aero ? C_AERO : C_TRACK_INNER);
+    ctx.lineWidth   = wI;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+
+  function getArrowInset(seg, ux, uy) {
+    const child = state.nodes[seg.child];
+    const nodeR = Math.max(6, tsu(9));
+    if (!child) return nodeR + Math.max(12, tsu(14));
+    if (child.kind === "circle") return nodeR + Math.max(12, tsu(14));
+    if (child.kind === "transfer") {
+      const pad = Math.max(12, tsu(14));
+      if (child.orientation === "h") return Math.abs(ux) * tsx((child.length || 60) / 2) + pad;
+      return Math.abs(uy) * tsy((child.length || 60) / 2) + pad;
+    }
+    return nodeR + Math.max(12, tsu(14));
+  }
+
+  function drawArrowOverlay(seg) {
+    if (!seg.aero) return;
+
+    const p  = state.nodes[seg.parent];
+    const ch = state.nodes[seg.child];
+    const [x1, y1] = T(p.x, p.y);
+    const [x2, y2] = T(ch.x, ch.y);
+
+    const ddx = x2 - x1, ddy = y2 - y1;
+    const len = Math.hypot(ddx, ddy);
+    if (len < 24) return;
+
+    const ux = ddx / len, uy = ddy / len;
+    const px = -uy,       py = ux;
+
+    const aLen = Math.max(15, tsu(17));
+    const aW   = Math.max(13, tsu(14));
+
+    const desiredInset = getArrowInset(seg, ux, uy);
+    const inset = Math.max(aLen + 4, Math.min(desiredInset, len - 6));
+
+    const tipX = x2 - ux * inset,  tipY = y2 - uy * inset;
+    const bX   = tipX - ux * aLen, bY   = tipY - uy * aLen;
+
+    ctx.save();
+
+    ctx.fillStyle = "#0a0a0a";
+    ctx.beginPath();
+    ctx.moveTo(tipX + ux * 1.5, tipY + uy * 1.5);
+    ctx.lineTo(bX + px * (aW / 2 + 1.5) - ux * 1.0, bY + py * (aW / 2 + 1.5) - uy * 1.0);
+    ctx.lineTo(bX - px * (aW / 2 + 1.5) - ux * 1.0, bY - py * (aW / 2 + 1.5) - uy * 1.0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle   = "#ffffff";
+    ctx.strokeStyle = "#0a0a0a";
+    ctx.lineWidth   = 1.6;
+    ctx.lineJoin    = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(bX + px * aW / 2, bY + py * aW / 2);
+    ctx.lineTo(bX - px * aW / 2, bY - py * aW / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawSegmentLabel(seg) {
+    if (seg.hideLabel || (seg.dv <= 10 && !seg.showTinyLabel)) return;
+
+    const p  = state.nodes[seg.parent];
+    const ch = state.nodes[seg.child];
+    const [x1, y1] = T(p.x, p.y);
+    const [x2, y2] = T(ch.x, ch.y);
+    const sh = seg.shift || [0, 0];
+
+    let t = seg.labelT;
+    if (t == null) {
+      if (p.kind === "transfer" && ch.kind !== "transfer")      t = 0.55;
+      else if (ch.kind === "transfer" && p.kind !== "transfer") t = 0.45;
+      else                                                       t = 0.50;
+    }
+
+    let mx = x1 + (x2 - x1) * t + tsx(sh[0]);
+    let my = y1 + (y2 - y1) * t + tsy(sh[1]);
+
+    const key  = `${seg.parent},${seg.child}`;
+    const hi   = state.reachableEdges.has(key);
+    const aero = state.reachableAeroEdges.has(key);
+    const label = String(seg.dv);
+
+    ctx.font = "700 13px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.textAlign    = "center";
+    ctx.textBaseline = "middle";
+
+    const tw = ctx.measureText(label).width;
+    const padX = 8, h = 20, margin = 6;
+
+    mx = Math.max(tw / 2 + padX + margin, Math.min(canvas.width  - tw / 2 - padX - margin, mx));
+    my = Math.max(h  / 2 +        margin, Math.min(canvas.height - h  / 2 -        margin, my));
+
+    ctx.fillStyle   = "rgba(9,9,9,0.92)";
+    ctx.strokeStyle = hi   ? "rgba(61,191,255,0.45)"
+                    : aero ? "rgba(159,230,255,0.35)"
+                    :        "rgba(255,255,255,0.16)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(mx - tw / 2 - padX, my - h / 2, tw + padX * 2, h, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = hi ? "#e6f7ff" : (aero ? "#cfe9f5" : "#f6f6f6");
+    ctx.fillText(label, mx, my + 0.5);
+  }
+
+  function drawCircleNode(nodeId) {
+    const node = state.nodes[nodeId];
+    const [x, y] = T(node.x, node.y);
+    const r    = Math.max(6, tsu(9));
+    const hi   = state.reachableNodes.has(nodeId);
+    const aero = state.reachableAeroNodes.has(nodeId);
+    const sl   = nodeId === state.selectedNode;
+
+    if (hi || aero) {
+      ctx.fillStyle = (aero && !hi) ? C_AERO_NODE_GLOW : C_HI_NODE_GLOW;
+      ctx.beginPath(); ctx.arc(x, y, r + 12, 0, 2 * Math.PI); ctx.fill();
+    }
+
+    if (sl) {
+      ctx.strokeStyle = C_HI;
+      ctx.lineWidth   = 2.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.arc(x, y, r + 13, 0, 2 * Math.PI); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.fillStyle   = C_NODE_FILL;
+    ctx.strokeStyle = hi ? C_HI : (aero ? C_AERO : C_NODE_STROKE);
+    ctx.lineWidth   = (hi || aero) ? 2.5 : 1.8;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+  }
+
+  function drawTransferNode(nodeId) {
+    const node = state.nodes[nodeId];
+    const [x, y] = T(node.x, node.y);
+    const hi   = state.reachableNodes.has(nodeId);
+    const aero = state.reachableAeroNodes.has(nodeId);
+    const sl   = nodeId === state.selectedNode;
+
+    let x1, y1, x2, y2;
+    if (node.orientation === "h") {
+      const len = tsx(node.length || 60);
+      [x1, y1, x2, y2] = [x - len / 2, y, x + len / 2, y];
+    } else {
+      const len = tsy(node.length || 60);
+      [x1, y1, x2, y2] = [x, y - len / 2, x, y + len / 2];
+    }
+
+    ctx.lineCap = "round";
+
+    if (hi || aero) {
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_A : C_HI_GLOW_A;
+      ctx.lineWidth   = Math.max(26, tsu(34));
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_B : C_HI_GLOW_B;
+      ctx.lineWidth   = Math.max(18, tsu(24));
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+
+    if (sl) {
+      ctx.strokeStyle = C_HI;
+      ctx.lineWidth   = Math.max(20, tsu(28));
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.strokeStyle = (hi || aero) ? "#2c2c2c" : C_TRACK_OUTER;
+    ctx.lineWidth   = Math.max(14, tsu(20));
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+
+    ctx.strokeStyle = hi ? C_HI_HUB_INNER : (aero ? C_AERO_HUB_INNER : C_HUB_INNER);
+    ctx.lineWidth   = Math.max(8, tsu(12));
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  }
+
+  function drawNodeLabel(nodeId) {
+    const node = state.nodes[nodeId];
+    const [x, y] = T(node.x, node.y);
+    const off = node.offset || [12, -10];
+    let lx    = x + tsx(off[0]);
+    const ly  = y + tsy(off[1]);
+
+    const lines = node.label.split("\n");
+    let align = "center";
+    if (Math.abs(off[0]) > 4) align = off[0] > 0 ? "left" : "right";
+
+    ctx.font = "700 14px Barlow, Segoe UI, Arial, sans-serif";
+    const lineH = 17;
+    let maxW = 0;
+    for (const line of lines) maxW = Math.max(maxW, ctx.measureText(line).width);
+
+    let textTop = ly;
+    if (Math.abs(off[0]) < 4) {
+      if (off[1] < 0) textTop = ly - lines.length * lineH;
+    } else {
+      textTop = ly - (lines.length * lineH) / 2;
+    }
+
+    const padX = 7, padY = 5;
+    let rectX = lx - maxW / 2 - padX;
+    if (align === "left")  rectX = lx - padX;
+    if (align === "right") rectX = lx - maxW - padX;
+
+    const rectY = textTop - padY;
+    const rectW = maxW + padX * 2;
+    const rectH = lines.length * lineH + padY * 2 - 2;
+    const margin = 8;
+
+    if (rectX < margin) {
+      const dx = margin - rectX; rectX += dx; lx += dx;
+    }
+    if (rectX + rectW > canvas.width - margin) {
+      const dx = (rectX + rectW) - (canvas.width - margin); rectX -= dx; lx -= dx;
+    }
+
+    const hiNode   = state.reachableNodes.has(nodeId);
+    const aeroNode = state.reachableAeroNodes.has(nodeId);
+
+    ctx.fillStyle   = "rgba(9,9,9,0.86)";
+    ctx.strokeStyle = hiNode   ? "rgba(61,191,255,0.32)"
+                    : aeroNode ? "rgba(159,230,255,0.28)"
+                    :            "rgba(255,255,255,0.12)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(rectX, rectY, rectW, rectH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign    = align;
+    ctx.textBaseline = "top";
+    ctx.lineWidth    = 4;
+    ctx.lineJoin     = "round";
+    ctx.strokeStyle  = "#040404";
+
+    const fillColor = hiNode ? "#e9f8ff" : (aeroNode ? "#d0f0ff" : "#ffffff");
+
+    for (let i = 0; i < lines.length; i++) {
+      const ty = textTop + i * lineH;
+      ctx.strokeText(lines[i], lx, ty);
+      ctx.fillStyle = fillColor;
+      ctx.fillText(lines[i], lx, ty);
+    }
+  }
+
+  canvas.addEventListener('click', evt => {
+    const rect   = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (evt.clientX - rect.left) * scaleX;
+    const my = (evt.clientY - rect.top)  * scaleY;
+
+    let closest = null, closestD = Infinity;
+    for (const id in state.nodes) {
+      const [nx, ny] = T(state.nodes[id].x, state.nodes[id].y);
+      const d = Math.hypot(mx - nx, my - ny);
+      if (d < closestD) { closestD = d; closest = id; }
+    }
+
+    state.selectedNode = (closestD <= HIT_RADIUS)
+      ? (state.selectedNode === closest ? null : closest)
+      : null;
+
+    drawMap();
+  });
+
+  function initializeSubwayApp() {
+    buildMapData();
+    computeShortestPathsFromLeo();
+    initStars();
+    drawMap();
+  }
+
+  window.calculateFromInputs = calculateFromInputs;
+  window.applyCustomDv = applyCustomDv;
+  window.applyPreset = applyPreset;
+  window.clearHighlights = clearHighlights;
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(initializeSubwayApp);
+  } else {
+    initializeSubwayApp();
+  }
+})();
+</script>
+
+</body>
+</html>
