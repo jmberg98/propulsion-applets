@@ -456,7 +456,7 @@ details.deriv-detail > summary:focus-visible {
 
 #subway-applet .cf-body {
   display: grid;
-  grid-template-columns: 1.6fr 1.25fr 1.45fr 1.1fr;
+  grid-template-columns: 1.1fr 1.5fr 1.45fr 1.1fr;
   gap: 22px;
   align-items: stretch;
 }
@@ -478,11 +478,11 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 12px;
   overflow-x: auto;
 }
-#subway-applet .cf-eq .katex-display { margin: 4px 0 !important; }
-#subway-applet .cf-eq .katex { font-size: 0.85em; }
+#subway-applet .cf-eq .katex-display { margin: 12px 0 !important; }
+#subway-applet .cf-eq .katex { font-size: 1.1em; }
 
 #subway-applet .cf-sect {
-  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  font-size: 12px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: #545454; margin-bottom: 8px;
 }
 #subway-applet .cf-sect.cf-sect-spacer { margin-top: 14px; }
@@ -500,7 +500,7 @@ details.deriv-detail > summary:focus-visible {
   color: var(--text-secondary);
 }
 #subway-applet .cf-desc {
-  font-size: 12px;
+  font-size: 14px;
   color: #727272;
   line-height: 1.3;
 }
@@ -522,7 +522,7 @@ details.deriv-detail > summary:focus-visible {
   background: #202020;
 }
 #subway-applet .cf-unit {
-  font-size: 11px;
+  font-size: 13px;
   color: #444;
   white-space: nowrap;
 }
@@ -672,7 +672,7 @@ footer {
 
   <!-- ════════════════ SUBWAY APPLET ════════════════ -->
   <div class="theory-block subway-host">
-    <div class="th-hdr">Δv Demo</div>
+    <div class="th-hdr">Δv Interactive Demo</div>
 
     <div id="subway-applet-scroll">
       <div id="subway-applet">
@@ -692,8 +692,21 @@ footer {
 
               <div class="cf-col">
                 <div class="cf-eq">
-                  \[\Delta v = c\ln\!\left(\frac{m_0}{m_f}\right), \quad \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}\]
-                  \[\lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}, \quad \varepsilon = \frac{m_{\mathrm{wet}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}\]
+                  \[
+                  \Delta v = c\ln\!\left(\frac{m_0}{m_f}\right)
+                  \]
+
+                  \[
+                  \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}
+                  \]
+
+                  \[
+                  \lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}
+                  \]
+
+                  \[
+                  \varepsilon = \frac{m_{\mathrm{wet}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}
+                  \]
                 </div>
               </div>
 
@@ -1423,7 +1436,7 @@ footer {
         if (info.remaining !== undefined)
           rows.push(makeInfoItem(
             "Remaining Δv",
-            `${formatSignedDv(info.remaining)} m/s${info.remainingUsesAero ? " (aero)" : ""}`,
+            `${formatSignedDv(info.remaining)} m/s${info.remainingUsesAero ? " (assuming aerobraking)" : ""}`,
             info.remaining >= 0 ? "good" : "bad"
           ));
         rows.push(makeInfoItem("Status", info.statusText, info.statusClass));
