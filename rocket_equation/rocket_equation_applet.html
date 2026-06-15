@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Delta-V &amp; The Ideal Rocket Equation — In-Space</title>
+<title>Delta-V &amp; The Ideal Rocket Equation - In-Space</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,7 +51,7 @@
   --text-muted:     #7a7a7a;
   --text-heading:   #f0f0f0;
 
-  --page-w: min(1040px, calc(100vw - 32px));
+  --page-w: min(1400px, calc(100vw - 32px));
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -69,19 +69,25 @@ body {
 
 #hdr,
 .page-intro,
-#theory,
+.clarify-section,
+.theory-block,
 footer {
   width: var(--page-w);
 }
 
-/* ── Highlight classes ─────────────────────────────── */
+/* ── Highlight classes ───────────────────────────────── */
 .hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v             { color: var(--c-ve); }
-.hl-mass                  { color: var(--c-mass); }
-.hl-power                 { color: var(--c-power); }
-.hl-press                 { color: var(--c-press); }
+.hl-ve, .hl-v            { color: var(--c-ve); }
+.hl-mass                 { color: var(--c-mass); }
+.hl-power                { color: var(--c-power); }
+.hl-press                { color: var(--c-press); }
 
-/* ── Header ────────────────────────────────────────── */
+.key {
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* ── Header ──────────────────────────────────────────── */
 #hdr {
   display: flex;
   align-items: baseline;
@@ -95,7 +101,7 @@ footer {
   letter-spacing: .3px;
 }
 
-/* ── Badge ─────────────────────────────────────────── */
+/* ── Badge ───────────────────────────────────────────── */
 .badge {
   font-size: 12px;
   font-weight: 700;
@@ -110,7 +116,7 @@ footer {
   flex-shrink: 0;
 }
 
-/* ── Page intro ────────────────────────────────────── */
+/* ── Page intro ──────────────────────────────────────── */
 .page-intro {
   font-size: 16.5px;
   line-height: 1.72;
@@ -139,7 +145,7 @@ footer {
   border-bottom: 1px solid var(--border);
 }
 
-/* ── Plain (non-interactive) question rows ──────────── */
+/* ── Plain (non-interactive) question rows ───────────── */
 .clarify-plain {
   display: flex;
   align-items: flex-start;
@@ -161,7 +167,7 @@ footer {
   opacity: 0.75;
 }
 
-/* ── Interactive (dropdown) detail rows ─────────────── */
+/* ── Interactive (dropdown) detail rows ──────────────── */
 details.clarify-detail {
   border-top: 1px solid var(--border);
 }
@@ -184,7 +190,7 @@ details.clarify-detail > summary {
 }
 details.clarify-detail > summary::-webkit-details-marker { display: none; }
 details.clarify-detail > summary::before {
-  content: '▶';
+  content: '\25B6';
   font-size: 10px;
   color: var(--c-accent);
   flex-shrink: 0;
@@ -211,12 +217,8 @@ details.clarify-detail > summary:focus-visible {
 }
 
 /* ══════════════════════════════════════════════════════
-   THEORY SECTION
+   THEORY BLOCKS
    ══════════════════════════════════════════════════════ */
-#theory {
-  margin-bottom: 20px;
-}
-
 .theory-block {
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -242,6 +244,10 @@ details.clarify-detail > summary:focus-visible {
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
+}
+
+.theory-block > .th-body:last-child {
+  margin-bottom: 0;
 }
 
 .eq-panel {
@@ -274,7 +280,7 @@ details.clarify-detail > summary:focus-visible {
   margin: 14px 0;
 }
 
-/* ── Derivation details ───────────────────────────── */
+/* ── Derivation details ─────────────────────────────── */
 details.deriv-detail {
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -299,7 +305,7 @@ details.deriv-detail > summary {
 }
 details.deriv-detail > summary::-webkit-details-marker { display: none; }
 details.deriv-detail > summary::before {
-  content: '▶';
+  content: '\25B6';
   font-size: 9px;
   flex-shrink: 0;
   display: inline-block;
@@ -320,7 +326,7 @@ details.deriv-detail > summary:focus-visible {
   border-top: 1px solid var(--border);
 }
 
-/* ── Embedded subway applet host ──────────────────── */
+/* ── Embedded subway applet host ────────────────────── */
 .theory-block.subway-host {
   padding: 16px 0 0;
 }
@@ -328,7 +334,6 @@ details.deriv-detail > summary:focus-visible {
   margin: 0 18px 12px;
 }
 
-/* ── No scroll wrapper needed — applet fills width ── */
 #subway-applet-scroll {
   overflow: visible;
 }
@@ -338,7 +343,7 @@ details.deriv-detail > summary:focus-visible {
   background: var(--bg-page);
 }
 
-/* ── Scoped subway applet styles ──────────────────── */
+/* ── Scoped subway applet styles ────────────────────── */
 #subway-applet {
   --c-accent:       #d0d0d0;
   --text-main:      #f1f1f1;
@@ -401,21 +406,38 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .info-panel-frame::before {
   content: "";
   position: absolute;
-  left: 8px; top: 8px; bottom: 8px;
+  left: 8px;
+  top: 8px;
+  bottom: 8px;
   width: 6px;
   background: rgba(61,191,255,0.9);
   border-radius: 4px;
 }
 #subway-applet .info-panel-kicker {
-  font-size: 11px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: #bfc7ce; margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #bfc7ce;
+  margin-bottom: 4px;
 }
 #subway-applet .info-panel-heading {
-  font-size: 22px; font-weight: 700; line-height: 1.18;
-  color: #ffffff; margin-bottom: 12px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.18;
+  color: #ffffff;
+  margin-bottom: 12px;
 }
-#subway-applet .info-panel-grid { display: grid; grid-template-columns: 1fr; gap: 6px 12px; }
-#subway-applet .info-panel-item { font-size: 13px; line-height: 1.45; color: var(--text-secondary); }
+#subway-applet .info-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px 12px;
+}
+#subway-applet .info-panel-item {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
 #subway-applet .info-panel-item strong                 { color: #ffffff; font-weight: 700; }
 #subway-applet .info-panel-item.accent strong          { color: #9FE6FF; }
 #subway-applet .info-panel-item.good strong            { color: #dff6ff; }
@@ -424,14 +446,17 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .info-panel-item.status-aero strong     { color: #9FE6FF; }
 #subway-applet .info-panel-item.status-bad strong      { color: #ff8e8e; }
 #subway-applet .info-panel-note {
-  margin-top: 10px; font-size: 11px; line-height: 1.45; color: var(--text-muted);
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-muted);
 }
 
 #subway-applet .control-frame {
   position: relative;
   margin: 4px 24px 28px 24px;
   width: calc(100% - 48px);
-  background: rgba(8, 8, 8, 0.97);
+  background: rgba(8,8,8,0.97);
   border: 1px solid #252525;
   border-radius: 12px;
   padding: 18px 24px 18px 24px;
@@ -447,11 +472,16 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 #subway-applet .cf-title {
-  font-size: 12px; font-weight: 700; letter-spacing: 1.4px;
-  text-transform: uppercase; color: var(--c-accent);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
 }
 #subway-applet .cf-subtitle {
-  font-size: 11px; color: #505050; font-style: italic;
+  font-size: 11px;
+  color: #505050;
+  font-style: italic;
 }
 
 #subway-applet .cf-body {
@@ -482,8 +512,12 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .cf-eq .katex { font-size: 1.1em; }
 
 #subway-applet .cf-sect {
-  font-size: 12px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: #545454; margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 8px;
 }
 #subway-applet .cf-sect.cf-sect-spacer { margin-top: 14px; }
 
@@ -493,6 +527,14 @@ details.deriv-detail > summary:focus-visible {
   align-items: center;
   column-gap: 8px;
   margin-bottom: 7px;
+}
+#subway-applet .cf-param-row-meta {
+  margin-top: -1px;
+  margin-bottom: 10px;
+}
+#subway-applet .cf-param-row-meta .cf-desc {
+  font-size: 12px;
+  color: #5b5b5b;
 }
 #subway-applet .cf-sym {
   text-align: center;
@@ -521,6 +563,17 @@ details.deriv-detail > summary:focus-visible {
   border-color: #484848;
   background: #202020;
 }
+#subway-applet .cf-derived {
+  width: 100%;
+  padding: 5px 7px;
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #cfcfcf;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #242424;
+  border-radius: 4px;
+}
 #subway-applet .cf-unit {
   font-size: 13px;
   color: #444;
@@ -530,8 +583,10 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .cf-btn {
   padding: 6px 14px;
   font-family: 'Barlow', sans-serif;
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.6px; text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
   background: var(--bg-panel-3);
   color: var(--text-secondary);
   border: 1px solid var(--border);
@@ -556,16 +611,13 @@ details.deriv-detail > summary:focus-visible {
 
 #subway-applet .cf-dv-row {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto 28px;
+  grid-template-columns: 22px minmax(0,1fr) auto 28px;
   align-items: center;
   gap: 8px;
   margin-bottom: 4px;
 }
 #subway-applet .cf-dv-row .cf-sym { width: auto; }
-#subway-applet .cf-dv-row .cf-inp {
-  width: 100%;
-  min-width: 0;
-}
+#subway-applet .cf-dv-row .cf-inp { width: 100%; min-width: 0; }
 
 #subway-applet .cf-preset-btns {
   display: flex;
@@ -575,8 +627,10 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .cf-preset-btns button {
   padding: 4px 10px;
   font-family: 'Barlow', sans-serif;
-  font-size: 10px; font-weight: 600;
-  letter-spacing: 0.5px; text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
   background: var(--bg-panel-2);
   color: #6a6a6a;
   border: 1px solid #1e1e1e;
@@ -591,17 +645,33 @@ details.deriv-detail > summary:focus-visible {
 }
 
 #subway-applet .cf-mr-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: #545454; margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 6px;
 }
 #subway-applet .cf-mr-value {
   font-family: 'Courier New', monospace;
-  font-size: 28px; font-weight: 700;
+  font-size: 28px;
+  font-weight: 700;
   color: var(--text-heading);
   letter-spacing: 0.5px;
   line-height: 1.2;
 }
-#subway-applet .cf-status { font-size: 11px; color: #FF6B6B; margin-top: 8px; min-height: 0; }
+#subway-applet .cf-mr-value.cf-mr-na {
+  font-family: 'Barlow', sans-serif;
+  font-size: 24px;
+  letter-spacing: 1px;
+  color: #9f9f9f;
+}
+#subway-applet .cf-status {
+  font-size: 11px;
+  color: #FF6B6B;
+  margin-top: 8px;
+  min-height: 0;
+}
 
 #subway-applet .credits {
   margin: 28px 24px 24px 24px;
@@ -616,7 +686,7 @@ details.deriv-detail > summary:focus-visible {
   text-decoration: none;
 }
 
-/* ── Footer ───────────────────────────────────────── */
+/* ── Footer ─────────────────────────────────────────── */
 footer {
   margin-top: 10px;
   font-size: 14.5px;
@@ -634,369 +704,407 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The purpose of a spacecraft propulsion system is to deliver a change in velocity to the vehicle of interest.
-  Orbital manuevers require a certain change in velocity to be executed. Likewise, the effect of rareified drag in low orbit
-  and the loss of velocity from fighting against gravity necessitate a certain charge in velocity to maintain the spacecraft's trajectory.
-  This "certain change in velocity" is quantified as "Delta-V." Orbital mechanics dictates the required Delta-V for a mission given the
-  necessary manuevers and Delta-V losses to gravity and drag. The sum is the requireed Delta-V budget for the mission.
+  The purpose of a <span class="key hl-thrust">spacecraft propulsion system</span> is to deliver a <span class="key hl-ve">change in velocity</span> to the vehicle of interest.
+  Orbital maneuvers require a certain <span class="key hl-ve">change in velocity</span> to be executed. Likewise, the effect of <span class="key hl-press">rarefied drag</span> in low orbit
+  and the loss of velocity from fighting against gravity necessitate a certain <span class="key hl-ve">change in velocity</span> to maintain the spacecraft's trajectory.
+  This "certain change in velocity" is quantified as <span class="key hl-ve">"Delta-V"</span>. Orbital mechanics dictates the required <span class="key hl-ve">Delta-V</span> for a mission given the
+  necessary maneuvers and <span class="key hl-ve">Delta-V</span> losses to gravity and drag. The sum is the required <span class="key hl-ve">Delta-V budget</span> for the mission.
 
-  The ideal rocket equation tells us that the available Delta-V budget for the mission is a function of the effective exhaust velocity,
-  or specfic impulse, of the propulsion system, the vehicle's initial (wet) mass, and the vehicle's final (dry) mass. However, it is not
-  immediately obvious how these parameters affect the Delta-V budget, nor is it immediately obvious how Delta-V budgets translate to real missions.
+  The <span class="key">ideal rocket equation</span> tells us that the available <span class="key hl-ve">Delta-V budget</span> for the mission is a function of the <span class="key hl-ve">effective exhaust velocity</span>,
+  or <span class="key hl-ve">specific impulse</span>, of the propulsion system, the vehicle's <span class="key hl-mass">initial (wet) mass</span>, and the vehicle's <span class="key hl-mass">final (dry) mass</span>. However, it is not
+  immediately obvious how these parameters affect the <span class="key hl-ve">Delta-V budget</span>, nor is it immediately obvious how <span class="key hl-ve">Delta-V budgets</span> translate to real missions.
 
-  To better understand Delta-V, and how the ideal rocket equation affects mission design, let's explore our solar system.
+  To better understand <span class="key hl-ve">Delta-V</span>, and how the <span class="key">ideal rocket equation</span> affects mission design, let's explore our solar system.
+</p>
 
-  <!-- ════════════════ CONCEPTUAL QUESTIONS — no dropdown ════════════════ -->
-  <div class="clarify-section">
-    <div class="clarify-hdr">Conceptual Questions</div>
+<!-- ════════════════ CONCEPTUAL QUESTIONS ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
 
-    <div class="clarify-plain">
-      <span class="clarify-plain-marker">◆</span>
-      <span>How does the <strong class="hl-ve">effective exhaust velocity $c$</strong> influence
-      the <strong class="hl-mass">mass ratio</strong> required to achieve a given
-      <strong class="hl-ve">$\Delta v$</strong>? Use the applet to compare a chemical stage
-      ($c \approx 4{,}400\ \mathrm{m/s}$) with an ion engine ($c \approx 30{,}000\ \mathrm{m/s}$)
-      for a Mars transfer — how different are the required
-      <strong class="hl-mass">mass ratios</strong> and propellant fractions?</span>
-    </div>
-
-    <div class="clarify-plain">
-      <span class="clarify-plain-marker">◆</span>
-      <span>For a fixed <strong class="hl-ve">$\Delta v$</strong> target, why does adding more
-      and more <strong class="hl-mass">propellant</strong> yield diminishing returns? What
-      structural or practical constraint ultimately limits how large the
-      <strong class="hl-mass">mass ratio</strong> $m_0/m_f$ can be for a single stage?</span>
-    </div>
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>The difference between the dry and wet mass of the vehicle is the <span class="key hl-mass">propellant mass</span>.
+    If a mission requires higher <span class="key hl-ve">Delta-V</span>, why don't we simply add more
+    <span class="key hl-mass">propellant mass</span>?</span>
   </div>
 
-  <!-- ════════════════ SUBWAY APPLET ════════════════ -->
-  <div class="theory-block subway-host">
-    <div class="th-hdr">Δv Interactive Demo</div>
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>Greater <span class="key hl-ve">specific impulse</span> means that our propulsion system is more mass efficient.
+    How does this affect our <span class="key hl-ve">Delta-V budget</span>?</span>
+  </div>
+</div>
 
-    <div id="subway-applet-scroll">
-      <div id="subway-applet">
-        <div class="container">
-          <div class="canvas-container">
-            <canvas id="mapCanvas" width="1200" height="1280"></canvas>
-            <div class="info-panel-frame" id="infoPanelFrame"></div>
+<!-- ════════════════ SUBWAY APPLET ════════════════ -->
+<div class="theory-block subway-host">
+  <div class="th-hdr">&#x394;v Interactive Demo</div>
+
+  <div id="subway-applet-scroll">
+    <div id="subway-applet">
+      <div class="container">
+        <div class="canvas-container">
+          <canvas id="mapCanvas" width="1200" height="1280"></canvas>
+          <div class="info-panel-frame" id="infoPanelFrame"></div>
+        </div>
+
+        <div class="control-frame">
+          <div class="cf-header">
+            <span class="cf-title">&#x394;v Budget Calculator</span>
+            <span class="cf-subtitle">from Low Earth Orbit</span>
           </div>
 
-          <div class="control-frame">
-            <div class="cf-header">
-              <span class="cf-title">Δv Budget Calculator</span>
-              <span class="cf-subtitle">from Low Earth Orbit</span>
+          <div class="cf-body">
+
+            <div class="cf-col">
+              <div class="cf-eq">
+                \[
+                \Delta v = c\ln\!\left(\frac{m_0}{m_f}\right)
+                \]
+                \[
+                \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}
+                \]
+                \[
+                \lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
+                \]
+                \[
+                \varepsilon = \frac{m_{\mathrm{struct}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
+                \]
+              </div>
             </div>
 
-            <div class="cf-body">
+            <div class="cf-col">
+              <div class="cf-sect">Rocket Parameters</div>
 
-              <div class="cf-col">
-                <div class="cf-eq">
-                  \[
-                  \Delta v = c\ln\!\left(\frac{m_0}{m_f}\right)
-                  \]
-
-                  \[
-                  \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}
-                  \]
-
-                  \[
-                  \lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
-                  \]
-
-                  \[
-                  \varepsilon = \frac{m_{\mathrm{struct}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
-                  \]
-                </div>
+              <div class="cf-param-row">
+                <div class="cf-sym">\(\lambda\)</div>
+                <div class="cf-desc">Payload ratio</div>
+                <input type="number" id="lambda" value="0.100" step="0.001" min="0" class="cf-inp">
+                <div class="cf-unit">&ge; 0</div>
               </div>
 
-              <div class="cf-col">
-                <div class="cf-sect">Rocket Parameters</div>
-
-                <div class="cf-param-row">
-                  <div class="cf-sym">\(\lambda\)</div>
-                  <div class="cf-desc">Payload ratio</div>
-                  <input type="number" id="lambda" value="0.100" step="0.001" min="0" class="cf-inp">
-                  <div class="cf-unit">≥ 0</div>
-                </div>
-
-                <div class="cf-param-row">
-                  <div class="cf-sym">\(\varepsilon\)</div>
-                  <div class="cf-desc">Structural coeff.</div>
-                  <input type="number" id="epsilon" value="0.063" step="0.001" min="0" max="1" class="cf-inp">
-                  <div class="cf-unit">0–1</div>
-                </div>
-
-                <div class="cf-param-row">
-                  <div class="cf-sym">\(c\)</div>
-                  <div class="cf-desc">Specific impulse</div>
-                  <input type="number" id="c" value="4413" step="1" min="1" class="cf-inp">
-                  <div class="cf-unit">m/s</div>
-                </div>
-
-                <div class="cf-btn-row">
-                  <button class="cf-btn cf-btn-primary" onclick="calculateFromInputs()">Calculate</button>
-                  <button class="cf-btn cf-btn-ghost" onclick="clearHighlights()">Clear</button>
-                </div>
+              <div class="cf-param-row">
+                <div class="cf-sym">\(\varepsilon\)</div>
+                <div class="cf-desc">Structural coeff.</div>
+                <input type="number" id="epsilon" value="0.063" step="0.001" min="0" max="1" class="cf-inp">
+                <div class="cf-unit">0&ndash;1</div>
               </div>
 
-              <div class="cf-col">
-                <div class="cf-sect">Direct \(\Delta v\) Input</div>
-                <div class="cf-dv-row">
-                  <div class="cf-sym">\(\Delta v\)</div>
-                  <input type="number" id="dv" step="1" min="0" class="cf-inp">
-                  <button class="cf-btn" onclick="applyCustomDv()">Apply</button>
-                  <span class="cf-unit">m/s</span>
-                </div>
-                <div class="cf-status" id="status"></div>
-
-                <div class="cf-sect cf-sect-spacer">Upper-Stage Presets</div>
-                <div class="cf-preset-btns">
-                  <button onclick="applyPreset(300)">Falcon 9</button>
-                  <button onclick="applyPreset(600)">Starship (no refuel)</button>
-                  <button onclick="applyPreset(6900)">Starship (w/ refuel)</button>
-                  <button onclick="applyPreset(3500)">Saturn V</button>
-                  <button onclick="applyPreset(11000)">Dawn</button>
-                </div>
+              <div class="cf-param-row">
+                <div class="cf-sym">\(c\)</div>
+                <div class="cf-desc">Specific impulse</div>
+                <input type="number" id="c" value="4413" step="1" min="1" class="cf-inp">
+                <div class="cf-unit">m/s</div>
               </div>
 
-              <div class="cf-col">
-                <div class="cf-sect">Mass Ratio Output</div>
-                <div class="cf-mr-label">m&#x2080;&thinsp;/&thinsp;m<sub>f</sub></div>
-                <div class="cf-mr-value" id="result">—</div>
+              <div class="cf-param-row cf-param-row-meta">
+                <div class="cf-sym"></div>
+                <div class="cf-desc">\(I_{sp}\)</div>
+                <div class="cf-derived" id="ispSeconds">450.0</div>
+                <div class="cf-unit">s</div>
               </div>
 
+              <div class="cf-btn-row">
+                <button class="cf-btn cf-btn-primary" onclick="calculateFromInputs()">Calculate</button>
+                <button class="cf-btn cf-btn-ghost" onclick="clearHighlights()">Clear</button>
+              </div>
             </div>
-          </div>
 
-          <div class="credits">
-            <strong>Credits:</strong> Subway map design inspired by Ulysse Carion. Δv label values adopted from Reddit user /u/CuriousMetaphor.<br>
-            Map concept inspired by <a href="https://www.kerbalspaceprogram.com" target="_blank">Kerbal Space Program</a>.
+            <div class="cf-col">
+              <div class="cf-sect">Direct \(\Delta v\) Input</div>
+              <div class="cf-dv-row">
+                <div class="cf-sym">\(\Delta v\)</div>
+                <input type="number" id="dv" step="1" min="0" class="cf-inp">
+                <button class="cf-btn" onclick="applyCustomDv()">Apply</button>
+                <span class="cf-unit">m/s</span>
+              </div>
+              <div class="cf-status" id="status"></div>
+
+              <div class="cf-sect cf-sect-spacer">Upper-Stage Presets</div>
+              <div class="cf-preset-btns">
+                <button onclick="applyPreset(300)">Falcon 9</button>
+                <button onclick="applyPreset(600)">Starship (no refuel)</button>
+                <button onclick="applyPreset(6900)">Starship (w/ refuel)</button>
+                <button onclick="applyPreset(3500)">Saturn V</button>
+                <button onclick="applyPreset(11000)">Dawn</button>
+              </div>
+            </div>
+
+            <div class="cf-col">
+              <div class="cf-sect">Mass Ratio Output</div>
+              <div class="cf-mr-label">m&#x2080;&thinsp;/&thinsp;m<sub>f</sub></div>
+              <div class="cf-mr-value" id="result">--</div>
+            </div>
+
           </div>
+        </div>
+
+        <div class="credits">
+          <strong>Credits:</strong> Subway map design inspired by Ulysse Carion. &#x394;v label values adopted from Reddit user /u/CuriousMetaphor.<br>
+          Map concept inspired by <a href="https://www.kerbalspaceprogram.com" target="_blank">Kerbal Space Program</a>.
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- ════════════════ CLARIFYING POINTS — with dropdown ════════════════ -->
-  <div class="clarify-section">
-    <div class="clarify-hdr">Clarifying Points</div>
+<!-- ════════════════ CLARIFYING POINTS ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Clarifying Points</div>
 
-    <details class="clarify-detail">
-      <summary>What is aerobraking? Why don't all destinations in the Solar System have it available?</summary>
-      <div class="clarify-body">
-        Aerobraking involves using a planet's atmosphere to slow down a spacecraft via drag, giving the spacecraft the ability to reach the destination
-        without spending any Deta-V. This requires the destination to have sufficient atmosphere to make aerobraking possible. Additionally, aerobraking
-        only helps a spacecraft during arrival, not when a spacecraft is departing from a planetary body. Therefore, takeoff from enormous bodies
-        with high escape velocities cannot benefit from aerobraking.
-      </div>
-    </details>
+  <details class="clarify-detail">
+    <summary>What is <span class="key hl-press">aerobraking</span>? Why don't all destinations in the <span class="key">Solar System</span> have it available?</summary>
+    <div class="clarify-body">
+      <span class="key hl-press">Aerobraking</span> involves using a planet's <span class="key hl-press">atmosphere</span> to slow down a spacecraft via <span class="key hl-press">drag</span>, giving the spacecraft the ability to reach the destination
+      without spending any <span class="key hl-ve">Delta-V</span>. This requires the destination to have sufficient <span class="key hl-press">atmosphere</span> to make <span class="key hl-press">aerobraking</span> possible. Additionally, <span class="key hl-press">aerobraking</span>
+      only helps a spacecraft during arrival, not when a spacecraft is departing from a planetary body. Therefore, takeoff from enormous bodies
+      with high <span class="key hl-ve">escape velocities</span> cannot benefit from <span class="key hl-press">aerobraking</span>.
+    </div>
+  </details>
 
-    <details class="clarify-detail">
-      <summary>How were the Delta-V values decided for the solar system map? Don't different manuevers have different Delta-V costs?</summary>
-      <div class="clarify-body">
-        For simplicity, all manuevers are done without gravity assists, which would reduce the required Delta-V for a given destination. All transfers are assumed to be Hohmann transfers with burns performed at the periapses. These manuevers are only possible with highly impulsive
-        propulsion devices, which have low specific impulse. Devices with greater mass efficiency, however, cannot produce these high impulse burns, and
-        must use low thrust spiral manuevers. While these spiral maneuvers have higher Delta-V costs, the Delta-V budget of these devices far exceeds those
-        of high impulse devices.
+  <details class="clarify-detail">
+    <summary>How were the <span class="key hl-ve">Delta-V values</span> decided for the solar system map? Don't different maneuvers have different <span class="key hl-ve">Delta-V costs</span>?</summary>
+    <div class="clarify-body">
+      For simplicity, all maneuvers are done without <span class="key">gravity assists</span>, which would reduce the required <span class="key hl-ve">Delta-V</span> for a given destination. All transfers are
+      assumed to be <span class="key">Hohmann transfers</span> with <span class="key hl-thrust">burns</span> performed at the periapses. These maneuvers are only possible with <span class="key hl-thrust">highly impulsive propulsion devices</span>,
+      which have <span class="key hl-ve">low specific impulse</span>. Devices with greater mass efficiency, however, cannot produce these <span class="key hl-thrust">high impulse burns</span>, and must use <span class="key hl-thrust">low thrust spiral maneuvers</span>.
+      While these spiral maneuvers have higher <span class="key hl-ve">Delta-V costs</span>, the <span class="key hl-ve">Delta-V budget</span> of these devices far exceeds those of high impulse devices.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════ CONCEPTUAL QUESTIONS (with answers) ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>The difference between the dry and wet mass of the vehicle is the <span class="key hl-mass">propellant mass</span>. If a mission requires higher <span class="key hl-ve">Delta-V</span>, why don't we simply add more <span class="key hl-mass">propellant mass</span>?</summary>
+    <div class="clarify-body">
+      Adding more <span class="key hl-mass">propellant mass</span> is a valid way to increase the <span class="key hl-ve">Delta-V budget</span>. It must be noted that adding <span class="key hl-mass">propellant mass</span> means that the spacecraft
+      <span class="key hl-thrust">propulsion system</span> must now accelerate the mass of the additional <span class="key hl-mass">propellant</span> as well. Because of this, adding <span class="key hl-mass">propellant mass</span> has diminishing returns
+      on increasing <span class="key hl-ve">Delta-V</span>. Additionally, additional <span class="key hl-mass">propellant mass</span> can require additional <span class="key hl-mass">structural mass</span>.
+
+      While <span class="key hl-ve">specific impulse</span> has the strongest effect on increasing <span class="key hl-ve">Delta-V</span>, <span class="key hl-mass">refueling</span> a spacecraft in orbit can also be an effective method
+      of increasing <span class="key hl-ve">Delta-V</span>. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the <span class="key hl-mass">propellant</span>
+      of the spacecraft. This is by no means trivial, but could be revolutionary for high <span class="key hl-ve">Delta-V</span>, high <span class="key hl-mass">payload</span> missions.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>Greater <span class="key hl-ve">specific impulse</span> means that our propulsion system is more mass efficient. How does this affect our <span class="key hl-ve">Delta-V budget</span>?</summary>
+    <div class="clarify-body">
+      Greater mass efficiency lessens the need to carry additional <span class="key hl-mass">propellant</span> to achieve a given <span class="key hl-ve">Delta-V</span>. Increases in <span class="key hl-ve">specific impulse</span>, or
+      <span class="key hl-ve">effective exhaust velocity</span>, results in a linear increase in <span class="key hl-ve">Delta-V</span>. To reach far destinations, or to reach a destination with less <span class="key hl-mass">propellant</span>
+      and more <span class="key hl-mass">payload</span>, greater <span class="key hl-ve">specific impulses</span> are required. This is the motivation for <span class="key hl-power">electric propulsion</span>, which is further explored below
+      the applet.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════ IDEAL ROCKET EQUATION ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Ideal Rocket Equation</div>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Ideal Rocket Equation</span>
+    $$
+    \boxed{
+    \textcolor{#3DBFFF}{\Delta v}
+    =
+    \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+    =
+    \frac{\textcolor{#3DBFFF}{I_{sp}}}{g_0}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+    }
+    $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
+
+        <span class="eq-step-label">Conservation of Mass</span>
+        $$
+        0 = \frac{d\textcolor{#FF4400}{m(t)}}{dt} + \textcolor{#FF4400}{\dot{m}}
+        $$
+
+        <span class="eq-step-label">Momentum</span>
+        $$
+        P(t)=\textcolor{#FF4400}{m(t)}\,\textcolor{#3DBFFF}{v(t)}
+        +\delta \textcolor{#FF4400}{m}\!\left(t'\right)\!
+        \left[\textcolor{#3DBFFF}{v}\!\left(t'\right)-\textcolor{#3DBFFF}{c}\!\left(t'\right)\right]
+        $$
+
+        <span class="eq-step-label">Conservation of Momentum</span>
+        $$
+        0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+        +\textcolor{#3DBFFF}{c(t)}\,d\textcolor{#FF4400}{m(t)}
+        $$
+
+        $$
+        0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+        +\textcolor{#3DBFFF}{c}\,d\textcolor{#FF4400}{m(t)}
+        $$
+
+        <span class="eq-step-label">Integrate</span>
+        $$
+        \int d\textcolor{#3DBFFF}{v(t)}
+        =
+        -\textcolor{#3DBFFF}{c}\int \frac{d\textcolor{#FF4400}{m}}{\textcolor{#FF4400}{m}}
+        $$
+
+        $$
+        \textcolor{#3DBFFF}{v_f-v_0}
+        =
+        -\textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}}{\textcolor{#FF4400}{m_0}}\right)
+        $$
+
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{\Delta v}
+        =
+        \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+        }
+        $$
+
       </div>
     </details>
   </div>
+</div>
 
-  <!-- ════════════════ CONCEPTUAL QUESTIONS — with dropdown ════════════════ -->
-  <div class="clarify-section">
-    <div class="clarify-hdr">Conceptual Questions</div>
+<!-- ════════════════ SPECIFIC IMPULSE ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Specific Impulse</div>
 
-    <details class="clarify-detail">
-      <summary>The difference between the dry and wet mass of the vehicle is the propellant mass. If a mission requires higher Delta V, why don't we simply add more propellant mass?</summary>
-      <div class="clarify-body">
-        Adding more propellant mass is a valid way to increase the Delta-V budget. It must be noted that adding propellant mass means that the spacecraft
-        propulsion system must now accelerate the mass of the additional propellant as well. Because of this, adding propellant mass has diminishing returns
-        on increasing Delta-V. Additionally, additional propellant mass can require additional structural mass.
+  <p class="th-body">
+    Recall that <span class="key hl-ve">specific impulse</span> is a measure of how efficiently <span class="key hl-mass">propellant mass</span> is used to deliver <span class="key">impulse</span> to our spacecraft.
+    <span class="key hl-ve">Specific impulse</span> and <span class="key hl-ve">effective exhaust velocity</span> are often used interchangeably, as they are directly proportional to each other.
+    It is important to note the units, m/s and s, which indicate whether <span class="key hl-ve">exhaust velocity</span> or <span class="key hl-ve">specific impulse</span> is being referenced.
+  </p>
 
-        While specific impulse has the strongest effect on increasing Delta-V, refueling a spacecraft in orbit can also be an effective method
-        of increasing Delta-V. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the propellant
-        of the spacecraft. This is by no means trivial, but could be revolutionary for high Delta-V, high payload missions.
+  <details class="deriv-detail">
+    <summary>Show derivation</summary>
+    <div class="deriv-inner">
 
-      </div>
-    </details>
+      <span class="eq-step-label">Total impulse</span>
+      $$
+      \begin{aligned}
+      \text{Impulse}
+      &= \int \textcolor{#FF4400}{F_N}\,dt
+       = \int \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\,dt
+       = \textcolor{#3DBFFF}{c}\int \textcolor{#FF4400}{\dot{m}}\,dt
+       = \textcolor{#3DBFFF}{c}\,\textcolor{#FF4400}{m_{\mathrm{prop}}}
+      \end{aligned}
+      $$
 
-    <details class="clarify-detail">
-      <summary>Greater specific impulse means that our propulsion system is more mass efficient. How does this affect our Delta-V budget?</summary>
-      <div class="clarify-body">
-        Greater mass efficiency lessens the need to carry additional propellant to achieve a given Delta-V. Increases in specific impulse, or
-        effective exhaust velocity, results in a linear increase in Delta-V. To reach far destinations, or to reach a destination with less propellant
-        and more payload, greater specific impulses are required. This is the motivation for electric propulsion, which is further explored below
-        the applet.
-      </div>
-    </details>
-  </div>
+      <span class="eq-step-label">Normalize by propellant mass</span>
+      $$
+      \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}}
+      =
+      \textcolor{#3DBFFF}{c}
+      $$
 
-  <!-- ════════════════ IDEAL ROCKET EQUATION ════════════════ -->
-  <div class="theory-block">
-    <div class="th-hdr">Ideal Rocket Equation</div>
-
-    <div class="eq-panel">
-      <span class="eq-step-label">Ideal Rocket Equation</span>
+      <span class="eq-step-label">Specific impulse</span>
       $$
       \boxed{
-      \textcolor{#3DBFFF}{\Delta v}
-      =
-      \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+        \textcolor{#3DBFFF}{I_{sp}}
+        =
+        \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}\,g_0}
+        =
+        \frac{\textcolor{#3DBFFF}{c}}{g_0}
       }
       $$
 
-      <details class="deriv-detail">
-        <summary>Show derivation</summary>
-        <div class="deriv-inner">
-
-          <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
-
-          <span class="eq-step-label">Conservation of Mass</span>
-          $$
-          0 = \frac{d\textcolor{#FF4400}{m(t)}}{dt} + \textcolor{#FF4400}{\dot{m}}
-          $$
-
-          <span class="eq-step-label">Momentum</span>
-          $$
-          P(t)=\textcolor{#FF4400}{m(t)}\,\textcolor{#3DBFFF}{v(t)}
-          +\delta \textcolor{#FF4400}{m}\!\left(t'\right)\!
-          \left[\textcolor{#3DBFFF}{v}\!\left(t'\right)-\textcolor{#3DBFFF}{c}\!\left(t'\right)\right]
-          $$
-
-          <span class="eq-step-label">Conservation of Momentum</span>
-          $$
-          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
-          +\textcolor{#3DBFFF}{c(t)}\,d\textcolor{#FF4400}{m(t)}
-          $$
-
-          $$
-          0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
-          +\textcolor{#3DBFFF}{c}\,d\textcolor{#FF4400}{m(t)}
-          $$
-
-          <span class="eq-step-label">Integrate</span>
-          $$
-          \int d\textcolor{#3DBFFF}{v(t)}
-          =
-          -\textcolor{#3DBFFF}{c}\int \frac{d\textcolor{#FF4400}{m}}{\textcolor{#FF4400}{m}}
-          $$
-
-          $$
-          \textcolor{#3DBFFF}{v_f-v_0}
-          =
-          -\textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}}{\textcolor{#FF4400}{m_0}}\right)
-          $$
-
-          $$
-          \boxed{
-          \textcolor{#3DBFFF}{\Delta v}
-          =
-          \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
-          }
-          $$
-
-        </div>
-      </details>
     </div>
-  </div>
-
-  <!-- ════════════════ SPECIFIC IMPULSE ════════════════ -->
-  <div class="theory-block">
-    <div class="th-hdr">Specific Impulse</div>
-
-    <details class="deriv-detail">
-      <summary>Show derivation</summary>
-      <div class="deriv-inner">
-
-        <span class="eq-step-label">Total impulse</span>
-        $$
-        \begin{aligned}
-        \text{Impulse}
-        &= \int \textcolor{#FF4400}{F_N}\,dt
-         = \int \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\,dt
-         = \textcolor{#3DBFFF}{c}\int \textcolor{#FF4400}{\dot{m}}\,dt
-         = \textcolor{#3DBFFF}{c}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}
-        \end{aligned}
-        $$
-
-        <span class="eq-step-label">Normalize by propellant mass</span>
-        $$
-        \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}}
-        =
-        \textcolor{#3DBFFF}{c}
-        $$
-
-        <span class="eq-step-label">Specific impulse</span>
-        $$
-        \boxed{
-          \textcolor{#3DBFFF}{I_{sp}}
-          =
-          \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,g_0}
-          =
-          \frac{\textcolor{#3DBFFF}{c}}{g_0}
-        }
-        $$
-
-      </div>
-    </details>
-  </div>
-
-  <!-- ════════════════ MOTIVATION FOR ELECTRIC PROPULSION ════════════════ -->
-  <div class="theory-block">
-    <div class="th-hdr">Motivation for Electric Propulsion</div>
-
-    <p class="th-body">
-      <strong class="hl-ve">$c$</strong> is clearly the greatest driver for achieving high
-      <strong class="hl-ve">$\Delta V$</strong> or meeting a
-      <strong class="hl-ve">$\Delta V$</strong> specification using less propellant.
-    </p>
-
-    <details class="deriv-detail">
-      <summary>Show derivation</summary>
-      <div class="deriv-inner">
-
-        <span class="eq-step-label">Energy per unit mass</span>
-        $$
-        E=\frac{1}{2}\textcolor{#3DBFFF}{c}^2
-        \qquad\Rightarrow\qquad
-        \boxed{
-        \textcolor{#3DBFFF}{c}=\sqrt{2E}
-        }
-        $$
-
-        <span class="eq-step-label">For chemical rockets, the power is coupled to the propellant</span>
-        <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
-          Suppose we use LH$_2$ &amp; LOX combustion
-        </p>
-
-        $$
-        2H_2 + O_2 \rightarrow 2H_2O
-        $$
-
-        <span class="eq-step-label">The reaction has energy per unit mass</span>
-        $$
-        E = 1.34\times10^7\ \mathrm{J/kg}
-        $$
-
-        $$
-        \Rightarrow\quad
-        \textcolor{#3DBFFF}{c} = 4927\ \mathrm{m/s}
-        \qquad\text{or}\qquad
-        \textcolor{#3DBFFF}{I_{sp}} = 502\ \mathrm{s}
-        $$
-
-        <span class="eq-step-label">For electric rockets, however, power and propellant are decoupled from each other</span>
-        <p class="th-body" style="margin-top:8px; margin-bottom:0;">
-          $E$ can be higher by using a large amount of <strong class="hl-power">power</strong> to accelerate a small amount of propellant.
-        </p>
-
-      </div>
-    </details>
-  </div>
-
+  </details>
 </div>
 
-<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+<!-- ════════════════ MOTIVATION FOR ELECTRIC PROPULSION ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Motivation for Electric Propulsion</div>
+
+  <p class="th-body">
+    Increasing <span class="key hl-ve">effective exhaust velocity</span> <strong class="hl-ve">$c$</strong>, or <span class="key hl-ve">specific impulse</span> <strong class="hl-ve">$I_{sp}$</strong>,
+    is clearly the greatest driver for achieving high
+    <strong class="hl-ve">$\Delta V$</strong> or meeting a
+    <strong class="hl-ve">$\Delta V$</strong> specification using less <span class="key hl-mass">propellant</span>.
+
+    Assume we have a <span class="key hl-thrust">chemical engine</span> that uses <span class="key hl-mass">liquid hydrogen and liquid oxygen</span> as propellants, one of the most energetic
+    reactions available to us. Assume that combustion is 100% efficient and that the engine nozzle is perfectly expanded such that
+    exit pressure is 0 Pascals. These assumptions are intentionally optimistic. In making them, we derive the upper limit of the
+    <span class="key hl-ve">specific impulse</span> for chemical engines, which is around 500 seconds.
+
+    If we want to increase <span class="key hl-ve">specific impulse</span> further, we must decouple the <span class="key hl-power">energy source</span> of the propulsion system from the <span class="key hl-mass">propellant</span>.
+    If we instead apply a <span class="key hl-power">voltage</span> to a charged <span class="key hl-mass">propellant</span>, we can clearly achieve much higher <span class="key hl-ve">specific impulses</span>, limited only by our
+    choice of mass flow rate and <span class="key hl-power">power</span>. <span class="key hl-power">Electric propulsion</span> aims to achieve much higher <span class="key hl-ve">specific impulses</span> than available by traditional chemical engines.
+  </p>
+
+  <details class="deriv-detail">
+    <summary>Show derivation</summary>
+    <div class="deriv-inner">
+
+      <span class="eq-step-label">Energy per unit mass</span>
+      $$
+      \textcolor{#C060FF}{E}=\frac{1}{2}\textcolor{#3DBFFF}{c}^2
+      \qquad\Rightarrow\qquad
+      \boxed{
+      \textcolor{#3DBFFF}{c}=\sqrt{2\textcolor{#C060FF}{E}}
+      }
+      $$
+
+      <span class="eq-step-label">For chemical rockets, the power is coupled to the propellant</span>
+      <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
+        Suppose we use <span class="key hl-thrust">LH$_2$ &amp; LOX combustion</span>
+      </p>
+
+      $$
+      2H_2 + O_2 \rightarrow 2H_2O
+      $$
+
+      <span class="eq-step-label">The reaction has energy per unit mass</span>
+      $$
+      \textcolor{#C060FF}{E} = 1.34\times10^7\ \mathrm{J/kg}
+      $$
+
+      $$
+      \Rightarrow\quad
+      \textcolor{#3DBFFF}{c} = 4927\ \mathrm{m/s}
+      \qquad\text{or}\qquad
+      \textcolor{#3DBFFF}{I_{sp}} = 502\ \mathrm{s}
+      $$
+
+      <span class="eq-step-label">For electric rockets, however, power and propellant are decoupled from each other</span>
+      <p class="th-body" style="margin-top:8px; margin-bottom:0;">
+        <strong class="hl-ve">$c$</strong> can be made higher by applying a large amount of <span class="key hl-power">voltage</span> to a small amount of <span class="key hl-mass">gas</span>.
+      </p>
+
+      <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
+        Suppose we hae a small amount of ionized particles:
+      </p>
+
+      <p class="th-body" style="margin-top:0; margin-bottom:8px;">
+        Voltage potential $\textcolor{#C060FF}{\phi_0}$ applied to ion of mass $\textcolor{#FF4400}{m_i}$:
+      </p>
+
+      $$
+      \textcolor{#C060FF}{q}\,\textcolor{#C060FF}{\phi_0}
+      =
+      \frac{1}{2}\textcolor{#FF4400}{m_i}\,\textcolor{#3DBFFF}{c}^2
+      $$
+
+      $$
+      \Rightarrow\quad
+      \boxed{
+      \textcolor{#3DBFFF}{c}
+      =
+      \sqrt{\frac{2\,\textcolor{#C060FF}{\phi_0}\,\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m_i}}}
+      }
+      $$
+
+    </div>
+  </details>
+</div>
+
+<footer>Created by Jordan Bergmann - MIT Propulsion - 2026</footer>
 
 <script>
 (function () {
@@ -1019,7 +1127,7 @@ footer {
   const C_AERO_HUB_INNER = "rgba(159,230,255,0.58)";
 
   const DISPLAY_NAMES = {
-    leo:          "Low Earth Orbit (150 km) — Origin",
+    leo:          "Low Earth Orbit (150 km) - Origin",
     ei:           "Earth Intercept",
     inter:        "Jupiter Intercept",
     j_lo:         "Jupiter Low Orbit",
@@ -1087,6 +1195,7 @@ footer {
   const canvas = document.getElementById('mapCanvas');
   const ctx    = canvas.getContext('2d');
   const HIT_RADIUS = 30;
+  const G0 = 9.80665;
 
   let stars = [];
 
@@ -1109,7 +1218,7 @@ footer {
   const tsu = v => v * Math.min(xScale, yScale);
 
   function formatDv(value, maxFractionDigits = 1) {
-    if (value === undefined || value === null || !isFinite(value)) return "—";
+    if (value === undefined || value === null || !isFinite(value)) return "\u2014";
     const rounded = Math.abs(value - Math.round(value)) < 1e-9;
     return value.toLocaleString('en-US', {
       minimumFractionDigits: 0,
@@ -1122,13 +1231,33 @@ footer {
   }
 
   function setMR(mr) {
-    document.getElementById('result').textContent =
-      isFinite(mr) ? mr.toFixed(4) : "—";
+    const el = document.getElementById('result');
+    el.classList.remove('cf-mr-na');
+    el.textContent = isFinite(mr) ? mr.toFixed(4) : "--";
+  }
+
+  function setMRUnavailable() {
+    const el = document.getElementById('result');
+    el.classList.add('cf-mr-na');
+    el.textContent = "N/A";
+  }
+
+  function updateIspSecondsDisplay() {
+    const el = document.getElementById('ispSeconds');
+    const raw = document.getElementById('c').value.trim().replace(/,/g, "");
+    const value = parseFloat(raw);
+
+    if (!raw || !isFinite(value) || value <= 0) {
+      el.textContent = "--";
+      return;
+    }
+
+    el.textContent = (value / G0).toFixed(1);
   }
 
   function buildMapData() {
     state.nodes = {
-      leo:           { x:392, y:792, kind:"transfer", orientation:"h", length:64,  label:"Low Earth Orbit\n(150 km) — Origin", offset:[48,0] },
+      leo:           { x:392, y:792, kind:"transfer", orientation:"h", length:64,  label:"Low Earth Orbit\n(150 km) - Origin", offset:[48,0] },
       ei:            { x:392, y:646, kind:"transfer", orientation:"h", length:118, label:"Earth Intercept", offset:[92,0] },
       inter:         { x:392, y:305, kind:"transfer", orientation:"h", length:118, label:"Jupiter Intercept", offset:[0,30] },
 
@@ -1362,8 +1491,18 @@ footer {
       else                    { statusText = "Not reachable";              statusClass = "status-bad"; }
     }
 
-    return { dvStandard, dvAero, remainingUsesAero, remainingCost, remaining,
-             reachableStandard, reachableAero, hasAeroBenefit, statusText, statusClass };
+    return {
+      dvStandard,
+      dvAero,
+      remainingUsesAero,
+      remainingCost,
+      remaining,
+      reachableStandard,
+      reachableAero,
+      hasAeroBenefit,
+      statusText,
+      statusClass
+    };
   }
 
   function makeInfoItem(label, value, cls = "") {
@@ -1387,17 +1526,18 @@ footer {
       const rows = [];
 
       if (info.dvStandard !== undefined)
-        rows.push(makeInfoItem("Δv from LEO", `${formatDv(info.dvStandard)} m/s`));
+        rows.push(makeInfoItem("\u0394v from LEO", `${formatDv(info.dvStandard)} m/s`));
       if (info.hasAeroBenefit)
-        rows.push(makeInfoItem("Δv with aerobraking", `${formatDv(info.dvAero)} m/s`, "accent"));
+        rows.push(makeInfoItem("\u0394v with aerobraking", `${formatDv(info.dvAero)} m/s`, "accent"));
       if (state.currentBudget !== null) {
         rows.push(makeInfoItem("Budget", `${formatDv(state.currentBudget)} m/s`));
-        if (info.remaining !== undefined)
+        if (info.remaining !== undefined) {
           rows.push(makeInfoItem(
-            "Remaining Δv",
+            "Remaining \u0394v",
             `${formatSignedDv(info.remaining)} m/s${info.remainingUsesAero ? " (assuming aerobraking)" : ""}`,
             info.remaining >= 0 ? "good" : "bad"
           ));
+        }
         rows.push(makeInfoItem("Status", info.statusText, info.statusClass));
       }
 
@@ -1417,14 +1557,14 @@ footer {
 
   function calculateFromInputs() {
     try {
-      const lambda  = parseNonnegativeFloat(document.getElementById('lambda').value,  "λ");
-      const epsilon = parseNonnegativeFloat(document.getElementById('epsilon').value, "ε");
+      const lambda  = parseNonnegativeFloat(document.getElementById('lambda').value,  "\u03bb");
+      const epsilon = parseNonnegativeFloat(document.getElementById('epsilon').value, "\u03b5");
       const c       = parsePositiveFloat(document.getElementById('c').value,          "c");
 
-      if (epsilon > 1.0)         throw new Error("ε must be between 0 and 1.");
-      if (lambda + epsilon <= 0) throw new Error("λ + ε must be > 0.");
+      if (epsilon > 1.0)         throw new Error("\u03b5 must be between 0 and 1.");
+      if (lambda + epsilon <= 0) throw new Error("\u03bb + \u03b5 must be > 0.");
 
-      const MR     = (lambda+1) / (lambda + epsilon);
+      const MR     = (lambda + 1) / (lambda + epsilon);
       const budget = c * Math.log(MR);
 
       document.getElementById('dv').value = budget.toFixed(1);
@@ -1440,7 +1580,7 @@ footer {
 
   function applyCustomDv() {
     try {
-      const dv = parseNonnegativeFloat(document.getElementById('dv').value, "Δv");
+      const dv = parseNonnegativeFloat(document.getElementById('dv').value, "\u0394v");
       const c  = parsePositiveFloat(document.getElementById('c').value,     "c");
       const MR = Math.exp(dv / c);
 
@@ -1456,14 +1596,8 @@ footer {
 
   function applyPreset(dv) {
     document.getElementById('dv').value = dv;
-    try {
-      const c  = parsePositiveFloat(document.getElementById('c').value, "c");
-      const MR = Math.exp(dv / c);
-      document.getElementById('status').textContent = "";
-      setMR(MR);
-    } catch (e) {
-      document.getElementById('status').textContent = e.message;
-    }
+    document.getElementById('status').textContent = "";
+    setMRUnavailable();
     state.currentBudget = dv;
     updateReachability(dv);
   }
@@ -1474,8 +1608,9 @@ footer {
     state.reachableAeroNodes.clear();
     state.reachableAeroEdges.clear();
 
-    for (const id in state.shortestDv)
+    for (const id in state.shortestDv) {
       if (state.shortestDv[id] <= budget) state.reachableNodes.add(id);
+    }
 
     for (const id of state.reachableNodes) {
       let cur = id;
@@ -1512,8 +1647,8 @@ footer {
     state.reachableAeroEdges.clear();
     state.currentBudget = null;
     state.selectedNode  = null;
-    document.getElementById('dv').value           = "";
-    document.getElementById('result').textContent = "—";
+    document.getElementById('dv').value = "";
+    setMR(NaN);
     document.getElementById('status').textContent = "";
     drawMap();
   }
@@ -1604,20 +1739,32 @@ footer {
     if (hi || aero) {
       ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_A : C_HI_GLOW_A;
       ctx.lineWidth   = wO + 18;
-      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
 
       ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_B : C_HI_GLOW_B;
       ctx.lineWidth   = wO + 8;
-      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
     }
 
     ctx.strokeStyle = C_TRACK_OUTER;
     ctx.lineWidth   = wO;
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
 
     ctx.strokeStyle = hi ? C_HI : (aero ? C_AERO : C_TRACK_INNER);
     ctx.lineWidth   = wI;
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
   }
 
   function getArrowInset(seg, ux, uy) {
@@ -1741,21 +1888,28 @@ footer {
 
     if (hi || aero) {
       ctx.fillStyle = (aero && !hi) ? C_AERO_NODE_GLOW : C_HI_NODE_GLOW;
-      ctx.beginPath(); ctx.arc(x, y, r + 12, 0, 2 * Math.PI); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x, y, r + 12, 0, 2 * Math.PI);
+      ctx.fill();
     }
 
     if (sl) {
       ctx.strokeStyle = C_HI;
       ctx.lineWidth   = 2.5;
       ctx.setLineDash([6, 4]);
-      ctx.beginPath(); ctx.arc(x, y, r + 13, 0, 2 * Math.PI); ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(x, y, r + 13, 0, 2 * Math.PI);
+      ctx.stroke();
       ctx.setLineDash([]);
     }
 
     ctx.fillStyle   = C_NODE_FILL;
     ctx.strokeStyle = hi ? C_HI : (aero ? C_AERO : C_NODE_STROKE);
     ctx.lineWidth   = (hi || aero) ? 2.5 : 1.8;
-    ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
   }
 
   function drawTransferNode(nodeId) {
@@ -1779,28 +1933,43 @@ footer {
     if (hi || aero) {
       ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_A : C_HI_GLOW_A;
       ctx.lineWidth   = Math.max(26, tsu(34));
-      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
 
       ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_B : C_HI_GLOW_B;
       ctx.lineWidth   = Math.max(18, tsu(24));
-      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
     }
 
     if (sl) {
       ctx.strokeStyle = C_HI;
       ctx.lineWidth   = Math.max(20, tsu(28));
       ctx.setLineDash([6, 4]);
-      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
       ctx.setLineDash([]);
     }
 
     ctx.strokeStyle = (hi || aero) ? "#2c2c2c" : C_TRACK_OUTER;
     ctx.lineWidth   = Math.max(14, tsu(20));
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
 
     ctx.strokeStyle = hi ? C_HI_HUB_INNER : (aero ? C_AERO_HUB_INNER : C_HUB_INNER);
     ctx.lineWidth   = Math.max(8, tsu(12));
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
   }
 
   function drawNodeLabel(nodeId) {
@@ -1837,10 +2006,14 @@ footer {
     const margin = 8;
 
     if (rectX < margin) {
-      const dx = margin - rectX; rectX += dx; lx += dx;
+      const dx = margin - rectX;
+      rectX += dx;
+      lx += dx;
     }
     if (rectX + rectW > canvas.width - margin) {
-      const dx = (rectX + rectW) - (canvas.width - margin); rectX -= dx; lx -= dx;
+      const dx = (rectX + rectW) - (canvas.width - margin);
+      rectX -= dx;
+      lx -= dx;
     }
 
     const hiNode   = state.reachableNodes.has(nodeId);
@@ -1883,7 +2056,10 @@ footer {
     for (const id in state.nodes) {
       const [nx, ny] = T(state.nodes[id].x, state.nodes[id].y);
       const d = Math.hypot(mx - nx, my - ny);
-      if (d < closestD) { closestD = d; closest = id; }
+      if (d < closestD) {
+        closestD = d;
+        closest = id;
+      }
     }
 
     state.selectedNode = (closestD <= HIT_RADIUS)
@@ -1897,13 +2073,16 @@ footer {
     buildMapData();
     computeShortestPathsFromLeo();
     initStars();
+    updateIspSecondsDisplay();
     drawMap();
   }
 
   window.calculateFromInputs = calculateFromInputs;
-  window.applyCustomDv = applyCustomDv;
-  window.applyPreset = applyPreset;
-  window.clearHighlights = clearHighlights;
+  window.applyCustomDv       = applyCustomDv;
+  window.applyPreset         = applyPreset;
+  window.clearHighlights     = clearHighlights;
+
+  document.getElementById('c').addEventListener('input', updateIspSecondsDisplay);
 
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(initializeSubwayApp);
