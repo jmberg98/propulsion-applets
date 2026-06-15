@@ -314,6 +314,14 @@ canvas {
   border-radius: 3px;
 }
 
+/* ── Slider range display ───────────────────────────── */
+.sl-range {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 3px;
+  letter-spacing: 0.3px;
+}
+
 /* ── Output bar ───────────────────────────────────── */
 #out-bar {
   display: flex;
@@ -575,25 +583,28 @@ footer {
       <div class="sl-group">
         <div class="sl-label">Mass Flow Rate &nbsp;(kg / s)</div>
         <div class="sl-row">
-          <input type="range" id="sl-flow"  min="0" max="5" step="0.0001" value="0.01">
+          <input type="range" id="sl-flow"  min="0.001" max="1" step="0.001" value="0.01">
           <input type="text"  id="tb-flow"  value="0.01">
         </div>
+        <div class="sl-range">0.001 – 1.0 kg/s</div>
       </div>
 
       <div class="sl-group">
         <div class="sl-label">Power &nbsp;(kW)</div>
         <div class="sl-row">
-          <input type="range" id="sl-power" min="0" max="5000" step="0.0001" value="10">
+          <input type="range" id="sl-power" min="0" max="5000" step="1" value="10">
           <input type="text"  id="tb-power" value="10">
         </div>
+        <div class="sl-range">0 – 5000 kW</div>
       </div>
 
       <div class="sl-group">
         <div class="sl-label">Efficiency</div>
         <div class="sl-row">
-          <input type="range" id="sl-eta"   min="0" max="1"    step="0.001"  value="0.5">
+          <input type="range" id="sl-eta"   min="0" max="1"    step="0.01"  value="0.5">
           <input type="text"  id="tb-eta"   value="0.5">
         </div>
+        <div class="sl-range">0 – 1.0</div>
       </div>
     </div>
   </div>
@@ -972,10 +983,10 @@ const ORB_GLOW = {
 };
 
 const ORB_R = {
-  'H\u2082O':  3.5,
-  'Hydrazine': 4.5,
-  'Argon':     5.0,
-  'Lithium':   3.0
+  'H\u2082O':  2.0,
+  'Hydrazine': 2.5,
+  'Argon':     3.0,
+  'Lithium':   1.8
 };
 
 const MAX_THRUST_VIS = 2000;
@@ -1186,7 +1197,7 @@ function drawParticles() {
     const r = ORB_R[p.prop];
 
     ctx.beginPath();
-    ctx.arc(p.x, p.y, r * 2.8, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, r * 1.5, 0, Math.PI * 2);
     ctx.fillStyle   = ORB_GLOW[p.prop];
     ctx.globalAlpha = 1.0;
     ctx.fill();
