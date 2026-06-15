@@ -634,18 +634,17 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The overall change in velocity of a spacecraft is determined by both the difference in its initial
-  and final mass and by its specific impulse. While higher
-  <strong class="hl-ve">specific impulse</strong> most significantly increases the total
-  <strong class="hl-ve">$\Delta v$</strong> of the spacecraft, recall that higher specific impulses
-  require higher total <strong class="hl-power">power</strong> to achieve the same mission time.
-  However, higher total <strong class="hl-power">power</strong> is not trivial, as higher
-  <strong class="hl-power">power</strong> requirements necessitate higher
-  <strong class="hl-power">power</strong> + propulsion system
-  <strong class="hl-mass">mass</strong> or greater technology levels.
-</p>
+  The purpose of a spacecraft propulsion system is to deliver a change in velocity to the vehicle of interest.
+  Orbital manuevers require a certain change in velocity to be executed. Likewise, the effect of rareified drag in low orbit
+  and the loss of velocity from fighting against gravity necessitate a certain charge in velocity to maintain the spacecraft's trajectory.
+  This "certain change in velocity" is quantified as "Delta-V." Orbital mechanics dictates the required Delta-V for a mission given the
+  necessary manuevers and Delta-V losses to gravity and drag. The sum is the requireed Delta-V budget for the mission.
 
-<div id="theory">
+  The ideal rocket equation tells us that the available Delta-V budget for the mission is a function of the effective exhaust velocity,
+  or specfic impulse, of the propulsion system, the vehicle's initial (wet) mass, and the vehicle's final (dry) mass. However, it is not
+  immediately obvious how these parameters affect the Delta-V budget, nor is it immediately obvious how Delta-V budgets translate to real missions.
+
+  To better understand Delta-V, and how the ideal rocket equation affects mission design, let's explore our solar system.
 
   <!-- ════════════════ CONCEPTUAL QUESTIONS — no dropdown ════════════════ -->
   <div class="clarify-section">
