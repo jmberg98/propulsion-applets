@@ -14,66 +14,47 @@ from scipy.optimize import minimize_scalar
 # Governing equations
 # -----------------------------------------------------------------
 def m_ps(c, F, eta, alpha):
-    """Power-system mass: m_ps = alpha * P = alpha * F * c / (2*eta)."""
     return alpha * F * c / (2.0 * eta)
 
 
 def m_p(c, F, t):
-    """Propellant mass: m_p = (F/c) * t."""
     return F * t / c
 
 
 def stuhlinger_velocity(eta, alpha, t):
-    """Vch = sqrt(2*eta*t/alpha) — minimizer of m_ps + m_p."""
     return np.sqrt(2.0 * eta * t / alpha)
 
 
 def epsilon(eta, alpha, t, dV):
-    """Dimensionless group eps = alpha*dV^2 / (2*eta*tm)."""
     return alpha * dV**2 / (2.0 * eta * t)
 
 
 def payload_ratio_c(c, eta, alpha, t, dV):
-    """
-    lambda(c) = exp(-dV/c)
-                - (alpha*c^2 / (2*eta*t)) * (1 - exp(-dV/c))
-    Depends on eta, alpha, t, dV.  Thrust F cancels out.
-    """
     z = dV / c
     e = np.exp(-np.clip(z, 0.0, 700.0))
     return e - (alpha * c**2 / (2.0 * eta * t)) * (1.0 - e)
 
 
 def payload_ratio_z(z, eps):
-    """lambda(z) = exp(-z) - eps*(1 - exp(-z))/z^2."""
     z   = np.asarray(z, dtype=float)
     e   = np.exp(-np.clip(z, 0.0, 700.0))
     return e - eps * (1.0 - e) / (z**2)
 
 
 def find_copt(eta, alpha, t, dV):
-    """
-    Maximize lambda(z) robustly:
-      1. Log-spaced coarse grid to locate the global peak.
-      2. Bounded local refinement around that peak.
-    This avoids scipy getting stuck at a boundary.
-    """
     eps = epsilon(eta, alpha, t, dV)
 
-    # --- coarse log-grid scan ---
     z_grid  = np.logspace(-4, 2, 20000)
     lam_g   = payload_ratio_z(z_grid, eps)
     lam_g[~np.isfinite(lam_g)] = -np.inf
     i       = int(np.argmax(lam_g))
 
-    # --- narrow window around grid peak ---
     z_lo = z_grid[max(i - 2, 0)]
     z_hi = z_grid[min(i + 2, len(z_grid) - 1)]
     if z_hi <= z_lo:
         z_lo = 0.5 * z_grid[i]
         z_hi = 2.0 * z_grid[i]
 
-    # --- local refinement ---
     res   = minimize_scalar(
         lambda z: -payload_ratio_z(z, eps),
         bounds=(z_lo, z_hi),
@@ -84,6 +65,42 @@ def find_copt(eta, alpha, t, dV):
     lam_opt = float(payload_ratio_z(z_opt, eps))
     c_opt   = dV / z_opt
     return c_opt, lam_opt, eps
+
+
+# -----------------------------------------------------------------
+# Classification helpers
+# -----------------------------------------------------------------
+def classify_thruster(c):
+    if c < 1_470:
+        return "Cold Gas"
+    elif c < 3_920:
+        return "Resistojet"
+    elif c < 11_770:
+        return "Arcjet"
+    elif c < 24_500:
+        return "Hall Thruster / PPT"
+    elif c < 78_500:
+        return "Gridded Ion Engine"
+    else:
+        return "MPD / VASIMR"
+
+
+def classify_power_source(alpha):
+    if alpha >= 5.0:
+        return "Chemical (Rankine)"
+    elif alpha >= 1.0:
+        return "Chemical / RTG"
+    elif alpha >= 0.1:
+        return "RTG / Solar (deep-space)"
+    elif alpha >= 0.01:
+        return "Solar (near-Earth)"
+    elif alpha >= 0.001:
+        return "Nuclear fission"
+    else:
+        return "Nuclear (advanced)"
+
+
+G0 = 9.80665
 
 
 # -----------------------------------------------------------------
@@ -106,7 +123,6 @@ class StuhlingerApp:
         main = ttk.Frame(root)
         main.pack(fill=tk.BOTH, expand=True)
 
-        # ── Plot area (left) ────────────────────────────────────────
         plot_frame = ttk.Frame(main)
         plot_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -118,7 +134,6 @@ class StuhlingerApp:
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         NavigationToolbar2Tk(self.canvas, plot_frame)
 
-        # ── Control panel (right) ────────────────────────────────────
         ctrl = ttk.Frame(main, padding=12)
         ctrl.pack(side=tk.RIGHT, fill=tk.Y)
 
@@ -126,6 +141,8 @@ class StuhlingerApp:
                   font=("Segoe UI", 13, "bold")).pack(anchor=tk.W, pady=(0, 6))
 
         self.entries = {}
+        self.power_src_var = tk.StringVar()
+
         for key, label, default in self.INPUT_DEFS:
             row = ttk.Frame(ctrl)
             row.pack(fill=tk.X, pady=2)
@@ -137,6 +154,18 @@ class StuhlingerApp:
             ent.bind("<FocusOut>", lambda e: self.update())
             self.entries[key] = ent
 
+            if key == "alpha":
+                sub = ttk.Frame(ctrl)
+                sub.pack(fill=tk.X, pady=(0, 4))
+                ttk.Label(sub, text="", width=4).pack(side=tk.LEFT)
+                ttk.Label(
+                    sub,
+                    textvariable=self.power_src_var,
+                    foreground="#8B4513",
+                    font=("Consolas", 9, "italic"),
+                    anchor="e",
+                ).pack(side=tk.RIGHT)
+
         ttk.Button(ctrl, text="Update", command=self.update)\
             .pack(fill=tk.X, pady=(10, 0))
 
@@ -145,7 +174,13 @@ class StuhlingerApp:
         ttk.Label(ctrl, text="Outputs",
                   font=("Segoe UI", 13, "bold")).pack(anchor=tk.W, pady=(0, 6))
 
-        self.out_vars = {}
+        self.out_vars   = {}
+        self.out_labels = {}
+
+        self.isp_vch_var  = tk.StringVar()
+        self.isp_copt_var = tk.StringVar()
+        self.thruster_var = tk.StringVar()
+
         for key, label in [
             ("Vch",  "Stuhlinger Vch [m/s]"),
             ("Copt", "Optimum Copt [m/s]"),
@@ -157,9 +192,47 @@ class StuhlingerApp:
             row.pack(fill=tk.X, pady=2)
             ttk.Label(row, text=label, width=22).pack(side=tk.LEFT)
             v = tk.StringVar()
-            ttk.Label(row, textvariable=v,
-                      font=("Consolas", 10, "bold")).pack(side=tk.RIGHT)
-            self.out_vars[key] = v
+            lbl = ttk.Label(row, textvariable=v,
+                            font=("Consolas", 10, "bold"))
+            lbl.pack(side=tk.RIGHT)
+            self.out_vars[key]   = v
+            self.out_labels[key] = lbl
+
+            if key == "Vch":
+                sub = ttk.Frame(ctrl)
+                sub.pack(fill=tk.X, pady=(0, 4))
+                ttk.Label(sub, text="", width=4).pack(side=tk.LEFT)
+                ttk.Label(
+                    sub,
+                    textvariable=self.isp_vch_var,
+                    foreground="#b05000",
+                    font=("Consolas", 9, "italic"),
+                    anchor="e",
+                ).pack(side=tk.RIGHT)
+
+            if key == "Copt":
+                sub_isp = ttk.Frame(ctrl)
+                sub_isp.pack(fill=tk.X, pady=(0, 2))
+                ttk.Label(sub_isp, text="", width=4).pack(side=tk.LEFT)
+                self.isp_copt_label = ttk.Label(
+                    sub_isp,
+                    textvariable=self.isp_copt_var,
+                    foreground="#b05000",
+                    font=("Consolas", 9, "italic"),
+                    anchor="e",
+                )
+                self.isp_copt_label.pack(side=tk.RIGHT)
+
+                sub_thr = ttk.Frame(ctrl)
+                sub_thr.pack(fill=tk.X, pady=(0, 4))
+                ttk.Label(sub_thr, text="", width=4).pack(side=tk.LEFT)
+                ttk.Label(
+                    sub_thr,
+                    textvariable=self.thruster_var,
+                    foreground="#5500aa",
+                    font=("Consolas", 9, "italic"),
+                    anchor="e",
+                ).pack(side=tk.RIGHT)
 
         ttk.Separator(ctrl, orient="horizontal").pack(fill=tk.X, pady=10)
         ttk.Label(
@@ -199,17 +272,50 @@ class StuhlingerApp:
         t     = v["t"]
         dV    = v["dV"]
 
-        Vch              = stuhlinger_velocity(eta, alpha, t)
-        Copt, lam_opt, eps = find_copt(eta, alpha, t, dV)
-        err              = 100.0 * (Copt - Vch) / Copt
+        Vch                  = stuhlinger_velocity(eta, alpha, t)
+        Copt, lam_opt, eps   = find_copt(eta, alpha, t, dV)
+        err                  = 100.0 * abs(Copt - Vch) / Copt
 
-        self.out_vars["Vch"].set(f"{Vch:,.2f}")
-        self.out_vars["Copt"].set(f"{Copt:,.2f}")
-        self.out_vars["err"].set(f"{err:+.3f}")
+        isp_vch  = Vch  / G0
+        isp_copt = Copt / G0
+
+        # Fields that are always valid
+        self.out_vars["Vch"].set(f"{Vch:.2f}")
         self.out_vars["eps"].set(f"{eps:.4g}")
-        self.out_vars["lam"].set(f"{lam_opt:.6f}")
+        self.isp_vch_var.set(f"Isp = {isp_vch:.1f} s")
 
-        # Shared x-range: always contains Vch, Copt, and a sense of ΔV
+        if lam_opt <= 0:
+            # ── CHANGE: Copt row also shows "MISSION NOT POSSIBLE" ──
+            self.out_vars["Copt"].set("MISSION NOT POSSIBLE")
+            self.out_labels["Copt"].configure(foreground="red",
+                                              font=("Consolas", 10, "bold"))
+            self.out_vars["err"].set("N/A")
+            self.out_labels["err"].configure(foreground="red",
+                                             font=("Consolas", 10, "bold"))
+            self.out_vars["lam"].set("MISSION NOT POSSIBLE")
+            self.out_labels["lam"].configure(foreground="red",
+                                             font=("Consolas", 10, "bold"))
+            self.isp_copt_var.set("MISSION NOT POSSIBLE")
+            self.isp_copt_label.configure(foreground="red",
+                                          font=("Consolas", 9, "bold"))
+        else:
+            # ── CHANGE: reset Copt row to normal ────────────────────
+            self.out_vars["Copt"].set(f"{Copt:.2f}")
+            self.out_labels["Copt"].configure(foreground="black",
+                                              font=("Consolas", 10, "bold"))
+            self.out_vars["err"].set(f"{err:.3f}")
+            self.out_labels["err"].configure(foreground="black",
+                                             font=("Consolas", 10, "bold"))
+            self.out_vars["lam"].set(f"{lam_opt:.6f}")
+            self.out_labels["lam"].configure(foreground="black",
+                                             font=("Consolas", 10, "bold"))
+            self.isp_copt_var.set(f"Isp = {isp_copt:.1f} s")
+            self.isp_copt_label.configure(foreground="#b05000",
+                                          font=("Consolas", 9, "italic"))
+
+        self.thruster_var.set(f"({classify_thruster(Copt)})")
+        self.power_src_var.set(f"({classify_power_source(alpha)})")
+
         c_ref  = max(Vch, Copt, dV)
         c_low  = max(c_ref * 0.02, 1.0)
         c_high = c_ref * 3.0
@@ -229,14 +335,11 @@ class StuhlingerApp:
         ax.plot(c_grid, tot_g, color="green", lw=2.8,
                 label=r"$m_{ps}+m_p$")
 
-        # Vch  → red dashed
         ax.axvline(Vch,  color="red",    ls="--", lw=1.8,
-                   label=fr"$V_{{ch}}$ = {Vch:,.0f} m/s")
-        # Copt → purple solid
+                   label=fr"$V_{{ch}}$ = {Vch:.0f} m/s  ({isp_vch:.0f} s)")
         ax.axvline(Copt, color="purple", ls="-",  lw=1.8,
-                   label=fr"$C_{{opt}}$ = {Copt:,.0f} m/s")
+                   label=fr"$C_{{opt}}$ = {Copt:.0f} m/s  ({isp_copt:.0f} s)")
 
-        # marker on the total-mass curve at Vch
         mtot_vch = m_ps(Vch, F, eta, alpha) + m_p(Vch, F, t)
         ax.plot(Vch, mtot_vch, "r^", ms=9, zorder=5)
 
@@ -257,17 +360,13 @@ class StuhlingerApp:
                 label=r"$\lambda(c)$")
         ax.axhline(0, color="k", lw=0.6)
 
-        # Vch  → red dashed
         ax.axvline(Vch,  color="red",    ls="--", lw=1.8,
-                   label=fr"$V_{{ch}}$ = {Vch:,.0f} m/s")
-        # Copt → purple solid  (should sit exactly at the peak)
+                   label=fr"$V_{{ch}}$ = {Vch:.0f} m/s  ({isp_vch:.0f} s)")
         ax.axvline(Copt, color="purple", ls="-",  lw=1.8,
-                   label=fr"$C_{{opt}}$ = {Copt:,.0f} m/s")
+                   label=fr"$C_{{opt}}$ = {Copt:.0f} m/s  ({isp_copt:.0f} s)")
 
-        # purple dot at the true maximum
         ax.plot(Copt, lam_opt, "o", color="purple", ms=9, zorder=5)
 
-        # y-limits framed tightly around the real peak
         finite_mask = np.isfinite(lam_g)
         if finite_mask.any():
             lam_vis_max = np.nanmax(lam_g[finite_mask])
@@ -280,7 +379,7 @@ class StuhlingerApp:
         ax.set_ylabel(r"Payload ratio $\lambda = m_L / m_0$")
         ax.set_title(
             fr"Objective function   ($\varepsilon$ = {eps:.3g},"
-            fr"  $C_{{opt}}$ = {Copt:,.0f} m/s)"
+            fr"  $C_{{opt}}$ = {Copt:.0f} m/s)"
         )
         ax.grid(True, alpha=0.3)
         ax.legend(loc="lower right", fontsize=8)
