@@ -782,40 +782,22 @@ footer {
     <div class="clarify-hdr">Clarifying Points</div>
 
     <details class="clarify-detail">
-      <summary>What assumptions does the Ideal Rocket Equation make, and when do they break down in practice?</summary>
+      <summary>What is aerobraking? Why don't all destinations in the Solar System have it available?</summary>
       <div class="clarify-body">
-        The derivation assumes (1) <strong>no external forces</strong> — neither gravity nor
-        drag — so the vehicle's momentum change equals exactly the exhaust momentum flux;
-        (2) a <strong class="hl-ve">constant effective exhaust velocity $c$</strong> throughout
-        the entire burn; (3) the expelled propellant begins at rest relative to the vehicle; and
-        (4) steady-state operation with no attitude-control propellant consumption. In practice,
-        every non-instantaneous maneuver incurs <strong>gravity losses</strong> — extra
-        <strong class="hl-ve">$\Delta v$</strong> spent fighting gravity while thrusting — and
-        ascent trajectories must overcome atmospheric drag. Mission designers therefore add margin
-        to the idealized <strong class="hl-ve">$\Delta v$</strong> budget. For example, a typical
-        launch to low Earth orbit requires a total <strong class="hl-ve">$\Delta v$</strong> budget
-        of roughly $9{,}400\ \mathrm{m/s}$ even though the orbital velocity is only
-        $\sim\!7{,}800\ \mathrm{m/s}$.
+        Aerobraking involves using a planet's atmosphere to slow down a spacecraft via drag, giving the spacecraft the ability to reach the destination
+        without spending any Deta-V. This requires the destination to have sufficient atmosphere to make aerobraking possible. Additionally, aerobraking
+        only helps a spacecraft during arrival, not when a spacecraft is departing from a planetary body. Therefore, takeoff from enormous bodies
+        with high escape velocities cannot benefit from aerobraking.
       </div>
     </details>
 
     <details class="clarify-detail">
-      <summary>What is the structural coefficient ε, and why can't it be made arbitrarily small?</summary>
+      <summary>How were the Delta-V values decided for the solar system map? Don't different manuevers have different Delta-V costs?</summary>
       <div class="clarify-body">
-        The <strong>structural coefficient</strong>
-        $\varepsilon = m_\text{wet}/(m_\text{dry}+m_\text{wet})$ captures the
-        <strong class="hl-mass">propellant mass</strong> as a fraction of total stage mass. It
-        represents the unavoidable dead mass — tank walls, feed lines, valves, engines, and
-        supporting structure — that must be built to contain and deliver the propellant.
-        Materials have finite <strong>strength-to-mass ratios</strong>, so tanks holding large
-        quantities of propellant cannot be made infinitesimally thin or light. Thermal insulation,
-        pressurization systems, and manufacturing tolerances further set a practical floor.
-        Typical chemical upper stages achieve $\varepsilon \approx 0.05$–$0.10$; reducing below
-        this range requires advanced lightweight composites, unconventional tank architectures, or
-        accepting higher risk. The structural coefficient directly sets the maximum achievable
-        <strong class="hl-mass">mass ratio</strong>: even with zero payload ($\lambda = 0$),
-        $m_0/m_f = 1/\varepsilon$, which caps the single-stage
-        <strong class="hl-ve">$\Delta v$</strong> at $c\ln(1/\varepsilon)$.
+        For simplicity, all manuevers are done without gravity assists, which would reduce the required Delta-V for a given destination. All transfers are assumed to be Hohmann transfers with burns performed at the periapses. These manuevers are only possible with highly impulsive
+        propulsion devices, which have low specific impulse. Devices with greater mass efficiency, however, cannot produce these high impulse burns, and
+        must use low thrust spiral manuevers. While these spiral maneuvers have higher Delta-V costs, the Delta-V budget of these devices far exceeds those
+        of high impulse devices.
       </div>
     </details>
   </div>
@@ -825,48 +807,26 @@ footer {
     <div class="clarify-hdr">Conceptual Questions</div>
 
     <details class="clarify-detail">
-      <summary>How does the effective exhaust velocity $c$ influence the mass ratio required to achieve a given $\Delta v$? Compare a chemical stage and an ion engine for a Mars transfer.</summary>
+      <summary>The difference between the dry and wet mass of the vehicle is the propellant mass. If a mission requires higher Delta V, why don't we simply add more propellant mass?</summary>
       <div class="clarify-body">
-        Rearranging the Ideal Rocket Equation gives the required
-        <strong class="hl-mass">mass ratio</strong>
-        $m_0/m_f = e^{\Delta v/c}$.
-        Because the exponent is $\Delta v/c$, increasing
-        <strong class="hl-ve">$c$</strong> dramatically reduces the required ratio.
-        For a Mars transfer requiring $\Delta v \approx 5{,}600\ \mathrm{m/s}$:
-        <br><br>
-        A <strong>chemical stage</strong> with $c = 4{,}413\ \mathrm{m/s}$
-        ($I_{sp} \approx 450\ \mathrm{s}$) needs
-        $m_0/m_f = e^{5600/4413} \approx 3.57$,
-        meaning roughly <strong class="hl-mass">72 %</strong> of the initial mass must be
-        propellant. An <strong>ion engine</strong> with $c = 30{,}000\ \mathrm{m/s}$ needs only
-        $m_0/m_f = e^{5600/30000} \approx 1.20$,
-        meaning just <strong class="hl-mass">17 %</strong> propellant — a profound
-        <strong class="hl-ve">mass budget</strong> saving. The trade-off is that achieving
-        $c = 30{,}000\ \mathrm{m/s}$ requires a substantial
-        <strong class="hl-power">power budget</strong>, which carries its own
-        <strong class="hl-mass">mass</strong> cost in solar panels or a reactor.
+        Adding more propellant mass is a valid way to increase the Delta-V budget. It must be noted that adding propellant mass means that the spacecraft
+        propulsion system must now accelerate the mass of the additional propellant as well. Because of this, adding propellant mass has diminishing returns
+        on increasing Delta-V. Additionally, additional propellant mass can require additional structural mass.
+
+        While specific impulse has the strongest effect on increasing Delta-V, refueling a spacecraft in orbit can also be an effective method
+        of increasing Delta-V. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the propellant
+        of the spacecraft. This is by no means trivial, but could be revolutionary for high Delta-V, high payload missions.
+
       </div>
     </details>
 
     <details class="clarify-detail">
-      <summary>For a fixed $\Delta v$ target, why does adding more and more propellant yield diminishing returns? What limits the mass ratio of a single stage in practice?</summary>
+      <summary>Greater specific impulse means that our propulsion system is more mass efficient. How does this affect our Delta-V budget?</summary>
       <div class="clarify-body">
-        $\Delta v = c\ln(m_0/m_f)$ grows only <strong>logarithmically</strong> with mass ratio.
-        Doubling the <strong class="hl-mass">mass ratio</strong> — regardless of where you start
-        — adds only $c\ln 2 \approx 0.693c$ to the
-        <strong class="hl-ve">$\Delta v$</strong>. To gain another equal increment you must
-        double the ratio again, squaring the original ratio and requiring an exponentially larger
-        amount of additional <strong class="hl-mass">propellant</strong>. Every kilogram of extra
-        propellant must itself be carried through the earlier phases of the burn, compounding the
-        cost.
-        <br><br>
-        In practice the <strong>structural coefficient</strong> $\varepsilon$ sets a hard ceiling:
-        even a massless payload gives $m_0/m_f \leq 1/\varepsilon$, and typical
-        $\varepsilon \approx 0.06$ limits a single chemical stage to
-        $\Delta v \lesssim c\ln(17) \approx 2.8c \approx 12{,}000\ \mathrm{m/s}$.
-        <strong>Staging</strong> circumvents this by jettisoning spent stages and their structural
-        mass, applying a fresh logarithmic increment for each stage and making very large total
-        <strong class="hl-ve">$\Delta v$</strong> missions feasible.
+        Greater mass efficiency lessens the need to carry additional propellant to achieve a given Delta-V. Increases in specific impulse, or
+        effective exhaust velocity, results in a linear increase in Delta-V. To reach far destinations, or to reach a destination with less propellant
+        and more payload, greater specific impulses are required. This is the motivation for electric propulsion, which is further explored below
+        the applet.
       </div>
     </details>
   </div>
