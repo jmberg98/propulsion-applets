@@ -700,11 +700,11 @@ footer {
                   \]
 
                   \[
-                  \lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}
+                  \lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
                   \]
 
                   \[
-                  \varepsilon = \frac{m_{\mathrm{wet}}}{m_{\mathrm{dry}}+m_{\mathrm{wet}}}
+                  \varepsilon = \frac{m_{\mathrm{struct}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
                   \]
                 </div>
               </div>
@@ -1424,7 +1424,7 @@ footer {
       if (epsilon > 1.0)         throw new Error("ε must be between 0 and 1.");
       if (lambda + epsilon <= 0) throw new Error("λ + ε must be > 0.");
 
-      const MR     = (1 + lambda) / (lambda + epsilon);
+      const MR     = (lambda+1) / (lambda + epsilon);
       const budget = c * Math.log(MR);
 
       document.getElementById('dv').value = budget.toFixed(1);
