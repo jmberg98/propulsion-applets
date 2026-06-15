@@ -1,1 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Optimal Specific Impulse &amp; Mission Design - In-Space</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  --c-thrust: #FF4400;
+  --c-ve:     #3DBFFF;
+  --c-mass:   #FF4400;
+  --c-power:  #C060FF;
+  --c-press:  #00DDB5;
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --page-w: min(1400px, calc(100vw - 32px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+footer {
+  width: var(--page-w);
+}
+
+/* ── Highlight classes ───────────────────────────────── */
+.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
+.hl-ve, .hl-v            { color: var(--c-ve); }
+.hl-mass                 { color: var(--c-mass); }
+.hl-power                { color: var(--c-power); }
+.hl-press                { color: var(--c-press); }
+
+.key {
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 16.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+
+.clarify-hdr {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Plain (non-interactive) question rows ───────────── */
+.clarify-plain {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+}
+.clarify-plain + .clarify-plain {
+  border-top: 1px solid var(--border);
+}
+.clarify-plain-marker {
+  font-size: 8px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 7px;
+  opacity: 0.75;
+}
+
+/* ── Interactive (dropdown) detail rows ──────────────── */
+details.clarify-detail {
+  border-top: 1px solid var(--border);
+}
+details.clarify-detail:first-of-type {
+  border-top: none;
+}
+
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 16.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 4px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before {
+  transform: rotate(90deg);
+}
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 16.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+
+.th-hdr {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.th-body {
+  font-size: 16.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+
+.theory-block > .th-body:last-child {
+  margin-bottom: 0;
+}
+
+.eq-panel {
+  margin-top: 8px;
+}
+
+.eq-step-label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+
+.eq-caption {
+  display: block;
+  font-size: 14.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.eq-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 14px 0;
+}
+
+/* ── Derivation details ─────────────────────────────── */
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before {
+  transform: rotate(90deg);
+}
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Applet placeholder host ────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+}
+
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+.applet-placeholder-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 72px 24px;
+  margin: 0 18px 18px;
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel-2);
+}
+
+.applet-placeholder-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.applet-placeholder-desc {
+  font-size: 14px;
+  color: #4a4a4a;
+  line-height: 1.62;
+  text-align: center;
+  max-width: 600px;
+}
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 10px;
+  font-size: 14.5px;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Optimal Specific Impulse &amp; Mission Design</h1>
+  <span class="badge">In-Space</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  Spacecraft and satellites are designed with <span class="key">mission requirements</span> in mind, namely a
+  <span class="key hl-ve">mission Delta-V</span>, desired <span class="key hl-mass">payload mass</span>, and
+  required <span class="key">mission time</span>. While technological and physical constraints restrict
+  <span class="key hl-thrust">propulsion device</span> choices, these mission requirements help guide what
+  <span class="key hl-thrust">propulsion device</span> is best for the desired mission.
+</p>
+
+<!-- ════════════════ CONCEPTUAL QUESTIONS ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>Why isn't higher <span class="key hl-ve">specific impulse</span> always better? How does higher
+    <span class="key hl-ve">specific impulse</span> affect <span class="key">mission time</span> for a given
+    <span class="key hl-power">power source</span>?</summary>
+    <div class="clarify-body">
+      <span class="key hl-thrust">Spacecraft propulsion systems</span> must work to satisfy a desired
+      <span class="key hl-ve">Delta-V</span>, but also a desired <span class="key">mission time</span> and
+      <span class="key hl-mass">payload mass</span>. The best <span class="key hl-ve">specific impulse</span>
+      isn't the one that gets a spacecraft from Low Earth Orbit (LEO) to Pluto, but rather one that satisfies the
+      specified <span class="key">mission requirements</span>. If we instead decide to arbitrarily overdesign
+      without increasing the technology level and efficiency of our <span class="key hl-power">power system</span>,
+      we must compromise on a mission specification. For example, if a spacecraft uses
+      <span class="key hl-power">solar panels</span> for power, the
+      <span class="key hl-power">specific mass</span> is fairly low: to achieve high mass efficiency, it must
+      compromise on <span class="key hl-thrust">thrust</span> and thus <span class="key">mission time</span>.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary><span class="key hl-ve">Delta-V</span> means change in velocity, but what does this really mean for
+    a spacecraft? Satellites in Low Earth Orbit (LEO) or in gravity wells experience losses through
+    <span class="key hl-press">drag</span> and gravity — how does <span class="key hl-ve">Delta-V</span>
+    account for this?</summary>
+    <div class="clarify-body">
+      <span class="key hl-ve">Delta-V</span> can be thought of as the "currency" a spacecraft must spend in
+      order to perform orbital maneuvers, such as transfers, rendezvous, and docking. Such examples clearly
+      show a change in velocity of the spacecraft, but other applications, such as
+      <span class="key hl-press">drag</span> cancellation or spiral climbs are not so clear. That is, the
+      <span class="key hl-ve">Delta-V</span> "spent" by the spacecraft doesn't correspond one-to-one with
+      the change in velocity of the spacecraft. These <span class="key hl-press">drag</span> and gravity losses
+      can be considered <span class="key hl-ve">Delta-V</span> penalties that take from the spacecraft's
+      <span class="key hl-ve">Delta-V budget</span>. However, just because these losses are
+      <span class="key hl-ve">Delta-V</span> penalties doesn't mean we shouldn't use
+      <span class="key hl-thrust">propulsion systems</span> where these losses exist. For example, mega
+      constellations, such as SpaceX's Starlink and Amazon's LEO, use
+      <span class="key hl-power">electric thrusters</span> for long-term
+      <span class="key hl-press">drag</span> cancellation in addition to orbit raising and deorbiting.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════ APPLET PLACEHOLDER ════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Stuhlinger Curve &#x2014; Interactive Demo</div>
+
+  <div class="applet-placeholder-area">
+    <div class="applet-placeholder-label">Applet Placeholder</div>
+    <div class="applet-placeholder-desc">
+      Interactive Stuhlinger curve simulator will be embedded here.<br>
+      Inputs: mission time, power system <span class="key hl-power">specific mass</span>
+      (and associated power system type), desired <span class="key hl-ve">&Delta;v</span>,
+      desired <span class="key hl-mass">payload mass</span>,
+      and thruster <span class="key hl-power">efficiency</span>.<br>
+      Output: optimal <span class="key hl-ve">specific impulse</span> and associated
+      propulsion system annotation on the labeled Stuhlinger curve.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ DELTA-V & IRE ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Delta-V &amp; The Ideal Rocket Equation</div>
+
+  <p class="th-body">
+    The overall <span class="key hl-ve">change in velocity</span> of a spacecraft is determined by both the
+    difference in its <span class="key hl-mass">initial and final mass</span> and by its
+    <span class="key hl-ve">specific impulse</span>. While higher
+    <span class="key hl-ve">specific impulse</span> most significantly increases the total
+    <span class="key hl-ve">Delta-V</span> of the spacecraft, recall that higher
+    <span class="key hl-ve">specific impulses</span> require higher total
+    <span class="key hl-power">power</span> to achieve the same <span class="key">mission time</span>.
+    However, higher total <span class="key hl-power">power</span> is not trivial, as higher
+    <span class="key hl-power">power</span> requirements necessitate higher
+    <span class="key hl-power">power + propulsion system mass</span> or greater technology levels.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Ideal Rocket Equation</span>
+    $$
+    \boxed{
+    \textcolor{#3DBFFF}{\Delta v}
+    =
+    \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+    }
+    $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
+
+        <span class="eq-step-label">Conservation of Mass</span>
+        $$
+        0 = \frac{d\textcolor{#FF4400}{m(t)}}{dt} + \textcolor{#FF4400}{\dot{m}}
+        $$
+
+        <span class="eq-step-label">Momentum</span>
+        $$
+        P(t)=\textcolor{#FF4400}{m(t)}\,\textcolor{#3DBFFF}{v(t)}
+        +\delta \textcolor{#FF4400}{m}\!\left(t'\right)\!
+        \left[\textcolor{#3DBFFF}{v}\!\left(t'\right)-\textcolor{#3DBFFF}{c}\!\left(t'\right)\right]
+        $$
+
+        <span class="eq-step-label">Conservation of Momentum</span>
+        $$
+        0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+        +\textcolor{#3DBFFF}{c(t)}\,d\textcolor{#FF4400}{m(t)}
+        $$
+
+        $$
+        0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+        +\textcolor{#3DBFFF}{c}\,d\textcolor{#FF4400}{m(t)}
+        $$
+
+        <span class="eq-step-label">Integrate</span>
+        $$
+        \int d\textcolor{#3DBFFF}{v(t)}
+        =
+        -\textcolor{#3DBFFF}{c}\int \frac{d\textcolor{#FF4400}{m}}{\textcolor{#FF4400}{m}}
+        $$
+
+        $$
+        \textcolor{#3DBFFF}{v_f-v_0}
+        =
+        -\textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}}{\textcolor{#FF4400}{m_0}}\right)
+        $$
+
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{\Delta v}
+        =
+        \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+        }
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════ SPACECRAFT MASS ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Spacecraft Mass</div>
+
+  <p class="th-body">
+    The various subsystems of a spacecraft comprise its <span class="key hl-mass">mass components</span>,
+    namely the <span class="key hl-mass">structure</span>, <span class="key hl-mass">payload</span>,
+    <span class="key hl-mass">propellant</span>, and
+    <span class="key hl-power">power + propulsion system</span>. Generally, the spacecraft is optimized for
+    <span class="key hl-mass">payload mass</span> so that it may perform useful tasks. The mass of the
+    <span class="key hl-mass">propellant</span> and
+    <span class="key hl-power">power + propulsion</span> components vary with the selection of propulsion
+    and power systems, so they must be chosen carefully.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Payload Mass (no structural mass assumption)</span>
+    $$
+    \boxed{
+    \textcolor{#FF4400}{m_{PL}}
+    =
+    \textcolor{#FF4400}{m_0}\,e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
+    -
+    \textcolor{#C060FF}{\alpha}\,\textcolor{#C060FF}{P}
+    }
+    $$
+
+    <details class="deriv-detail">
+      <summary>Show mass breakdown</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Total initial (wet) mass</span>
+        $$
+        \textcolor{#FF4400}{m_0}
+        =
+        \textcolor{#FF4400}{m_{PL}}
+        +
+        \textcolor{#FF4400}{m_{prop}}
+        +
+        \textcolor{#C060FF}{m_{PP}}
+        $$
+
+        <span class="eq-step-label">Power + propulsion system mass, parameterized by specific mass $\textcolor{#C060FF}{\alpha}$ [kg/W]</span>
+        $$
+        \textcolor{#C060FF}{m_{PP}}
+        =
+        \textcolor{#C060FF}{\alpha}\,\textcolor{#C060FF}{P}
+        $$
+
+        <span class="eq-step-label">Final (dry) mass with no structural mass</span>
+        $$
+        \textcolor{#FF4400}{m_f}
+        =
+        \textcolor{#FF4400}{m_0} - \textcolor{#FF4400}{m_{prop}}
+        =
+        \textcolor{#FF4400}{m_{PL}} + \textcolor{#C060FF}{\alpha}\,\textcolor{#C060FF}{P}
+        $$
+
+        <span class="eq-step-label">From the Ideal Rocket Equation</span>
+        $$
+        \textcolor{#FF4400}{m_f}
+        =
+        \textcolor{#FF4400}{m_0}\,e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
+        $$
+
+        <span class="eq-step-label">Substituting and solving for payload mass</span>
+        $$
+        \textcolor{#FF4400}{m_{PL}} + \textcolor{#C060FF}{\alpha}\,\textcolor{#C060FF}{P}
+        =
+        \textcolor{#FF4400}{m_0}\,e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
+        $$
+
+        $$
+        \boxed{
+        \textcolor{#FF4400}{m_{PL}}
+        =
+        \textcolor{#FF4400}{m_0}\,e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}
+        -
+        \textcolor{#C060FF}{\alpha}\,\textcolor{#C060FF}{P}
+        }
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════ MISSION TIME ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Mission Time</div>
+
+  <p class="th-body">
+    <span class="key">Mission time</span> varies between missions and mission types. Greater
+    <span class="key">mission times</span> permit lower <span class="key hl-thrust">thrust</span> and
+    benefit from high <span class="key hl-ve">specific impulse</span>. Shorter
+    <span class="key">mission times</span>, however, require high
+    <span class="key hl-thrust">thrust</span> and may not be able to "afford" the
+    <span class="key hl-power">power</span> of a high <span class="key hl-ve">specific impulse</span>,
+    high <span class="key hl-thrust">thrust</span> propulsion system — thus choosing a less mass efficient
+    propulsion system. For example, a deep space probe (which uses
+    <span class="key hl-power">electric thrusters</span>) has a much greater permitted
+    <span class="key">mission time</span> than a manned mission to the Moon (which uses conventional
+    <span class="key hl-thrust">chemical rockets</span>).
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Mission Time (constant power and specific impulse)</span>
+    $$
+    \boxed{
+    t_{miss}
+    =
+    \frac{
+      \textcolor{#FF4400}{m_0}
+      \!\left(1 - e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)
+      \textcolor{#3DBFFF}{c}^2
+    }{
+      2\,\textcolor{#C060FF}{\eta}\,\textcolor{#C060FF}{P}
+    }
+    }
+    $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Thrust from mass flow rate and exhaust velocity</span>
+        $$
+        \textcolor{#FF4400}{F} = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
+        $$
+
+        <span class="eq-step-label">Jet power as kinetic energy imparted to exhaust per unit time</span>
+        $$
+        \textcolor{#C060FF}{P_j}
+        =
+        \frac{1}{2}\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+        $$
+
+        <span class="eq-step-label">Power balance with system efficiency $\textcolor{#C060FF}{\eta}$ and input power $\textcolor{#C060FF}{P}$</span>
+        $$
+        \textcolor{#C060FF}{\eta}\,\textcolor{#C060FF}{P}
+        =
+        \frac{1}{2}\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+        \quad\Longrightarrow\quad
+        \textcolor{#FF4400}{\dot{m}}
+        =
+        \frac{2\,\textcolor{#C060FF}{\eta}\,\textcolor{#C060FF}{P}}{\textcolor{#3DBFFF}{c}^2}
+        $$
+
+        <span class="eq-step-label">Thrust in terms of power and specific impulse</span>
+        $$
+        \textcolor{#FF4400}{F}
+        =
+        \frac{2\,\textcolor{#C060FF}{\eta}\,\textcolor{#C060FF}{P}}{\textcolor{#3DBFFF}{c}}
+        $$
+
+        <span class="eq-step-label">Propellant mass from the Ideal Rocket Equation</span>
+        $$
+        \textcolor{#FF4400}{m_{prop}}
+        =
+        \textcolor{#FF4400}{m_0} - \textcolor{#FF4400}{m_f}
+        =
+        \textcolor{#FF4400}{m_0}
+        \!\left(1 - e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)
+        $$
+
+        <span class="eq-step-label">Mission time from propellant mass and constant mass flow rate</span>
+        $$
+        t_{miss}
+        =
+        \frac{\textcolor{#FF4400}{m_{prop}}}{\textcolor{#FF4400}{\dot{m}}}
+        =
+        \frac{\textcolor{#FF4400}{m_{prop}}\,\textcolor{#3DBFFF}{c}^2}
+             {2\,\textcolor{#C060FF}{\eta}\,\textcolor{#C060FF}{P}}
+        $$
+
+        $$
+        \boxed{
+        t_{miss}
+        =
+        \frac{
+          \textcolor{#FF4400}{m_0}
+          \!\left(1 - e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)
+          \textcolor{#3DBFFF}{c}^2
+        }{
+          2\,\textcolor{#C060FF}{\eta}\,\textcolor{#C060FF}{P}
+        }
+        }
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════ CLARIFYING POINTS ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Clarifying Points</div>
+
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>Why do we only care about optimizing for <span class="key hl-mass">payload mass</span>?
+    Aren't there other design specifications that our spacecraft can be optimized for?</span>
+  </div>
+
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>If we aim to minimize the <span class="key hl-power">specific mass</span> of our
+    <span class="key hl-power">power system</span>, why do we ignore
+    <span class="key hl-thrust">chemical power</span> from our analysis?</span>
+  </div>
+</div>
+
+<footer>Created by Jordan Bergmann - MIT Propulsion - 2026</footer>
+
+</body>
+</html>
