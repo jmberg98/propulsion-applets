@@ -1,5 +1,0 @@
-I should focus on minimizing token usage going further. An idea I've been thinking about is using
-the more intelligent models such as Claude Opus 4.7 to create recommendations for more cost-effective models
-such as Claude Sonnet 4.6 and Claude Haiku 4.5 to integrate. Additionally, the applet must be the last element
-implemented in the full applet webpage to avoid using a lot of tokens for simple formatting and typesetting
-prompts.
