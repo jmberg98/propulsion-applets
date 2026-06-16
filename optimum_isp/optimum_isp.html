@@ -5,264 +5,398 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Stuhlinger Curve Applet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:#090909}
-body{
-  display:flex;flex-direction:column;
-  font-family:'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-  background:#090909;color:#f1f1f1;
+/* ── design tokens (shared with subway-map applet) ───────────── */
+:root {
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+  --border:         #282828;
+  --bg-page:        #090909;
+  --bg-panel-1:     #0e0e0e;
+  --bg-panel-2:     #121212;
+  --bg-panel-3:     #171717;
+  --bg-panel-4:     #1d1d1d;
+  --hi-blue:        #3DBFFF;
+  --hi-blue-soft:   #9FE6FF;
 }
 
-/* ── top bar ─────────────────────────────────────── */
-#hdr{
-  flex-shrink:0;
-  background:#0e0e0e;
-  border-bottom:1px solid #282828;
-  color:#a0a0a0;
-  padding:8px 18px;
-  font-size:12px;font-weight:700;
-  letter-spacing:1.4px;text-transform:uppercase;
-  user-select:none;
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--c-accent); }
+
+html { height: auto; overflow: visible; }
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Barlow', 'Segoe UI', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
 }
 
-/* ── shell ───────────────────────────────────────── */
-#wrap{flex:1;display:flex;min-height:0;overflow:hidden}
-
-#charts{
-  flex:1;display:grid;
-  grid-template-rows:0.92fr 1.18fr;
-  min-width:0;background:#090909;
+/* ── app header ──────────────────────────────────────────────── */
+.app-header {
+  flex-shrink: 0;
+  padding: 18px 24px 14px;
+  background: var(--bg-panel-1);
+  border-bottom: 1px solid var(--border);
 }
-#plot-mass,#plot-obj{min-height:0}
-
-#panel{
-  flex-shrink:0;width:340px;
-  background:#0e0e0e;
-  border-left:1px solid #282828;
-  padding:8px 12px 10px;
-  overflow:hidden;
-  display:flex;flex-direction:column;
+.app-header h1 {
+  font-size: 22px; font-weight: 700;
+  color: var(--text-heading); letter-spacing: .3px;
+  display: inline;
+}
+.app-header span {
+  font-size: 12px; color: #505050;
+  font-style: italic; margin-left: 10px;
 }
 
-/* ── section label ───────────────────────────────── */
-.sec{
-  font-size:13px;font-weight:700;
-  color:#545454;
-  letter-spacing:1px;text-transform:uppercase;
-  border-bottom:1px solid #282828;padding-bottom:3px;
-  margin:8px 0 5px;
-}
-.sec:first-child{margin-top:1px}
 
-.ctl{margin-bottom:5px}
-.auto-note{font-size:9px;color:#484848;line-height:1.3;margin:1px 0 6px;}
-
-/* ── number inputs ───────────────────────────────── */
-.irow{display:flex;align-items:center;justify-content:space-between;margin-bottom:1px}
-.irow label{font-size:13px;color:#727272;flex:1;padding-right:8px;line-height:1.3}
-.irow input[type="number"]{
-  width:116px;padding:5px 7px;
-  font-family:'Courier New',monospace;
-  font-size:13px;text-align:right;
-  border:1px solid #282828;border-radius:4px;
-  background:#1d1d1d;color:#d0d0d0;
-  -moz-appearance:textfield;
+/* ── charts — stacked, full width ────────────────────────────── */
+#charts {
+  display: grid;
+  grid-template-columns: 1fr;          /* single column → full width */
+  grid-template-rows: 1fr 1fr;         /* equal height rows          */
+  height: 112vh;                       /* two panels × ~56 vh each   */
+  min-height: 720px;
+  background: var(--border);
+  gap: 1px;
 }
-.irow input[type="number"]::-webkit-outer-spin-button,
-.irow input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
-.irow input[type="number"]:focus{
-  outline:none;border-color:#484848;background:#202020;
+#plot-mass, #plot-obj {
+  background: var(--bg-page);
+  min-width: 0;
+  min-height: 0;
+}
+#plot-mass, #plot-obj {
+  background: var(--bg-page);
+  min-width: 0;
+  min-height: 0;
 }
 
-/* ── sliders ─────────────────────────────────────── */
-.srow{
-  display:grid;grid-template-columns:40px 1fr 40px;
-  gap:6px;align-items:center;margin-bottom:1px;
-}
-.srow input[type="range"]{
-  width:100%;accent-color:#3DBFFF;cursor:pointer;
-}
-.smin,.smax{
-  font-family:'Courier New',monospace;
-  font-size:12px;color:#444;text-align:center;user-select:none;
+/* ── control frame ───────────────────────────────────────────── */
+.control-frame {
+  margin: 16px 24px 28px;
+  background: rgba(8, 8, 8, 0.97);
+  border: 1px solid #252525;
+  border-radius: 12px;
+  padding: 18px 24px;
+  box-shadow: 0 16px 56px rgba(0,0,0,0.55),
+              0 0 0 1px rgba(255,255,255,0.03);
 }
 
-.shint{
-  font-size:12px;font-style:italic;
-  text-align:right;margin:0 0 4px;min-height:12px;
-  color:#505050;
+.cf-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.cf-title {
+  font-size: 12px; font-weight: 700; letter-spacing: 1.4px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.cf-subtitle { font-size: 11px; color: #505050; font-style: italic; }
+
+.cf-body {
+  display: grid;
+  grid-template-columns: 1.2fr 1.4fr 0.8fr 1.2fr;
+  gap: 22px;
+  align-items: start;
+}
+.cf-col { min-width: 0; display: flex; flex-direction: column; }
+.cf-col + .cf-col { border-left: 1px solid var(--border); padding-left: 22px; }
+
+.cf-sect {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #545454; margin-bottom: 10px;
 }
 
-/* ── alpha regime bar ────────────────────────────── */
-.regbox{margin:0 0 5px}
-.regttl{font-size:12px;color:#444;margin-bottom:2px;}
-.regbar{
-  position:relative;height:20px;
-  border:1px solid #252525;border-radius:4px;
-  overflow:hidden;background:#111;
+/* ── parameter input rows ────────────────────────────────────── */
+.cf-param { margin-bottom: 8px; }
+.cf-param-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 84px 36px;
+  align-items: center;
+  column-gap: 8px;
+  margin-bottom: 4px;
 }
-.regseg{
-  position:absolute;top:0;bottom:0;
-  display:flex;align-items:center;justify-content:center;
-  font-size:12px;line-height:1;text-align:center;
-  color:#ccc;padding:0 2px;
-  border-right:1px solid rgba(255,255,255,0.05);
-  overflow:hidden;white-space:nowrap;
+.cf-sym  { text-align: center; font-size: 13px; color: var(--text-secondary); }
+.cf-desc { font-size: 12px; color: #727272; line-height: 1.3; }
+.cf-unit { font-size: 11px; color: #444; white-space: nowrap; }
+.cf-inp  {
+  width: 100%; padding: 5px 7px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px; text-align: right;
+  background: var(--bg-panel-4); color: var(--c-accent);
+  border: 1px solid var(--border); border-radius: 4px;
+  transition: border-color .15s, background .15s;
+  -moz-appearance: textfield;
 }
-.regmark{
-  position:absolute;top:-2px;bottom:-2px;width:2px;
-  background:#3DBFFF;
-  box-shadow:0 0 5px rgba(61,191,255,0.65);
-}
-.regticks{position:relative;height:12px;margin-top:1px;}
-.regtick{
-  position:absolute;top:0;
-  font-size:7.5px;color:#444;white-space:nowrap;user-select:none;
+.cf-inp::-webkit-outer-spin-button,
+.cf-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
+.cf-inp:focus { outline: none; border-color: #484848; background: #202020; }
+
+.cf-slider {
+  display: block; width: 100%;
+  margin: 3px 0 0;
+  accent-color: var(--hi-blue);
+  cursor: pointer;
 }
 
-/* ── divider ─────────────────────────────────────── */
-.sep{border:none;border-top:1px solid #282828;margin:5px 0}
-
-/* ── output values ───────────────────────────────── */
-.orow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
-.olbl{font-size:14px;color:#545454}
-.oval{
-  font-family:'Courier New',monospace;
-  font-size:14px;font-weight:700;color:#e6f7ff;
+/* ── button ──────────────────────────────────────────────────── */
+.cf-btn {
+  padding: 6px 14px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .6px; text-transform: uppercase;
+  background: var(--bg-panel-3);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px; cursor: pointer; white-space: nowrap;
+  transition: background .15s, border-color .15s, color .15s;
 }
-.oval.bad{color:#ff8e8e;font-size:9.5px}
-
-.ohint{
-  font-size:12px;font-style:italic;
-  text-align:right;margin:-2px 0 4px;min-height:12px;
-  color:#505050;
+.cf-btn:hover {
+  background: var(--bg-panel-4);
+  color: var(--text-main);
+  border-color: #484848;
 }
 
-.note{font-size:9px;color:#444;line-height:1.35;margin-top:2px}
-
-/* ── Plotly modebar dark skin ────────────────────── */
-.modebar{
-  background:rgba(14,14,14,0.88)!important;
-  border-radius:4px!important;
+/* ── primary output blocks ───────────────────────────────────── */
+.cf-out-block { margin-bottom: 16px; }
+.cf-out-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #545454; margin-bottom: 4px;
 }
-.modebar-btn path{fill:#505050!important;transition:fill .15s}
-.modebar-btn:hover path{fill:#d0d0d0!important}
-.modebar-group{border:none!important}
+.cf-out-value {
+  font-family: 'Courier New', monospace;
+  font-size: 24px; font-weight: 700;
+  color: var(--text-heading); letter-spacing: .5px; line-height: 1.2;
+}
+.cf-out-value.bad { color: #ff8e8e; font-size: 12px; line-height: 1.6; }
+.cf-out-hint {
+  font-size: 11px; color: var(--hi-blue);
+  margin-top: 3px; min-height: 15px;
+}
+
+/* ── secondary output rows ───────────────────────────────────── */
+.cf-orow {
+  display: flex; justify-content: space-between; align-items: baseline;
+  flex-wrap: wrap; gap: 4px; margin-top: 10px;
+}
+.cf-olbl { font-size: 12px; color: #545454; }
+.cf-oval {
+  font-family: 'Courier New', monospace;
+  font-size: 13px; font-weight: 700; color: var(--text-heading);
+}
+.cf-oval.bad { color: #ff8e8e; font-size: 9.5px; }
+
+/* ── info boxes ──────────────────────────────────────────────── */
+.cf-info-box {
+  margin-top: 8px; padding: 7px 10px;
+  background: rgba(61,191,255,0.06);
+  border: 1px solid rgba(61,191,255,0.22);
+  border-radius: 6px;
+  font-size: 12px; font-weight: 600;
+  color: var(--hi-blue-soft); line-height: 1.45;
+}
+.cf-info-box.warn {
+  background: rgba(255,107,107,0.06);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.cf-info-box.regime {
+  background: rgba(192,120,56,0.06);
+  border-color: rgba(192,120,56,0.28);
+  color: #e0a070;
+}
+
+/* ── α regime bar ────────────────────────────────────────────── */
+.regbox { margin: 6px 0 8px; }
+.regttl {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #545454; margin-bottom: 6px;
+}
+.regbar {
+  position: relative; height: 22px;
+  border: 1px solid var(--border); border-radius: 4px;
+  overflow: hidden; background: var(--bg-panel-2);
+}
+.regseg {
+  position: absolute; top: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; line-height: 1; text-align: center;
+  color: var(--text-secondary); padding: 0 2px;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  overflow: hidden; white-space: nowrap;
+}
+.regmark {
+  position: absolute; top: -2px; bottom: -2px; width: 2px;
+  background: var(--hi-blue);
+  box-shadow: 0 0 6px rgba(61,191,255,0.7);
+}
+.regticks { position: relative; height: 14px; margin-top: 2px; }
+.regtick  {
+  position: absolute; top: 0;
+  font-size: 8px; color: #444;
+  white-space: nowrap; user-select: none;
+}
+
+/* ── Plotly modebar dark skin ────────────────────────────────── */
+.modebar {
+  background: rgba(14,14,14,0.88) !important;
+  border-radius: 4px !important;
+}
+.modebar-btn path { fill: #505050 !important; transition: fill .15s; }
+.modebar-btn:hover path { fill: var(--c-accent) !important; }
+.modebar-group { border: none !important; }
+
+/* ── footer ──────────────────────────────────────────────────── */
+.app-footer {
+  margin: 0 24px 24px;
+  padding: 16px;
+  font-size: 13px; color: #686868;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.app-footer a { color: var(--hi-blue-soft); text-decoration: none; }
+.app-footer a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
 
-<div id="hdr">⚡ Stuhlinger Curve Applet — Electric Propulsion Optimizer</div>
+<div class="app-header">
+  <h1> Stuhlinger Curve</h1>
+</div>
 
-<div id="wrap">
-  <div id="charts">
-    <div id="plot-mass"></div>
-    <div id="plot-obj"></div>
+<div id="charts">
+  <div id="plot-mass"></div>
+  <div id="plot-obj"></div>
+</div>
+
+<div class="control-frame">
+  <div class="cf-header">
+    <span class="cf-title">Specific Impulse Optimizer</span>
   </div>
 
-  <div id="panel">
-    <div class="sec">Inputs</div>
+  <div class="cf-body">
 
-    <div class="ctl">
-      <div class="irow">
-        <label for="n-eta">Efficiency η</label>
-        <input type="number" id="n-eta" value="0.65" min="0.10" max="1.00" step="0.01">
+    <!-- Col 1: Mission Parameters -->
+    <div class="cf-col">
+      <div class="cf-sect">Mission Parameters</div>
+
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym">η</span>
+          <span class="cf-desc">Efficiency</span>
+          <input type="number" id="n-eta" class="cf-inp" value="0.65" min="0.10" max="1.00" step="0.01">
+          <span class="cf-unit">0–1</span>
+        </div>
+        <input type="range" id="s-eta" class="cf-slider" min="0.10" max="1.00" step="0.01" value="0.65">
       </div>
-      <div class="srow">
-        <span class="smin">0.10</span>
-        <input type="range" id="s-eta" min="0.10" max="1.00" step="0.01" value="0.65">
-        <span class="smax">1.00</span>
+
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym">F</span>
+          <span class="cf-desc">Thrust</span>
+          <input type="number" id="n-F" class="cf-inp" value="1.0" min="0.01" max="20.0" step="0.01">
+          <span class="cf-unit">N</span>
+        </div>
+        <input type="range" id="s-F" class="cf-slider" min="0.01" max="20.0" step="0.01" value="1.0">
+      </div>
+
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym">t<sub>m</sub></span>
+          <span class="cf-desc">Mission time</span>
+          <input type="number" id="n-t" class="cf-inp" value="180" min="1" max="2000" step="1">
+          <span class="cf-unit">days</span>
+        </div>
+        <input type="range" id="s-t" class="cf-slider" min="10" max="2000" step="1" value="180">
+      </div>
+
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym">ΔV</span>
+          <span class="cf-desc">Delta-V</span>
+          <input type="number" id="n-dv" class="cf-inp" value="3000" min="100" max="60000" step="100">
+          <span class="cf-unit">m/s</span>
+        </div>
+        <input type="range" id="s-dv" class="cf-slider" min="100" max="60000" step="100" value="3000">
       </div>
     </div>
 
-    <div class="ctl">
-      <div class="irow">
-        <label for="n-F">Thrust F [N]</label>
-        <input type="number" id="n-F" value="1.0" min="0.01" max="20.0" step="0.01">
-      </div>
-      <div class="srow">
-        <span class="smin">0.01</span>
-        <input type="range" id="s-F" min="0.01" max="20.0" step="0.01" value="1.0">
-        <span class="smax">20</span>
-      </div>
-    </div>
+    <!-- Col 2: Specific Mass α -->
+    <div class="cf-col">
+      <div class="cf-sect">Specific Mass</div>
 
-    <div class="ctl">
-      <div class="irow">
-        <label for="n-alpha">Spec. mass α [kg/W]</label>
-        <input type="number" id="n-alpha" value="0.02" min="0.0001" max="10" step="any">
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym">α</span>
+          <span class="cf-desc">Spec. mass</span>
+          <input type="number" id="n-alpha" class="cf-inp" value="0.02" min="0.0001" max="10" step="any">
+          <span class="cf-unit">kg/W</span>
+        </div>
+        <input type="range" id="s-alpha" class="cf-slider" min="-4" max="1" step="0.01">
       </div>
-      <div class="srow">
-        <span class="smin">1e-4</span>
-        <input type="range" id="s-alpha" min="-4" max="1" step="0.01">
-        <span class="smax">10</span>
-      </div>
+
       <div class="regbox">
-        <div class="regttl">Specific-mass technology regimes</div>
+        <div class="regttl">Technology Regimes</div>
         <div class="regbar" id="alpha-tech-bar"></div>
         <div class="regticks" id="alpha-tech-ticks"></div>
       </div>
-      <div class="shint" id="h-psrc"></div>
+
+      <div class="cf-info-box regime" id="h-psrc">—</div>
     </div>
 
-    <div class="ctl">
-      <div class="irow">
-        <label for="n-t">Mission time t<sub>m</sub> [days]</label>
-        <input type="number" id="n-t" value="180" min="1" max="2000" step="1">
+    <!-- Col 3: Stuhlinger Reference -->
+    <div class="cf-col">
+      <div class="cf-sect">Stuhlinger Velocity</div>
+
+      <div class="cf-out-block">
+        <div class="cf-out-label">V<sub>ch</sub> [m/s]</div>
+        <div class="cf-out-value" id="o-vch">—</div>
+        <div class="cf-out-hint" id="h-vch-isp">Isp = — s</div>
       </div>
-      <div class="srow">
-        <span class="smin">10</span>
-        <input type="range" id="s-t" min="10" max="2000" step="1" value="180">
-        <span class="smax">2000</span>
+
+      
+    </div>
+
+    <!-- Col 4: True Optimum -->
+    <div class="cf-col">
+      <div class="cf-sect">True Optimum Exhaust Velocity</div>
+
+      <div class="cf-out-block">
+        <div class="cf-out-label">C<sub>opt</sub> [m/s]</div>
+        <div class="cf-out-value" id="o-copt">—</div>
+        <div class="cf-out-hint" id="h-copt-isp">Isp = — s</div>
+      </div>
+
+      <div class="cf-info-box" id="h-thr">—</div>
+
+      <div class="cf-orow">
+        <span class="cf-olbl">Error E [%]</span>
+        <span class="cf-oval" id="o-err">—</span>
+      </div>
+      <div class="cf-orow">
+        <span class="cf-olbl">Payload ratio λ at C<sub>opt</sub></span>
+        <span class="cf-oval" id="o-lam">—</span>
       </div>
     </div>
 
-    <div class="ctl">
-      <div class="irow">
-        <label for="n-dv">Delta-V ΔV [m/s]</label>
-        <input type="number" id="n-dv" value="3000" min="100" max="60000" step="100">
-      </div>
-      <div class="srow">
-        <span class="smin">100</span>
-        <input type="range" id="s-dv" min="100" max="60000" step="100" value="3000">
-        <span class="smax">60000</span>
-      </div>
-    </div>
-
-    <hr class="sep">
-    <div class="sec">Outputs</div>
-
-    <div class="orow">
-      <span class="olbl">Stuhlinger V<sub>ch</sub> [m/s]</span>
-      <span class="oval" id="o-vch">—</span>
-    </div>
-    <div class="ohint" id="h-vch-isp"></div>
-
-    <div class="orow">
-      <span class="olbl">Optimum C<sub>opt</sub> [m/s]</span>
-      <span class="oval" id="o-copt">—</span>
-    </div>
-    <div class="ohint" id="h-copt-isp"></div>
-    <div class="ohint" id="h-thr"></div>
-
-    <div class="orow">
-      <span class="olbl">Error E [%]</span>
-      <span class="oval" id="o-err">—</span>
-    </div>
-    <div class="orow">
-      <span class="olbl">ε (dimensionless)</span>
-      <span class="oval" id="o-eps">—</span>
-    </div>
-    <div class="orow">
-      <span class="olbl">λ at C<sub>opt</sub></span>
-      <span class="oval" id="o-lam">—</span>
-    </div>
-
-    <hr class="sep">
   </div>
+</div>
+
+<div class="app-footer">
+  Physics based on E. Stuhlinger, <em>Ion Propulsion for Space Flight</em> (1964).
 </div>
 
 <script>
@@ -364,9 +498,9 @@ function deviceLabelText(isp) {
   return names.length ? names.join(" ; ") : "Outside listed nominal device bands";
 }
 
-/* ═══════════════════  alpha regimes (dark-friendly)  ══════════════════ */
+/* ═══════════════════  alpha regimes  ═══════════════════════════════════ */
 const ALPHA_REGIMES = [
-  { lo:1e-4, hi:1e-3, label:"Fusion", name:"Nuclear fusion",
+  { lo:1e-4, hi:1e-3, label:"Fusion",  name:"Nuclear fusion",
     color:"rgba(92,107,192,0.50)" },
   { lo:1e-3, hi:1e-2, label:"Fission", name:"Nuclear fission",
     color:"rgba(2,119,189,0.50)" },
@@ -387,7 +521,8 @@ const $ = id => document.getElementById(id);
 function setVal(id, txt, bad) {
   const el = $(id);
   el.textContent = txt;
-  el.className = bad ? "oval bad" : "oval";
+  const base = el.classList.contains('cf-out-value') ? 'cf-out-value' : 'cf-oval';
+  el.className   = bad ? `${base} bad` : base;
 }
 function setHint(id, txt, col) {
   const el = $(id);
@@ -517,40 +652,46 @@ function bindControl(key) {
   syncFromNumber(key, false);
 }
 
+function resetDefaults() {
+  $("n-eta").value   = "0.65";
+  $("n-F").value     = "1.0";
+  $("n-alpha").value = "0.02";
+  $("n-t").value     = "180";
+  $("n-dv").value    = "3000";
+  ["eta","F","alpha","t","dv"].forEach(k => syncFromNumber(k, false));
+  update();
+}
+
 /* ═══════════════════  Plotly shared config  ════════════════════════════ */
 const PCFG = {
   responsive: true,
   displayModeBar: true,
-  scrollZoom: true,
+  scrollZoom: false,
   modeBarButtonsToRemove: ["select2d","lasso2d"]
 };
 
-/* dark-theme defaults */
-const GRID = { showgrid:true, gridcolor:"rgba(255,255,255,0.07)", zeroline:false };
+const GRID = { showgrid: true, gridcolor: "rgba(255,255,255,0.05)", zeroline: false };
 const MARG = { t:70, b:44, l:65, r:14 };
 
 const PFONT = {
-  family:"'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif",
-  color:"#888",
-  size:11
+  family: "'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif",
+  color:  "#bcbcbc",
+  size:   11
 };
 
 const HOVERSTYLE = {
-  bgcolor:"#161616",
-  bordercolor:"#383838",
-  font:{ color:"#c8c8c8", family:"'Courier New',monospace", size:11 }
+  bgcolor:     "#0e0e0e",
+  bordercolor: "#282828",
+  font: { color: "#f1f1f1", family: "'Courier New',monospace", size: 11 }
 };
+
+const X_AXIS_TITLE = "Specific Impulse  I<sub>sp</sub>  [s]";
 
 /* ═══════════════════  device band overlays  ════════════════════════════ */
 function deviceOverlay(xLo, xHi) {
   const shapes      = [];
   const annotations = [];
-
-  const lanes = [
-    [0.90, 0.98],
-    [0.80, 0.88],
-    [0.70, 0.78]
-  ];
+  const lanes = [[0.90,0.98],[0.80,0.88],[0.70,0.78]];
 
   DEVICE_REGIMES.forEach((r, i) => {
     const lo = Math.max(xLo, r.lo);
@@ -580,25 +721,22 @@ function deviceOverlay(xLo, xHi) {
       fillcolor:r.ribbon, line:{color:r.line, width:1}, layer:"below"
     });
 
-    let x       = 0.5 * (lo + hi);
-    let xanchor = "center";
-    if (x < xLo + 500)  { x = lo + 20;  xanchor = "left";  }
-    else if (x > xHi - 500) {
-      if (r.hi === 20000) { x = lo + 500; xanchor = "left"; }
-      else                { x = hi - 20;  xanchor = "right"; }
+    let x = 0.5*(lo+hi), xanchor = "center";
+    if (x < xLo+500)      { x = lo+20;  xanchor = "left";  }
+    else if (x > xHi-500) {
+      if (r.hi === 20000)  { x = lo+500; xanchor = "left"; }
+      else                 { x = hi-20;  xanchor = "right"; }
     }
 
     annotations.push({
-      x, y:0.5 * (y0 + y1),
-      xref:"x", yref:"paper",
-      xanchor,
+      x, y: 0.5*(y0+y1),
+      xref:"x", yref:"paper", xanchor,
+      yanchor: "middle",          // ← add this line
       text:`<b>${r.short}</b>`,
-      showarrow:false,
-      align:"center",
+      showarrow:false, align:"center",
       font:{size:11, color:"#d0d0d0"},
       bgcolor:"rgba(9,9,9,0.90)",
-      bordercolor:r.line, borderwidth:1,
-      opacity:0.98
+      bordercolor:r.line, borderwidth:1, opacity:0.98
     });
   });
 
@@ -613,43 +751,46 @@ function update() {
   const td  = +$("n-t").value;
   const dV  = +$("n-dv").value;
 
-  if ([eta, F, al, td, dV].some(x => !isFinite(x) || x <= 0) || eta > 1) return;
+  if ([eta,F,al,td,dV].some(x => !isFinite(x) || x <= 0) || eta > 1) return;
 
-  const t      = td * 86400;
-  const Vc     = vch(eta, al, t);
+  const t       = td * 86400;
+  const Vc      = vch(eta, al, t);
   const { cOpt, lamOpt, eps } = findCopt(eta, al, t, dV);
-  const errPct = 100 * Math.abs(cOpt - Vc) / cOpt;
-  const ispVc  = Vc   / G0;
-  const ispCopt= cOpt / G0;
+  const errPct  = 100 * Math.abs(cOpt - Vc) / cOpt;
+  const ispVc   = Vc   / G0;
+  const ispCopt = cOpt / G0;
 
-  /* ── sidebar outputs ───────────────────────────────────────────────── */
-  setVal ("o-vch",  Vc.toFixed(2));
+  /* ── outputs ─────────────────────────────────────────────────────── */
+  setVal ("o-vch", Vc.toFixed(2));
   setHint("h-vch-isp", `Isp = ${ispVc.toFixed(1)} s`, "#3DBFFF");
-  setVal ("o-eps",  gFmt(eps, 4));
-  setHint("h-psrc", `Current α regime: ${powerName(al)}`, "#c07838");
+  //setVal ("o-eps", gFmt(eps, 4));
+
+  $("h-psrc").textContent = powerName(al);
 
   if (lamOpt <= 0) {
     setVal ("o-copt", "MISSION NOT POSSIBLE", true);
     setVal ("o-err",  "N/A", true);
     setVal ("o-lam",  "MISSION NOT POSSIBLE", true);
-    setHint("h-copt-isp", "MISSION NOT POSSIBLE", "#ff6b6b");
-    setHint("h-thr", "", "#9FE6FF");
+    setHint("h-copt-isp", "Mission not feasible", "#ff6b6b");
+    $("h-thr").textContent = "Mission not feasible";
+    $("h-thr").className   = "cf-info-box warn";
   } else {
     setVal ("o-copt", cOpt.toFixed(2));
     setVal ("o-err",  errPct.toFixed(3));
     setVal ("o-lam",  lamOpt.toFixed(6));
     setHint("h-copt-isp", `Isp = ${ispCopt.toFixed(1)} s`, "#3DBFFF");
-    setHint("h-thr", `${deviceLabelText(ispCopt)}`, "#9FE6FF");
+    $("h-thr").textContent = deviceLabelText(ispCopt);
+    $("h-thr").className   = "cf-info-box";
   }
 
-  /* ── data arrays ───────────────────────────────────────────────────── */
+  /* ── data arrays ─────────────────────────────────────────────────── */
   const ispArr = linspace(ISP_DATA_MIN, ISP_DATA_MAX, 2200);
   const cArr   = ispArr.map(s => s * G0);
   const bands  = deviceOverlay(ISP_AXIS_MIN, ISP_DATA_MAX);
 
   const mpsArr = cArr.map(c => mps(c, F, eta, al));
   const mpArr  = cArr.map(c => mp(c, F, t));
-  const totArr = mpsArr.map((v, i) => v + mpArr[i]);
+  const totArr = mpsArr.map((v,i) => v + mpArr[i]);
   const mTotVc = mps(Vc, F, eta, al) + mp(Vc, F, t);
 
   let yMHi = mTotVc;
@@ -663,18 +804,9 @@ function update() {
 
   const lamArr = cArr.map(c => lamC(c, eta, al, t, dV));
 
-  const SKIP    = { hoverinfo:"skip" };
-  const vchLbl  = `Isp_ch = ${Math.round(ispVc)} s (${Math.round(Vc)} m/s)`;
-  const coptLbl = `Isp_opt = ${Math.round(ispCopt)} s (${Math.round(cOpt)} m/s)`;
-  const epsLbl  = gFmt(eps, 3);
-  const titleObj = lamOpt <= 0
-    ? `Objective function   (ε = ${epsLbl},   no feasible positive λ)`
-    : `Objective function   (ε = ${epsLbl},   Isp_opt = ${Math.round(ispCopt)} s)`;
-
-  /* shared legend config */
   const LEG = {
     x:1, xanchor:"right", y:0, yanchor:"bottom",
-    font:{size:9, color:"#888"},
+    font:{size:14, color:"#888"},
     bgcolor:"rgba(14,14,14,0.92)",
     bordercolor:"#2a2a2a", borderwidth:1
   };
@@ -687,42 +819,37 @@ function update() {
       type:"scatter", mode:"lines", line:{color:"#ff9a3c", width:1.8} },
     { x:ispArr, y:totArr, name:"m_ps + m_p  (total)",
       type:"scatter", mode:"lines", line:{color:"#51cf66", width:2.8} },
-    { x:[ispVc,   ispVc],   y:[0, yMHi], name:vchLbl,
+    { x:[ispVc,   ispVc],   y:[0, yMHi],
       type:"scatter", mode:"lines",
-      line:{color:"#ff6b6b", width:1.8, dash:"dash"}, ...SKIP },
-    { x:[ispCopt, ispCopt], y:[0, yMHi], name:coptLbl,
+      line:{color:"#ff6b6b", width:1.8, dash:"dash"},
+      showlegend:false, hoverinfo:"skip" },
+    { x:[ispCopt, ispCopt], y:[0, yMHi],
       type:"scatter", mode:"lines",
-      line:{color:"#c084fc", width:1.8}, ...SKIP },
+      line:{color:"#c084fc", width:1.8},
+      showlegend:false, hoverinfo:"skip" },
     { x:[ispVc],  y:[mTotVc],
       type:"scatter", mode:"markers",
       marker:{color:"#ff6b6b", symbol:"triangle-up", size:11},
-      showlegend:false, ...SKIP }
+      showlegend:false, hoverinfo:"skip" }
   ], {
     uirevision: "xpan-mass",
     title:{ text:"Stuhlinger Curve", font:{size:13, color:"#9a9a9a"} },
     font: PFONT,
     xaxis:{
-      title:"Equivalent specific impulse  I<sub>sp</sub> = c / g₀  [s]",
+      title: X_AXIS_TITLE,
       range:[ISP_AXIS_MIN, ISP_VIEW_MAX],
-      minallowed: 0,
-      tick0:0, dtick:1000,
+      minallowed:0, tick0:0, dtick:1000,
       ...GRID
     },
     yaxis:{
       title:"Mass  [kg]",
-      range:[0, yMHi],
-      minallowed: 0,
+      range:[0, yMHi], minallowed:0,
       ...GRID
     },
-    shapes:      bands.shapes,
-    annotations: bands.annotations,
-    legend:      LEG,
-    hoverlabel:  HOVERSTYLE,
-    dragmode:    "pan",
-    hovermode:   "x unified",
-    margin:      MARG,
-    plot_bgcolor:  "#0d0d0d",
-    paper_bgcolor: "#0e0e0e"
+    shapes:bands.shapes, annotations:bands.annotations,
+    legend:LEG, hoverlabel:HOVERSTYLE,
+    dragmode:"pan", hovermode:"x unified",
+    margin:MARG, plot_bgcolor:"#090909", paper_bgcolor:"#0e0e0e"
   }, PCFG);
 
   /* ══════════════  OBJECTIVE PLOT  ════════════════════════════════════ */
@@ -732,43 +859,38 @@ function update() {
     { x:[ISP_AXIS_MIN, ISP_DATA_MAX], y:[0, 0],
       type:"scatter", mode:"lines",
       line:{color:"rgba(255,255,255,0.18)", width:0.7},
-      showlegend:false, ...SKIP },
-    { x:[ispVc,   ispVc],   y:[0, 1], name:vchLbl,
+      showlegend:false, hoverinfo:"skip" },
+    { x:[ispVc,   ispVc],   y:[0, 1],
       type:"scatter", mode:"lines",
-      line:{color:"#ff6b6b", width:1.8, dash:"dash"}, ...SKIP },
-    { x:[ispCopt, ispCopt], y:[0, 1], name:coptLbl,
+      line:{color:"#ff6b6b", width:1.8, dash:"dash"},
+      showlegend:false, hoverinfo:"skip" },
+    { x:[ispCopt, ispCopt], y:[0, 1],
       type:"scatter", mode:"lines",
-      line:{color:"#c084fc", width:1.8}, ...SKIP },
+      line:{color:"#c084fc", width:1.8},
+      showlegend:false, hoverinfo:"skip" },
     { x:[ispCopt], y:[lamOpt],
       type:"scatter", mode:"markers",
       marker:{color:"#c084fc", size:10},
-      showlegend:false, ...SKIP }
+      showlegend:false, hoverinfo:"skip" }
   ], {
     uirevision: "xpan-obj",
-    title:{ text:titleObj, font:{size:13, color:"#9a9a9a"} },
+    title:{ text:"Objective Function", font:{size:13, color:"#9a9a9a"} },
     font: PFONT,
     xaxis:{
-      title:"Equivalent specific impulse  I<sub>sp</sub> = c / g₀  [s]",
+      title: X_AXIS_TITLE,
       range:[ISP_AXIS_MIN, ISP_VIEW_MAX],
-      minallowed: 0,
-      tick0:0, dtick:1000,
+      minallowed:0, tick0:0, dtick:1000,
       ...GRID
     },
     yaxis:{
-      title:"Payload ratio  λ = m_L / m₀",
-      range:[0, 1],
-      fixedrange: true,
+      title:"Payload ratio  m<sub>payload</sub>/m₀",
+      range:[0, 1], fixedrange:true,
       ...GRID
     },
-    shapes:      bands.shapes,
-    annotations: bands.annotations,
-    legend:      LEG,
-    hoverlabel:  HOVERSTYLE,
-    dragmode:    "pan",
-    hovermode:   "x unified",
-    margin:      MARG,
-    plot_bgcolor:  "#0d0d0d",
-    paper_bgcolor: "#0e0e0e"
+    shapes:bands.shapes, annotations:bands.annotations,
+    legend:LEG, hoverlabel:HOVERSTYLE,
+    dragmode:"pan", hovermode:"x unified",
+    margin:MARG, plot_bgcolor:"#090909", paper_bgcolor:"#0e0e0e"
   }, PCFG);
 }
 
