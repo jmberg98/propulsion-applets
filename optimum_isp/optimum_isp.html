@@ -4,133 +4,153 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Stuhlinger Curve Applet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
+html,body{height:100%;overflow:hidden;background:#090909}
 body{
   display:flex;flex-direction:column;
-  font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
-  background:#ddd;
+  font-family:'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background:#090909;color:#f1f1f1;
 }
 
+/* ── top bar ─────────────────────────────────────── */
 #hdr{
   flex-shrink:0;
-  background:linear-gradient(90deg,#0d0d2b 0%,#1a237e 55%,#283593 100%);
-  color:#e8eaf6;padding:6px 16px;
-  font-size:14px;font-weight:600;letter-spacing:.4px;
+  background:#0e0e0e;
+  border-bottom:1px solid #282828;
+  color:#a0a0a0;
+  padding:8px 18px;
+  font-size:12px;font-weight:700;
+  letter-spacing:1.4px;text-transform:uppercase;
   user-select:none;
 }
 
+/* ── shell ───────────────────────────────────────── */
 #wrap{flex:1;display:flex;min-height:0;overflow:hidden}
 
 #charts{
-  flex:1;
-  display:grid;
+  flex:1;display:grid;
   grid-template-rows:0.92fr 1.18fr;
-  min-width:0;
-  background:white;
+  min-width:0;background:#090909;
 }
 #plot-mass,#plot-obj{min-height:0}
 
 #panel{
   flex-shrink:0;width:340px;
-  background:#fafafa;border-left:1px solid #c8c8c8;
+  background:#0e0e0e;
+  border-left:1px solid #282828;
   padding:8px 12px 10px;
   overflow:hidden;
   display:flex;flex-direction:column;
 }
 
+/* ── section label ───────────────────────────────── */
 .sec{
-  font-size:12px;font-weight:700;color:#1a237e;
-  border-bottom:1px solid #bbb;padding-bottom:2px;
+  font-size:12px;font-weight:700;
+  color:#545454;
+  letter-spacing:1px;text-transform:uppercase;
+  border-bottom:1px solid #282828;padding-bottom:3px;
   margin:8px 0 5px;
 }
 .sec:first-child{margin-top:1px}
 
 .ctl{margin-bottom:5px}
-.auto-note{
-  font-size:9px;color:#666;line-height:1.3;
-  margin:1px 0 6px;
-}
+.auto-note{font-size:9px;color:#484848;line-height:1.3;margin:1px 0 6px;}
 
+/* ── number inputs ───────────────────────────────── */
 .irow{display:flex;align-items:center;justify-content:space-between;margin-bottom:1px}
-.irow label{font-size:11px;color:#333;flex:1;padding-right:8px}
+.irow label{font-size:11px;color:#727272;flex:1;padding-right:8px;line-height:1.3}
 .irow input[type="number"]{
-  width:116px;padding:2px 6px;
-  font-family:Consolas,"Courier New",monospace;
-  font-size:11px;text-align:right;
-  border:1px solid #bbb;border-radius:3px;
-  background:white;color:#111;
+  width:116px;padding:5px 7px;
+  font-family:'Courier New',monospace;
+  font-size:13px;text-align:right;
+  border:1px solid #282828;border-radius:4px;
+  background:#1d1d1d;color:#d0d0d0;
   -moz-appearance:textfield;
 }
 .irow input[type="number"]::-webkit-outer-spin-button,
 .irow input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
 .irow input[type="number"]:focus{
-  outline:none;border-color:#3f51b5;background:#eef1ff
+  outline:none;border-color:#484848;background:#202020;
 }
 
+/* ── sliders ─────────────────────────────────────── */
 .srow{
   display:grid;grid-template-columns:40px 1fr 40px;
-  gap:6px;align-items:center;
-  margin-bottom:1px;
+  gap:6px;align-items:center;margin-bottom:1px;
 }
 .srow input[type="range"]{
-  width:100%;
-  accent-color:#1a237e;
-  cursor:pointer;
+  width:100%;accent-color:#3DBFFF;cursor:pointer;
 }
 .smin,.smax{
-  font-family:Consolas,"Courier New",monospace;
-  font-size:9px;color:#666;text-align:center;
-  user-select:none;
+  font-family:'Courier New',monospace;
+  font-size:9px;color:#444;text-align:center;user-select:none;
 }
 
 .shint{
   font-size:9px;font-style:italic;
   text-align:right;margin:0 0 4px;min-height:12px;
+  color:#505050;
 }
 
+/* ── alpha regime bar ────────────────────────────── */
 .regbox{margin:0 0 5px}
-.regttl{font-size:9px;color:#666;margin-bottom:2px;}
+.regttl{font-size:9px;color:#444;margin-bottom:2px;}
 .regbar{
   position:relative;height:20px;
-  border:1px solid #bbb;border-radius:4px;
-  overflow:hidden;background:white;
+  border:1px solid #252525;border-radius:4px;
+  overflow:hidden;background:#111;
 }
 .regseg{
   position:absolute;top:0;bottom:0;
   display:flex;align-items:center;justify-content:center;
-  font-size:7.5px;line-height:1.0;text-align:center;
-  color:#111;padding:0 2px;
-  border-right:1px solid rgba(255,255,255,0.95);
+  font-size:7.5px;line-height:1;text-align:center;
+  color:#ccc;padding:0 2px;
+  border-right:1px solid rgba(255,255,255,0.05);
   overflow:hidden;white-space:nowrap;
 }
 .regmark{
   position:absolute;top:-2px;bottom:-2px;width:2px;
-  background:#111;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.9);
+  background:#3DBFFF;
+  box-shadow:0 0 5px rgba(61,191,255,0.65);
 }
 .regticks{position:relative;height:12px;margin-top:1px;}
 .regtick{
   position:absolute;top:0;
-  font-size:7.5px;color:#666;white-space:nowrap;
-  user-select:none;
+  font-size:7.5px;color:#444;white-space:nowrap;user-select:none;
 }
 
-.sep{border:none;border-top:1px solid #ddd;margin:5px 0}
+/* ── divider ─────────────────────────────────────── */
+.sep{border:none;border-top:1px solid #282828;margin:5px 0}
 
+/* ── output values ───────────────────────────────── */
 .orow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
-.olbl{font-size:10.5px;color:#555}
-.oval{font-family:Consolas,"Courier New",monospace;font-size:10.5px;font-weight:700;color:#111}
-.oval.bad{color:#c62828;font-size:9.5px}
+.olbl{font-size:10.5px;color:#545454}
+.oval{
+  font-family:'Courier New',monospace;
+  font-size:10.5px;font-weight:700;color:#e6f7ff;
+}
+.oval.bad{color:#ff8e8e;font-size:9.5px}
 
 .ohint{
   font-size:9px;font-style:italic;
   text-align:right;margin:-2px 0 4px;min-height:12px;
+  color:#505050;
 }
 
-.note{font-size:9px;color:#666;line-height:1.35;margin-top:2px}
+.note{font-size:9px;color:#444;line-height:1.35;margin-top:2px}
+
+/* ── Plotly modebar dark skin ────────────────────── */
+.modebar{
+  background:rgba(14,14,14,0.88)!important;
+  border-radius:4px!important;
+}
+.modebar-btn path{fill:#505050!important;transition:fill .15s}
+.modebar-btn:hover path{fill:#d0d0d0!important}
+.modebar-group{border:none!important}
 </style>
 </head>
 <body>
@@ -189,7 +209,7 @@ body{
         <div class="regbar" id="alpha-tech-bar"></div>
         <div class="regticks" id="alpha-tech-ticks"></div>
       </div>
-      <div class="shint" id="h-psrc" style="color:#8B4513"></div>
+      <div class="shint" id="h-psrc"></div>
     </div>
 
     <div class="ctl">
@@ -223,14 +243,14 @@ body{
       <span class="olbl">Stuhlinger V<sub>ch</sub> [m/s]</span>
       <span class="oval" id="o-vch">—</span>
     </div>
-    <div class="ohint" id="h-vch-isp" style="color:#b05000"></div>
+    <div class="ohint" id="h-vch-isp"></div>
 
     <div class="orow">
       <span class="olbl">Optimum C<sub>opt</sub> [m/s]</span>
       <span class="oval" id="o-copt">—</span>
     </div>
-    <div class="ohint" id="h-copt-isp" style="color:#b05000"></div>
-    <div class="ohint" id="h-thr" style="color:#5500aa"></div>
+    <div class="ohint" id="h-copt-isp"></div>
+    <div class="ohint" id="h-thr"></div>
 
     <div class="orow">
       <span class="olbl">Error E [%]</span>
@@ -259,11 +279,11 @@ body{
 "use strict";
 const G0           = 9.80665;
 const ISP_AXIS_MIN = 0;
-const ISP_VIEW_MAX = 10000;   // initial visible window for both plots
-const ISP_DATA_MAX = 20000;   // data extent so right-pan shows useful content
-const ISP_DATA_MIN = 50;      // avoid m_p = F·t/c divergence near Isp → 0
+const ISP_VIEW_MAX = 10000;
+const ISP_DATA_MAX = 20000;
+const ISP_DATA_MIN = 50;
 
-/* ═══════════════════  numeric helpers  ══════════════════════════════════ */
+/* ═══════════════════  numeric helpers  ═════════════════════════════════ */
 function linspace(a, b, n) {
   const r = new Array(n), h = (b - a) / (n - 1);
   for (let i = 0; i < n; i++) r[i] = a + i * h;
@@ -276,7 +296,6 @@ function logspace(lo, hi, n) {
 }
 const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 
-/** Golden-section minimisation of f on [lo, hi] */
 function goldenMin(f, lo, hi, tol) {
   tol = tol || 1e-12;
   const phi = (Math.sqrt(5) - 1) / 2;
@@ -289,7 +308,7 @@ function goldenMin(f, lo, hi, tol) {
   return (lo + hi) / 2;
 }
 
-/* ═══════════════════  governing physics  ════════════════════════════════ */
+/* ═══════════════════  governing physics  ═══════════════════════════════ */
 const mps     = (c, F, eta, al) => al * F * c / (2 * eta);
 const mp      = (c, F, t)       => F * t / c;
 const vch     = (eta, al, t)    => Math.sqrt(2 * eta * t / al);
@@ -309,23 +328,20 @@ const Z_GRID = logspace(-4, 2, 8000);
 
 function findCopt(eta, al, t, dV) {
   const eps = calcEps(eta, al, t, dV);
-
   let bi = 0, bv = -Infinity;
   for (let i = 0; i < Z_GRID.length; i++) {
     const v = lamZ(Z_GRID[i], eps);
     if (isFinite(v) && v > bv) { bv = v; bi = i; }
   }
-
   let lo = Z_GRID[Math.max(bi - 2, 0)];
   let hi = Z_GRID[Math.min(bi + 2, Z_GRID.length - 1)];
   if (hi <= lo) { lo = 0.5 * Z_GRID[bi]; hi = 2 * Z_GRID[bi]; }
-
   const zOpt   = goldenMin(z => -lamZ(z, eps), lo, hi, 1e-12);
   const lamOpt = lamZ(zOpt, eps);
   return { cOpt: dV / zOpt, lamOpt, eps };
 }
 
-/* ═══════════════════  classifications  ═════════════════════════════════ */
+/* ═══════════════════  classifications  ════════════════════════════════ */
 function powerName(al) {
   if (al >= 5.0)   return "Chemical";
   if (al >= 1.0)   return "Chemical / RTG";
@@ -336,36 +352,46 @@ function powerName(al) {
 }
 
 const DEVICE_REGIMES = [
-  { lo:  40, hi:  150, name:"Cold Gas",           short:"Cold Gas",     fill:"rgba(66,165,245,0.12)",  ribbon:"rgba(66,165,245,0.34)",  line:"#1e88e5" },
-  { lo: 100, hi:  400, name:"Resistojet",         short:"Resistojet",   fill:"rgba(102,187,106,0.12)", ribbon:"rgba(102,187,106,0.34)", line:"#43a047" },
-  { lo: 350, hi: 1200, name:"Arcjet",             short:"Arcjet",       fill:"rgba(255,238,88,0.14)",  ribbon:"rgba(255,238,88,0.42)",  line:"#c0a000" },
-  { lo: 800, hi: 2500, name:"Hall Thruster",      short:"Hall",         fill:"rgba(255,167,38,0.12)",  ribbon:"rgba(255,167,38,0.34)",  line:"#ef6c00" },
-  { lo:1800, hi:10000, name:"Gridded Ion Engine", short:"Ion Engine",   fill:"rgba(171,71,188,0.12)",  ribbon:"rgba(171,71,188,0.32)",  line:"#8e24aa" },
-  { lo:3000, hi:20000, name:"MPD / VASIMR",       short:"MPD / VASIMR", fill:"rgba(239,83,80,0.12)",   ribbon:"rgba(239,83,80,0.30)",   line:"#d32f2f" }
+  { lo:  40, hi:  150, name:"Cold Gas",           short:"Cold Gas",
+    fill:"rgba(66,165,245,0.07)",  ribbon:"rgba(66,165,245,0.22)",  line:"#4fc3f7" },
+  { lo: 100, hi:  400, name:"Resistojet",         short:"Resistojet",
+    fill:"rgba(102,187,106,0.07)", ribbon:"rgba(102,187,106,0.22)", line:"#81c784" },
+  { lo: 350, hi: 1200, name:"Arcjet",             short:"Arcjet",
+    fill:"rgba(255,238,88,0.06)",  ribbon:"rgba(255,238,88,0.22)",  line:"#ffd54f" },
+  { lo: 800, hi: 2500, name:"Hall Thruster",      short:"Hall",
+    fill:"rgba(255,167,38,0.07)",  ribbon:"rgba(255,167,38,0.24)",  line:"#ffb74d" },
+  { lo:1800, hi:10000, name:"Gridded Ion Engine", short:"Ion Engine",
+    fill:"rgba(171,71,188,0.07)",  ribbon:"rgba(171,71,188,0.22)",  line:"#ba68c8" },
+  { lo:3000, hi:20000, name:"MPD / VASIMR",       short:"MPD / VASIMR",
+    fill:"rgba(239,83,80,0.06)",   ribbon:"rgba(239,83,80,0.20)",   line:"#e57373" }
 ];
 
 function deviceMatches(isp) {
-  return DEVICE_REGIMES
-    .filter(r => isp >= r.lo && isp <= r.hi)
-    .map(r => r.name);
+  return DEVICE_REGIMES.filter(r => isp >= r.lo && isp <= r.hi).map(r => r.name);
 }
 function deviceLabelText(isp) {
   const names = deviceMatches(isp);
   return names.length ? names.join(" ; ") : "Outside listed nominal device bands";
 }
 
-/* ═══════════════════  alpha regimes  ═══════════════════════════════════ */
+/* ═══════════════════  alpha regimes (dark-friendly)  ══════════════════ */
 const ALPHA_REGIMES = [
-  { lo:1e-4, hi:1e-3, label:"Adv Nuc", name:"Advanced nuclear",         color:"#c5cae9" },
-  { lo:1e-3, hi:1e-2, label:"Fission", name:"Nuclear fission",          color:"#b3e5fc" },
-  { lo:1e-2, hi:1e-1, label:"Solar",   name:"Solar (near-Earth)",       color:"#fff59d" },
-  { lo:1e-1, hi:1,    label:"RTG/DS",  name:"RTG / Solar (deep-space)", color:"#ffcc80" },
-  { lo:1,    hi:5,    label:"C/RTG",   name:"Chemical / RTG",           color:"#ffab91" },
-  { lo:5,    hi:10,   label:"Chem",    name:"Chemical",                 color:"#ef9a9a" }
+  { lo:1e-4, hi:1e-3, label:"Adv Nuc", name:"Advanced nuclear",
+    color:"rgba(92,107,192,0.50)" },
+  { lo:1e-3, hi:1e-2, label:"Fission", name:"Nuclear fission",
+    color:"rgba(2,119,189,0.50)" },
+  { lo:1e-2, hi:1e-1, label:"Solar",   name:"Solar (near-Earth)",
+    color:"rgba(200,165,0,0.48)" },
+  { lo:1e-1, hi:1,    label:"RTG/DS",  name:"RTG / Solar (deep-space)",
+    color:"rgba(200,100,0,0.48)" },
+  { lo:1,    hi:5,    label:"C/RTG",   name:"Chemical / RTG",
+    color:"rgba(180,55,40,0.48)" },
+  { lo:5,    hi:10,   label:"Chem",    name:"Chemical",
+    color:"rgba(160,25,25,0.55)" }
 ];
 const ALPHA_BOUNDS = [1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10];
 
-/* ═══════════════════  DOM helpers  ═════════════════════════════════════ */
+/* ═══════════════════  DOM helpers  ════════════════════════════════════ */
 const $ = id => document.getElementById(id);
 
 function setVal(id, txt, bad) {
@@ -383,7 +409,7 @@ function gFmt(x, n) {
   return parseFloat(x.toPrecision(n || 4)).toString();
 }
 
-/* ═══════════════════  controls  ════════════════════════════════════════ */
+/* ═══════════════════  controls  ═══════════════════════════════════════ */
 const CTRL = {
   eta:   { num:"n-eta",   slider:"s-eta",   min:0.10, max:1.00,  step:0.01, scale:"linear" },
   F:     { num:"n-F",     slider:"s-F",     min:0.01, max:20.0,  step:0.01, scale:"linear" },
@@ -395,7 +421,7 @@ const CTRL = {
 const alphaToSlider = a => Math.log10(a);
 const sliderToAlpha = s => Math.pow(10, s);
 
-/* ═══════════════════  alpha regime bar  ════════════════════════════════ */
+/* ═══════════════════  alpha regime bar  ═══════════════════════════════ */
 function alphaPct(a) {
   const lo = Math.log10(CTRL.alpha.min), hi = Math.log10(CTRL.alpha.max);
   return 100 * (Math.log10(a) - lo) / (hi - lo);
@@ -441,7 +467,7 @@ function updateAlphaRegimeMarker(alpha) {
   m.style.left = `calc(${alphaPct(alpha)}% - 1px)`;
 }
 
-/* ═══════════════════  control syncing  ═════════════════════════════════ */
+/* ═══════════════════  control syncing  ════════════════════════════════ */
 let updateRAF = 0;
 function scheduleUpdate() {
   if (updateRAF) cancelAnimationFrame(updateRAF);
@@ -501,7 +527,7 @@ function bindControl(key) {
   syncFromNumber(key, false);
 }
 
-/* ═══════════════════  Plotly shared config  ═════════════════════════════ */
+/* ═══════════════════  Plotly shared config  ════════════════════════════ */
 const PCFG = {
   responsive: true,
   displayModeBar: true,
@@ -509,15 +535,27 @@ const PCFG = {
   modeBarButtonsToRemove: ["select2d","lasso2d"]
 };
 
-const GRID = { showgrid:true, gridcolor:"rgba(0,0,0,0.15)", zeroline:false };
+/* dark-theme defaults */
+const GRID = { showgrid:true, gridcolor:"rgba(255,255,255,0.07)", zeroline:false };
 const MARG = { t:70, b:44, l:65, r:14 };
+
+const PFONT = {
+  family:"'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif",
+  color:"#888",
+  size:11
+};
+
+const HOVERSTYLE = {
+  bgcolor:"#161616",
+  bordercolor:"#383838",
+  font:{ color:"#c8c8c8", family:"'Courier New',monospace", size:11 }
+};
 
 /* ═══════════════════  device band overlays  ════════════════════════════ */
 function deviceOverlay(xLo, xHi) {
   const shapes      = [];
   const annotations = [];
 
-  /* three stacked label lanes, all inside the plot area */
   const lanes = [
     [0.90, 0.98],
     [0.80, 0.88],
@@ -529,26 +567,22 @@ function deviceOverlay(xLo, xHi) {
     const hi = Math.min(xHi, r.hi);
     if (hi <= lo) return;
 
-    /* full-height background tint */
     shapes.push({
       type:"rect", xref:"x", yref:"paper",
       x0:lo, x1:hi, y0:0, y1:1,
       fillcolor:r.fill, line:{width:0}, layer:"below"
     });
-
-    /* dotted boundary lines */
     shapes.push({
       type:"line", xref:"x", yref:"paper",
       x0:lo, x1:lo, y0:0, y1:1,
-      line:{color:r.line, width:1, dash:"dot"}, layer:"below"
+      line:{color:r.line, width:0.8, dash:"dot"}, layer:"below"
     });
     shapes.push({
       type:"line", xref:"x", yref:"paper",
       x0:hi, x1:hi, y0:0, y1:1,
-      line:{color:r.line, width:1, dash:"dot"}, layer:"below"
+      line:{color:r.line, width:0.8, dash:"dot"}, layer:"below"
     });
 
-    /* stronger coloured label ribbon */
     const [y0, y1] = lanes[i % lanes.length];
     shapes.push({
       type:"rect", xref:"x", yref:"paper",
@@ -556,19 +590,12 @@ function deviceOverlay(xLo, xHi) {
       fillcolor:r.ribbon, line:{color:r.line, width:1}, layer:"below"
     });
 
-    /* label position — stay inside axis window */
     let x       = 0.5 * (lo + hi);
     let xanchor = "center";
     if (x < xLo + 500)  { x = lo + 20;  xanchor = "left";  }
     else if (x > xHi - 500) {
-    // Special case: VASIMR band (hi = 20000) — push label further left
-    if (r.hi === 20000) {
-        x = lo + 500;
-        xanchor = "left";
-    } else {
-        x = hi - 20;
-        xanchor = "right";
-    }
+      if (r.hi === 20000) { x = lo + 500; xanchor = "left"; }
+      else                { x = hi - 20;  xanchor = "right"; }
     }
 
     annotations.push({
@@ -578,8 +605,8 @@ function deviceOverlay(xLo, xHi) {
       text:`<b>${r.short}</b>`,
       showarrow:false,
       align:"center",
-      font:{size:9, color:"#111"},
-      bgcolor:"rgba(255,255,255,0.84)",
+      font:{size:9, color:"#d0d0d0"},
+      bgcolor:"rgba(9,9,9,0.90)",
       bordercolor:r.line, borderwidth:1,
       opacity:0.98
     });
@@ -588,7 +615,7 @@ function deviceOverlay(xLo, xHi) {
   return { shapes, annotations };
 }
 
-/* ═══════════════════  main update  ══════════════════════════════════════ */
+/* ═══════════════════  main update  ════════════════════════════════════ */
 function update() {
   const eta = +$("n-eta").value;
   const F   = +$("n-F").value;
@@ -605,50 +632,45 @@ function update() {
   const ispVc  = Vc   / G0;
   const ispCopt= cOpt / G0;
 
-  /* ── sidebar outputs ──────────────────────────────────────── */
+  /* ── sidebar outputs ───────────────────────────────────────────────── */
   setVal ("o-vch",  Vc.toFixed(2));
-  setHint("h-vch-isp", `Isp = ${ispVc.toFixed(1)} s`, "#b05000");
+  setHint("h-vch-isp", `Isp = ${ispVc.toFixed(1)} s`, "#3DBFFF");
   setVal ("o-eps",  gFmt(eps, 4));
-  setHint("h-psrc", `Current α regime: ${powerName(al)}`, "#8B4513");
+  setHint("h-psrc", `Current α regime: ${powerName(al)}`, "#c07838");
 
   if (lamOpt <= 0) {
     setVal ("o-copt", "MISSION NOT POSSIBLE", true);
     setVal ("o-err",  "N/A", true);
     setVal ("o-lam",  "MISSION NOT POSSIBLE", true);
-    setHint("h-copt-isp", "MISSION NOT POSSIBLE", "red");
-    setHint("h-thr", "", "#5500aa");
+    setHint("h-copt-isp", "MISSION NOT POSSIBLE", "#ff6b6b");
+    setHint("h-thr", "", "#9FE6FF");
   } else {
     setVal ("o-copt", cOpt.toFixed(2));
     setVal ("o-err",  errPct.toFixed(3));
     setVal ("o-lam",  lamOpt.toFixed(6));
-    setHint("h-copt-isp", `Isp = ${ispCopt.toFixed(1)} s`, "#b05000");
-    setHint("h-thr", `Optimum device regime(s): ${deviceLabelText(ispCopt)}`, "#5500aa");
+    setHint("h-copt-isp", `Isp = ${ispCopt.toFixed(1)} s`, "#3DBFFF");
+    setHint("h-thr", `Optimum device regime(s): ${deviceLabelText(ispCopt)}`, "#9FE6FF");
   }
 
-  /* ── data arrays (both plots share extended domain) ─────── */
-  // Start at ISP_DATA_MIN (50 s) to avoid m_p = F·t/c blowing up near Isp → 0
+  /* ── data arrays ───────────────────────────────────────────────────── */
   const ispArr = linspace(ISP_DATA_MIN, ISP_DATA_MAX, 2200);
   const cArr   = ispArr.map(s => s * G0);
   const bands  = deviceOverlay(ISP_AXIS_MIN, ISP_DATA_MAX);
 
-  /* mass plot curves */
   const mpsArr = cArr.map(c => mps(c, F, eta, al));
   const mpArr  = cArr.map(c => mp(c, F, t));
   const totArr = mpsArr.map((v, i) => v + mpArr[i]);
   const mTotVc = mps(Vc, F, eta, al) + mp(Vc, F, t);
 
-  /* ── y-ceiling: scan only points at or above cOpt to ignore the
-        divergent m_p tail at low Isp; apply a 5× hard cap as backstop */
   let yMHi = mTotVc;
   for (let i = 0; i < ispArr.length; i++) {
-    if (cArr[i] < cOpt) continue;             // skip divergent left tail
+    if (cArr[i] < cOpt) continue;
     if (mpsArr[i] > yMHi) yMHi = mpsArr[i];
     if (mpArr[i]  > yMHi) yMHi = mpArr[i];
     if (totArr[i] > yMHi) yMHi = totArr[i];
   }
-  yMHi = Math.min(yMHi, 5 * mTotVc) * 1.08;  // hard cap + 8 % headroom
+  yMHi = Math.min(yMHi, 5 * mTotVc) * 1.08;
 
-  /* objective plot curve */
   const lamArr = cArr.map(c => lamC(c, eta, al, t, dV));
 
   const SKIP    = { hoverinfo:"skip" };
@@ -659,29 +681,36 @@ function update() {
     ? `Objective function   (ε = ${epsLbl},   no feasible positive λ)`
     : `Objective function   (ε = ${epsLbl},   Isp_opt = ${Math.round(ispCopt)} s)`;
 
-  /* ══════════════════  MASS PLOT  ══════════════════════════════
-     x-axis: starts at 0–10 k, user can pan/zoom right freely,
-     cannot go left of 0                                         */
+  /* shared legend config */
+  const LEG = {
+    x:1, xanchor:"right", y:0, yanchor:"bottom",
+    font:{size:9, color:"#888"},
+    bgcolor:"rgba(14,14,14,0.92)",
+    bordercolor:"#2a2a2a", borderwidth:1
+  };
+
+  /* ══════════════  MASS PLOT  ══════════════════════════════════════════ */
   Plotly.react("plot-mass", [
     { x:ispArr, y:mpsArr, name:"m_ps  (power system)",
-      type:"scatter", mode:"lines", line:{color:"#1f77b4", width:1.8} },
+      type:"scatter", mode:"lines", line:{color:"#4dabf7", width:1.8} },
     { x:ispArr, y:mpArr,  name:"m_p  (propellant)",
-      type:"scatter", mode:"lines", line:{color:"#ff7f0e", width:1.8} },
+      type:"scatter", mode:"lines", line:{color:"#ff9a3c", width:1.8} },
     { x:ispArr, y:totArr, name:"m_ps + m_p  (total)",
-      type:"scatter", mode:"lines", line:{color:"#2ca02c", width:2.8} },
+      type:"scatter", mode:"lines", line:{color:"#51cf66", width:2.8} },
     { x:[ispVc,   ispVc],   y:[0, yMHi], name:vchLbl,
       type:"scatter", mode:"lines",
-      line:{color:"red",    width:1.8, dash:"dash"}, ...SKIP },
+      line:{color:"#ff6b6b", width:1.8, dash:"dash"}, ...SKIP },
     { x:[ispCopt, ispCopt], y:[0, yMHi], name:coptLbl,
       type:"scatter", mode:"lines",
-      line:{color:"purple", width:1.8}, ...SKIP },
+      line:{color:"#c084fc", width:1.8}, ...SKIP },
     { x:[ispVc],  y:[mTotVc],
       type:"scatter", mode:"markers",
-      marker:{color:"red", symbol:"triangle-up", size:11},
+      marker:{color:"#ff6b6b", symbol:"triangle-up", size:11},
       showlegend:false, ...SKIP }
   ], {
     uirevision: "xpan-mass",
-    title:{ text:"Propulsion-system masses (Stuhlinger problem)", font:{size:13} },
+    title:{ text:"Propulsion-system masses (Stuhlinger problem)", font:{size:13, color:"#9a9a9a"} },
+    font: PFONT,
     xaxis:{
       title:"Equivalent specific impulse  I<sub>sp</sub> = c / g₀  [s]",
       range:[ISP_AXIS_MIN, ISP_VIEW_MAX],
@@ -697,42 +726,37 @@ function update() {
     },
     shapes:      bands.shapes,
     annotations: bands.annotations,
-    legend:{
-      x:1, xanchor:"right", y:0, yanchor:"bottom",
-      font:{size:9},
-      bgcolor:"rgba(255,255,255,0.88)",
-      bordercolor:"#ccc", borderwidth:1
-    },
-    dragmode:   "pan",
-    hovermode:  "x unified",
-    margin:     MARG,
-    plot_bgcolor:  "white",
-    paper_bgcolor: "#fafafa"
+    legend:      LEG,
+    hoverlabel:  HOVERSTYLE,
+    dragmode:    "pan",
+    hovermode:   "x unified",
+    margin:      MARG,
+    plot_bgcolor:  "#0d0d0d",
+    paper_bgcolor: "#0e0e0e"
   }, PCFG);
 
-  /* ══════════════════  OBJECTIVE PLOT  ════════════════════════
-     x-axis: fixed at 0–10 k, user can pan/zoom right freely,
-     cannot go left of 0                                        */
+  /* ══════════════  OBJECTIVE PLOT  ════════════════════════════════════ */
   Plotly.react("plot-obj", [
     { x:ispArr, y:lamArr, name:"λ(c)",
-      type:"scatter", mode:"lines", line:{color:"#2ca02c", width:2.2} },
+      type:"scatter", mode:"lines", line:{color:"#51cf66", width:2.2} },
     { x:[ISP_AXIS_MIN, ISP_DATA_MAX], y:[0, 0],
       type:"scatter", mode:"lines",
-      line:{color:"black", width:0.7},
+      line:{color:"rgba(255,255,255,0.18)", width:0.7},
       showlegend:false, ...SKIP },
     { x:[ispVc,   ispVc],   y:[0, 1], name:vchLbl,
       type:"scatter", mode:"lines",
-      line:{color:"red",    width:1.8, dash:"dash"}, ...SKIP },
+      line:{color:"#ff6b6b", width:1.8, dash:"dash"}, ...SKIP },
     { x:[ispCopt, ispCopt], y:[0, 1], name:coptLbl,
       type:"scatter", mode:"lines",
-      line:{color:"purple", width:1.8}, ...SKIP },
+      line:{color:"#c084fc", width:1.8}, ...SKIP },
     { x:[ispCopt], y:[lamOpt],
       type:"scatter", mode:"markers",
-      marker:{color:"purple", size:10},
+      marker:{color:"#c084fc", size:10},
       showlegend:false, ...SKIP }
   ], {
     uirevision: "xpan-obj",
-    title:{ text:titleObj, font:{size:13} },
+    title:{ text:titleObj, font:{size:13, color:"#9a9a9a"} },
+    font: PFONT,
     xaxis:{
       title:"Equivalent specific impulse  I<sub>sp</sub> = c / g₀  [s]",
       range:[ISP_AXIS_MIN, ISP_VIEW_MAX],
@@ -748,17 +772,13 @@ function update() {
     },
     shapes:      bands.shapes,
     annotations: bands.annotations,
-    legend:{
-      x:1, xanchor:"right", y:0, yanchor:"bottom",
-      font:{size:9},
-      bgcolor:"rgba(255,255,255,0.88)",
-      bordercolor:"#ccc", borderwidth:1
-    },
-    dragmode:   "pan",
-    hovermode:  "x unified",
-    margin:     MARG,
-    plot_bgcolor:  "white",
-    paper_bgcolor: "#fafafa"
+    legend:      LEG,
+    hoverlabel:  HOVERSTYLE,
+    dragmode:    "pan",
+    hovermode:   "x unified",
+    margin:      MARG,
+    plot_bgcolor:  "#0d0d0d",
+    paper_bgcolor: "#0e0e0e"
   }, PCFG);
 }
 
