@@ -1,1 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Stuhlinger Curve Applet</title>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+<style>
+/* ── reset ─────────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  display:flex;flex-direction:column;
+  font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+  background:#ddd;
+}
 
+/* ── header ─────────────────────────────────────────────────────────── */
+#hdr{
+  flex-shrink:0;
+  background:linear-gradient(90deg,#0d0d2b 0%,#1a237e 55%,#283593 100%);
+  color:#e8eaf6;padding:8px 18px;
+  font-size:15px;font-weight:600;letter-spacing:.5px;
+  user-select:none;
+}
+
+/* ── main row ────────────────────────────────────────────────────────── */
+#wrap{flex:1;display:flex;min-height:0;overflow:hidden}
+
+/* ── chart column ────────────────────────────────────────────────────── */
+#charts{flex:1;display:flex;flex-direction:column;min-width:0;background:white}
+#plot-mass,#plot-obj{flex:1;min-height:0}
+
+/* ── right panel ─────────────────────────────────────────────────────── */
+#panel{
+  flex-shrink:0;width:340px;
+  background:#fafafa;border-left:1px solid #c8c8c8;
+  padding:12px 14px 18px;overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+
+/* section title */
+.sec{
+  font-size:13px;font-weight:700;color:#1a237e;
+  border-bottom:1px solid #bbb;padding-bottom:3px;
+  margin:12px 0 7px;
+}
+.sec:first-child{margin-top:2px}
+
+/* general control block */
+.ctl{margin-bottom:8px}
+.auto-note{
+  font-size:10px;color:#666;line-height:1.45;
+  margin:2px 0 8px;
+}
+
+/* input rows */
+.irow{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.irow label{font-size:11.5px;color:#333;flex:1;padding-right:8px}
+.irow input[type="number"]{
+  width:120px;padding:3px 7px;
+  font-family:Consolas,"Courier New",monospace;
+  font-size:11.5px;text-align:right;
+  border:1px solid #bbb;border-radius:3px;
+  background:white;color:#111;
+  -moz-appearance:textfield;
+}
+.irow input[type="number"]::-webkit-outer-spin-button,
+.irow input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none}
+.irow input[type="number"]:focus{
+  outline:none;border-color:#3f51b5;background:#eef1ff
+}
+
+/* slider rows */
+.srow{
+  display:grid;grid-template-columns:44px 1fr 44px;
+  gap:8px;align-items:center;
+  margin-bottom:2px;
+}
+.srow input[type="range"]{
+  width:100%;
+  accent-color:#1a237e;
+  cursor:pointer;
+}
+.smin,.smax{
+  font-family:Consolas,"Courier New",monospace;
+  font-size:10px;color:#666;text-align:center;
+  user-select:none;
+}
+
+/* sub-hint lines */
+.shint{
+  font-size:9.5px;font-style:italic;
+  text-align:right;margin:-1px 0 5px;min-height:14px;
+}
+
+/* specific-mass regime map */
+.regbox{margin:1px 0 7px}
+.regttl{
+  font-size:9.5px;color:#666;margin-bottom:3px;
+}
+.regbar{
+  position:relative;height:24px;
+  border:1px solid #bbb;border-radius:4px;
+  overflow:hidden;background:white;
+}
+.regseg{
+  position:absolute;top:0;bottom:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:8px;line-height:1.05;text-align:center;
+  color:#111;padding:0 2px;
+  border-right:1px solid rgba(255,255,255,0.95);
+  overflow:hidden;white-space:nowrap;
+}
+.regmark{
+  position:absolute;top:-2px;bottom:-2px;width:2px;
+  background:#111;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.9);
+}
+.regticks{
+  position:relative;height:14px;margin-top:2px;
+}
+.regtick{
+  position:absolute;top:0;
+  font-size:8px;color:#666;white-space:nowrap;
+  user-select:none;
+}
+
+/* separator */
+.sep{border:none;border-top:1px solid #ddd;margin:8px 0}
+
+/* output rows */
+.orow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.olbl{font-size:11px;color:#555}
+.oval{font-family:Consolas,"Courier New",monospace;font-size:11px;font-weight:700;color:#111}
+.oval.bad{color:#c62828;font-size:10px}
+
+/* output hint lines */
+.ohint{
+  font-size:9.5px;font-style:italic;
+  text-align:right;margin:-3px 0 5px;min-height:14px;
+}
+
+/* note */
+.note{font-size:10px;color:#666;line-height:1.75;margin-top:5px}
+</style>
+</head>
+<body>
+
+<div id="hdr">⚡ Stuhlinger Curve Applet — Electric Propulsion Optimizer</div>
+
+<div id="wrap">
+
+  <!-- charts -->
+  <div id="charts">
+    <div id="plot-mass"></div>
+    <div id="plot-obj"></div>
+  </div>
+
+  <!-- sidebar -->
+  <div id="panel">
+
+    <div class="sec">Inputs</div>
+    <p class="auto-note">
+      Drag sliders or type values directly. Plots update automatically.<br>
+      The α slider is logarithmic so the technology regimes are visible.
+    </p>
+
+    <div class="ctl">
+      <div class="irow">
+        <label for="n-eta">Efficiency η</label>
+        <input type="number" id="n-eta" value="0.65" min="0.10" max="1.00" step="0.01">
+      </div>
+      <div class="srow">
+        <span class="smin">0.10</span>
+        <input type="range" id="s-eta" min="0.10" max="1.00" step="0.01" value="0.65">
+        <span class="smax">1.00</span>
+      </div>
+    </div>
+
+    <div class="ctl">
+      <div class="irow">
+        <label for="n-F">Thrust F [N]</label>
+        <input type="number" id="n-F" value="1.0" min="0.01" max="20.0" step="0.01">
+      </div>
+      <div class="srow">
+        <span class="smin">0.01</span>
+        <input type="range" id="s-F" min="0.01" max="20.0" step="0.01" value="1.0">
+        <span class="smax">20</span>
+      </div>
+    </div>
+
+    <div class="ctl">
+      <div class="irow">
+        <label for="n-alpha">Spec. mass α [kg/W]</label>
+        <input type="number" id="n-alpha" value="0.02" min="0.0001" max="10" step="any">
+      </div>
+      <div class="srow">
+        <span class="smin">1e-4</span>
+        <input type="range" id="s-alpha" min="-4" max="1" step="0.01">
+        <span class="smax">10</span>
+      </div>
+      <div class="regbox">
+        <div class="regttl">Specific-mass technology regimes</div>
+        <div class="regbar" id="alpha-tech-bar"></div>
+        <div class="regticks" id="alpha-tech-ticks"></div>
+      </div>
+      <div class="shint" id="h-psrc" style="color:#8B4513"></div>
+    </div>
+
+    <div class="ctl">
+      <div class="irow">
+        <label for="n-t">Mission time t<sub>m</sub> [days]</label>
+        <input type="number" id="n-t" value="180" min="10" max="2000" step="1">
+      </div>
+      <div class="srow">
+        <span class="smin">10</span>
+        <input type="range" id="s-t" min="10" max="2000" step="1" value="180">
+        <span class="smax">2000</span>
+      </div>
+    </div>
+
+    <div class="ctl">
+      <div class="irow">
+        <label for="n-dv">Delta-V ΔV [m/s]</label>
+        <input type="number" id="n-dv" value="3000" min="100" max="60000" step="100">
+      </div>
+      <div class="srow">
+        <span class="smin">100</span>
+        <input type="range" id="s-dv" min="100" max="60000" step="100" value="3000">
+        <span class="smax">60000</span>
+      </div>
+    </div>
+
+    <hr class="sep">
+    <div class="sec">Outputs</div>
+
+    <div class="orow">
+      <span class="olbl">Stuhlinger V<sub>ch</sub> [m/s]</span>
+      <span class="oval" id="o-vch">—</span>
+    </div>
+    <div class="ohint" id="h-vch-isp" style="color:#b05000"></div>
+
+    <div class="orow">
+      <span class="olbl">Optimum C<sub>opt</sub> [m/s]</span>
+      <span class="oval" id="o-copt">—</span>
+    </div>
+    <div class="ohint" id="h-copt-isp" style="color:#b05000"></div>
+    <div class="ohint" id="h-thr" style="color:#5500aa"></div>
+
+    <div class="orow">
+      <span class="olbl">Error E [%]</span>
+      <span class="oval" id="o-err">—</span>
+    </div>
+    <div class="orow">
+      <span class="olbl">ε (dimensionless)</span>
+      <span class="oval" id="o-eps">—</span>
+    </div>
+    <div class="orow">
+      <span class="olbl">λ at C<sub>opt</sub></span>
+      <span class="oval" id="o-lam">—</span>
+    </div>
+
+    <hr class="sep">
+    <p class="note">
+      Note: F cancels out of the<br>
+      payload-ratio objective λ(c).<br>
+      ε = α ΔV² / (2 η t<sub>m</sub>) controls<br>
+      the entire shape of λ(z).
+    </p>
+
+  </div><!-- #panel -->
+</div><!-- #wrap -->
+
+<script>
+"use strict";
+const G0 = 9.80665;
+
+/* ═══════════════════  numeric helpers  ══════════════════════════════════ */
+function linspace(a, b, n) {
+  const r = new Array(n), h = (b - a) / (n - 1);
+  for (let i = 0; i < n; i++) r[i] = a + i * h;
+  return r;
+}
+function logspace(lo, hi, n) {
+  const r = new Array(n), h = (hi - lo) / (n - 1);
+  for (let i = 0; i < n; i++) r[i] = Math.pow(10, lo + i * h);
+  return r;
+}
+const fMin = a => a.reduce((m, v) => v < m ? v : m,  Infinity);
+const fMax = a => a.reduce((m, v) => v > m ? v : m, -Infinity);
+const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
+
+/** Golden-section minimisation of f on [lo, hi] */
+function goldenMin(f, lo, hi, tol) {
+  tol = tol || 1e-12;
+  const phi = (Math.sqrt(5) - 1) / 2;
+  let c = hi - phi * (hi - lo), d = lo + phi * (hi - lo);
+  let fc = f(c), fd = f(d);
+  for (let k = 0; k < 400 && Math.abs(hi - lo) > tol; k++) {
+    if (fc < fd) { hi = d; d = c; fd = fc; c = hi - phi * (hi - lo); fc = f(c); }
+    else         { lo = c; c = d; fc = fd; d = lo + phi * (hi - lo); fd = f(d); }
+  }
+  return (lo + hi) / 2;
+}
+
+/* ═══════════════════  governing physics  ════════════════════════════════ */
+const mps     = (c, F, eta, al) => al * F * c / (2 * eta);
+const mp      = (c, F, t)       => F * t / c;
+const vch     = (eta, al, t)    => Math.sqrt(2 * eta * t / al);
+const calcEps = (eta, al, t, dV)=> al * dV * dV / (2 * eta * t);
+
+function lamZ(z, eps) {
+  if (z <= 0) return -Infinity;
+  const e = Math.exp(-Math.min(z, 700));
+  return e - eps * (1 - e) / (z * z);
+}
+function lamC(c, eta, al, t, dV) {
+  const z = dV / c, e = Math.exp(-Math.min(z, 700));
+  return e - (al * c * c / (2 * eta * t)) * (1 - e);
+}
+
+const Z_GRID = logspace(-4, 2, 8000);
+
+function findCopt(eta, al, t, dV) {
+  const eps = calcEps(eta, al, t, dV);
+
+  let bi = 0, bv = -Infinity;
+  for (let i = 0; i < Z_GRID.length; i++) {
+    const v = lamZ(Z_GRID[i], eps);
+    if (isFinite(v) && v > bv) { bv = v; bi = i; }
+  }
+
+  let lo = Z_GRID[Math.max(bi - 2, 0)];
+  let hi = Z_GRID[Math.min(bi + 2, Z_GRID.length - 1)];
+  if (hi <= lo) { lo = 0.5 * Z_GRID[bi]; hi = 2 * Z_GRID[bi]; }
+
+  const zOpt   = goldenMin(z => -lamZ(z, eps), lo, hi, 1e-12);
+  const lamOpt = lamZ(zOpt, eps);
+  return { cOpt: dV / zOpt, lamOpt, eps };
+}
+
+/* ═══════════════════  classification  ══════════════════════════════════ */
+function thrusterName(c) {
+  if (c <  1_470) return "Cold Gas";
+  if (c <  3_920) return "Resistojet";
+  if (c < 11_770) return "Arcjet";
+  if (c < 24_500) return "Hall Thruster / PPT";
+  if (c < 78_500) return "Gridded Ion Engine";
+  return "MPD / VASIMR";
+}
+function powerName(al) {
+  if (al >= 5.0)   return "Chemical";
+  if (al >= 1.0)   return "Chemical / RTG";
+  if (al >= 0.1)   return "RTG / Solar (deep-space)";
+  if (al >= 0.01)  return "Solar (near-Earth)";
+  if (al >= 0.001) return "Nuclear fission";
+  return "Advanced nuclear";
+}
+
+/* ═══════════════════  regime definitions  ══════════════════════════════ */
+const DEV_REGIMES = [
+  { lo:0,      hi:1470,   name:"Cold Gas",              short:"Cold Gas",    color:"rgba(144,202,249,0.34)" },
+  { lo:1470,   hi:3920,   name:"Resistojet",            short:"Resistojet",  color:"rgba(129,199,132,0.34)" },
+  { lo:3920,   hi:11770,  name:"Arcjet",                short:"Arcjet",      color:"rgba(255,241,118,0.34)" },
+  { lo:11770,  hi:24500,  name:"Hall Thruster / PPT",   short:"Hall / PPT",  color:"rgba(255,204,128,0.34)" },
+  { lo:24500,  hi:78500,  name:"Gridded Ion Engine",    short:"Gridded Ion", color:"rgba(206,147,216,0.34)" },
+  { lo:78500,  hi:1e9,    name:"MPD / VASIMR",          short:"MPD / VASIMR",color:"rgba(239,154,154,0.34)" }
+];
+
+const ALPHA_REGIMES = [
+  { lo:1e-4, hi:1e-3, label:"Adv Nuc", name:"Advanced nuclear",          color:"#c5cae9" },
+  { lo:1e-3, hi:1e-2, label:"Fission", name:"Nuclear fission",           color:"#b3e5fc" },
+  { lo:1e-2, hi:1e-1, label:"Solar",   name:"Solar (near-Earth)",        color:"#fff59d" },
+  { lo:1e-1, hi:1,    label:"RTG/DS",  name:"RTG / Solar (deep-space)",  color:"#ffcc80" },
+  { lo:1,    hi:5,    label:"C/RTG",   name:"Chemical / RTG",            color:"#ffab91" },
+  { lo:5,    hi:10,   label:"Chem",    name:"Chemical",                  color:"#ef9a9a" }
+];
+const ALPHA_BOUNDS = [1e-4, 1e-3, 1e-2, 1e-1, 1, 5, 10];
+
+/* ═══════════════════  DOM helpers  ═════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+
+function setVal(id, txt, bad) {
+  const el = $(id);
+  el.textContent = txt;
+  el.className = bad ? "oval bad" : "oval";
+}
+function setHint(id, txt, col) {
+  const el = $(id);
+  el.textContent = txt;
+  if (col !== undefined) el.style.color = col;
+}
+
+/** Emulate Python's f"{x:.Ng}" */
+function gFmt(x, n) {
+  if (!isFinite(x)) return String(x);
+  return parseFloat(x.toPrecision(n || 4)).toString();
+}
+
+/* ═══════════════════  control config  ══════════════════════════════════ */
+const CTRL = {
+  eta:   { num:"n-eta",   slider:"s-eta",   min:0.10,   max:1.00, step:0.01, scale:"linear" },
+  F:     { num:"n-F",     slider:"s-F",     min:0.01,   max:20.0, step:0.01, scale:"linear" },
+  alpha: { num:"n-alpha", slider:"s-alpha", min:1e-4,   max:10.0,             scale:"log"    },
+  t:     { num:"n-t",     slider:"s-t",     min:10,     max:2000, step:1,    scale:"linear" },
+  dv:    { num:"n-dv",    slider:"s-dv",    min:100,    max:60000,step:100,  scale:"linear" }
+};
+
+const alphaToSlider = a => Math.log10(a);
+const sliderToAlpha = s => Math.pow(10, s);
+
+/* ═══════════════════  alpha regime bar  ════════════════════════════════ */
+function alphaPct(a) {
+  const lo = Math.log10(CTRL.alpha.min), hi = Math.log10(CTRL.alpha.max);
+  return 100 * (Math.log10(a) - lo) / (hi - lo);
+}
+function buildAlphaRegimeBar() {
+  const bar   = $("alpha-tech-bar");
+  const ticks = $("alpha-tech-ticks");
+  bar.innerHTML = "";
+  ticks.innerHTML = "";
+
+  ALPHA_REGIMES.forEach(r => {
+    const seg = document.createElement("div");
+    seg.className = "regseg";
+    seg.textContent = r.label;
+    seg.title = `${r.name}: ${gFmt(r.lo,3)} to ${gFmt(r.hi,3)} kg/W`;
+    seg.style.left = alphaPct(r.lo) + "%";
+    seg.style.width = (alphaPct(r.hi) - alphaPct(r.lo)) + "%";
+    seg.style.background = r.color;
+    bar.appendChild(seg);
+  });
+
+  const mark = document.createElement("div");
+  mark.id = "alpha-marker";
+  mark.className = "regmark";
+  bar.appendChild(mark);
+
+  ALPHA_BOUNDS.forEach((v, i) => {
+    const tk = document.createElement("div");
+    tk.className = "regtick";
+    tk.textContent = gFmt(v, 1);
+    tk.style.left = alphaPct(v) + "%";
+    tk.style.transform = (
+      i === 0 ? "translateX(0)" :
+      i === ALPHA_BOUNDS.length - 1 ? "translateX(-100%)" :
+      "translateX(-50%)"
+    );
+    ticks.appendChild(tk);
+  });
+}
+function updateAlphaRegimeMarker(alpha) {
+  const m = $("alpha-marker");
+  if (!m) return;
+  m.style.left = `calc(${alphaPct(alpha)}% - 1px)`;
+}
+
+/* ═══════════════════  sync controls  ═══════════════════════════════════ */
+let updateRAF = 0;
+function scheduleUpdate() {
+  if (updateRAF) cancelAnimationFrame(updateRAF);
+  updateRAF = requestAnimationFrame(() => {
+    updateRAF = 0;
+    update();
+  });
+}
+
+function syncFromNumber(key, doUpdate) {
+  const c = CTRL[key], n = $(c.num), s = $(c.slider);
+  let v = +n.value;
+
+  if (!isFinite(v)) {
+    v = (c.scale === "log") ? sliderToAlpha(+s.value) : +s.value;
+  }
+  v = clamp(v, c.min, c.max);
+
+  if (c.scale === "log") {
+    n.value = gFmt(v, 6);
+    s.value = alphaToSlider(v);
+    updateAlphaRegimeMarker(v);
+  } else {
+    n.value = String(v);
+    s.value = v;
+  }
+  if (doUpdate !== false) scheduleUpdate();
+}
+
+function mirrorFromNumberIfInRange(key) {
+  const c = CTRL[key], n = $(c.num), s = $(c.slider);
+  const v = +n.value;
+  if (!isFinite(v) || v < c.min || v > c.max) return;
+
+  if (c.scale === "log") {
+    s.value = alphaToSlider(v);
+    updateAlphaRegimeMarker(v);
+  } else {
+    s.value = v;
+  }
+  scheduleUpdate();
+}
+
+function syncFromSlider(key) {
+  const c = CTRL[key], n = $(c.num), s = $(c.slider);
+  const v = (c.scale === "log") ? sliderToAlpha(+s.value) : +s.value;
+
+  if (c.scale === "log") {
+    n.value = gFmt(v, 6);
+    updateAlphaRegimeMarker(v);
+  } else {
+    n.value = String(v);
+  }
+  scheduleUpdate();
+}
+
+function bindControl(key) {
+  const c = CTRL[key], n = $(c.num), s = $(c.slider);
+
+  n.addEventListener("input",  () => mirrorFromNumberIfInRange(key));
+  n.addEventListener("change", () => syncFromNumber(key));
+  n.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      syncFromNumber(key);
+      n.blur();
+    }
+  });
+
+  s.addEventListener("input",  () => syncFromSlider(key));
+  s.addEventListener("change", () => syncFromSlider(key));
+
+  syncFromNumber(key, false);
+}
+
+/* ═══════════════════  Plotly shared config  ═════════════════════════════ */
+const PCFG = {
+  responsive: true,
+  displayModeBar: true,
+  scrollZoom: true,
+  modeBarButtonsToRemove: ["select2d", "lasso2d"]
+};
+
+const GRID = { showgrid:true, gridcolor:"rgba(0,0,0,0.15)", zeroline:false };
+const MARG = { t:76, b:48, l:65, r:14 };
+
+/* ═══════════════════  plot regime helpers  ═════════════════════════════ */
+function deviceDecor(xLo, xHi) {
+  const shapes = [], tickvals = [], ticktext = [];
+  const span = Math.max(xHi - xLo, 1);
+
+  DEV_REGIMES.forEach(r => {
+    const lo = Math.max(xLo, r.lo);
+    const hi = Math.min(xHi, r.hi);
+    if (hi <= lo) return;
+
+    shapes.push({
+      type: "rect",
+      xref: "x",
+      yref: "paper",
+      x0: lo, x1: hi, y0: 0, y1: 1,
+      fillcolor: r.color,
+      opacity: 0.16,
+      line: { width: 0 },
+      layer: "below"
+    });
+
+    const frac = (hi - lo) / span;
+    if (frac > 0.14) {
+      tickvals.push((lo + hi) / 2);
+      ticktext.push(r.name);
+    } else if (frac > 0.06) {
+      tickvals.push((lo + hi) / 2);
+      ticktext.push(r.short);
+    }
+  });
+
+  return { shapes, tickvals, ticktext };
+}
+
+/* ═══════════════════  main update  ══════════════════════════════════════ */
+function update() {
+  const eta = +$("n-eta").value;
+  const F   = +$("n-F").value;
+  const al  = +$("n-alpha").value;
+  const td  = +$("n-t").value;
+  const dV  = +$("n-dv").value;
+
+  if ([eta, F, al, td, dV].some(x => !isFinite(x) || x <= 0) || eta > 1) return;
+
+  const t       = td * 86400;
+  const Vc      = vch(eta, al, t);
+  const { cOpt, lamOpt, eps } = findCopt(eta, al, t, dV);
+  const errPct  = 100 * Math.abs(cOpt - Vc) / cOpt;
+  const ispVc   = Vc   / G0;
+  const ispCopt = cOpt / G0;
+
+  /* ── output panel ──────────────────────────────────────────── */
+  setVal ("o-vch",  Vc.toFixed(2));
+  setHint("h-vch-isp", `Isp = ${ispVc.toFixed(1)} s`, "#b05000");
+  setVal ("o-eps",  gFmt(eps, 4));
+  setHint("h-psrc", `Current α regime: ${powerName(al)}`, "#8B4513");
+
+  if (lamOpt <= 0) {
+    setVal ("o-copt", "MISSION NOT POSSIBLE", true);
+    setVal ("o-err",  "N/A",                  true);
+    setVal ("o-lam",  "MISSION NOT POSSIBLE", true);
+    setHint("h-copt-isp", "MISSION NOT POSSIBLE", "red");
+    setHint("h-thr", "", "#5500aa");
+  } else {
+    setVal ("o-copt", cOpt.toFixed(2));
+    setVal ("o-err",  errPct.toFixed(3));
+    setVal ("o-lam",  lamOpt.toFixed(6));
+    setHint("h-copt-isp", `Isp = ${ispCopt.toFixed(1)} s`, "#b05000");
+    setHint("h-thr", `Optimum device regime: ${thrusterName(cOpt)}`, "#5500aa");
+  }
+
+  /* ── c grid ────────────────────────────────────────────────── */
+  const cRef  = Math.max(Vc, cOpt, dV);
+  const cLow  = Math.max(cRef * 0.02, 1);
+  const cHigh = cRef * 3;
+  const cArr  = linspace(cLow, cHigh, 1200);
+  const dev   = deviceDecor(cLow, cHigh);
+
+  /* ── mass arrays ───────────────────────────────────────────── */
+  const mpsArr = cArr.map(c => mps(c, F, eta, al));
+  const mpArr  = cArr.map(c => mp(c, F, t));
+  const totArr = mpsArr.map((v, i) => v + mpArr[i]);
+  const mTotVc = mps(Vc, F, eta, al) + mp(Vc, F, t);
+  const yMHi   = 5 * mTotVc;
+
+  /* ── objective array ───────────────────────────────────────── */
+  const lamArr = cArr.map(c => lamC(c, eta, al, t, dV));
+  const finL   = lamArr.filter(Number.isFinite);
+  const lMin   = finL.length ? fMin(finL) : -1;
+  const lMax   = finL.length ? fMax(finL) :  1;
+  const pad    = 0.1 * (lMax - lMin + 1e-12);
+  const yOLo   = lMin - pad;
+  const yOHi   = lMax + pad;
+
+  /* ── legend labels ─────────────────────────────────────────── */
+  const vchLbl  = `V_ch  = ${Math.round(Vc)}   m/s  (Isp ${Math.round(ispVc)} s)`;
+  const coptLbl = `C_opt = ${Math.round(cOpt)} m/s  (Isp ${Math.round(ispCopt)} s)`;
+
+  const SKIP = { hoverinfo:"skip" };
+  const epsLbl = gFmt(eps, 3);
+  const titleObj = lamOpt <= 0
+    ? `Objective function   (ε = ${epsLbl},   no feasible positive λ)`
+    : `Objective function   (ε = ${epsLbl},   C_opt = ${Math.round(cOpt)} m/s)`;
+
+  /* ══════════════════  MASS PLOT  ══════════════════════════════ */
+  Plotly.react("plot-mass", [
+    { x:cArr, y:mpsArr, name:"m_ps  (power system)",
+      type:"scatter", mode:"lines", line:{color:"#1f77b4", width:1.8} },
+    { x:cArr, y:mpArr,  name:"m_p   (propellant)",
+      type:"scatter", mode:"lines", line:{color:"#ff7f0e", width:1.8} },
+    { x:cArr, y:totArr, name:"m_ps + m_p  (total)",
+      type:"scatter", mode:"lines", line:{color:"#2ca02c", width:2.8} },
+    { x:[Vc,  Vc  ], y:[0, yMHi], name:vchLbl,
+      type:"scatter", mode:"lines",
+      line:{color:"red", width:1.8, dash:"dash"}, ...SKIP },
+    { x:[cOpt,cOpt], y:[0, yMHi], name:coptLbl,
+      type:"scatter", mode:"lines",
+      line:{color:"purple", width:1.8}, ...SKIP },
+    { x:[Vc], y:[mTotVc], type:"scatter", mode:"markers",
+      marker:{color:"red", symbol:"triangle-up", size:11},
+      showlegend:false, ...SKIP }
+  ], {
+    title: {
+      text:"Propulsion-system masses (Stuhlinger problem)",
+      font:{size:13}
+    },
+    xaxis: {
+      title:"Exhaust velocity  c  [m/s]",
+      range:[cLow, cHigh],
+      ...GRID
+    },
+    xaxis2: {
+      overlaying:"x",
+      side:"top",
+      range:[cLow, cHigh],
+      tickmode:"array",
+      tickvals:dev.tickvals,
+      ticktext:dev.ticktext,
+      ticks:"",
+      showgrid:false,
+      zeroline:false,
+      showline:false,
+      tickfont:{size:9,color:"#444"}
+    },
+    yaxis: {
+      title:"Mass  [kg]",
+      range:[0, yMHi],
+      ...GRID
+    },
+    shapes: dev.shapes,
+    legend: {
+      x:1, xanchor:"right", y:1, yanchor:"top",
+      font:{size:9},
+      bgcolor:"rgba(255,255,255,0.85)",
+      bordercolor:"#ccc", borderwidth:1
+    },
+    hovermode:"x unified",
+    margin:MARG,
+    plot_bgcolor:"white",
+    paper_bgcolor:"#fafafa"
+  }, PCFG);
+
+  /* ══════════════════  OBJECTIVE PLOT  ════════════════════════ */
+  Plotly.react("plot-obj", [
+    { x:cArr, y:lamArr, name:"λ(c)",
+      type:"scatter", mode:"lines", line:{color:"#2ca02c", width:2.2} },
+    { x:[cLow, cHigh], y:[0, 0],
+      type:"scatter", mode:"lines", line:{color:"black", width:0.7},
+      showlegend:false, ...SKIP },
+    { x:[Vc,  Vc  ], y:[yOLo, yOHi], name:vchLbl,
+      type:"scatter", mode:"lines",
+      line:{color:"red", width:1.8, dash:"dash"}, ...SKIP },
+    { x:[cOpt,cOpt], y:[yOLo, yOHi], name:coptLbl,
+      type:"scatter", mode:"lines",
+      line:{color:"purple", width:1.8}, ...SKIP },
+    { x:[cOpt], y:[lamOpt], type:"scatter", mode:"markers",
+      marker:{color:"purple", size:10},
+      showlegend:false, ...SKIP }
+  ], {
+    title: {
+      text:titleObj,
+      font:{size:13}
+    },
+    xaxis: {
+      title:"Exhaust velocity  c  [m/s]",
+      range:[cLow, cHigh],
+      ...GRID
+    },
+    xaxis2: {
+      overlaying:"x",
+      side:"top",
+      range:[cLow, cHigh],
+      tickmode:"array",
+      tickvals:dev.tickvals,
+      ticktext:dev.ticktext,
+      ticks:"",
+      showgrid:false,
+      zeroline:false,
+      showline:false,
+      tickfont:{size:9,color:"#444"}
+    },
+    yaxis: {
+      title:"Payload ratio  λ = m_L / m₀",
+      range:[yOLo, yOHi],
+      ...GRID
+    },
+    shapes: dev.shapes,
+    legend: {
+      x:1, xanchor:"right", y:0, yanchor:"bottom",
+      font:{size:9},
+      bgcolor:"rgba(255,255,255,0.85)",
+      bordercolor:"#ccc", borderwidth:1
+    },
+    hovermode:"x unified",
+    margin:MARG,
+    plot_bgcolor:"white",
+    paper_bgcolor:"#fafafa"
+  }, PCFG);
+}
+
+/* ═══════════════════  init  ════════════════════════════════════════════ */
+buildAlphaRegimeBar();
+["eta","F","alpha","t","dv"].forEach(bindControl);
+update();
+</script>
+</body>
+</html>
