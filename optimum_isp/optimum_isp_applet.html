@@ -389,49 +389,23 @@ footer {
   <span class="key hl-thrust">propulsion device</span> is best for the desired mission.
 </p>
 
-<!-- ════════════════ CONCEPTUAL QUESTIONS ════════════════ -->
+<!-- ════════════════ CONCEPTUAL QUESTIONS (BULLET POINTS) ════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Conceptual Questions</div>
 
-  <details class="clarify-detail">
-    <summary>Why isn't higher <span class="key hl-ve">specific impulse</span> always better? How does higher
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>Why isn't higher <span class="key hl-ve">specific impulse</span> always better? How does higher
     <span class="key hl-ve">specific impulse</span> affect <span class="key">mission time</span> for a given
-    <span class="key hl-power">power source</span>?</summary>
-    <div class="clarify-body">
-      <span class="key hl-thrust">Spacecraft propulsion systems</span> must work to satisfy a desired
-      <span class="key hl-ve">Delta-V</span>, but also a desired <span class="key">mission time</span> and
-      <span class="key hl-mass">payload mass</span>. The best <span class="key hl-ve">specific impulse</span>
-      isn't the one that gets a spacecraft from Low Earth Orbit (LEO) to Pluto, but rather one that satisfies the
-      specified <span class="key">mission requirements</span>. If we instead decide to arbitrarily overdesign
-      without increasing the technology level and efficiency of our <span class="key hl-power">power system</span>,
-      we must compromise on a mission specification. For example, if a spacecraft uses
-      <span class="key hl-power">solar panels</span> for power, the
-      <span class="key hl-power">specific mass</span> is fairly low: to achieve high mass efficiency, it must
-      compromise on <span class="key hl-thrust">thrust</span> and thus <span class="key">mission time</span>.
-    </div>
-  </details>
+    <span class="key hl-power">power source</span>?</span>
+  </div>
 
-  <details class="clarify-detail">
-    <summary><span class="key hl-ve">Delta-V</span> means change in velocity, but what does this really mean for
-    a spacecraft? Satellites in Low Earth Orbit (LEO) or in gravity wells experience losses through
-    <span class="key hl-press">drag</span> and gravity — how does <span class="key hl-ve">Delta-V</span>
-    account for this?</summary>
-    <div class="clarify-body">
-      <span class="key hl-ve">Delta-V</span> can be thought of as the "currency" a spacecraft must spend in
-      order to perform orbital maneuvers, such as transfers, rendezvous, and docking. Such examples clearly
-      show a change in velocity of the spacecraft, but other applications, such as
-      <span class="key hl-press">drag</span> cancellation or spiral climbs are not so clear. That is, the
-      <span class="key hl-ve">Delta-V</span> "spent" by the spacecraft doesn't correspond one-to-one with
-      the change in velocity of the spacecraft. These <span class="key hl-press">drag</span> and gravity losses
-      can be considered <span class="key hl-ve">Delta-V</span> penalties that take from the spacecraft's
-      <span class="key hl-ve">Delta-V budget</span>. However, just because these losses are
-      <span class="key hl-ve">Delta-V</span> penalties doesn't mean we shouldn't use
-      <span class="key hl-thrust">propulsion systems</span> where these losses exist. For example, mega
-      constellations, such as SpaceX's Starlink and Amazon's LEO, use
-      <span class="key hl-power">electric thrusters</span> for long-term
-      <span class="key hl-press">drag</span> cancellation in addition to orbit raising and deorbiting.
-    </div>
-  </details>
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>How does our mission <span class="key hl-ve">Delta-V</span> affect the optimum
+    <span class="key hl-ve">exhaust velocity</span> and thus desired
+    <span class="key hl-ve">specific impulse</span>?</span>
+  </div>
 </div>
 
 <!-- ════════════════ APPLET PLACEHOLDER ════════════════ -->
@@ -450,6 +424,89 @@ footer {
       propulsion system annotation on the labeled Stuhlinger curve.
     </div>
   </div>
+</div>
+
+<!-- ════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>Why isn't higher <span class="key hl-ve">specific impulse</span> always better? How does higher
+    <span class="key hl-ve">specific impulse</span> affect <span class="key">mission time</span> for a given
+    <span class="key hl-power">power source</span>?</summary>
+    <div class="clarify-body">
+      <span class="key hl-thrust">Spacecraft propulsion systems</span> must satisfy a desired
+      <span class="key hl-ve">mission Delta-V</span>, a required <span class="key">mission time</span>, and a
+      desired <span class="key hl-mass">payload mass</span>. The best
+      <span class="key hl-ve">specific impulse</span> is therefore not simply the highest one available, but the one
+      that best satisfies the full set of <span class="key">mission requirements</span>. If we arbitrarily increase
+      <span class="key hl-ve">specific impulse</span> without increasing the technology level or efficiency of the
+      <span class="key hl-power">power system</span>, we must usually compromise somewhere else. For a fixed
+      <span class="key hl-power">power source</span>, higher <span class="key hl-ve">specific impulse</span>
+      generally means lower <span class="key hl-thrust">thrust</span>, which increases
+      <span class="key">mission time</span>. For example, a spacecraft powered by
+      <span class="key hl-power">solar panels</span> may achieve excellent propellant efficiency, but only by
+      accepting lower <span class="key hl-thrust">thrust</span> and therefore a longer
+      <span class="key">mission time</span>.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>How does our mission <span class="key hl-ve">Delta-V</span> affect the optimum
+    <span class="key hl-ve">exhaust velocity</span> and thus desired
+    <span class="key hl-ve">specific impulse</span>?</summary>
+    <div class="clarify-body">
+      As long as the required <span class="key hl-ve">mission Delta-V</span> is small compared with the effective
+      <span class="key hl-ve">exhaust velocity</span> $c$, the
+      <span class="key hl-ve">Stuhlinger characteristic velocity</span> is a good approximation to the optimum
+      <span class="key hl-ve">exhaust velocity</span>. Lowering the required
+      <span class="key hl-ve">mission Delta-V</span>, while holding other <span class="key">mission parameters</span>
+      fixed, favors lower <span class="key hl-thrust">thrust</span>, higher
+      <span class="key hl-ve">specific impulse</span> propulsion because more time is available to build up the
+      required change in velocity. Raising the required <span class="key hl-ve">mission Delta-V</span> for the same
+      <span class="key">mission time</span> instead favors higher <span class="key hl-thrust">thrust</span>, lower
+      <span class="key hl-ve">specific impulse</span> propulsion, since less time is available for the
+      <span class="key hl-power">power system</span> to supply the needed energy. In that sense, higher
+      <span class="key hl-ve">mission Delta-V</span> pushes the design toward shorter, more power-intensive burns,
+      while lower <span class="key hl-ve">mission Delta-V</span> makes slower, more mass-efficient propulsion more
+      attractive.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════ CLARIFYING POINTS (DROPDOWNS) ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Clarifying Points</div>
+
+  <details class="clarify-detail">
+    <summary>Why do we only care about optimizing for <span class="key hl-mass">payload mass</span>?
+    Aren't there other design specifications that our spacecraft can be optimized for?</summary>
+    <div class="clarify-body">
+      This is an important observation. In many missions, we seek to maximize
+      <span class="key hl-mass">payload mass</span> so that the spacecraft can carry as much useful equipment or cargo
+      as possible, such as telecommunications hardware, imaging instruments, telescopes, scientific packages, or crew
+      supplies. However, some missions care more about other <span class="key">design objectives</span>, such as
+      shorter <span class="key">mission time</span>, lower total cost, or greater reliability. The
+      <span class="key hl-ve">Stuhlinger curve</span> is specifically useful for understanding how to maximize
+      <span class="key hl-mass">payload mass</span>, but the underlying ideas and mathematics also provide a strong
+      foundation for optimizing other <span class="key">mission parameters</span>.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>If the <span class="key hl-ve">Stuhlinger characteristic velocity</span> isn't the optimum
+    <span class="key hl-ve">exhaust velocity</span>, what is its significance?</summary>
+    <div class="clarify-body">
+      MIT's 16.522 course notes capture the meaning of <span class="key hl-ve">$v_{ch}$</span> well: if all
+      <span class="key hl-power">power + propulsion mass</span> were accelerated by converting all available
+      <span class="key hl-power">electrical energy</span> during time $t_m$, it would reach
+      <span class="key hl-ve">$v_{ch}$</span>. It is therefore effectively the
+      <span class="key hl-ve">speed limit</span> of the <span class="key hl-thrust">propulsion system</span>. A real
+      spacecraft never reaches this speed, because some of its mass must remain as
+      <span class="key hl-mass">payload</span>, <span class="key hl-mass">structure</span>, tanks, and other
+      non-propellant components.
+    </div>
+  </details>
 </div>
 
 <!-- ════════════════ DELTA-V & IRE ════════════════ -->
@@ -632,7 +689,7 @@ footer {
     <span class="key">mission times</span>, however, require high
     <span class="key hl-thrust">thrust</span> and may not be able to "afford" the
     <span class="key hl-power">power</span> of a high <span class="key hl-ve">specific impulse</span>,
-    high <span class="key hl-thrust">thrust</span> propulsion system — thus choosing a less mass efficient
+    high <span class="key hl-thrust">thrust</span> propulsion system, thus choosing a less mass efficient
     propulsion system. For example, a deep space probe (which uses
     <span class="key hl-power">electric thrusters</span>) has a much greater permitted
     <span class="key">mission time</span> than a manned mission to the Moon (which uses conventional
@@ -725,24 +782,6 @@ footer {
 
       </div>
     </details>
-  </div>
-</div>
-
-<!-- ════════════════ CLARIFYING POINTS ════════════════ -->
-<div class="clarify-section">
-  <div class="clarify-hdr">Clarifying Points</div>
-
-  <div class="clarify-plain">
-    <span class="clarify-plain-marker">&#9670;</span>
-    <span>Why do we only care about optimizing for <span class="key hl-mass">payload mass</span>?
-    Aren't there other design specifications that our spacecraft can be optimized for?</span>
-  </div>
-
-  <div class="clarify-plain">
-    <span class="clarify-plain-marker">&#9670;</span>
-    <span>If we aim to minimize the <span class="key hl-power">specific mass</span> of our
-    <span class="key hl-power">power system</span>, why do we ignore
-    <span class="key hl-thrust">chemical power</span> from our analysis?</span>
   </div>
 </div>
 
