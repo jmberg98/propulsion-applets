@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
 <style>
-/* ── design tokens (shared with subway-map applet) ───────────── */
+/* ── design tokens ───────────────────────────────────────────── */
 :root {
   --c-accent:       #d0d0d0;
   --text-main:      #f1f1f1;
@@ -59,21 +59,15 @@ body {
   font-style: italic; margin-left: 10px;
 }
 
-
-/* ── charts — stacked, full width ────────────────────────────── */
+/* ── charts ──────────────────────────────────────────────────── */
 #charts {
   display: grid;
-  grid-template-columns: 1fr;          /* single column → full width */
-  grid-template-rows: 1fr 1fr;         /* equal height rows          */
-  height: 112vh;                       /* two panels × ~56 vh each   */
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr 1fr;
+  height: 112vh;
   min-height: 720px;
   background: var(--border);
   gap: 1px;
-}
-#plot-mass, #plot-obj {
-  background: var(--bg-page);
-  min-width: 0;
-  min-height: 0;
 }
 #plot-mass, #plot-obj {
   background: var(--bg-page);
@@ -84,7 +78,7 @@ body {
 /* ── control frame ───────────────────────────────────────────── */
 .control-frame {
   margin: 16px 24px 28px;
-  background: rgba(8, 8, 8, 0.97);
+  background: rgba(8,8,8,0.97);
   border: 1px solid #252525;
   border-radius: 12px;
   padding: 18px 24px;
@@ -132,10 +126,12 @@ body {
 .cf-sym  { text-align: center; font-size: 13px; color: var(--text-secondary); }
 .cf-desc { font-size: 12px; color: #727272; line-height: 1.3; }
 .cf-unit { font-size: 11px; color: #444; white-space: nowrap; }
+
+/* ↑ INPUT FONT: 13 → 15 px */
 .cf-inp  {
   width: 100%; padding: 5px 7px;
   font-family: 'Courier New', monospace;
-  font-size: 13px; text-align: right;
+  font-size: 15px; text-align: right;
   background: var(--bg-panel-4); color: var(--c-accent);
   border: 1px solid var(--border); border-radius: 4px;
   transition: border-color .15s, background .15s;
@@ -176,15 +172,19 @@ body {
   font-size: 11px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: #545454; margin-bottom: 4px;
 }
+
+/* ↑ MAIN OUTPUT VALUE: 24 → 30 px */
 .cf-out-value {
   font-family: 'Courier New', monospace;
-  font-size: 24px; font-weight: 700;
+  font-size: 30px; font-weight: 700;
   color: var(--text-heading); letter-spacing: .5px; line-height: 1.2;
 }
-.cf-out-value.bad { color: #ff8e8e; font-size: 12px; line-height: 1.6; }
+.cf-out-value.bad { color: #ff8e8e; font-size: 13px; line-height: 1.6; }
+
+/* ↑ ISP HINT LINE: 11 → 15 px */
 .cf-out-hint {
-  font-size: 11px; color: var(--hi-blue);
-  margin-top: 3px; min-height: 15px;
+  font-size: 15px; color: var(--hi-blue);
+  margin-top: 3px; min-height: 18px;
 }
 
 /* ── secondary output rows ───────────────────────────────────── */
@@ -193,11 +193,13 @@ body {
   flex-wrap: wrap; gap: 4px; margin-top: 10px;
 }
 .cf-olbl { font-size: 12px; color: #545454; }
+
+/* ↑ SECONDARY OUTPUT VALUE: 13 → 16 px */
 .cf-oval {
   font-family: 'Courier New', monospace;
-  font-size: 13px; font-weight: 700; color: var(--text-heading);
+  font-size: 16px; font-weight: 700; color: var(--text-heading);
 }
-.cf-oval.bad { color: #ff8e8e; font-size: 9.5px; }
+.cf-oval.bad { color: #ff8e8e; font-size: 10px; }
 
 /* ── info boxes ──────────────────────────────────────────────── */
 .cf-info-box {
@@ -366,8 +368,6 @@ body {
         <div class="cf-out-value" id="o-vch">—</div>
         <div class="cf-out-hint" id="h-vch-isp">Isp = — s</div>
       </div>
-
-      
     </div>
 
     <!-- Col 4: True Optimum -->
@@ -652,16 +652,6 @@ function bindControl(key) {
   syncFromNumber(key, false);
 }
 
-function resetDefaults() {
-  $("n-eta").value   = "0.65";
-  $("n-F").value     = "1.0";
-  $("n-alpha").value = "0.02";
-  $("n-t").value     = "180";
-  $("n-dv").value    = "3000";
-  ["eta","F","alpha","t","dv"].forEach(k => syncFromNumber(k, false));
-  update();
-}
-
 /* ═══════════════════  Plotly shared config  ════════════════════════════ */
 const PCFG = {
   responsive: true,
@@ -731,7 +721,7 @@ function deviceOverlay(xLo, xHi) {
     annotations.push({
       x, y: 0.5*(y0+y1),
       xref:"x", yref:"paper", xanchor,
-      yanchor: "middle",          // ← add this line
+      yanchor:"middle",
       text:`<b>${r.short}</b>`,
       showarrow:false, align:"center",
       font:{size:11, color:"#d0d0d0"},
@@ -763,22 +753,26 @@ function update() {
   /* ── outputs ─────────────────────────────────────────────────────── */
   setVal ("o-vch", Vc.toFixed(2));
   setHint("h-vch-isp", `Isp = ${ispVc.toFixed(1)} s`, "#3DBFFF");
-  //setVal ("o-eps", gFmt(eps, 4));
 
   $("h-psrc").textContent = powerName(al);
 
   if (lamOpt <= 0) {
-    setVal ("o-copt", "MISSION NOT POSSIBLE", true);
-    setVal ("o-err",  "N/A", true);
-    setVal ("o-lam",  "MISSION NOT POSSIBLE", true);
-    setHint("h-copt-isp", "Mission not feasible", "#ff6b6b");
-    $("h-thr").textContent = "Mission not feasible";
+    /* C_opt: blank dash, no value shown */
+    setVal ("o-copt", "—");
+    /* Isp hint: blank */
+    setHint("h-copt-isp", "—", "#444444");
+    /* Payload ratio: 0 */
+    setVal ("o-lam",  "0.000000");
+    /* Error: N/A */
+    setVal ("o-err",  "N/A");
+    /* Technology box: mission not possible */
+    $("h-thr").textContent = "Mission not possible";
     $("h-thr").className   = "cf-info-box warn";
   } else {
     setVal ("o-copt", cOpt.toFixed(2));
+    setHint("h-copt-isp", `Isp = ${ispCopt.toFixed(1)} s`, "#3DBFFF");
     setVal ("o-err",  errPct.toFixed(3));
     setVal ("o-lam",  lamOpt.toFixed(6));
-    setHint("h-copt-isp", `Isp = ${ispCopt.toFixed(1)} s`, "#3DBFFF");
     $("h-thr").textContent = deviceLabelText(ispCopt);
     $("h-thr").className   = "cf-info-box";
   }
