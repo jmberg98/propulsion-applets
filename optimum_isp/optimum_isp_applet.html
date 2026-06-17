@@ -380,7 +380,7 @@ footer {
   <span class="badge">In-Space</span>
 </div>
 
-<!-- ════════════════════ INTRO ════════════════════ -->
+<!-- ════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   Spacecraft and satellites are designed with <span class="key">mission requirements</span> in mind, namely a
   <span class="key hl-ve">mission Delta-V</span>, desired <span class="key hl-mass">payload mass</span>, and
@@ -632,84 +632,31 @@ footer {
     <details class="deriv-detail">
       <summary>Show mass breakdown</summary>
       <div class="deriv-inner">
-
         <span class="eq-step-label">Wet Mass</span>
-        $$
-        \textcolor{#FF4400}{m_0}
-        =
-        \textcolor{#C060FF}{m_{ps}}
-        +
-        \textcolor{#FF4400}{m_p}
-        +
-        \textcolor{#FF4400}{m_s}
-        +
-        \textcolor{#FF4400}{m_{pay}}
-        $$
-
+        $$ \textcolor{#FF4400}{m_0} = \textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p}+\textcolor{#FF4400}{m_s}+\textcolor{#FF4400}{m_{pay}} $$
         <span class="eq-step-label">Dry Mass</span>
-        $$
-        \textcolor{#FF4400}{m_f}
-        =
-        \textcolor{#FF4400}{m_0}
-        -
-        \textcolor{#FF4400}{m_p}
-        $$
-
+        $$ \textcolor{#FF4400}{m_f} = \textcolor{#FF4400}{m_0}-\textcolor{#FF4400}{m_p} $$
+        <span class="eq-step-label">Structural Mass</span>
+        $$ \textcolor{#FF4400}{m_s} $$
+        <span class="eq-step-label">Payload Mass</span>
+        $$ \textcolor{#FF4400}{m_{pay}} $$
         <div class="eq-divider"></div>
-
-        <span class="eq-step-label">Power Source Mass — recall $\textcolor{#C060FF}{\alpha}\;[\mathrm{kg/W}]$</span>
-        $$
-        \textcolor{#C060FF}{P_j}
-        =
-        \tfrac{1}{2}\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^{2},
-        \qquad
-        \textcolor{#C060FF}{P_j}
-        =
-        \textcolor{#C060FF}{\eta}\,\textcolor{#C060FF}{P_{in}}
-        $$
-
-        $$
-        \textcolor{#C060FF}{m_{ps}}
-        =
-        \textcolor{#C060FF}{\alpha}\,\textcolor{#C060FF}{P_{in}}
-        =
-        \frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#C060FF}{P_j}}{\textcolor{#C060FF}{\eta}}
-        =
-        \frac{\textcolor{#C060FF}{\alpha}}{2\,\textcolor{#C060FF}{\eta}}\,
-        \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^{2}
-        =
-        \frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}\,
-        \textcolor{#FF4400}{m_p}
-        $$
-
-        $$
-        \boxed{
-        \textcolor{#C060FF}{m_{ps}}
-        =
-        \frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}\,
-        \textcolor{#FF4400}{m_0}\!\left[1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right]
-        }
-        $$
-
+        <span class="eq-step-label">Power Source Mass</span>
+        $$ \textcolor{#C060FF}{m_{ps}}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}} $$
+        $$ \textcolor{#C060FF}{m_{ps}}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{m_0} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left[1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right] $$
+        <span class="eq-step-label">Derivation</span>
+        $$ \text{Recall: }\textcolor{#C060FF}{\alpha}=\frac{\textcolor{#C060FF}{m}}{\textcolor{#C060FF}{P}}\quad [kg/W] $$
+        $$ \textcolor{#C060FF}{P_j}=\frac12 \textcolor{#FF4400}{\dot m} \textcolor{#3DBFFF}{c}^2=\frac12 \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c} $$
+        $$ \textcolor{#C060FF}{P_j}=\textcolor{#C060FF}{\eta} \textcolor{#C060FF}{P_{in}} $$
+        $$ \textcolor{#C060FF}{m_{ps}}=\textcolor{#C060FF}{\alpha} \textcolor{#C060FF}{P_{in}}=\textcolor{#C060FF}{\alpha}\frac{\textcolor{#C060FF}{P_j}}{\textcolor{#C060FF}{\eta}}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}} $$
+        $$ =\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta}}\textcolor{#FF4400}{\dot m}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta}\,t_m}\textcolor{#FF4400}{m_0}\left[1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right] $$
         <div class="eq-divider"></div>
-
         <span class="eq-step-label">Propellant Mass</span>
-        $$
-        \textcolor{#FF4400}{m_p}
-        =
-        \textcolor{#FF4400}{\dot{m}}\,t_m
-        =
-        \textcolor{#FF4400}{m_0}-\textcolor{#FF4400}{m_f}
-        $$
-
-        $$
-        \boxed{
-        \textcolor{#FF4400}{m_p}
-        =
-        \textcolor{#FF4400}{m_0}\!\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)
-        }
-        $$
-
+        $$ \textcolor{#FF4400}{m_p}=\frac{\textcolor{#FF4400}{F_N}}{\textcolor{#3DBFFF}{c}}t_m $$
+        $$ \textcolor{#FF4400}{m_p}=\textcolor{#FF4400}{m_0}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
+        <span class="eq-step-label">Derivation</span>
+        $$ \textcolor{#FF4400}{m_p}=\textcolor{#FF4400}{\dot m} t_m=\frac{\textcolor{#FF4400}{F_N}}{\textcolor{#3DBFFF}{c}}t_m $$
+        $$ =\textcolor{#FF4400}{\dot m} t_m=\textcolor{#FF4400}{m_0}-\textcolor{#FF4400}{m_f}=\textcolor{#FF4400}{m_0}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
       </div>
     </details>
   </div>
@@ -743,44 +690,12 @@ footer {
     <details class="deriv-detail">
       <summary>Show Stuhlinger velocity derivation</summary>
       <div class="deriv-inner">
-
-        <span class="eq-step-label">Seek to minimize mass of power + propulsion system w.r.t. $\textcolor{#3DBFFF}{c}$</span>
-        $$
-        \mathrm{Obj}:\;
-        \textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p}
-        =
-        \!\left(\frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}+1\right)\!
-        \textcolor{#FF4400}{m_p}
-        =
-        \!\left(\frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}+1\right)\!
-        \textcolor{#FF4400}{m_0}\!\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)
-        $$
-
-        <span class="eq-step-label">Stuhlinger approximation: $\textcolor{#3DBFFF}{\Delta v}\ll\textcolor{#3DBFFF}{c}\;\Rightarrow\;\textcolor{#FF4400}{m_p}\approx\textcolor{#FF4400}{m_0}\,\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}$</span>
-        $$
-        \textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p}
-        \approx
-        \textcolor{#FF4400}{m_0}\,\textcolor{#3DBFFF}{\Delta v}
-        \!\left(\frac{1}{\textcolor{#3DBFFF}{c}}+\frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}}{2\,\textcolor{#C060FF}{\eta}\,t_m}\right)
-        $$
-
-        <span class="eq-step-label">$\dfrac{d}{d\textcolor{#3DBFFF}{c}}\!\left(\textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p}\right)=0$</span>
-        $$
-        -\frac{1}{\textcolor{#3DBFFF}{c}^{2}}+\frac{\textcolor{#C060FF}{\alpha}}{2\,\textcolor{#C060FF}{\eta}\,t_m}=0
-        $$
-
-        $$
-        \textcolor{#3DBFFF}{c}^{2}=\frac{2\,\textcolor{#C060FF}{\eta}\,t_m}{\textcolor{#C060FF}{\alpha}}
-        $$
-
-        $$
-        \boxed{
-        \textcolor{#3DBFFF}{v_{ch}}
-        \equiv
-        \sqrt{\frac{2\,\textcolor{#C060FF}{\eta}\,t_m}{\textcolor{#C060FF}{\alpha}}}
-        }
-        $$
-
+      <span class="eq-step-label">Derivation</span>
+      <p>Seek to minimize mass of power + propulsion system w/ respect to <span class="hl-ve">c</span></p>
+      $$ \left.\frac{d(\textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p})}{d\textcolor{#3DBFFF}{c}}\right|_{\textcolor{#FF4400}{F_N},\textcolor{#C060FF}{\eta},t_m}=\frac{d}{d\textcolor{#3DBFFF}{c}}\left(\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}}+\frac{\textcolor{#FF4400}{F_N}}{c}t_m\right)=0 $$
+      $$ \rightarrow \frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N}}{2\textcolor{#C060FF}{\eta}}-\frac{\textcolor{#FF4400}{F_N} t_m}{\textcolor{#3DBFFF}{c}^2}=0 $$
+      $$ \rightarrow \textcolor{#3DBFFF}{c}^2=\frac{2\textcolor{#C060FF}{\eta} t_m}{\textcolor{#C060FF}{\alpha}} $$
+      $$ \rightarrow \textcolor{#3DBFFF}{v_{ch}}\equiv\sqrt{\frac{2\textcolor{#C060FF}{\eta} t_m}{\textcolor{#C060FF}{\alpha}}} $$
       </div>
     </details>
 
@@ -788,55 +703,21 @@ footer {
 
     <span class="eq-step-label">Optimum Exhaust Velocity Objective</span>
     $$
-    \boxed{
-    \frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}}{\textcolor{#FF4400}{m_0}}
-    =
-    1
-    -
-    \!\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)\!
-    \!\left(1+\frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}\right)
-    }
+    \boxed{\mathrm{Obj}=e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)}
     $$
     <span class="eq-caption">(Maximum at $\textcolor{#3DBFFF}{c_{opt}}$)</span>
 
     <details class="deriv-detail">
       <summary>Show optimum exhaust velocity derivation</summary>
       <div class="deriv-inner">
-
-        <span class="eq-step-label">Seek to maximize mass of structure + payload w.r.t. $\textcolor{#3DBFFF}{c}$</span>
-        $$
-        \mathrm{Obj}:\;
-        \textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}
-        =
-        \textcolor{#FF4400}{m_0}-\textcolor{#C060FF}{m_{ps}}-\textcolor{#FF4400}{m_p}
-        $$
-
-        $$
-        =
-        \textcolor{#FF4400}{m_0}
-        -\frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}\,
-        \textcolor{#FF4400}{m_0}\!\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)
-        -\textcolor{#FF4400}{m_0}\!\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)
-        $$
-
-        $$
-        =
-        \textcolor{#FF4400}{m_0}
-        \!\left[1-\!\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)\!
-        \!\left(1+\frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}\right)\right]
-        $$
-
-        $$
-        \boxed{
-        \frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}}{\textcolor{#FF4400}{m_0}}
-        =
-        1
-        -
-        \!\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)\!
-        \!\left(1+\frac{\textcolor{#C060FF}{\alpha}\,\textcolor{#3DBFFF}{c}^{2}}{2\,\textcolor{#C060FF}{\eta}\,t_m}\right)
-        }
-        $$
-
+      <span class="eq-step-label">Derivation</span>
+      <p>Seek to maximize mass of structure + payload w/ respect to <span class="hl-ve">c</span></p>
+      $$ \mathrm{Obj}=\frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}}{\textcolor{#FF4400}{m_0}} $$
+      $$ =\frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}+\textcolor{#FF4400}{m_p}+\textcolor{#C060FF}{m_{ps}}-\textcolor{#C060FF}{m_{ps}}-\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_0}} $$
+      $$ =\frac{\textcolor{#FF4400}{m_0}-\textcolor{#C060FF}{m_{ps}}-\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_0}} $$
+      $$ =1-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)-\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
+      $$ =\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\left(\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
+      $$ =e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
       </div>
     </details>
   </div>
