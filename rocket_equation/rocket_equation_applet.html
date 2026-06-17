@@ -51,7 +51,7 @@
   --text-muted:     #7a7a7a;
   --text-heading:   #f0f0f0;
 
-  --page-w: min(1400px, calc(100vw - 32px));
+  --page-w: min(1500px, calc(100vw - 48px));
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -75,10 +75,10 @@ footer {
   width: var(--page-w);
 }
 
-/* ── Applet gets full width ── */
+/* ── Applet aligns with page width ── */
 .theory-block.subway-host {
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
+  width: var(--page-w);
+  margin-left: 0;
 }
 
 /* ── Highlight classes ───────────────────────────────── */
@@ -101,7 +101,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 23px;
+  font-size: 25px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -109,7 +109,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -124,7 +124,7 @@ footer {
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 18.5px;
+  font-size: 20.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 20px;
@@ -142,7 +142,7 @@ footer {
 }
 
 .clarify-hdr {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -157,7 +157,7 @@ footer {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  font-size: 18.5px;
+  font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -166,7 +166,7 @@ footer {
   border-top: 1px solid var(--border);
 }
 .clarify-plain-marker {
-  font-size: 8px;
+  font-size: 10px;
   color: var(--c-accent);
   flex-shrink: 0;
   margin-top: 7px;
@@ -188,7 +188,7 @@ details.clarify-detail > summary {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  font-size: 18.5px;
+  font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -216,7 +216,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 18.5px;
+  font-size: 20.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -235,7 +235,7 @@ details.clarify-detail > summary:focus-visible {
 }
 
 .th-hdr {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -246,7 +246,7 @@ details.clarify-detail > summary:focus-visible {
 }
 
 .th-body {
-  font-size: 18.5px;
+  font-size: 20.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -262,7 +262,7 @@ details.clarify-detail > summary:focus-visible {
 
 .eq-step-label {
   display: block;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: .8px;
   text-transform: uppercase;
   color: #8a8b8c;
@@ -272,7 +272,7 @@ details.clarify-detail > summary:focus-visible {
 
 .eq-caption {
   display: block;
-  font-size: 16.5px;
+  font-size: 18.5px;
   color: var(--text-muted);
   text-align: center;
   margin-top: 8px;
@@ -302,7 +302,7 @@ details.deriv-detail > summary {
   gap: 6px;
   padding: 7px 14px;
   background: var(--bg-input);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: .9px;
   text-transform: uppercase;
@@ -338,6 +338,19 @@ details.deriv-detail > summary:focus-visible {
 }
 .theory-block.subway-host .th-hdr {
   margin: 0 18px 12px;
+}
+
+.katex {
+  font-size: 1.2em !important;
+}
+
+.katex-display {
+  font-size: 1.2em !important;
+}
+
+/* Increase for equations in theory blocks */
+.theory-block .katex {
+  font-size: 1.25em !important;
 }
 
 #subway-applet-scroll {
@@ -420,7 +433,7 @@ details.deriv-detail > summary:focus-visible {
   border-radius: 4px;
 }
 #subway-applet .info-panel-kicker {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -428,7 +441,7 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 4px;
 }
 #subway-applet .info-panel-heading {
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
   line-height: 1.18;
   color: #ffffff;
@@ -440,7 +453,7 @@ details.deriv-detail > summary:focus-visible {
   gap: 6px 12px;
 }
 #subway-applet .info-panel-item {
-  font-size: 15px;
+  font-size: 17px;
   line-height: 1.45;
   color: var(--text-secondary);
 }
@@ -453,7 +466,7 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .info-panel-item.status-bad strong      { color: #ff8e8e; }
 #subway-applet .info-panel-note {
   margin-top: 10px;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.45;
   color: var(--text-muted);
 }
@@ -478,14 +491,14 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 #subway-applet .cf-title {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--c-accent);
 }
 #subway-applet .cf-subtitle {
-  font-size: 13px;
+  font-size: 15px;
   color: #505050;
   font-style: italic;
 }
@@ -515,10 +528,10 @@ details.deriv-detail > summary:focus-visible {
   overflow-x: auto;
 }
 #subway-applet .cf-eq .katex-display { margin: 12px 0 !important; }
-#subway-applet .cf-eq .katex { font-size: 1.1em; }
+#subway-applet .cf-eq .katex { font-size: 1.3em; }
 
 #subway-applet .cf-sect {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -539,16 +552,16 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 10px;
 }
 #subway-applet .cf-param-row-meta .cf-desc {
-  font-size: 14px;
+  font-size: 16px;
   color: #5b5b5b;
 }
 #subway-applet .cf-sym {
   text-align: center;
-  font-size: 15px;
+  font-size: 17px;
   color: var(--text-secondary);
 }
 #subway-applet .cf-desc {
-  font-size: 16px;
+  font-size: 18px;
   color: #727272;
   line-height: 1.3;
 }
@@ -556,7 +569,7 @@ details.deriv-detail > summary:focus-visible {
   width: 100%;
   padding: 5px 7px;
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 15px;
   text-align: right;
   background: var(--bg-panel-4);
   color: var(--c-accent);
@@ -574,14 +587,14 @@ details.deriv-detail > summary:focus-visible {
   padding: 5px 7px;
   text-align: right;
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 15px;
   color: #cfcfcf;
   background: rgba(255,255,255,0.03);
   border: 1px solid #242424;
   border-radius: 4px;
 }
 #subway-applet .cf-unit {
-  font-size: 15px;
+  font-size: 17px;
   color: #444;
   white-space: nowrap;
 }
@@ -589,7 +602,7 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .cf-btn {
   padding: 6px 14px;
   font-family: 'Barlow', sans-serif;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.6px;
   text-transform: uppercase;
@@ -633,7 +646,7 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .cf-preset-btns button {
   padding: 4px 10px;
   font-family: 'Barlow', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-transform: uppercase;
@@ -651,7 +664,7 @@ details.deriv-detail > summary:focus-visible {
 }
 
 #subway-applet .cf-mr-label {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -660,7 +673,7 @@ details.deriv-detail > summary:focus-visible {
 }
 #subway-applet .cf-mr-value {
   font-family: 'Courier New', monospace;
-  font-size: 30px;
+  font-size: 32px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: 0.5px;
@@ -668,12 +681,12 @@ details.deriv-detail > summary:focus-visible {
 }
 #subway-applet .cf-mr-value.cf-mr-na {
   font-family: 'Barlow', sans-serif;
-  font-size: 26px;
+  font-size: 28px;
   letter-spacing: 1px;
   color: #9f9f9f;
 }
 #subway-applet .cf-status {
-  font-size: 13px;
+  font-size: 15px;
   color: #FF6B6B;
   margin-top: 8px;
   min-height: 0;
@@ -682,7 +695,7 @@ details.deriv-detail > summary:focus-visible {
 #subway-applet .credits {
   margin: 28px 24px 24px 24px;
   padding: 16px;
-  font-size: 15px;
+  font-size: 17px;
   color: #686868;
   text-align: center;
   border-top: 1px solid #282828;
@@ -695,7 +708,7 @@ details.deriv-detail > summary:focus-visible {
 /* ── Footer ─────────────────────────────────────────── */
 footer {
   margin-top: 10px;
-  font-size: 16.5px;
+  font-size: 18.5px;
   color: var(--text-muted);
 }
 </style>
@@ -1666,7 +1679,7 @@ footer {
     ];
 
     const legX      = 24;
-    const legY0     = 98;
+    const legY0     = 118;
     const itemH     = 30;
     const swatchW   = 26;
     const swatchThk = 3;
@@ -1676,7 +1689,7 @@ footer {
     ctx.lineCap      = "round";
     ctx.textAlign    = "left";
     ctx.textBaseline = "middle";
-    ctx.font         = "400 21px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.font         = "400 23px Barlow, Segoe UI, Arial, sans-serif";
 
     for (let i = 0; i < items.length; i++) {
       const iy = legY0 + i * itemH;
@@ -1708,13 +1721,13 @@ footer {
 
     ctx.textBaseline = "alphabetic";
     ctx.textAlign    = "left";
-    ctx.font         = "700 46px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.font         = "700 48px Barlow, Segoe UI, Arial, sans-serif";
     ctx.fillStyle    = "#ffffff";
-    ctx.fillText("The Solar System", 24, 32);
+    ctx.fillText("The Solar System", 24, 50);
 
-    ctx.font      = "700 25px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.font      = "700 27px Barlow, Segoe UI, Arial, sans-serif";
     ctx.fillStyle = "#dcdcdc";
-    ctx.fillText("A SUBWAY MAP", 24, 72);
+    ctx.fillText("A SUBWAY MAP", 24, 90);
 
     drawLegend();
 
@@ -1860,7 +1873,7 @@ footer {
     const aero = state.reachableAeroEdges.has(key);
     const label = String(seg.dv);
 
-    ctx.font = "700 15px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.font = "700 17px Barlow, Segoe UI, Arial, sans-serif";
     ctx.textAlign    = "center";
     ctx.textBaseline = "middle";
 
@@ -1989,8 +2002,8 @@ footer {
     let align = "center";
     if (Math.abs(off[0]) > 4) align = off[0] > 0 ? "left" : "right";
 
-    ctx.font = "700 16px Barlow, Segoe UI, Arial, sans-serif";
-    const lineH = 17;
+    ctx.font = "700 18px Barlow, Segoe UI, Arial, sans-serif";
+    const lineH = 19;
     let maxW = 0;
     for (const line of lines) maxW = Math.max(maxW, ctx.measureText(line).width);
 
