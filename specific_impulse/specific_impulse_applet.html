@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Thrust &amp; Specific Impulse — In-Space</title>
+<title>Delta-V &amp; The Ideal Rocket Equation - In-Space</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,9 +29,11 @@
   --c-mass:   #FF4400;
   --c-power:  #C060FF;
   --c-press:  #00DDB5;
+
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
   --c-accent-glow: rgba(160,160,160,0.13);
+
   --bg-page:     #090909;
   --bg-panel-1:  #0e0e0e;
   --bg-panel-2:  #121212;
@@ -41,12 +43,15 @@
   --bg-out-cell: #0c0c0c;
   --bg-canvas:   #090909;
   --bg-diagram:  #0e0e0e;
-  --border:      #282828;
+
+  --border: #282828;
+
   --text-main:      #d6d6d6;
   --text-secondary: #aaaaaa;
   --text-muted:     #7a7a7a;
   --text-heading:   #f0f0f0;
-  --page-w: min(1040px, calc(100vw - 32px));
+
+  --page-w: min(1400px, calc(100vw - 32px));
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -62,26 +67,33 @@ body {
   padding: 22px 16px 36px;
 }
 
-/* ── Width constraints ─────────────────────────────── */
 #hdr,
 .page-intro,
 .clarify-section,
-#theory,
-.demo-hdr-row,
-.demo-blurb,
-#app,
+.theory-block,
 footer {
   width: var(--page-w);
 }
 
-/* ── Highlight classes ─────────────────────────────── */
-.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v             { color: var(--c-ve); }
-.hl-mass                  { color: var(--c-mass); }
-.hl-power                 { color: var(--c-power); }
-.hl-press                 { color: var(--c-press); }
+/* ── Applet gets full width ── */
+.theory-block.subway-host {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+}
 
-/* ── Header ────────────────────────────────────────── */
+/* ── Highlight classes ───────────────────────────────── */
+.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
+.hl-ve, .hl-v            { color: var(--c-ve); }
+.hl-mass                 { color: var(--c-mass); }
+.hl-power                { color: var(--c-power); }
+.hl-press                { color: var(--c-press); }
+
+.key {
+  font-weight: 700;
+  font-style: italic;
+}
+
+/* ── Header ──────────────────────────────────────────── */
 #hdr {
   display: flex;
   align-items: baseline;
@@ -89,15 +101,15 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 21px;
+  font-size: 23px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
 }
 
-/* ── Badge ─────────────────────────────────────────── */
+/* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -110,12 +122,12 @@ footer {
   flex-shrink: 0;
 }
 
-/* ── Page intro ────────────────────────────────────── */
+/* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 16.5px;
+  font-size: 18.5px;
   line-height: 1.72;
   color: var(--text-main);
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -130,7 +142,7 @@ footer {
 }
 
 .clarify-hdr {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -139,6 +151,29 @@ footer {
   border-bottom: 1px solid var(--border);
 }
 
+/* ── Plain (non-interactive) question rows ───────────── */
+.clarify-plain {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 18.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+}
+.clarify-plain + .clarify-plain {
+  border-top: 1px solid var(--border);
+}
+.clarify-plain-marker {
+  font-size: 8px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 7px;
+  opacity: 0.75;
+}
+
+/* ── Interactive (dropdown) detail rows ──────────────── */
 details.clarify-detail {
   border-top: 1px solid var(--border);
 }
@@ -153,7 +188,7 @@ details.clarify-detail > summary {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  font-size: 16.5px;
+  font-size: 18.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -161,7 +196,7 @@ details.clarify-detail > summary {
 }
 details.clarify-detail > summary::-webkit-details-marker { display: none; }
 details.clarify-detail > summary::before {
-  content: '▶';
+  content: '\25B6';
   font-size: 10px;
   color: var(--c-accent);
   flex-shrink: 0;
@@ -181,191 +216,15 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 16.5px;
+  font-size: 18.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
 }
 
 /* ══════════════════════════════════════════════════════
-   DEMO HEADER & BLURB
+   THEORY BLOCKS
    ══════════════════════════════════════════════════════ */
-.demo-hdr-row {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  margin-top: 8px;
-  margin-bottom: 6px;
-}
-.demo-hdr-row h2 {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-heading);
-}
-
-.demo-blurb {
-  font-size: 16px;
-  line-height: 1.65;
-  color: var(--text-main);
-  margin-bottom: 8px;
-}
-
-/* ══════════════════════════════════════════════════════
-   APP / SIMULATION
-   ══════════════════════════════════════════════════════ */
-#app {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--bg-panel-1);
-  margin-bottom: 20px;
-}
-
-#top-row {
-  display: flex;
-  align-items: stretch;
-}
-
-#cv-wrap {
-  flex: 0 0 auto;
-  background: var(--bg-canvas);
-  border-right: 1px solid var(--border);
-  line-height: 0; /* collapse gap under canvas */
-}
-
-canvas {
-  display: block;
-}
-
-/* ── Right panel ──────────────────────────────────── */
-#rp {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.sect-hdr {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--c-accent);
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 7px;
-}
-
-#radio-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.radio-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 16px;
-  padding: 3px 0;
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
-}
-
-.sl-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.sl-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  letter-spacing: .7px;
-  text-transform: uppercase;
-}
-
-.sl-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sl-row input[type=range] {
-  flex: 1 1 auto;
-  min-width: 0;
-  accent-color: var(--c-accent);
-}
-
-.sl-row input[type=text] {
-  flex: 0 0 66px;
-  width: 66px;
-  padding: 3px 4px;
-  font-size: 14.5px;
-  font-family: 'Courier New', monospace;
-  text-align: center;
-  background: var(--bg-panel-4);
-  color: var(--c-accent);
-  border: 1px solid var(--border);
-  border-radius: 3px;
-}
-
-/* ── Slider range display ───────────────────────────── */
-.sl-range {
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 3px;
-  letter-spacing: 0.3px;
-}
-
-/* ── Output bar ───────────────────────────────────── */
-#out-bar {
-  display: flex;
-  border-top: 1px solid var(--border);
-}
-
-.out-cell {
-  flex: 1 1 0;
-  padding: 10px 14px;
-  background: var(--bg-out-cell);
-  border-right: 1px solid var(--border);
-}
-.out-cell:last-child {
-  border-right: none;
-}
-
-/* ── Output display — UNCHANGED ───────────────────── */
-.out-label {
-  font-size: 9px;
-  color: var(--text-muted);
-  letter-spacing: .7px;
-  text-transform: uppercase;
-  margin-bottom: 3px;
-}
-
-.out-val {
-  font-size: 19px;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
-}
-
-.out-sub {
-  font-size: 11.5px;
-  font-family: 'Courier New', monospace;
-  margin-top: 2px;
-}
-
-/* ══════════════════════════════════════════════════════
-   THEORY SECTION
-   ══════════════════════════════════════════════════════ */
-#theory {
-  margin-bottom: 20px;
-}
-
 .theory-block {
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -376,7 +235,7 @@ canvas {
 }
 
 .th-hdr {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -387,18 +246,14 @@ canvas {
 }
 
 .th-body {
-  font-size: 16.5px;
+  font-size: 18.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
 }
 
-.cv-diagram {
-  margin: 12px 0;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-  background: var(--bg-diagram);
+.theory-block > .th-body:last-child {
+  margin-bottom: 0;
 }
 
 .eq-panel {
@@ -407,7 +262,7 @@ canvas {
 
 .eq-step-label {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: .8px;
   text-transform: uppercase;
   color: #8a8b8c;
@@ -417,7 +272,7 @@ canvas {
 
 .eq-caption {
   display: block;
-  font-size: 14.5px;
+  font-size: 16.5px;
   color: var(--text-muted);
   text-align: center;
   margin-top: 8px;
@@ -431,7 +286,7 @@ canvas {
   margin: 14px 0;
 }
 
-/* ── Derivation details ───────────────────────────── */
+/* ── Derivation details ─────────────────────────────── */
 details.deriv-detail {
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -447,7 +302,7 @@ details.deriv-detail > summary {
   gap: 6px;
   padding: 7px 14px;
   background: var(--bg-input);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: .9px;
   text-transform: uppercase;
@@ -456,7 +311,7 @@ details.deriv-detail > summary {
 }
 details.deriv-detail > summary::-webkit-details-marker { display: none; }
 details.deriv-detail > summary::before {
-  content: '▶';
+  content: '\25B6';
   font-size: 9px;
   flex-shrink: 0;
   display: inline-block;
@@ -477,29 +332,371 @@ details.deriv-detail > summary:focus-visible {
   border-top: 1px solid var(--border);
 }
 
-/* ── Footer ───────────────────────────────────────── */
-footer {
+/* ── Embedded subway applet host ────────────────────── */
+.theory-block.subway-host {
+  padding: 16px 0 0;
+}
+.theory-block.subway-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+#subway-applet-scroll {
+  overflow: visible;
+}
+
+#subway-applet {
+  width: 100%;
+  background: var(--bg-page);
+}
+
+/* ── Scoped subway applet styles ────────────────────── */
+#subway-applet {
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+  --border:         #282828;
+  --bg-page:        #090909;
+  --bg-panel-1:     #0e0e0e;
+  --bg-panel-2:     #121212;
+  --bg-panel-3:     #171717;
+  --bg-panel-4:     #1d1d1d;
+  --bg-canvas:      #090909;
+  font-family: 'Barlow', 'Segoe UI', sans-serif;
+  color: var(--text-main);
+}
+#subway-applet *,
+#subway-applet *::before,
+#subway-applet *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+#subway-applet .container {
+  width: 100%;
+  overflow: visible;
+  height: auto;
+}
+#subway-applet .canvas-container {
+  position: relative;
+  background: var(--bg-canvas);
+  padding: 24px 24px 18px 24px;
+  overflow: visible;
+  width: 100%;
+  height: auto;
+}
+#subway-applet canvas {
+  background: var(--bg-canvas);
+  cursor: crosshair;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+#subway-applet .info-panel-frame {
+  position: absolute;
+  top: 20px;
+  right: 48px;
+  width: 360px;
+  max-width: calc(100% - 80px);
+  display: none;
+  z-index: 20;
+  background: rgba(5,5,5,0.92);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  padding: 14px 18px 14px 28px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 6px 28px rgba(0,0,0,0.55);
+}
+#subway-applet .info-panel-frame::before {
+  content: "";
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  bottom: 8px;
+  width: 6px;
+  background: rgba(61,191,255,0.9);
+  border-radius: 4px;
+}
+#subway-applet .info-panel-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #bfc7ce;
+  margin-bottom: 4px;
+}
+#subway-applet .info-panel-heading {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.18;
+  color: #ffffff;
+  margin-bottom: 12px;
+}
+#subway-applet .info-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px 12px;
+}
+#subway-applet .info-panel-item {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+#subway-applet .info-panel-item strong                 { color: #ffffff; font-weight: 700; }
+#subway-applet .info-panel-item.accent strong          { color: #9FE6FF; }
+#subway-applet .info-panel-item.good strong            { color: #dff6ff; }
+#subway-applet .info-panel-item.bad strong             { color: #ffb0b0; }
+#subway-applet .info-panel-item.status-standard strong { color: #8fe3ff; }
+#subway-applet .info-panel-item.status-aero strong     { color: #9FE6FF; }
+#subway-applet .info-panel-item.status-bad strong      { color: #ff8e8e; }
+#subway-applet .info-panel-note {
   margin-top: 10px;
-  font-size: 14.5px;
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--text-muted);
 }
 
-/* ── Responsive ───────────────────────────────────── */
-@media (max-width: 980px) {
-  #top-row { flex-wrap: wrap; }
-  #cv-wrap {
-    flex-basis: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
-  canvas { width: 100%; height: auto; }
-  #rp { flex-basis: 100%; }
+#subway-applet .control-frame {
+  position: relative;
+  margin: 4px 24px 28px 24px;
+  width: calc(100% - 48px);
+  background: rgba(8,8,8,0.97);
+  border: 1px solid #252525;
+  border-radius: 12px;
+  padding: 18px 24px 18px 24px;
+  box-shadow: 0 16px 56px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03);
 }
 
-@media (max-width: 720px) {
-  #out-bar { flex-direction: column; }
-  .out-cell { border-right: none; border-bottom: 1px solid var(--border); }
-  .out-cell:last-child { border-bottom: none; }
+#subway-applet .cf-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+#subway-applet .cf-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+#subway-applet .cf-subtitle {
+  font-size: 13px;
+  color: #505050;
+  font-style: italic;
+}
+
+#subway-applet .cf-body {
+  display: grid;
+  grid-template-columns: 1.1fr 1.5fr 1.45fr 1.1fr;
+  gap: 22px;
+  align-items: stretch;
+}
+#subway-applet .cf-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+#subway-applet .cf-col + .cf-col {
+  border-left: 1px solid var(--border);
+  padding-left: 22px;
+}
+
+#subway-applet .cf-eq {
+  background: rgba(255,255,255,0.022);
+  border: 1px solid #1d1d1d;
+  border-radius: 8px;
+  padding: 8px 12px 4px 12px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+#subway-applet .cf-eq .katex-display { margin: 12px 0 !important; }
+#subway-applet .cf-eq .katex { font-size: 1.1em; }
+
+#subway-applet .cf-sect {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 8px;
+}
+#subway-applet .cf-sect.cf-sect-spacer { margin-top: 14px; }
+
+#subway-applet .cf-param-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 76px 28px;
+  align-items: center;
+  column-gap: 8px;
+  margin-bottom: 7px;
+}
+#subway-applet .cf-param-row-meta {
+  margin-top: -1px;
+  margin-bottom: 10px;
+}
+#subway-applet .cf-param-row-meta .cf-desc {
+  font-size: 14px;
+  color: #5b5b5b;
+}
+#subway-applet .cf-sym {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+#subway-applet .cf-desc {
+  font-size: 16px;
+  color: #727272;
+  line-height: 1.3;
+}
+#subway-applet .cf-inp {
+  width: 100%;
+  padding: 5px 7px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  text-align: right;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: border-color 0.15s, background 0.15s;
+}
+#subway-applet .cf-inp:focus {
+  outline: none;
+  border-color: #484848;
+  background: #202020;
+}
+#subway-applet .cf-derived {
+  width: 100%;
+  padding: 5px 7px;
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #cfcfcf;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid #242424;
+  border-radius: 4px;
+}
+#subway-applet .cf-unit {
+  font-size: 15px;
+  color: #444;
+  white-space: nowrap;
+}
+
+#subway-applet .cf-btn {
+  padding: 6px 14px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  background: var(--bg-panel-3);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+#subway-applet .cf-btn:hover {
+  background: var(--bg-panel-4);
+  color: var(--text-main);
+  border-color: #484848;
+}
+
+#subway-applet .cf-btn-row {
+  display: flex;
+  gap: 7px;
+  margin-top: 10px;
+}
+#subway-applet .cf-btn-primary { flex: 1; border-color: #383838; color: var(--text-heading); }
+#subway-applet .cf-btn-ghost   { color: #5a5a5a; }
+
+#subway-applet .cf-dv-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0,1fr) auto 28px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+#subway-applet .cf-dv-row .cf-sym { width: auto; }
+#subway-applet .cf-dv-row .cf-inp { width: 100%; min-width: 0; }
+
+#subway-applet .cf-preset-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+#subway-applet .cf-preset-btns button {
+  padding: 4px 10px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  background: var(--bg-panel-2);
+  color: #6a6a6a;
+  border: 1px solid #1e1e1e;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#subway-applet .cf-preset-btns button:hover {
+  background: var(--bg-panel-4);
+  color: var(--text-main);
+  border-color: #404040;
+}
+
+#subway-applet .cf-mr-label {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 6px;
+}
+#subway-applet .cf-mr-value {
+  font-family: 'Courier New', monospace;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+#subway-applet .cf-mr-value.cf-mr-na {
+  font-family: 'Barlow', sans-serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+  color: #9f9f9f;
+}
+#subway-applet .cf-status {
+  font-size: 13px;
+  color: #FF6B6B;
+  margin-top: 8px;
+  min-height: 0;
+}
+
+#subway-applet .credits {
+  margin: 28px 24px 24px 24px;
+  padding: 16px;
+  font-size: 15px;
+  color: #686868;
+  text-align: center;
+  border-top: 1px solid #282828;
+}
+#subway-applet .credits a {
+  color: #9FE6FF;
+  text-decoration: none;
+}
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 10px;
+  font-size: 16.5px;
+  color: var(--text-muted);
 }
 </style>
 </head>
@@ -507,770 +704,1399 @@ footer {
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Thrust &amp; Specific Impulse</h1>
+  <h1>Delta-V &amp; The Ideal Rocket Equation</h1>
   <span class="badge">In-Space</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  Propulsion systems expel propellant to generate
-  <strong class="hl-thrust">thrust</strong> and ultimately change the momentum of the vehicle.
-  Propulsion systems must be designed with key design constraints in mind. Engineers must consider
-  <strong class="hl-ve">mass budget</strong>, <strong class="hl-power">power budget</strong>, and satisfy the
-  required <strong class="hl-thrust">mission time</strong>. These requirements dictate the
-  <strong class="hl-ve">exhaust velocity</strong>,
-  <strong class="hl-power">input power</strong>, and
-  <strong class="hl-thrust">thrust</strong> of the propulsion system respectively.
+  The purpose of a <span class="key hl-thrust">spacecraft propulsion system</span> is to deliver a <span class="key hl-ve">change in velocity</span> to the vehicle of interest.
+  Orbital maneuvers require a certain <span class="key hl-ve">change in velocity</span> to be executed. Likewise, the effect of <span class="key hl-press">rarefied drag</span> in low orbit
+  and the loss of velocity from fighting against gravity necessitate a certain <span class="key hl-ve">change in velocity</span> to maintain the spacecraft's trajectory.
+  This "certain change in velocity" is quantified as <span class="key hl-ve">"Delta-V"</span>. Orbital mechanics dictates the required <span class="key hl-ve">Delta-V</span> for a mission given the
+  necessary maneuvers and <span class="key hl-ve">Delta-V</span> losses to gravity and drag. The sum is the required <span class="key hl-ve">Delta-V budget</span> for the mission.
+
+  The <span class="key">ideal rocket equation</span> tells us that the available <span class="key hl-ve">Delta-V budget</span> for the mission is a function of the <span class="key hl-ve">effective exhaust velocity</span>,
+  or <span class="key hl-ve">specific impulse</span>, of the propulsion system, the vehicle's <span class="key hl-mass">initial (wet) mass</span>, and the vehicle's <span class="key hl-mass">final (dry) mass</span>. However, it is not
+  immediately obvious how these parameters affect the <span class="key hl-ve">Delta-V budget</span>, nor is it immediately obvious how <span class="key hl-ve">Delta-V budgets</span> translate to real missions.
+
+  To better understand <span class="key hl-ve">Delta-V</span>, and how the <span class="key">ideal rocket equation</span> affects mission design, let's explore our solar system.
 </p>
 
-<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
+<!-- ════════════════ CONCEPTUAL QUESTIONS ════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Conceptual Questions</div>
 
-  <details class="clarify-detail">
-    <summary>Why do high thrust propulsion systems tend to be less mass efficient? Likewise, why do more mass-efficient systems typically have lower thrust?</summary>
-    <div class="clarify-body">
-      There is a limit to the amount of <strong class="hl-power">input power</strong> available to accelerate the propellant, whether from chemical energy stored in the fuel or on-board solar/nuclear power.
-      To achieve high <strong class="hl-thrust">thrust</strong>, a large <strong class="hl-mass">mass flow rate</strong> of propellant must be accelerated, resulting in less power being delivered to
-      each unit of propellant mass and thus a lower <strong class="hl-ve">exhaust velocity</strong> and lower <strong class="hl-ve">specific impulse</strong>. Conversely, to achieve high
-      <strong class="hl-ve">exhaust velocity</strong> and high <strong class="hl-ve">specific impulse</strong>, the power must be distributed over a smaller <strong class="hl-mass">mass flow rate</strong>, resulting in lower
-      <strong class="hl-thrust">thrust</strong>.
-    </div>
-  </details>
-
-  <details class="clarify-detail">
-    <summary>How can high thrust and high specific impulse be achieved by the same propulsion system?</summary>
-    <div class="clarify-body">
-      High <strong class="hl-thrust">thrust</strong> and high <strong class="hl-ve">specific impulse</strong> requires a high <strong class="hl-power">power budget</strong>. There are drawbacks, however, to arbitrarily increasing <strong class="hl-power">input power</strong>. The amount of <strong class="hl-power">power</strong> that a <strong class="hl-power">power source</strong> can deliver
-      scales with its mass. This can adversely affect the <strong class="hl-ve">mass budget</strong> and <strong class="hl-thrust">mission time</strong> of the spacecraft. To effectively accomplish a higher <strong class="hl-power">power</strong>, higher <strong class="hl-power">power</strong> density is required.
-      This makes nuclear <strong class="hl-power">power sources</strong> very appealing, as both fusion and fission can achieve much higher power densities than solar panels. Fission reactors have been flown in space, but fusion reactors (the holy grail) have yet to be realized.
-    </div>
-  </details>
-</div>
-
-<!-- ════════════════════ DEMO HEADER ════════════════════ -->
-<div class="demo-hdr-row">
-  <h2>Interactive Simulator</h2>
-  <span class="badge">Demo</span>
-</div>
-
-<p class="demo-blurb">
-  For this interactive demo, assume <strong>no gravity</strong>, <strong>no drag</strong>, and
-  <strong>steady-state operation</strong> in vacuum. Assume the exhaust stream to have <strong>negligible exit pressure</strong>. Then
-  $\textcolor{#3DBFFF}{c = v_e}$ and
-  $\textcolor{#3DBFFF}{v_e} =
-   \sqrt{2\textcolor{#C060FF}{\eta P_{\mathrm{input}}}/\textcolor{#FF4400}{\dot{m}}}$,&nbsp;
-  $\textcolor{#FF4400}{F_N} =
-   \textcolor{#FF4400}{\dot{m}}\textcolor{#3DBFFF}{v_e}$,&nbsp;
-  and
-  $\textcolor{#3DBFFF}{I_{sp}} =
-   \textcolor{#3DBFFF}{v_e}/g_0$.
-</p>
-
-<!-- ════════════════════ APPLET ════════════════════ -->
-<div id="app">
-  <div id="top-row">
-    <div id="cv-wrap">
-      <canvas id="cnv" width="700" height="400"></canvas>
-    </div>
-
-    <div id="rp">
-      <div>
-        <div class="sect-hdr">Propellant</div>
-        <div id="radio-wrap"></div>
-      </div>
-
-      <div class="sl-group">
-        <div class="sl-label">Mass Flow Rate &nbsp;(kg / s)</div>
-        <div class="sl-row">
-          <input type="range" id="sl-flow"  min="0.001" max="1" step="0.001" value="0.01">
-          <input type="text"  id="tb-flow"  value="0.01">
-        </div>
-        <div class="sl-range">0.001 – 1.0 kg/s</div>
-      </div>
-
-      <div class="sl-group">
-        <div class="sl-label">Power &nbsp;(kW)</div>
-        <div class="sl-row">
-          <input type="range" id="sl-power" min="0" max="5000" step="1" value="10">
-          <input type="text"  id="tb-power" value="10">
-        </div>
-        <div class="sl-range">0 – 5000 kW</div>
-      </div>
-
-      <div class="sl-group">
-        <div class="sl-label">Efficiency</div>
-        <div class="sl-row">
-          <input type="range" id="sl-eta"   min="0" max="1"    step="0.01"  value="0.5">
-          <input type="text"  id="tb-eta"   value="0.5">
-        </div>
-        <div class="sl-range">0 – 1.0</div>
-      </div>
-    </div>
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>The difference between the dry and wet mass of the vehicle is the <span class="key hl-mass">propellant mass</span>.
+    If a mission requires higher <span class="key hl-ve">Delta-V</span>, why don't we simply add more
+    <span class="key hl-mass">propellant mass</span>?</span>
   </div>
 
-  <div id="out-bar">
-    <div class="out-cell">
-      <div class="out-label">Thrust</div>
-      <div class="out-val" id="o-thrust" style="color:#FF4400">0 N</div>
-    </div>
-    <div class="out-cell">
-      <div class="out-label">Mass Flow Rate</div>
-      <div class="out-val" id="o-mdot"   style="color:#FF4400">0 kg/s</div>
-    </div>
-    <div class="out-cell">
-      <div class="out-label">Specific Impulse</div>
-      <div class="out-val" id="o-isp"    style="color:#3DBFFF">0 s</div>
-      <div class="out-sub" id="o-ve"     style="color:#3DBFFF">or 0 m/s</div>
-    </div>
+  <div class="clarify-plain">
+    <span class="clarify-plain-marker">&#9670;</span>
+    <span>Greater <span class="key hl-ve">specific impulse</span> means that our propulsion system is more mass efficient.
+    How does this affect our <span class="key hl-ve">Delta-V budget</span>?</span>
   </div>
 </div>
 
-<!-- ════════════════════ CLARIFYING POINTS ════════════════════ -->
+<!-- ════════════════ SUBWAY APPLET ════════════════ -->
+<div class="theory-block subway-host">
+  <div class="th-hdr">&#x394;v Interactive Demo</div>
+
+  <div id="subway-applet-scroll">
+    <div id="subway-applet">
+      <div class="container">
+        <div class="canvas-container">
+          <canvas id="mapCanvas" width="1200" height="1280"></canvas>
+          <div class="info-panel-frame" id="infoPanelFrame"></div>
+        </div>
+
+        <div class="control-frame">
+          <div class="cf-header">
+            <span class="cf-title">&#x394;v Budget Calculator</span>
+            <span class="cf-subtitle">from Low Earth Orbit</span>
+          </div>
+
+          <div class="cf-body">
+
+            <div class="cf-col">
+              <div class="cf-eq">
+                \[
+                \Delta v = c\ln\!\left(\frac{m_0}{m_f}\right)
+                \]
+                \[
+                \frac{m_0}{m_f} = \frac{1+\lambda}{\lambda+\varepsilon}
+                \]
+                \[
+                \lambda = \frac{m_{\mathrm{payload}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
+                \]
+                \[
+                \varepsilon = \frac{m_{\mathrm{struct}}}{m_{\mathrm{prop}}+m_{\mathrm{struct}}}
+                \]
+              </div>
+            </div>
+
+            <div class="cf-col">
+              <div class="cf-sect">Rocket Parameters</div>
+
+              <div class="cf-param-row">
+                <div class="cf-sym">\(\lambda\)</div>
+                <div class="cf-desc">Payload ratio</div>
+                <input type="number" id="lambda" value="0.100" step="0.001" min="0" class="cf-inp">
+                <div class="cf-unit">&ge; 0</div>
+              </div>
+
+              <div class="cf-param-row">
+                <div class="cf-sym">\(\varepsilon\)</div>
+                <div class="cf-desc">Structural coeff.</div>
+                <input type="number" id="epsilon" value="0.063" step="0.001" min="0" max="1" class="cf-inp">
+                <div class="cf-unit">0&ndash;1</div>
+              </div>
+
+              <div class="cf-param-row">
+                <div class="cf-sym">\(c\)</div>
+                <div class="cf-desc">Specific impulse</div>
+                <input type="number" id="c" value="4413" step="1" min="1" class="cf-inp">
+                <div class="cf-unit">m/s</div>
+              </div>
+
+              <div class="cf-param-row cf-param-row-meta">
+                <div class="cf-sym"></div>
+                <div class="cf-desc">\(I_{sp}\)</div>
+                <div class="cf-derived" id="ispSeconds">450.0</div>
+                <div class="cf-unit">s</div>
+              </div>
+
+              <div class="cf-btn-row">
+                <button class="cf-btn cf-btn-primary" onclick="calculateFromInputs()">Calculate</button>
+                <button class="cf-btn cf-btn-ghost" onclick="clearHighlights()">Clear</button>
+              </div>
+            </div>
+
+            <div class="cf-col">
+              <div class="cf-sect">Direct \(\Delta v\) Input</div>
+              <div class="cf-dv-row">
+                <div class="cf-sym">\(\Delta v\)</div>
+                <input type="number" id="dv" step="1" min="0" class="cf-inp">
+                <button class="cf-btn" onclick="applyCustomDv()">Apply</button>
+                <span class="cf-unit">m/s</span>
+              </div>
+              <div class="cf-status" id="status"></div>
+
+              <div class="cf-sect cf-sect-spacer">Upper-Stage Presets</div>
+              <div class="cf-preset-btns">
+                <button onclick="applyPreset(300)">Falcon 9</button>
+                <button onclick="applyPreset(600)">Starship (no refuel)</button>
+                <button onclick="applyPreset(6900)">Starship (w/ refuel)</button>
+                <button onclick="applyPreset(3500)">Saturn V</button>
+                <button onclick="applyPreset(11000)">Dawn</button>
+              </div>
+            </div>
+
+            <div class="cf-col">
+              <div class="cf-sect">Mass Ratio Output</div>
+              <div class="cf-mr-label">m&#x2080;&thinsp;/&thinsp;m<sub>f</sub></div>
+              <div class="cf-mr-value" id="result">--</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="credits">
+          <strong>Credits:</strong> Subway map design inspired by Ulysse Carion. &#x394;v label values adopted from Reddit user /u/CuriousMetaphor.<br>
+          Map concept inspired by <a href="https://www.kerbalspaceprogram.com" target="_blank">Kerbal Space Program</a>.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ CLARIFYING POINTS ════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Clarifying Points</div>
 
   <details class="clarify-detail">
-    <summary>Why do we care about mass efficiency? Can't we just carry more propellant or refuel?</summary>
+    <summary>What is <span class="key hl-press">aerobraking</span>? Why don't all destinations in the <span class="key">Solar System</span> have it available?</summary>
     <div class="clarify-body">
-      In space, propellant is carried at a premium: every kg of propellant takes from the
-      <strong class="hl-ve">mass budget</strong>, leaving less mass available for payload and other important
-      subsystems. Carrying extra propellant increases the mass of the vehicle, meaning the
-      propulsion system must additionally handle the increased mass (more on this in the Ideal
-      Rocket Equation!). Additionally, refueling introduces complexity and is not always possible,
-      especially for deep-space missions.
+      <span class="key hl-press">Aerobraking</span> involves using a planet's <span class="key hl-press">atmosphere</span> to slow down a spacecraft via <span class="key hl-press">drag</span>, giving the spacecraft the ability to reach the destination
+      without spending any <span class="key hl-ve">Delta-V</span>. This requires the destination to have sufficient <span class="key hl-press">atmosphere</span> to make <span class="key hl-press">aerobraking</span> possible. Additionally, <span class="key hl-press">aerobraking</span>
+      only helps a spacecraft during arrival, not when a spacecraft is departing from a planetary body. Therefore, takeoff from enormous bodies
+      with high <span class="key hl-ve">escape velocities</span> cannot benefit from <span class="key hl-press">aerobraking</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>Where does the input power for the propulsion system come from?</summary>
+    <summary>How were the <span class="key hl-ve">Delta-V values</span> decided for the solar system map? Don't different maneuvers have different <span class="key hl-ve">Delta-V costs</span>?</summary>
     <div class="clarify-body">
-      Ground-based propulsion systems exclusively rely on the stored chemical energy of rocket fuel
-      and oxidizer for <strong class="hl-power">power</strong> to escape Earth's gravity. Once in
-      space, other <strong class="hl-power">power sources</strong> become available. Spacecraft
-      rely on solar or nuclear power to run their payloads — leftover energy can be used to drive
-      an electric propulsion system. This simulation assumes that
-      <strong class="hl-power">input power</strong> and
-      <strong class="hl-mass">mass flow rate</strong> are decoupled, which is true for electric
-      propulsion. Traditional chemical engines rely on combustion, so
-      <strong class="hl-power">input power</strong> and
-      <strong class="hl-mass">mass flow rate</strong> are inherently coupled.
+      For simplicity, all maneuvers are done without <span class="key">gravity assists</span>, which would reduce the required <span class="key hl-ve">Delta-V</span> for a given destination. All transfers are
+      assumed to be <span class="key">Hohmann transfers</span> with <span class="key hl-thrust">burns</span> performed at the periapses. These maneuvers are only possible with <span class="key hl-thrust">highly impulsive propulsion devices</span>,
+      which have <span class="key hl-ve">low specific impulse</span>. Devices with greater mass efficiency, however, cannot produce these <span class="key hl-thrust">high impulse burns</span>, and must use <span class="key hl-thrust">low thrust spiral maneuvers</span>.
+      While these spiral maneuvers have higher <span class="key hl-ve">Delta-V costs</span>, the <span class="key hl-ve">Delta-V budget</span> of these devices far exceeds those of high impulse devices.
     </div>
   </details>
 </div>
 
-<!-- ════════════════════ THEORY ════════════════════ -->
-<div id="theory">
+<!-- ════════════════ CONCEPTUAL QUESTIONS (with answers) ════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
 
-  <!-- ══════════════════ BLOCK 1 : THRUST ══════════════════ -->
-  <div class="theory-block">
-    <div class="th-hdr">Thrust</div>
+  <details class="clarify-detail">
+    <summary>The difference between the dry and wet mass of the vehicle is the <span class="key hl-mass">propellant mass</span>. If a mission requires higher <span class="key hl-ve">Delta-V</span>, why don't we simply add more <span class="key hl-mass">propellant mass</span>?</summary>
+    <div class="clarify-body">
+      Adding more <span class="key hl-mass">propellant mass</span> is a valid way to increase the <span class="key hl-ve">Delta-V budget</span>. It must be noted that adding <span class="key hl-mass">propellant mass</span> means that the spacecraft
+      <span class="key hl-thrust">propulsion system</span> must now accelerate the mass of the additional <span class="key hl-mass">propellant</span> as well. Because of this, adding <span class="key hl-mass">propellant mass</span> has diminishing returns
+      on increasing <span class="key hl-ve">Delta-V</span>. Additionally, additional <span class="key hl-mass">propellant mass</span> can require additional <span class="key hl-mass">structural mass</span>.
 
-    <p class="th-body">
-      Let's derive the <strong class="hl-thrust">thrust</strong> of a general rocket propulsion
-      device, which carries its own propellant. Apply conservation laws to a
-      <strong>control volume</strong>. Assume <strong>steady-state</strong> operation, no viscous
-      forces, and a uniform exit stream with density $\rho_e$,
-      <strong class="hl-ve">velocity $v_e$</strong>, area $A_e$, and exit pressure
-      <strong class="hl-press">$P_e$</strong>, expelling into ambient pressure
-      <strong class="hl-press">$P_{amb}$</strong>. Let $\hat{\mathbf{i}}$ denote the axial
-      direction. The thrust stand measures the reaction force,
-      i.e.&nbsp;the <strong class="hl-thrust">thrust</strong>, on the vehicle.
-    </p>
-
-    <div class="cv-diagram">
-      <svg viewBox="0 0 820 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
-        <defs>
-          <marker id="arr-ex" markerWidth="10" markerHeight="7"
-                  refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,10 3.5,0 7" fill="#3DBFFF"/>
-          </marker>
-          <marker id="arr-fn" markerWidth="10" markerHeight="7"
-                  refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,10 3.5,0 7" fill="#FF4400"/>
-          </marker>
-          <marker id="arr-md" markerWidth="8" markerHeight="5.6"
-                  refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,8 2.8,0 5.6" fill="#FF4400"/>
-          </marker>
-        </defs>
-        <rect width="820" height="170" fill="#0e0e0e"/>
-        <path d="M46 36 L46 134 L170 134 L170 126 L206 126 L206 99 L170 99 L170 71 L206 71 L206 44 L170 44 L170 36 Z"
-              fill="none" stroke="#404040" stroke-width="1.8" stroke-dasharray="7 4"/>
-        <text x="52" y="30" fill="#404040" font-size="9.5"
-              font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="1.5">C.V.</text>
-        <rect x="52" y="40" width="115" height="90" fill="#d6deed" rx="1"/>
-        <rect x="52" y="40" width="115" height="7"  fill="#c2ccde" rx="1"/>
-        <rect x="167" y="48"  width="36" height="23" fill="#d6deed"/>
-        <rect x="167" y="99"  width="36" height="23" fill="#d6deed"/>
-        <rect x="203" y="71"  width="267" height="28" fill="rgba(0,180,220,0.09)" rx="1"/>
-        <line x1="203" y1="71" x2="203" y2="99"
-              stroke="#FF4400" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.72"/>
-        <text x="207" y="68" fill="#FF4400" font-size="8.5"
-              font-family="'Segoe UI',sans-serif" opacity="0.65" letter-spacing="0.3">exit plane</text>
-        <line x1="203" y1="75" x2="470" y2="75" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="80" x2="470" y2="80" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="85" x2="470" y2="85" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="90" x2="470" y2="90" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="95" x2="470" y2="95" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <text x="283" y="61" fill="#FF4400" font-size="13" font-family="'Courier New',monospace">ṁ</text>
-        <line x1="298" y1="57" x2="328" y2="57" stroke="#FF4400" stroke-width="1.2" opacity="0.60" marker-end="url(#arr-md)"/>
-        <text x="488" y="74"  fill="#3DBFFF" font-size="12" font-family="'Courier New',monospace" font-style="italic">v</text>
-        <text x="497" y="77"  fill="#3DBFFF" font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="88"  fill="#b8c4d8" font-size="12" font-family="'Courier New',monospace" font-style="italic">A</text>
-        <text x="497" y="91"  fill="#b8c4d8" font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="102" fill="#00DDB5" font-size="12" font-family="'Courier New',monospace" font-style="italic">P</text>
-        <text x="497" y="105" fill="#00DDB5" font-size="9"  font-family="'Courier New',monospace">e</text>
-        <text x="230" y="126" fill="#00DDB5" font-size="11" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
-        <text x="241" y="129" fill="#00DDB5" font-size="8"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
-        <line x1="52" y1="85" x2="18" y2="85" stroke="#FF4400" stroke-width="2.5" marker-end="url(#arr-fn)"/>
-        <text x="18" y="78" fill="#FF4400" font-size="12" font-family="'Courier New',monospace" font-style="italic">F</text>
-        <text x="27" y="81" fill="#FF4400" font-size="9"  font-family="'Courier New',monospace">N</text>
-        <text x="196" y="162" fill="#404040" font-size="9"
-              font-family="'Segoe UI',sans-serif" letter-spacing="0.3">
-          Steady state · Uniform exit stream · No viscous forces · Propellant initially at rest on vehicle
-        </text>
-      </svg>
+      While <span class="key hl-ve">specific impulse</span> has the strongest effect on increasing <span class="key hl-ve">Delta-V</span>, <span class="key hl-mass">refueling</span> a spacecraft in orbit can also be an effective method
+      of increasing <span class="key hl-ve">Delta-V</span>. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the <span class="key hl-mass">propellant</span>
+      of the spacecraft. This is by no means trivial, but could be revolutionary for high <span class="key hl-ve">Delta-V</span>, high <span class="key hl-mass">payload</span> missions.
     </div>
+  </details>
 
-    <div class="eq-panel">
-
-      <span class="eq-step-label">Conservation of Mass — at steady state there is no mass accumulation inside the control volume</span>
-      $$
-      \begin{aligned}
-      0 &= -\textcolor{#FF4400}{\dot{m}} + \rho_e \textcolor{#3DBFFF}{v_e} A_e \\[3pt]
-      \Rightarrow\quad \textcolor{#FF4400}{\dot{m}} &= \rho_e \textcolor{#3DBFFF}{v_e} A_e
-      \end{aligned}
-      $$
-
-      <span class="eq-step-label">Conservation of Momentum — Reynolds Transport Theorem for linear momentum</span>
-      $$
-      \frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
-      \;+\;
-      \oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-      \;=\;
-      \sum\mathbf{F}_{ext}
-      $$
-
-      <details class="deriv-detail">
-        <summary>Show detailed derivation — axial projection, steady-state reduction, force balance</summary>
-        <div class="deriv-inner">
-
-          <span class="eq-step-label">Project onto the axial direction with a dot product against $\hat{\mathbf{i}}$</span>
-          $$
-          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
-          \;+\;
-          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-          \;=\;
-          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
-          $$
-
-          <span class="eq-step-label">Steady state — the unsteady volume integral vanishes</span>
-          $$
-          \begin{aligned}
-          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV &= 0
-          \\[5pt]
-          \Rightarrow\quad
-          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-          &= \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
-          \end{aligned}
-          $$
-
-          <span class="eq-step-label">Momentum flux term — only the exit plane contributes; propellant is initially at rest on the vehicle</span>
-          $$
-          \begin{aligned}
-          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-          &= \rho_e v_e^2 A_e \\
-          &= \bigl(\rho_e v_e A_e\bigr)v_e \\
-          &= \dot{m}\,v_e
-          \end{aligned}
-          $$
-
-          <span class="eq-step-label">External forces — thrust-stand reaction plus net pressure force at the exit plane</span>
-          $$
-          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
-          \;=\;
-          F_N + \bigl(P_{amb} - P_e\bigr)A_e
-          $$
-
-        </div>
-      </details>
-
-      <span class="eq-step-label">Equate momentum flux and external forces, then isolate thrust</span>
-      $$
-      F_N + \bigl(P_{amb} - P_e\bigr)A_e = \dot{m}\,v_e
-      $$
-      $$
-      \boxed{
-        \textcolor{#FF4400}{F_N}
-        \;=\;
-        \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{v_e}
-        \;+\;
-        \bigl(\textcolor{#00DDB5}{P_e - P_{amb}}\bigr)A_e
-      }
-      $$
-
-      <div class="eq-divider"></div>
-
-      <span class="eq-step-label">Define effective exhaust velocity $c$ to absorb the pressure correction into a single quantity</span>
-      $$
-      \boxed{
-        \textcolor{#3DBFFF}{c}
-        \;\equiv\;
-        \textcolor{#3DBFFF}{v_e}
-        \;+\;
-        \frac{\bigl(\textcolor{#00DDB5}{P_e - P_{amb}}\bigr)A_e}{\textcolor{#FF4400}{\dot{m}}}
-      }
-      \qquad\Rightarrow\qquad
-      \textcolor{#FF4400}{F_N} = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
-      $$
-
-      <span class="eq-caption">
-        <span class="hl-F">Thrust</span> =
-        <span class="hl-m">mass flow rate</span> &times;
-        <span class="hl-v">effective exhaust velocity</span>.
-      </span>
+  <details class="clarify-detail">
+    <summary>Greater <span class="key hl-ve">specific impulse</span> means that our propulsion system is more mass efficient. How does this affect our <span class="key hl-ve">Delta-V budget</span>?</summary>
+    <div class="clarify-body">
+      Greater mass efficiency lessens the need to carry additional <span class="key hl-mass">propellant</span> to achieve a given <span class="key hl-ve">Delta-V</span>. Increases in <span class="key hl-ve">specific impulse</span>, or
+      <span class="key hl-ve">effective exhaust velocity</span>, results in a linear increase in <span class="key hl-ve">Delta-V</span>. To reach far destinations, or to reach a destination with less <span class="key hl-mass">propellant</span>
+      and more <span class="key hl-mass">payload</span>, greater <span class="key hl-ve">specific impulses</span> are required. This is the motivation for <span class="key hl-power">electric propulsion</span>, which is further explored below
+      the applet.
     </div>
+  </details>
+</div>
+
+<!-- ════════════════ IDEAL ROCKET EQUATION ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Ideal Rocket Equation</div>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Ideal Rocket Equation</span>
+    $$
+    \boxed{
+    \textcolor{#3DBFFF}{\Delta v}
+    =
+    \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+    =
+    \frac{\textcolor{#3DBFFF}{I_{sp}}}{g_0}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+    }
+    $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
+
+        <span class="eq-step-label">Conservation of Mass</span>
+        $$
+        0 = \frac{d\textcolor{#FF4400}{m(t)}}{dt} + \textcolor{#FF4400}{\dot{m}}
+        $$
+
+        <span class="eq-step-label">Momentum</span>
+        $$
+        P(t)=\textcolor{#FF4400}{m(t)}\,\textcolor{#3DBFFF}{v(t)}
+        +\delta \textcolor{#FF4400}{m}\!\left(t'\right)\!
+        \left[\textcolor{#3DBFFF}{v}\!\left(t'\right)-\textcolor{#3DBFFF}{c}\!\left(t'\right)\right]
+        $$
+
+        <span class="eq-step-label">Conservation of Momentum</span>
+        $$
+        0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+        +\textcolor{#3DBFFF}{c(t)}\,d\textcolor{#FF4400}{m(t)}
+        $$
+
+        $$
+        0=\textcolor{#FF4400}{m(t)}\,d\textcolor{#3DBFFF}{v(t)}
+        +\textcolor{#3DBFFF}{c}\,d\textcolor{#FF4400}{m(t)}
+        $$
+
+        <span class="eq-step-label">Integrate</span>
+        $$
+        \int d\textcolor{#3DBFFF}{v(t)}
+        =
+        -\textcolor{#3DBFFF}{c}\int \frac{d\textcolor{#FF4400}{m}}{\textcolor{#FF4400}{m}}
+        $$
+
+        $$
+        \textcolor{#3DBFFF}{v_f-v_0}
+        =
+        -\textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_f}}{\textcolor{#FF4400}{m_0}}\right)
+        $$
+
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{\Delta v}
+        =
+        \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+        }
+        $$
+
+      </div>
+    </details>
   </div>
+</div>
 
-  <!-- ══════════════ BLOCK 2 : SPECIFIC IMPULSE & POWER ══════════════ -->
-  <div class="theory-block">
-    <div class="th-hdr">Specific Impulse &amp; Input Power</div>
+<!-- ════════════════ SPECIFIC IMPULSE ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Specific Impulse</div>
 
-    <p class="th-body">
-      A propulsion system is designed to give a <strong>change in momentum</strong>, or impulse, to
-      the spacecraft. Recall that propellant is limited in space, so we normalize the impulse by
-      propellant mass (or historically, propellant weight on Earth). In the spacecraft frame of
-      reference, the expelled propellant flow begins at rest and is accelerated to leave with
-      <strong class="hl-ve">effective exhaust velocity $c$</strong>, so the propellant stream has
-      jet power equivalent to <strong class="hl-power">input power</strong> times the
-      <strong class="hl-power">power system's efficiency</strong> factor.
-    </p>
+  <p class="th-body">
+    Recall that <span class="key hl-ve">specific impulse</span> is a measure of how efficiently <span class="key hl-mass">propellant mass</span> is used to deliver <span class="key">impulse</span> to our spacecraft.
+    <span class="key hl-ve">Specific impulse</span> and <span class="key hl-ve">effective exhaust velocity</span> are often used interchangeably, as they are directly proportional to each other.
+    It is important to note the units, m/s and s, which indicate whether <span class="key hl-ve">exhaust velocity</span> or <span class="key hl-ve">specific impulse</span> is being referenced.
+  </p>
 
-    <div class="eq-panel">
+  <details class="deriv-detail">
+    <summary>Show derivation</summary>
+    <div class="deriv-inner">
 
-      <span class="eq-step-label">Total impulse — assume constant effective exhaust velocity during the burn</span>
+      <span class="eq-step-label">Total impulse</span>
       $$
       \begin{aligned}
       \text{Impulse}
       &= \int \textcolor{#FF4400}{F_N}\,dt
        = \int \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\,dt
        = \textcolor{#3DBFFF}{c}\int \textcolor{#FF4400}{\dot{m}}\,dt
-       = \textcolor{#3DBFFF}{c}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}
+       = \textcolor{#3DBFFF}{c}\,\textcolor{#FF4400}{m_{\mathrm{prop}}}
       \end{aligned}
       $$
 
-      <span class="eq-step-label">Normalize by propellant mass — impulse per unit propellant mass equals effective exhaust velocity</span>
+      <span class="eq-step-label">Normalize by propellant mass</span>
       $$
-      \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}}
-      = \textcolor{#3DBFFF}{c}
-      \qquad[\mathrm{m/s}]
+      \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}}
+      =
+      \textcolor{#3DBFFF}{c}
       $$
 
-      <span class="eq-step-label">Historical convention — divide by $g_0$ to obtain specific impulse in seconds</span>
+      <span class="eq-step-label">Specific impulse</span>
       $$
       \boxed{
         \textcolor{#3DBFFF}{I_{sp}}
-        = \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,g_0}
-        = \frac{\textcolor{#3DBFFF}{c}}{g_0}
-        \qquad[\mathrm{s}]
+        =
+        \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}\,g_0}
+        =
+        \frac{\textcolor{#3DBFFF}{c}}{g_0}
       }
       $$
 
-      <div class="eq-divider"></div>
-
-      <details class="deriv-detail">
-        <summary>Show jet power derivation — kinetic energy argument</summary>
-        <div class="deriv-inner">
-
-          <span class="eq-step-label">Jet kinetic energy — in the spacecraft frame the propellant starts at rest, so all KE comes from the propulsion system</span>
-          $$
-          \begin{aligned}
-          E_{\mathrm{jet}}
-          &= \tfrac{1}{2}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,\textcolor{#3DBFFF}{c}^2
-          \\[5pt]
-          P_{\mathrm{jet}}
-          = \frac{dE_{\mathrm{jet}}}{dt}
-          &= \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-          \end{aligned}
-          $$
-
-          <span class="eq-step-label">Use the thrust relation $F_N = \dot{m}\,c$ to rewrite jet power</span>
-          $$
-          P_{\mathrm{jet}}
-          = \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-          = \tfrac{1}{2}\,\textcolor{#FF4400}{F_N}\,\textcolor{#3DBFFF}{c}
-          $$
-
-        </div>
-      </details>
-
-      <span class="eq-step-label">Relate jet power to input power through system efficiency $\eta$</span>
-      $$
-      \boxed{
-        P_{\mathrm{jet}} = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
-        \qquad\Rightarrow\qquad
-        \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-        = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
-      }
-      $$
-
-      <span class="eq-step-label">Solve for exhaust velocity, thrust, and specific impulse</span>
-      $$
-      \boxed{
-        \textcolor{#3DBFFF}{c}
-        = \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
-      }
-      \qquad
-      \boxed{
-        \textcolor{#FF4400}{F_N}
-        = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
-        = \sqrt{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}\,\textcolor{#FF4400}{\dot{m}}}
-      }
-      $$
-      $$
-      \boxed{
-        \textcolor{#3DBFFF}{I_{sp}}
-        = \frac{1}{g_0}
-          \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
-      }
-      $$
-
-      <span class="eq-caption">
-        For fixed <span class="hl-power">input power</span>, lowering
-        <span class="hl-mass">mass flow rate</span> raises
-        <span class="hl-ve">exhaust velocity / $I_{sp}$</span>,
-        but also reduces <span class="hl-thrust">thrust</span>.
-        Designing a propulsion system around a power source entails balancing
-        <span class="hl-thrust">thrust</span>&ndash;<span class="hl-ve">$I_{sp}$</span> trade.
-      </span>
     </div>
-  </div>
-
+  </details>
 </div>
 
-<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+<!-- ════════════════ MOTIVATION FOR ELECTRIC PROPULSION ════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Motivation for Electric Propulsion</div>
+
+  <p class="th-body">
+    Increasing <span class="key hl-ve">effective exhaust velocity</span> <strong class="hl-ve">$c$</strong>, or <span class="key hl-ve">specific impulse</span> <strong class="hl-ve">$I_{sp}$</strong>,
+    is clearly the greatest driver for achieving high
+    <strong class="hl-ve">$\Delta V$</strong> or meeting a
+    <strong class="hl-ve">$\Delta V$</strong> specification using less <span class="key hl-mass">propellant</span>.
+
+    Assume we have a <span class="key hl-thrust">chemical engine</span> that uses <span class="key hl-mass">liquid hydrogen and liquid oxygen</span> as propellants, one of the most energetic
+    reactions available to us. Assume that combustion is 100% efficient and that the engine nozzle is perfectly expanded such that
+    exit pressure is 0 Pascals. These assumptions are intentionally optimistic. In making them, we derive the upper limit of the
+    <span class="key hl-ve">specific impulse</span> for chemical engines, which is around 500 seconds.
+
+    If we want to increase <span class="key hl-ve">specific impulse</span> further, we must decouple the <span class="key hl-power">energy source</span> of the propulsion system from the <span class="key hl-mass">propellant</span>.
+    If we instead apply a <span class="key hl-power">voltage</span> to a charged <span class="key hl-mass">propellant</span>, we can clearly achieve much higher <span class="key hl-ve">specific impulses</span>, limited only by our
+    choice of mass flow rate and <span class="key hl-power">power</span>. <span class="key hl-power">Electric propulsion</span> aims to achieve much higher <span class="key hl-ve">specific impulses</span> than available by traditional chemical engines.
+  </p>
+
+  <details class="deriv-detail">
+    <summary>Show derivation</summary>
+    <div class="deriv-inner">
+
+      <span class="eq-step-label">Energy per unit mass</span>
+      $$
+      \textcolor{#C060FF}{E}=\frac{1}{2}\textcolor{#3DBFFF}{c}^2
+      \qquad\Rightarrow\qquad
+      \boxed{
+      \textcolor{#3DBFFF}{c}=\sqrt{2\textcolor{#C060FF}{E}}
+      }
+      $$
+
+      <span class="eq-step-label">For chemical rockets, the power is coupled to the propellant</span>
+      <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
+        Suppose we use <span class="key hl-thrust">LH$_2$ &amp; LOX combustion</span>
+      </p>
+
+      $$
+      2H_2 + O_2 \rightarrow 2H_2O
+      $$
+
+      <span class="eq-step-label">The reaction has energy per unit mass</span>
+      $$
+      \textcolor{#C060FF}{E} = 1.34\times10^7\ \mathrm{J/kg}
+      $$
+
+      $$
+      \Rightarrow\quad
+      \textcolor{#3DBFFF}{c} = 4927\ \mathrm{m/s}
+      \qquad\text{or}\qquad
+      \textcolor{#3DBFFF}{I_{sp}} = 502\ \mathrm{s}
+      $$
+
+      <span class="eq-step-label">For electric rockets, however, power and propellant are decoupled from each other</span>
+      <p class="th-body" style="margin-top:8px; margin-bottom:0;">
+        <strong class="hl-ve">$c$</strong> can be made higher by applying a large amount of <span class="key hl-power">voltage</span> to a small amount of <span class="key hl-mass">gas</span>.
+      </p>
+
+      <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
+        Suppose we hae a small amount of ionized particles:
+      </p>
+
+      <p class="th-body" style="margin-top:0; margin-bottom:8px;">
+        Voltage potential $\textcolor{#C060FF}{\phi_0}$ applied to ion of mass $\textcolor{#FF4400}{m_i}$:
+      </p>
+
+      $$
+      \textcolor{#C060FF}{q}\,\textcolor{#C060FF}{\phi_0}
+      =
+      \frac{1}{2}\textcolor{#FF4400}{m_i}\,\textcolor{#3DBFFF}{c}^2
+      $$
+
+      $$
+      \Rightarrow\quad
+      \boxed{
+      \textcolor{#3DBFFF}{c}
+      =
+      \sqrt{\frac{2\,\textcolor{#C060FF}{\phi_0}\,\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m_i}}}
+      }
+      $$
+
+    </div>
+  </details>
+</div>
+
+<footer>Created by Jordan Bergmann - MIT Propulsion - 2026</footer>
 
 <script>
-'use strict';
+(function () {
+  const C_TRACK_OUTER  = "#181818";
+  const C_TRACK_INNER  = "#404040";
+  const C_NODE_FILL    = "#0e0e0e";
+  const C_NODE_STROKE  = "#8a8a8a";
+  const C_HUB_INNER    = "#1b1b1b";
 
-// ═══════════════════════════════════════════════════════
-// Constants
-// ═══════════════════════════════════════════════════════
-const G0 = 9.80665;
+  const C_HI           = "#3DBFFF";
+  const C_HI_GLOW_A    = "rgba(61,191,255,0.08)";
+  const C_HI_GLOW_B    = "rgba(61,191,255,0.15)";
+  const C_HI_NODE_GLOW = "rgba(61,191,255,0.18)";
+  const C_HI_HUB_INNER = "rgba(61,191,255,0.58)";
 
-const PROP_KEYS = ['H\u2082O', 'Hydrazine', 'Argon', 'Lithium'];
+  const C_AERO           = "#9FE6FF";
+  const C_AERO_GLOW_A    = "rgba(159,230,255,0.07)";
+  const C_AERO_GLOW_B    = "rgba(159,230,255,0.14)";
+  const C_AERO_NODE_GLOW = "rgba(159,230,255,0.20)";
+  const C_AERO_HUB_INNER = "rgba(159,230,255,0.58)";
 
-const M_MOLAR = {
-  'H\u2082O':  0.018015,
-  'Hydrazine': 0.032045,
-  'Argon':     0.039948,
-  'Lithium':   0.006941
-};
+  const DISPLAY_NAMES = {
+    leo:          "Low Earth Orbit (150 km) - Origin",
+    ei:           "Earth Intercept",
+    inter:        "Jupiter Intercept",
+    j_lo:         "Jupiter Low Orbit",
+    jupiter:      "Jupiter",
+    moon_i:       "Moon Intercept",
+    moon_lo:      "Moon Low Orbit",
+    moon:         "Moon",
+    geo:          "Geostationary Orbit",
+    merc_i:       "Mercury Intercept",
+    merc_lo:      "Mercury Low Orbit",
+    mercury:      "Mercury",
+    venus_i:      "Venus Intercept",
+    venus_lo:     "Venus Low Orbit",
+    venus:        "Venus",
+    saturn_i_hub: "Saturn Intercept",
+    saturn_lo:    "Saturn Low Orbit",
+    saturn:       "Saturn",
+    titan_i:      "Titan Intercept",
+    titan_lo:     "Titan Low Orbit",
+    titan:        "Titan",
+    uranus_i:     "Uranus Intercept",
+    uranus_lo:    "Uranus Low Orbit",
+    uranus:       "Uranus",
+    nept_i:       "Neptune Intercept",
+    nept_lo:      "Neptune Low Orbit",
+    neptune:      "Neptune",
+    io_i:         "Io Intercept",
+    io_lo:        "Io Low Orbit",
+    io:           "Io",
+    eu_i:         "Europa Intercept",
+    eu_lo:        "Europa Low Orbit",
+    europa:       "Europa",
+    call_i:       "Callisto Intercept",
+    call_lo:      "Callisto Low Orbit",
+    callisto:     "Callisto",
+    gan_i:        "Ganymede Intercept",
+    gan_lo:       "Ganymede Low Orbit",
+    ganymede:     "Ganymede",
+    mars_i_hub:   "Mars Intercept",
+    mars_lo:      "Mars Low Orbit",
+    mars:         "Mars",
+    dei_i:        "Deimos Intercept",
+    dei_lo:       "Deimos Low Orbit",
+    deimos:       "Deimos",
+    pho_i:        "Phobos Intercept",
+    pho_lo:       "Phobos Low Orbit",
+    phobos:       "Phobos"
+  };
 
-const ORB_COLOR = {
-  'H\u2082O':  '#ffb17a',
-  'Hydrazine': '#ff6d00',
-  'Argon':     '#d500f9',
-  'Lithium':   '#ff1744'
-};
+  const state = {
+    currentBudget:      null,
+    selectedNode:       null,
+    reachableNodes:     new Set(),
+    reachableEdges:     new Set(),
+    reachableAeroNodes: new Set(),
+    reachableAeroEdges: new Set(),
+    shortestDv:         {},
+    shortestPrev:       {},
+    shortestDvAero:     {},
+    shortestPrevAero:   {},
+    nodes:              {},
+    segments:           []
+  };
 
-const ORB_GLOW = {
-  'H\u2082O':  'rgba(255,177,122,0.22)',
-  'Hydrazine': 'rgba(255,109,0,0.22)',
-  'Argon':     'rgba(213,0,249,0.22)',
-  'Lithium':   'rgba(255,23,68,0.22)'
-};
+  const canvas = document.getElementById('mapCanvas');
+  const ctx    = canvas.getContext('2d');
+  const HIT_RADIUS = 30;
+  const G0 = 9.80665;
 
-const ORB_R = {
-  'H\u2082O':  2.0,
-  'Hydrazine': 2.5,
-  'Argon':     3.0,
-  'Lithium':   1.8
-};
+  let stars = [];
 
-const MAX_THRUST_VIS = 2000;
-const MAX_VE_VIS     = 50000;
-const MAX_ORBS       = 2000;
-
-// ═══════════════════════════════════════════════════════
-// Physics
-// ═══════════════════════════════════════════════════════
-function compute(mdotKgS, powerKW, eta) {
-  const mdot = mdotKgS;
-  const pJet = powerKW * 1000.0 * eta;
-
-  if (mdot < 1e-12 || pJet < 1e-12) {
-    return { T: 0, mdot: 0, ve: 0, isp: 0 };
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < 340; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: 0.2 + Math.random() * 1.25,
+        a: +(0.18 + Math.random() * 0.55).toFixed(2)
+      });
+    }
   }
 
-  const ve = Math.sqrt(2.0 * pJet / mdot);
-  return { T: mdot * ve, mdot, ve, isp: ve / G0 };
-}
+  const xScale = 1.15, yScale = 1.20, ox = 110, oy = 240;
+  const T   = (x, y) => [ox + x * xScale, oy + y * yScale];
+  const tsx = v => v * xScale;
+  const tsy = v => v * yScale;
+  const tsu = v => v * Math.min(xScale, yScale);
 
-// ═══════════════════════════════════════════════════════
-// Formatting
-// ═══════════════════════════════════════════════════════
-function fmt4g(v) {
-  if (!isFinite(v) || v === 0) return '0';
-  const s = v.toPrecision(4);
-  if (s.includes('e')) return s.replace(/\.?0+(e)/, '$1');
-  return String(parseFloat(s));
-}
-
-// ═══════════════════════════════════════════════════════
-// Canvas setup
-// ═══════════════════════════════════════════════════════
-const canvas = document.getElementById('cnv');
-const ctx    = canvas.getContext('2d');
-const CW = canvas.width;
-const CH = canvas.height;
-
-const BX = 175, BY = 82, BW = 205, BH = 198;
-const BX2 = BX + BW;
-const CY  = BY + BH / 2;
-
-const SHELF_W = 50;
-const SHELF_H = 26;
-const GAP_H   = 22;
-
-const EX = BX2 + SHELF_W;
-
-const US_TOP = CY - GAP_H / 2 - SHELF_H;
-const LS_TOP = CY + GAP_H / 2;
-
-const ARR_TAIL_X = BX - 6;
-
-// ═══════════════════════════════════════════════════════
-// Stars
-// ═══════════════════════════════════════════════════════
-const STARS = Array.from({ length: 220 }, () => ({
-  x: Math.random() * CW,
-  y: Math.random() * CH,
-  r: Math.random() * 1.1 + 0.15,
-  a: Math.random() * 0.5 + 0.2
-}));
-
-// ═══════════════════════════════════════════════════════
-// App state
-// ═══════════════════════════════════════════════════════
-let selectedProp = PROP_KEYS[0];
-let particles    = [];
-let spawnTimer   = 0;
-let lastTime     = null;
-
-// ═══════════════════════════════════════════════════════
-// DOM references
-// ═══════════════════════════════════════════════════════
-const slFlow  = document.getElementById('sl-flow');
-const slPower = document.getElementById('sl-power');
-const slEta   = document.getElementById('sl-eta');
-
-const tbFlow  = document.getElementById('tb-flow');
-const tbPower = document.getElementById('tb-power');
-const tbEta   = document.getElementById('tb-eta');
-
-const oThrust = document.getElementById('o-thrust');
-const oMdot   = document.getElementById('o-mdot');
-const oIsp    = document.getElementById('o-isp');
-const oVe     = document.getElementById('o-ve');
-
-// ═══════════════════════════════════════════════════════
-// Build radio buttons
-// ═══════════════════════════════════════════════════════
-(function buildRadios() {
-  const wrap = document.getElementById('radio-wrap');
-
-  PROP_KEYS.forEach((key, i) => {
-    const lbl = document.createElement('label');
-    lbl.className = 'radio-row';
-    lbl.style.color = ORB_COLOR[key];
-
-    const inp = document.createElement('input');
-    inp.type    = 'radio';
-    inp.name    = 'propellant';
-    inp.value   = key;
-    inp.checked = (i === 0);
-
-    lbl.appendChild(inp);
-    lbl.appendChild(document.createTextNode(
-      '\u00a0' + key + '\u00a0\u00a0(' + fmt4g(M_MOLAR[key] * 1e3) + '\u00a0g/mol)'
-    ));
-
-    wrap.appendChild(lbl);
-
-    inp.addEventListener('change', () => {
-      if (inp.checked) {
-        selectedProp = key;
-        particles    = [];
-        spawnTimer   = 0;
-      }
+  function formatDv(value, maxFractionDigits = 1) {
+    if (value === undefined || value === null || !isFinite(value)) return "\u2014";
+    const rounded = Math.abs(value - Math.round(value)) < 1e-9;
+    return value.toLocaleString('en-US', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: rounded ? 0 : maxFractionDigits
     });
-  });
-}());
-
-// ═══════════════════════════════════════════════════════
-// Slider <-> textbox linking
-// ═══════════════════════════════════════════════════════
-function snapStep(val, min, step) {
-  if (!step || step <= 0) return val;
-  const dp = Math.max(0, -Math.floor(Math.log10(step)));
-  return parseFloat((min + Math.round((val - min) / step) * step).toFixed(dp));
-}
-
-function linkSliderTb(slider, tb) {
-  slider.addEventListener('input', () => {
-    tb.value = fmt4g(parseFloat(slider.value));
-  });
-
-  function apply() {
-    const raw = parseFloat(tb.value);
-    if (!isFinite(raw)) { tb.value = fmt4g(parseFloat(slider.value)); return; }
-    const val = snapStep(
-      Math.max(parseFloat(slider.min), Math.min(parseFloat(slider.max), raw)),
-      parseFloat(slider.min),
-      parseFloat(slider.step)
-    );
-    slider.value = val;
-    tb.value     = fmt4g(val);
   }
 
-  tb.addEventListener('keydown', e => { if (e.key === 'Enter') { apply(); tb.blur(); } });
-  tb.addEventListener('blur', apply);
-}
-
-linkSliderTb(slFlow,  tbFlow);
-linkSliderTb(slPower, tbPower);
-linkSliderTb(slEta,   tbEta);
-
-// ═══════════════════════════════════════════════════════
-// Drawing helpers
-// ═══════════════════════════════════════════════════════
-function drawBackground() {
-  ctx.fillStyle = '#090909';
-  ctx.fillRect(0, 0, CW, CH);
-  for (const s of STARS) {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
-    ctx.fill();
+  function formatSignedDv(value, maxFractionDigits = 1) {
+    return `${value >= 0 ? "+" : ""}${formatDv(value, maxFractionDigits)}`;
   }
-}
 
-function drawSpacecraft(thrust) {
-  ctx.fillStyle = '#d6deed';
-  ctx.fillRect(BX,  BY,     BW,      BH);
-  ctx.fillRect(BX2, US_TOP, SHELF_W, SHELF_H);
-  ctx.fillRect(BX2, LS_TOP, SHELF_W, SHELF_H);
+  function setMR(mr) {
+    const el = document.getElementById('result');
+    el.classList.remove('cf-mr-na');
+    el.textContent = isFinite(mr) ? mr.toFixed(4) : "--";
+  }
 
-  if (thrust > 1e-12) {
-    const frac = Math.min(thrust / MAX_THRUST_VIS, 1.0);
-    const len  = Math.min(50 + 150 * frac, ARR_TAIL_X - 8);
-    const tipX = ARR_TAIL_X - len;
-    const hLen = Math.min(40, len * 0.36);
-    const hW   = hLen * 0.90;
+  function setMRUnavailable() {
+    const el = document.getElementById('result');
+    el.classList.add('cf-mr-na');
+    el.textContent = "N/A";
+  }
+
+  function updateIspSecondsDisplay() {
+    const el = document.getElementById('ispSeconds');
+    const raw = document.getElementById('c').value.trim().replace(/,/g, "");
+    const value = parseFloat(raw);
+
+    if (!raw || !isFinite(value) || value <= 0) {
+      el.textContent = "--";
+      return;
+    }
+
+    el.textContent = (value / G0).toFixed(1);
+  }
+
+  function buildMapData() {
+    state.nodes = {
+      leo:           { x:392, y:792, kind:"transfer", orientation:"h", length:64,  label:"Low Earth Orbit\n(150 km) - Origin", offset:[48,0] },
+      ei:            { x:392, y:646, kind:"transfer", orientation:"h", length:118, label:"Earth Intercept", offset:[92,0] },
+      inter:         { x:392, y:305, kind:"transfer", orientation:"h", length:118, label:"Jupiter Intercept", offset:[0,30] },
+
+      j_lo:          { x:392, y:162, kind:"circle" },
+      jupiter:       { x:392, y: 62, kind:"circle", label:"Jupiter", offset:[0,-22] },
+
+      moon_i:        { x:285, y:715, kind:"circle" },
+      moon_lo:       { x:170, y:715, kind:"circle" },
+      moon:          { x: 55, y:715, kind:"circle", label:"Moon", offset:[-20,-14] },
+
+      geo:           { x:505, y:715, kind:"circle", label:"Geostationary Orbit", offset:[18,0] },
+
+      merc_i:        { x:285, y:590, kind:"circle" },
+      merc_lo:       { x:170, y:590, kind:"circle" },
+      mercury:       { x: 55, y:590, kind:"circle", label:"Mercury", offset:[-20,0] },
+
+      venus_i:       { x:285, y:480, kind:"circle" },
+      venus_lo:      { x:160, y:480, kind:"circle" },
+      venus:         { x: 35, y:480, kind:"circle", label:"Venus", offset:[-20,0] },
+
+      saturn_i_hub:  { x:555, y:392, kind:"transfer", orientation:"v", length:48, label:"Saturn Intercept", offset:[-20,0] },
+
+      saturn_lo:     { x:705, y:392, kind:"circle" },
+      saturn:        { x:855, y:392, kind:"circle", label:"Saturn", offset:[20,0] },
+
+      titan_i:       { x:640, y:315, kind:"circle" },
+      titan_lo:      { x:730, y:315, kind:"circle" },
+      titan:         { x:855, y:315, kind:"circle", label:"Titan", offset:[20,0] },
+
+      uranus_i:      { x:555, y:500, kind:"circle" },
+      uranus_lo:     { x:705, y:500, kind:"circle" },
+      uranus:        { x:855, y:500, kind:"circle", label:"Uranus", offset:[20,0] },
+
+      nept_i:        { x:555, y:595, kind:"circle" },
+      nept_lo:       { x:705, y:595, kind:"circle" },
+      neptune:       { x:855, y:595, kind:"circle", label:"Neptune", offset:[20,0] },
+
+      io_i:          { x:330, y:232, kind:"circle" },
+      io_lo:         { x:245, y:232, kind:"circle" },
+      io:            { x:165, y:232, kind:"circle", label:"Io", offset:[-18,0] },
+
+      eu_i:          { x:285, y:172, kind:"circle" },
+      eu_lo:         { x:245, y:128, kind:"circle" },
+      europa:        { x:195, y: 80, kind:"circle", label:"Europa", offset:[-18,-8] },
+
+      call_i:        { x:470, y:205, kind:"circle" },
+      call_lo:       { x:545, y:205, kind:"circle" },
+      callisto:      { x:640, y:205, kind:"circle", label:"Callisto", offset:[18,0] },
+
+      gan_i:         { x:460, y:148, kind:"circle" },
+      gan_lo:        { x:535, y:102, kind:"circle" },
+      ganymede:      { x:620, y: 58, kind:"circle", label:"Ganymede", offset:[18,0] },
+
+      mars_i_hub:    { x:235, y:350, kind:"transfer", orientation:"v", length:56, label:"Mars Intercept", offset:[20,0] },
+      mars_lo:       { x: 65, y:350, kind:"circle" },
+      mars:          { x:-10, y:350, kind:"circle", label:"Mars", offset:[-18,0] },
+
+      dei_i:         { x: 65, y:278, kind:"circle" },
+      dei_lo:        { x: 20, y:278, kind:"circle" },
+      deimos:        { x:-15, y:278, kind:"circle", label:"Deimos", offset:[-18,0] },
+
+      pho_i:         { x: 65, y:438, kind:"circle" },
+      pho_lo:        { x: 20, y:438, kind:"circle" },
+      phobos:        { x:-15, y:438, kind:"circle", label:"Phobos", offset:[-18,0] }
+    };
+
+    state.segments = [
+      { parent:"leo",          child:"ei",           dv:3210  },
+      { parent:"ei",           child:"inter",        dv:3360  },
+
+      { parent:"inter",        child:"j_lo",         dv:17200, aero:true },
+      { parent:"j_lo",         child:"jupiter",      dv:45000, aero:true },
+
+      { parent:"leo",          child:"moon_i",       dv:3260  },
+      { parent:"moon_i",       child:"moon_lo",      dv:680   },
+      { parent:"moon_lo",      child:"moon",         dv:1730  },
+
+      { parent:"leo",          child:"geo",          dv:3910  },
+
+      { parent:"ei",           child:"merc_i",       dv:8650,  shift:[0,14] },
+      { parent:"merc_i",       child:"merc_lo",      dv:1220  },
+      { parent:"merc_lo",      child:"mercury",      dv:3060  },
+
+      { parent:"ei",           child:"venus_i",      dv:340,   labelT:0.42, shift:[-25,-6] },
+      { parent:"venus_i",      child:"venus_lo",     dv:2940,  aero:true, shift:[0,-14] },
+      { parent:"venus_lo",     child:"venus",        dv:27000, aero:true, shift:[0,14] },
+
+      { parent:"ei",           child:"saturn_i_hub", dv:4500,  shift:[-4,-12] },
+      { parent:"saturn_i_hub", child:"saturn_lo",    dv:10230, aero:true },
+      { parent:"saturn_lo",    child:"saturn",       dv:30000, aero:true },
+
+      { parent:"saturn_i_hub", child:"titan_i",      dv:3060,  shift:[0,-12] },
+      { parent:"titan_i",      child:"titan_lo",     dv:660,   shift:[0,-10] },
+      { parent:"titan_lo",     child:"titan",        dv:7600,  aero:true },
+
+      { parent:"ei",           child:"uranus_i",     dv:5380,  shift:[0,-8] },
+      { parent:"uranus_i",     child:"uranus_lo",    dv:6120,  aero:true },
+      { parent:"uranus_lo",    child:"uranus",       dv:18000, aero:true },
+
+      { parent:"ei",           child:"nept_i",       dv:5390,  shift:[0,10] },
+      { parent:"nept_i",       child:"nept_lo",      dv:6750,  aero:true },
+      { parent:"nept_lo",      child:"neptune",      dv:19000, aero:true },
+
+      { parent:"inter",        child:"io_i",         dv:1030,  shift:[0,12] },
+      { parent:"io_i",         child:"io_lo",        dv:730   },
+      { parent:"io_lo",        child:"io",           dv:1850  },
+
+      { parent:"io_i",         child:"eu_i",         dv:890,   shift:[0,-12] },
+      { parent:"eu_i",         child:"eu_lo",        dv:580   },
+      { parent:"eu_lo",        child:"europa",       dv:1480  },
+
+      { parent:"inter",        child:"call_i",       dv:5140,  shift:[6,18] },
+      { parent:"call_i",       child:"call_lo",      dv:70,    shift:[0,-10] },
+      { parent:"call_lo",      child:"callisto",     dv:1760  },
+
+      { parent:"inter",        child:"gan_i",        dv:6700,  shift:[0,14] },
+      { parent:"gan_i",        child:"gan_lo",       dv:700   },
+      { parent:"gan_lo",       child:"ganymede",     dv:1970  },
+
+      { parent:"ei",           child:"mars_i_hub",   dv:1060,  labelT:0.68, shift:[20,-4] },
+      { parent:"mars_i_hub",   child:"mars_lo",      dv:1440,  aero:true, shift:[0,-14] },
+      { parent:"mars_lo",      child:"mars",         dv:3800,  aero:true, shift:[0,-12] },
+
+      { parent:"mars_i_hub",   child:"dei_i",        dv:990,   shift:[0,-12] },
+      { parent:"dei_i",        child:"dei_lo",       dv:2,     shift:[0,-10] },
+      { parent:"dei_lo",       child:"deimos",       dv:4,     shift:[0,-10] },
+
+      { parent:"mars_i_hub",   child:"pho_i",        dv:1280,  shift:[0,12] },
+      { parent:"pho_i",        child:"pho_lo",       dv:3,     shift:[0,10]  },
+      { parent:"pho_lo",       child:"phobos",       dv:8,     shift:[0,10]  }
+    ];
+  }
+
+  function computeShortestPathsFromLeo() {
+    const adj = {};
+    for (const id in state.nodes) adj[id] = [];
+    for (const s of state.segments) adj[s.parent].push([s.child, s.dv]);
+
+    const dist = {}, prev = {};
+    for (const id in state.nodes) dist[id] = Infinity;
+    dist["leo"] = 0;
+    const heap = [[0, "leo"]];
+
+    while (heap.length) {
+      heap.sort((a, b) => a[0] - b[0]);
+      const [d, node] = heap.shift();
+      if (d !== dist[node]) continue;
+      for (const [nb, w] of adj[node]) {
+        const nd = d + w;
+        if (nd < dist[nb]) {
+          dist[nb] = nd;
+          prev[nb] = node;
+          heap.push([nd, nb]);
+        }
+      }
+    }
+
+    state.shortestDv   = {};
+    state.shortestPrev = prev;
+    for (const id in dist) if (dist[id] < Infinity) state.shortestDv[id] = dist[id];
+
+    const adjA = {};
+    for (const id in state.nodes) adjA[id] = [];
+    for (const s of state.segments)
+      adjA[s.parent].push([s.child, s.aero ? 0 : s.dv, !!s.aero]);
+
+    const distA = {}, prevA = {};
+    for (const id in state.nodes) distA[id] = Infinity;
+    distA["leo"] = 0;
+    const heapA = [[0, "leo"]];
+
+    while (heapA.length) {
+      heapA.sort((a, b) => a[0] - b[0]);
+      const [d, node] = heapA.shift();
+      if (d !== distA[node]) continue;
+      for (const [nb, w, isAero] of adjA[node]) {
+        const nd = d + w;
+        if (nd < distA[nb]) {
+          distA[nb] = nd;
+          prevA[nb] = { from: node, aero: isAero };
+          heapA.push([nd, nb]);
+        }
+      }
+    }
+
+    state.shortestDvAero   = {};
+    state.shortestPrevAero = prevA;
+    for (const id in distA) if (distA[id] < Infinity) state.shortestDvAero[id] = distA[id];
+  }
+
+  function parsePositiveFloat(text, name) {
+    text = text.trim().replace(/,/g, "");
+    if (!text) throw new Error(`${name} is required.`);
+    const v = parseFloat(text);
+    if (isNaN(v) || v <= 0) throw new Error(`${name} must be > 0.`);
+    return v;
+  }
+
+  function parseNonnegativeFloat(text, name) {
+    text = text.trim().replace(/,/g, "");
+    if (!text) throw new Error(`${name} is required.`);
+    const v = parseFloat(text);
+    if (isNaN(v) || v < 0) throw new Error(`${name} cannot be negative.`);
+    return v;
+  }
+
+  function getDisplayName(nodeId) {
+    if (DISPLAY_NAMES[nodeId]) return DISPLAY_NAMES[nodeId];
+    const node = state.nodes[nodeId];
+    if (node && node.label) return node.label.replace(/\n/g, " ");
+    return nodeId.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  function getNodeBudgetInfo(nodeId) {
+    const dvStandard = state.shortestDv[nodeId];
+    const dvAero     = state.shortestDvAero[nodeId];
+    const budget     = state.currentBudget;
+
+    const remainingUsesAero = dvAero !== undefined && (dvStandard === undefined || dvAero < dvStandard);
+    const remainingCost = remainingUsesAero ? dvAero : dvStandard;
+    const remaining = (budget !== null && remainingCost !== undefined) ? budget - remainingCost : undefined;
+
+    const reachableStandard = budget !== null && dvStandard !== undefined && dvStandard <= budget;
+    const reachableAero     = budget !== null && dvAero !== undefined && dvAero <= budget;
+    const hasAeroBenefit    = dvAero !== undefined && dvStandard !== undefined && dvAero < dvStandard;
+
+    let statusText = "", statusClass = "";
+    if (budget !== null) {
+      if (reachableStandard)  { statusText = "Reachable";                  statusClass = "status-standard"; }
+      else if (reachableAero) { statusText = "Reachable with aerobraking"; statusClass = "status-aero"; }
+      else                    { statusText = "Not reachable";              statusClass = "status-bad"; }
+    }
+
+    return {
+      dvStandard,
+      dvAero,
+      remainingUsesAero,
+      remainingCost,
+      remaining,
+      reachableStandard,
+      reachableAero,
+      hasAeroBenefit,
+      statusText,
+      statusClass
+    };
+  }
+
+  function makeInfoItem(label, value, cls = "") {
+    return `<div class="info-panel-item${cls ? " " + cls : ""}">${label}: <strong>${value}</strong></div>`;
+  }
+
+  function renderInfoPanel() {
+    const panel = document.getElementById('infoPanelFrame');
+
+    if (state.selectedNode === null && state.currentBudget === null) {
+      panel.style.display = "none";
+      panel.innerHTML = "";
+      return;
+    }
+
+    panel.style.display = "block";
+
+    if (state.selectedNode !== null) {
+      const name = getDisplayName(state.selectedNode);
+      const info = getNodeBudgetInfo(state.selectedNode);
+      const rows = [];
+
+      if (info.dvStandard !== undefined)
+        rows.push(makeInfoItem("\u0394v from LEO", `${formatDv(info.dvStandard)} m/s`));
+      if (info.hasAeroBenefit)
+        rows.push(makeInfoItem("\u0394v with aerobraking", `${formatDv(info.dvAero)} m/s`, "accent"));
+      if (state.currentBudget !== null) {
+        rows.push(makeInfoItem("Budget", `${formatDv(state.currentBudget)} m/s`));
+        if (info.remaining !== undefined) {
+          rows.push(makeInfoItem(
+            "Remaining \u0394v",
+            `${formatSignedDv(info.remaining)} m/s${info.remainingUsesAero ? " (assuming aerobraking)" : ""}`,
+            info.remaining >= 0 ? "good" : "bad"
+          ));
+        }
+        rows.push(makeInfoItem("Status", info.statusText, info.statusClass));
+      }
+
+      panel.innerHTML = `
+        <div class="info-panel-kicker">Selected destination</div>
+        <div class="info-panel-heading">${name}</div>
+        <div class="info-panel-grid">${rows.join("")}</div>
+      `;
+      return;
+    }
+
+    panel.innerHTML = `
+      <div class="info-panel-kicker">Current budget</div>
+      <div class="info-panel-heading">${formatDv(state.currentBudget)} m/s</div>
+    `;
+  }
+
+  function calculateFromInputs() {
+    try {
+      const lambda  = parseNonnegativeFloat(document.getElementById('lambda').value,  "\u03bb");
+      const epsilon = parseNonnegativeFloat(document.getElementById('epsilon').value, "\u03b5");
+      const c       = parsePositiveFloat(document.getElementById('c').value,          "c");
+
+      if (epsilon > 1.0)         throw new Error("\u03b5 must be between 0 and 1.");
+      if (lambda + epsilon <= 0) throw new Error("\u03bb + \u03b5 must be > 0.");
+
+      const MR     = (lambda + 1) / (lambda + epsilon);
+      const budget = c * Math.log(MR);
+
+      document.getElementById('dv').value = budget.toFixed(1);
+      document.getElementById('status').textContent = "";
+      setMR(MR);
+
+      state.currentBudget = budget;
+      updateReachability(budget);
+    } catch (e) {
+      document.getElementById('status').textContent = e.message;
+    }
+  }
+
+  function applyCustomDv() {
+    try {
+      const dv = parseNonnegativeFloat(document.getElementById('dv').value, "\u0394v");
+      const c  = parsePositiveFloat(document.getElementById('c').value,     "c");
+      const MR = Math.exp(dv / c);
+
+      document.getElementById('status').textContent = "";
+      setMR(MR);
+
+      state.currentBudget = dv;
+      updateReachability(dv);
+    } catch (e) {
+      document.getElementById('status').textContent = e.message;
+    }
+  }
+
+  function applyPreset(dv) {
+    document.getElementById('dv').value = dv;
+    document.getElementById('status').textContent = "";
+    setMRUnavailable();
+    state.currentBudget = dv;
+    updateReachability(dv);
+  }
+
+  function updateReachability(budget) {
+    state.reachableNodes.clear();
+    state.reachableEdges.clear();
+    state.reachableAeroNodes.clear();
+    state.reachableAeroEdges.clear();
+
+    for (const id in state.shortestDv) {
+      if (state.shortestDv[id] <= budget) state.reachableNodes.add(id);
+    }
+
+    for (const id of state.reachableNodes) {
+      let cur = id;
+      while (cur in state.shortestPrev) {
+        const par = state.shortestPrev[cur];
+        state.reachableEdges.add(`${par},${cur}`);
+        cur = par;
+      }
+    }
+
+    for (const id in state.shortestDvAero) {
+      if (state.shortestDvAero[id] <= budget && !state.reachableNodes.has(id))
+        state.reachableAeroNodes.add(id);
+    }
+
+    for (const id of state.reachableAeroNodes) {
+      let cur = id;
+      while (cur in state.shortestPrevAero) {
+        const { from } = state.shortestPrevAero[cur];
+        const key = `${from},${cur}`;
+        if (!state.reachableEdges.has(key)) state.reachableAeroEdges.add(key);
+        cur = from;
+        if (state.reachableNodes.has(cur)) break;
+      }
+    }
+
+    drawMap();
+  }
+
+  function clearHighlights() {
+    state.reachableNodes.clear();
+    state.reachableEdges.clear();
+    state.reachableAeroNodes.clear();
+    state.reachableAeroEdges.clear();
+    state.currentBudget = null;
+    state.selectedNode  = null;
+    document.getElementById('dv').value = "";
+    setMR(NaN);
+    document.getElementById('status').textContent = "";
+    drawMap();
+  }
+
+  function drawLegend() {
+    const items = [
+      { color: "#3DBFFF", label: "Reachable (standard \u0394v)" },
+      { color: "#9FE6FF", label: "Reachable with aerobraking"   }
+    ];
+
+    const legX      = 24;
+    const legY0     = 98;
+    const itemH     = 30;
+    const swatchW   = 26;
+    const swatchThk = 3;
+    const textGap   = 9;
 
     ctx.save();
-    ctx.strokeStyle = '#FF4400';
-    ctx.fillStyle   = '#FF4400';
-    ctx.lineWidth   = 10;
-    ctx.lineCap     = 'butt';
+    ctx.lineCap      = "round";
+    ctx.textAlign    = "left";
+    ctx.textBaseline = "middle";
+    ctx.font         = "400 21px Barlow, Segoe UI, Arial, sans-serif";
 
-    ctx.beginPath();
-    ctx.moveTo(ARR_TAIL_X, CY);
-    ctx.lineTo(tipX + hLen, CY);
-    ctx.stroke();
+    for (let i = 0; i < items.length; i++) {
+      const iy = legY0 + i * itemH;
 
-    ctx.beginPath();
-    ctx.moveTo(tipX, CY);
-    ctx.lineTo(tipX + hLen, CY - hW);
-    ctx.lineTo(tipX + hLen, CY + hW);
-    ctx.closePath();
-    ctx.fill();
+      ctx.strokeStyle = items[i].color;
+      ctx.lineWidth   = swatchThk;
+      ctx.beginPath();
+      ctx.moveTo(legX, iy);
+      ctx.lineTo(legX + swatchW, iy);
+      ctx.stroke();
+
+      ctx.fillStyle = "#888888";
+      ctx.fillText(items[i].label, legX + swatchW + textGap, iy);
+    }
 
     ctx.restore();
   }
-}
 
-function drawParticles() {
-  for (const p of particles) {
-    const r = ORB_R[p.prop];
+  function drawMap() {
+    ctx.fillStyle = "#090909";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r * 1.5, 0, Math.PI * 2);
-    ctx.fillStyle   = ORB_GLOW[p.prop];
-    ctx.globalAlpha = 1.0;
-    ctx.fill();
+    for (const s of stars) {
+      ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, 2 * Math.PI);
+      ctx.fill();
+    }
 
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.fillStyle   = ORB_COLOR[p.prop];
-    ctx.globalAlpha = 1.0;
-    ctx.fill();
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign    = "left";
+    ctx.font         = "700 46px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.fillStyle    = "#ffffff";
+    ctx.fillText("The Solar System", 24, 32);
+
+    ctx.font      = "700 25px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.fillStyle = "#dcdcdc";
+    ctx.fillText("A SUBWAY MAP", 24, 72);
+
+    drawLegend();
+
+    for (const seg of state.segments) drawSegment(seg);
+    for (const id in state.nodes) if (state.nodes[id].kind === "transfer") drawTransferNode(id);
+    for (const seg of state.segments) drawArrowOverlay(seg);
+    for (const seg of state.segments) drawSegmentLabel(seg);
+    for (const id in state.nodes) if (state.nodes[id].kind === "circle") drawCircleNode(id);
+    for (const id in state.nodes) if (state.nodes[id].label) drawNodeLabel(id);
+
+    renderInfoPanel();
   }
-  ctx.globalAlpha = 1.0;
-}
 
-// ═══════════════════════════════════════════════════════
-// Outputs
-// ═══════════════════════════════════════════════════════
-function updateOutputs(res) {
-  oThrust.textContent = fmt4g(res.T)    + ' N';
-  oMdot.textContent   = fmt4g(res.mdot) + ' kg/s';
-  oIsp.textContent    = fmt4g(res.isp)  + ' s';
-  oVe.textContent     = 'or ' + fmt4g(res.ve) + ' m/s';
-}
+  function drawSegment(seg) {
+    const p  = state.nodes[seg.parent];
+    const ch = state.nodes[seg.child];
+    const [x1, y1] = T(p.x, p.y);
+    const [x2, y2] = T(ch.x, ch.y);
+    const wO = Math.max(14, tsu(22));
+    const wI = Math.max(8,  tsu(13));
+    const key  = `${seg.parent},${seg.child}`;
+    const hi   = state.reachableEdges.has(key);
+    const aero = state.reachableAeroEdges.has(key);
 
-// ═══════════════════════════════════════════════════════
-// Animation loop
-// ═══════════════════════════════════════════════════════
-function animate(ts) {
-  if (lastTime === null) lastTime = ts;
-  const dt = Math.min((ts - lastTime) / 1000.0, 0.1);
-  lastTime = ts;
+    ctx.lineCap  = "round";
+    ctx.lineJoin = "round";
 
-  const mdot  = parseFloat(slFlow.value);
-  const power = parseFloat(slPower.value);
-  const eta   = parseFloat(slEta.value);
+    if (hi || aero) {
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_A : C_HI_GLOW_A;
+      ctx.lineWidth   = wO + 18;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
 
-  const res    = compute(mdot, power, eta);
-  updateOutputs(res);
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_B : C_HI_GLOW_B;
+      ctx.lineWidth   = wO + 8;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
 
-  const veNorm = Math.sqrt(Math.min(res.ve / MAX_VE_VIS, 1.0));
-  const vPxS   = (0.5 + 11.5 * veNorm) * (CW / 10.0);
+    ctx.strokeStyle = C_TRACK_OUTER;
+    ctx.lineWidth   = wO;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
 
-  for (const p of particles) p.vx = vPxS;
+    ctx.strokeStyle = hi ? C_HI : (aero ? C_AERO : C_TRACK_INNER);
+    ctx.lineWidth   = wI;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
 
-  if (res.T > 1e-12) {
-    spawnTimer += dt;
-    const molarFlow = mdot / M_MOLAR[selectedProp];
-    const spawnRate = Math.max(Math.min(molarFlow * 30.0, 250.0), 0.5);
-    const interval  = 1.0 / spawnRate;
+  function getArrowInset(seg, ux, uy) {
+    const child = state.nodes[seg.child];
+    const nodeR = Math.max(6, tsu(9));
+    if (!child) return nodeR + Math.max(12, tsu(14));
+    if (child.kind === "circle") return nodeR + Math.max(12, tsu(14));
+    if (child.kind === "transfer") {
+      const pad = Math.max(12, tsu(14));
+      if (child.orientation === "h") return Math.abs(ux) * tsx((child.length || 60) / 2) + pad;
+      return Math.abs(uy) * tsy((child.length || 60) / 2) + pad;
+    }
+    return nodeR + Math.max(12, tsu(14));
+  }
 
-    while (spawnTimer >= interval) {
-      spawnTimer -= interval;
-      if (particles.length < MAX_ORBS) {
-        const halfGap = (GAP_H / 2) * 0.80;
-        const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
-        particles.push({ x: EX + vPxS * spawnTimer, y: CY + yOff, vx: vPxS, prop: selectedProp });
+  function drawArrowOverlay(seg) {
+    if (!seg.aero) return;
+
+    const p  = state.nodes[seg.parent];
+    const ch = state.nodes[seg.child];
+    const [x1, y1] = T(p.x, p.y);
+    const [x2, y2] = T(ch.x, ch.y);
+
+    const ddx = x2 - x1, ddy = y2 - y1;
+    const len = Math.hypot(ddx, ddy);
+    if (len < 24) return;
+
+    const ux = ddx / len, uy = ddy / len;
+    const px = -uy,       py = ux;
+
+    const aLen = Math.max(15, tsu(17));
+    const aW   = Math.max(13, tsu(14));
+
+    const desiredInset = getArrowInset(seg, ux, uy);
+    const inset = Math.max(aLen + 4, Math.min(desiredInset, len - 6));
+
+    const tipX = x2 - ux * inset,  tipY = y2 - uy * inset;
+    const bX   = tipX - ux * aLen, bY   = tipY - uy * aLen;
+
+    ctx.save();
+
+    ctx.fillStyle = "#0a0a0a";
+    ctx.beginPath();
+    ctx.moveTo(tipX + ux * 1.5, tipY + uy * 1.5);
+    ctx.lineTo(bX + px * (aW / 2 + 1.5) - ux * 1.0, bY + py * (aW / 2 + 1.5) - uy * 1.0);
+    ctx.lineTo(bX - px * (aW / 2 + 1.5) - ux * 1.0, bY - py * (aW / 2 + 1.5) - uy * 1.0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle   = "#ffffff";
+    ctx.strokeStyle = "#0a0a0a";
+    ctx.lineWidth   = 1.6;
+    ctx.lineJoin    = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(bX + px * aW / 2, bY + py * aW / 2);
+    ctx.lineTo(bX - px * aW / 2, bY - py * aW / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawSegmentLabel(seg) {
+    if (seg.hideLabel || (seg.dv <= 10 && !seg.showTinyLabel)) return;
+
+    const p  = state.nodes[seg.parent];
+    const ch = state.nodes[seg.child];
+    const [x1, y1] = T(p.x, p.y);
+    const [x2, y2] = T(ch.x, ch.y);
+    const sh = seg.shift || [0, 0];
+
+    let t = seg.labelT;
+    if (t == null) {
+      if (p.kind === "transfer" && ch.kind !== "transfer")      t = 0.55;
+      else if (ch.kind === "transfer" && p.kind !== "transfer") t = 0.45;
+      else                                                       t = 0.50;
+    }
+
+    let mx = x1 + (x2 - x1) * t + tsx(sh[0]);
+    let my = y1 + (y2 - y1) * t + tsy(sh[1]);
+
+    const key  = `${seg.parent},${seg.child}`;
+    const hi   = state.reachableEdges.has(key);
+    const aero = state.reachableAeroEdges.has(key);
+    const label = String(seg.dv);
+
+    ctx.font = "700 15px Barlow, Segoe UI, Arial, sans-serif";
+    ctx.textAlign    = "center";
+    ctx.textBaseline = "middle";
+
+    const tw = ctx.measureText(label).width;
+    const padX = 8, h = 20, margin = 6;
+
+    mx = Math.max(tw / 2 + padX + margin, Math.min(canvas.width  - tw / 2 - padX - margin, mx));
+    my = Math.max(h  / 2 +        margin, Math.min(canvas.height - h  / 2 -        margin, my));
+
+    ctx.fillStyle   = "rgba(9,9,9,0.92)";
+    ctx.strokeStyle = hi   ? "rgba(61,191,255,0.45)"
+                    : aero ? "rgba(159,230,255,0.35)"
+                    :        "rgba(255,255,255,0.16)";
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(mx - tw / 2 - padX, my - h / 2, tw + padX * 2, h, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = hi ? "#e6f7ff" : (aero ? "#cfe9f5" : "#f6f6f6");
+    ctx.fillText(label, mx, my + 0.5);
+  }
+
+  function drawCircleNode(nodeId) {
+    const node = state.nodes[nodeId];
+    const [x, y] = T(node.x, node.y);
+    const r    = Math.max(6, tsu(9));
+    const hi   = state.reachableNodes.has(nodeId);
+    const aero = state.reachableAeroNodes.has(nodeId);
+    const sl   = nodeId === state.selectedNode;
+
+    if (hi || aero) {
+      ctx.fillStyle = (aero && !hi) ? C_AERO_NODE_GLOW : C_HI_NODE_GLOW;
+      ctx.beginPath();
+      ctx.arc(x, y, r + 12, 0, 2 * Math.PI);
+      ctx.fill();
+    }
+
+    if (sl) {
+      ctx.strokeStyle = C_HI;
+      ctx.lineWidth   = 2.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.arc(x, y, r + 13, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.fillStyle   = C_NODE_FILL;
+    ctx.strokeStyle = hi ? C_HI : (aero ? C_AERO : C_NODE_STROKE);
+    ctx.lineWidth   = (hi || aero) ? 2.5 : 1.8;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  function drawTransferNode(nodeId) {
+    const node = state.nodes[nodeId];
+    const [x, y] = T(node.x, node.y);
+    const hi   = state.reachableNodes.has(nodeId);
+    const aero = state.reachableAeroNodes.has(nodeId);
+    const sl   = nodeId === state.selectedNode;
+
+    let x1, y1, x2, y2;
+    if (node.orientation === "h") {
+      const len = tsx(node.length || 60);
+      [x1, y1, x2, y2] = [x - len / 2, y, x + len / 2, y];
+    } else {
+      const len = tsy(node.length || 60);
+      [x1, y1, x2, y2] = [x, y - len / 2, x, y + len / 2];
+    }
+
+    ctx.lineCap = "round";
+
+    if (hi || aero) {
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_A : C_HI_GLOW_A;
+      ctx.lineWidth   = Math.max(26, tsu(34));
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.strokeStyle = (aero && !hi) ? C_AERO_GLOW_B : C_HI_GLOW_B;
+      ctx.lineWidth   = Math.max(18, tsu(24));
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    if (sl) {
+      ctx.strokeStyle = C_HI;
+      ctx.lineWidth   = Math.max(20, tsu(28));
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    ctx.strokeStyle = (hi || aero) ? "#2c2c2c" : C_TRACK_OUTER;
+    ctx.lineWidth   = Math.max(14, tsu(20));
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    ctx.strokeStyle = hi ? C_HI_HUB_INNER : (aero ? C_AERO_HUB_INNER : C_HUB_INNER);
+    ctx.lineWidth   = Math.max(8, tsu(12));
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  function drawNodeLabel(nodeId) {
+    const node = state.nodes[nodeId];
+    const [x, y] = T(node.x, node.y);
+    const off = node.offset || [12, -10];
+    let lx    = x + tsx(off[0]);
+    const ly  = y + tsy(off[1]);
+
+    const lines = node.label.split("\n");
+    let align = "center";
+    if (Math.abs(off[0]) > 4) align = off[0] > 0 ? "left" : "right";
+
+    ctx.font = "700 16px Barlow, Segoe UI, Arial, sans-serif";
+    const lineH = 17;
+    let maxW = 0;
+    for (const line of lines) maxW = Math.max(maxW, ctx.measureText(line).width);
+
+    let textTop = ly;
+    if (Math.abs(off[0]) < 4) {
+      if (off[1] < 0) textTop = ly - lines.length * lineH;
+    } else {
+      textTop = ly - (lines.length * lineH) / 2;
+    }
+
+    const padX = 7, padY = 5;
+    let rectX = lx - maxW / 2 - padX;
+    if (align === "left")  rectX = lx - padX;
+    if (align === "right") rectX = lx - maxW - padX;
+
+    const rectY = textTop - padY;
+    const rectW = maxW + padX * 2;
+    const rectH = lines.length * lineH + padY * 2 - 2;
+    const margin = 8;
+
+    if (rectX < margin) {
+      const dx = margin - rectX;
+      rectX += dx;
+      lx += dx;
+    }
+    if (rectX + rectW > canvas.width - margin) {
+      const dx = (rectX + rectW) - (canvas.width - margin);
+      rectX -= dx;
+      lx -= dx;
+    }
+
+    const hiNode   = state.reachableNodes.has(nodeId);
+    const aeroNode = state.reachableAeroNodes.has(nodeId);
+
+    ctx.fillStyle   = "rgba(9,9,9,0.86)";
+    ctx.strokeStyle = hiNode   ? "rgba(61,191,255,0.32)"
+                    : aeroNode ? "rgba(159,230,255,0.28)"
+                    :            "rgba(255,255,255,0.12)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(rectX, rectY, rectW, rectH, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.textAlign    = align;
+    ctx.textBaseline = "top";
+    ctx.lineWidth    = 4;
+    ctx.lineJoin     = "round";
+    ctx.strokeStyle  = "#040404";
+
+    const fillColor = hiNode ? "#e9f8ff" : (aeroNode ? "#d0f0ff" : "#ffffff");
+
+    for (let i = 0; i < lines.length; i++) {
+      const ty = textTop + i * lineH;
+      ctx.strokeText(lines[i], lx, ty);
+      ctx.fillStyle = fillColor;
+      ctx.fillText(lines[i], lx, ty);
+    }
+  }
+
+  canvas.addEventListener('click', evt => {
+    const rect   = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (evt.clientX - rect.left) * scaleX;
+    const my = (evt.clientY - rect.top)  * scaleY;
+
+    let closest = null, closestD = Infinity;
+    for (const id in state.nodes) {
+      const [nx, ny] = T(state.nodes[id].x, state.nodes[id].y);
+      const d = Math.hypot(mx - nx, my - ny);
+      if (d < closestD) {
+        closestD = d;
+        closest = id;
       }
     }
+
+    state.selectedNode = (closestD <= HIT_RADIUS)
+      ? (state.selectedNode === closest ? null : closest)
+      : null;
+
+    drawMap();
+  });
+
+  function initializeSubwayApp() {
+    buildMapData();
+    computeShortestPathsFromLeo();
+    initStars();
+    updateIspSecondsDisplay();
+    drawMap();
+  }
+
+  window.calculateFromInputs = calculateFromInputs;
+  window.applyCustomDv       = applyCustomDv;
+  window.applyPreset         = applyPreset;
+  window.clearHighlights     = clearHighlights;
+
+  document.getElementById('c').addEventListener('input', updateIspSecondsDisplay);
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(initializeSubwayApp);
   } else {
-    spawnTimer = 0;
+    initializeSubwayApp();
   }
-
-  for (let i = particles.length - 1; i >= 0; i--) {
-    particles[i].x += particles[i].vx * dt;
-    if (particles[i].x > CW + 20) particles.splice(i, 1);
-  }
-
-  drawBackground();
-  drawSpacecraft(res.T);
-  drawParticles();
-  requestAnimationFrame(animate);
-}
-
-requestAnimationFrame(animate);
+})();
 </script>
+
 </body>
 </html>
