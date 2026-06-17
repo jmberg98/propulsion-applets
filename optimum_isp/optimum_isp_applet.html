@@ -57,7 +57,7 @@
   --hi-blue:      #3DBFFF;
   --hi-blue-soft: #9FE6FF;
 
-  --page-w: min(1400px, calc(100vw - 32px));
+  --page-w: min(1500px, calc(100vw - 48px));
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -93,10 +93,10 @@ footer {
   width: var(--page-w);
 }
 
-/* ── Applet gets full width ── */
+/* ── Applet aligns with page width ── */
 .theory-block.applet-host {
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
+  width: var(--page-w);
+  margin-left: 0;
 }
 
 /* ── Highlight classes ───────────────────────────────── */
@@ -115,7 +115,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 23px;
+  font-size: 25px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -123,7 +123,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -138,7 +138,7 @@ footer {
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 18.5px;
+  font-size: 20.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 20px;
@@ -155,7 +155,7 @@ footer {
   margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -169,14 +169,14 @@ footer {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  font-size: 18.5px;
+  font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
 }
 .clarify-plain + .clarify-plain { border-top: 1px solid var(--border); }
 .clarify-plain-marker {
-  font-size: 8px;
+  font-size: 10px;
   color: var(--c-accent);
   flex-shrink: 0;
   margin-top: 7px;
@@ -192,7 +192,7 @@ details.clarify-detail > summary {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  font-size: 18.5px;
+  font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -217,7 +217,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 18.5px;
+  font-size: 20.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -235,7 +235,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -245,7 +245,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 18.5px;
+  font-size: 20.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -255,7 +255,7 @@ details.clarify-detail > summary:focus-visible {
 .eq-panel { margin-top: 8px; }
 .eq-step-label {
   display: block;
-  font-size: 13px;
+  font-size: 15px;
   letter-spacing: .8px;
   text-transform: uppercase;
   color: #8a8b8c;
@@ -264,7 +264,7 @@ details.clarify-detail > summary:focus-visible {
 }
 .eq-caption {
   display: block;
-  font-size: 16.5px;
+  font-size: 18.5px;
   color: var(--text-muted);
   text-align: center;
   margin-top: 8px;
@@ -287,7 +287,7 @@ details.deriv-detail > summary {
   gap: 6px;
   padding: 7px 14px;
   background: var(--bg-input);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: .9px;
   text-transform: uppercase;
@@ -331,7 +331,7 @@ details.deriv-detail > summary:focus-visible {
 /* ── Footer ─────────────────────────────────────────── */
 footer {
   margin-top: 10px;
-  font-size: 16.5px;
+  font-size: 18.5px;
   color: var(--text-muted);
 }
 
@@ -375,10 +375,10 @@ footer {
   margin-bottom: 16px;
 }
 .cf-title {
-  font-size: 14px; font-weight: 700; letter-spacing: 1.4px;
+  font-size: 16px; font-weight: 700; letter-spacing: 1.4px;
   text-transform: uppercase; color: var(--c-accent);
 }
-.cf-subtitle { font-size: 13px; color: #505050; font-style: italic; }
+.cf-subtitle { font-size: 15px; color: #505050; font-style: italic; }
 
 .cf-body {
   display: grid;
@@ -389,7 +389,7 @@ footer {
 .cf-col { min-width: 0; display: flex; flex-direction: column; }
 .cf-col + .cf-col { border-left: 1px solid var(--border); padding-left: 22px; }
 .cf-sect {
-  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  font-size: 14px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: #545454; margin-bottom: 10px;
 }
 
@@ -402,14 +402,14 @@ footer {
   column-gap: 8px;
   margin-bottom: 4px;
 }
-.cf-sym  { text-align: center; font-size: 15px; color: var(--text-secondary); }
-.cf-desc { font-size: 14px; color: #727272; line-height: 1.3; }
-.cf-unit { font-size: 13px; color: #444; white-space: nowrap; }
+.cf-sym  { text-align: center; font-size: 17px; color: var(--text-secondary); }
+.cf-desc { font-size: 16px; color: #727272; line-height: 1.3; }
+.cf-unit { font-size: 15px; color: #444; white-space: nowrap; }
 
 .cf-inp {
   width: 100%; padding: 5px 7px;
   font-family: 'Courier New', monospace;
-  font-size: 17px; text-align: right;
+  font-size: 19px; text-align: right;
   background: var(--bg-panel-4); color: var(--c-accent);
   border: 1px solid var(--border); border-radius: 4px;
   transition: border-color .15s, background .15s;
@@ -429,17 +429,17 @@ footer {
 /* ── primary output blocks ── */
 .cf-out-block { margin-bottom: 16px; }
 .cf-out-label {
-  font-size: 13px; font-weight: 700; letter-spacing: 1px;
+  font-size: 15px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: #545454; margin-bottom: 4px;
 }
 .cf-out-value {
   font-family: 'Courier New', monospace;
-  font-size: 32px; font-weight: 700;
+  font-size: 34px; font-weight: 700;
   color: var(--text-heading); letter-spacing: .5px; line-height: 1.2;
 }
-.cf-out-value.bad { color: #ff8e8e; font-size: 15px; line-height: 1.6; }
+.cf-out-value.bad { color: #ff8e8e; font-size: 17px; line-height: 1.6; }
 .cf-out-hint {
-  font-size: 17px; color: var(--hi-blue);
+  font-size: 19px; color: var(--hi-blue);
   margin-top: 3px; min-height: 18px;
 }
 
@@ -448,12 +448,12 @@ footer {
   display: flex; justify-content: space-between; align-items: baseline;
   flex-wrap: wrap; gap: 4px; margin-top: 10px;
 }
-.cf-olbl { font-size: 14px; color: #545454; }
+.cf-olbl { font-size: 16px; color: #545454; }
 .cf-oval {
   font-family: 'Courier New', monospace;
-  font-size: 18px; font-weight: 700; color: var(--text-heading);
+  font-size: 20px; font-weight: 700; color: var(--text-heading);
 }
-.cf-oval.bad { color: #ff8e8e; font-size: 10px; }
+.cf-oval.bad { color: #ff8e8e; font-size: 12px; }
 
 /* ── info boxes ── */
 .cf-info-box {
@@ -461,7 +461,7 @@ footer {
   background: rgba(61,191,255,0.06);
   border: 1px solid rgba(61,191,255,0.22);
   border-radius: 6px;
-  font-size: 14px; font-weight: 600;
+  font-size: 16px; font-weight: 600;
   color: var(--hi-blue-soft); line-height: 1.45;
 }
 .cf-info-box.warn {
@@ -478,7 +478,7 @@ footer {
 /* ── α regime bar ── */
 .regbox { margin: 6px 0 8px; }
 .regttl {
-  font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  font-size: 14px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: #545454; margin-bottom: 6px;
 }
 .regbar {
@@ -489,7 +489,7 @@ footer {
 .regseg {
   position: absolute; top: 0; bottom: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; line-height: 1; text-align: center;
+  font-size: 15px; line-height: 1; text-align: center;
   color: var(--text-secondary); padding: 0 2px;
   border-right: 1px solid rgba(255,255,255,0.05);
   overflow: hidden; white-space: nowrap;
@@ -502,7 +502,7 @@ footer {
 .regticks { position: relative; height: 14px; margin-top: 2px; }
 .regtick {
   position: absolute; top: 0;
-  font-size: 10px; color: #444;
+  font-size: 12px; color: #444;
   white-space: nowrap; user-select: none;
 }
 
@@ -1239,18 +1239,18 @@ const MARG = { t:70, b:44, l:65, r:14 };
 const PFONT = {
   family: "'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif",
   color:  "#bcbcbc",
-  size:   11
+  size:   13
 };
 
 const HOVERSTYLE = {
   bgcolor:     "#0e0e0e",
   bordercolor: "#282828",
-  font: { color: "#f1f1f1", family: "'Courier New',monospace", size: 11 }
+  font: { color: "#f1f1f1", family: "'Courier New',monospace", size: 13 }
 };
 
 const X_AXIS_TITLE = "Specific Impulse  I<sub>sp</sub>  [s]";
 
-/* ═══════════════════  device band overlays  ════════════════════════════ */
+/* ═══════════════════  device band overlays  ═════════════════════════════ */
 function deviceOverlay(xLo, xHi) {
   const shapes      = [];
   const annotations = [];
@@ -1297,7 +1297,7 @@ function deviceOverlay(xLo, xHi) {
       yanchor:"middle",
       text:`<b>${r.short}</b>`,
       showarrow:false, align:"center",
-      font:{size:11, color:"#d0d0d0"},
+      font:{size:13, color:"#d0d0d0"},
       bgcolor:"rgba(9,9,9,0.90)",
       bordercolor:r.line, borderwidth:1, opacity:0.98
     });
@@ -1368,7 +1368,7 @@ function update() {
 
   const LEG = {
     x:1, xanchor:"right", y:0, yanchor:"bottom",
-    font:{size:14, color:"#888"},
+    font:{size:16, color:"#888"},
     bgcolor:"rgba(14,14,14,0.92)",
     bordercolor:"#2a2a2a", borderwidth:1
   };
@@ -1395,7 +1395,7 @@ function update() {
       showlegend:false, hoverinfo:"skip" }
   ], {
     uirevision: "xpan-mass",
-    title:{ text:"Stuhlinger Curve", font:{size:13, color:"#9a9a9a"} },
+    title:{ text:"Stuhlinger Curve", font:{size:15, color:"#9a9a9a"} },
     font: PFONT,
     xaxis:{
       title: X_AXIS_TITLE,
@@ -1436,7 +1436,7 @@ function update() {
       showlegend:false, hoverinfo:"skip" }
   ], {
     uirevision: "xpan-obj",
-    title:{ text:"Objective Function", font:{size:13, color:"#9a9a9a"} },
+    title:{ text:"Objective Function", font:{size:15, color:"#9a9a9a"} },
     font: PFONT,
     xaxis:{
       title: X_AXIS_TITLE,
