@@ -53,7 +53,6 @@
   --text-muted:     #7a7a7a;
   --text-heading:   #f0f0f0;
 
-  /* additions shared with applet */
   --hi-blue:      #3DBFFF;
   --hi-blue-soft: #9FE6FF;
 
@@ -93,7 +92,6 @@ footer {
   width: var(--page-w);
 }
 
-/* ── Applet aligns with page width ── */
 .theory-block.applet-host {
   width: var(--page-w);
   margin-left: 0;
@@ -317,7 +315,6 @@ details.deriv-detail > summary:focus-visible {
 /* ── Applet host overrides ──────────────────────────── */
 .theory-block.applet-host {
   padding: 16px 0 0;
-  /* scope applet accent colours to this subtree */
   --c-accent:       #d0d0d0;
   --text-main:      #f1f1f1;
   --text-secondary: #d9d9d9;
@@ -337,9 +334,19 @@ footer {
 
 
 /* ════════════════════════════════════════════════════════
-   APPLET — CHARTS
+   APPLET — SIDE-BY-SIDE LAYOUT
+   ════════════════════════════════════════════════════════ */
+.applet-body {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/* ════════════════════════════════════════════════════════
+   APPLET — CHARTS (left column)
    ════════════════════════════════════════════════════════ */
 #charts {
+  flex: 0 0 62%;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr;
@@ -355,41 +362,62 @@ footer {
 }
 
 /* ════════════════════════════════════════════════════════
-   APPLET — CONTROL FRAME
+   APPLET — CONTROL FRAME (right column)
    ════════════════════════════════════════════════════════ */
 .control-frame {
+  flex: 0 0 40%;
+  min-width: 0;
+  overflow-y: auto;
   margin: 0;
   background: rgba(8,8,8,0.97);
   border: none;
-  border-top: 1px solid #252525;
+  border-left: 1px solid #252525;
   border-radius: 0;
-  padding: 18px 18px 24px;
+  padding: 16px 16px 22px;
   box-shadow: none;
 }
 .cf-header {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .cf-title {
-  font-size: 16px; font-weight: 700; letter-spacing: 1.4px;
+  font-size: 15px; font-weight: 700; letter-spacing: 1.4px;
   text-transform: uppercase; color: var(--c-accent);
 }
-.cf-subtitle { font-size: 15px; color: #505050; font-style: italic; }
+.cf-subtitle { font-size: 14px; color: #505050; font-style: italic; }
 
+/* ── Two-panel body ── */
 .cf-body {
-  display: grid;
-  grid-template-columns: 1.2fr 1.4fr 0.8fr 1.2fr;
-  gap: 22px;
-  align-items: start;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
 }
-.cf-col { min-width: 0; display: flex; flex-direction: column; }
-.cf-col + .cf-col { border-left: 1px solid var(--border); padding-left: 22px; }
+.cf-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-right: 16px;
+}
+.cf-panel:last-child {
+  flex: 0 0 auto;  /* Changed from no flex specification to this */
+  max-width: 200px;
+  padding-right: 0;
+  padding-left: 16px;
+  border-left: 1px solid var(--border);
+}
+.cf-panel-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 12px 0;
+}
+
 .cf-sect {
-  font-size: 14px; font-weight: 700; letter-spacing: 1px;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: #545454; margin-bottom: 10px;
 }
 
@@ -444,9 +472,10 @@ footer {
 }
 
 /* ── secondary output rows ── */
+/* ── secondary output rows ── */
 .cf-orow {
-  display: flex; justify-content: space-between; align-items: baseline;
-  flex-wrap: wrap; gap: 4px; margin-top: 10px;
+  display: flex; justify-content: flex-start; align-items: baseline;
+  flex-wrap: wrap; gap: 4px 8px; margin-top: 10px;
 }
 .cf-olbl { font-size: 16px; color: #545454; }
 .cf-oval {
@@ -456,6 +485,7 @@ footer {
 .cf-oval.bad { color: #ff8e8e; font-size: 12px; }
 
 /* ── info boxes ── */
+/* ── info boxes ── */
 .cf-info-box {
   margin-top: 8px; padding: 7px 10px;
   background: rgba(61,191,255,0.06);
@@ -463,6 +493,8 @@ footer {
   border-radius: 6px;
   font-size: 16px; font-weight: 600;
   color: var(--hi-blue-soft); line-height: 1.45;
+  max-width: 90%;          /* ← keeps box inside its panel */
+  box-sizing: border-box;   /* ← padding included in that width */
 }
 .cf-info-box.warn {
   background: rgba(255,107,107,0.06);
@@ -479,12 +511,9 @@ footer {
 .katex {
   font-size: 1.2em !important;
 }
-
 .katex-display {
   font-size: 1.2em !important;
 }
-
-/* Increase for equations in theory blocks */
 .theory-block .katex {
   font-size: 1.25em !important;
 }
@@ -492,7 +521,7 @@ footer {
 /* ── α regime bar ── */
 .regbox { margin: 6px 0 8px; }
 .regttl {
-  font-size: 14px; font-weight: 700; letter-spacing: 1px;
+  font-size: 13px; font-weight: 700; letter-spacing: 1px;
   text-transform: uppercase; color: #545454; margin-bottom: 6px;
 }
 .regbar {
@@ -503,7 +532,7 @@ footer {
 .regseg {
   position: absolute; top: 0; bottom: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px; line-height: 1; text-align: center;
+  font-size: 14px; line-height: 1; text-align: center;
   color: var(--text-secondary); padding: 0 2px;
   border-right: 1px solid rgba(255,255,255,0.05);
   overflow: hidden; white-space: nowrap;
@@ -516,7 +545,7 @@ footer {
 .regticks { position: relative; height: 14px; margin-top: 2px; }
 .regtick {
   position: absolute; top: 0;
-  font-size: 12px; color: #444;
+  font-size: 11px; color: #444;
   white-space: nowrap; user-select: none;
 }
 
@@ -569,121 +598,127 @@ footer {
 <div class="theory-block applet-host">
   <div class="th-hdr">Stuhlinger Curve &#x2014; Interactive Demo</div>
 
-  <div id="charts">
-    <div id="plot-mass"></div>
-    <div id="plot-obj"></div>
-  </div>
+  <div class="applet-body">
 
-  <div class="control-frame">
-    <div class="cf-header">
-      <span class="cf-title">Specific Impulse Optimizer</span>
+    <!-- Left: charts -->
+    <div id="charts">
+      <div id="plot-mass"></div>
+      <div id="plot-obj"></div>
     </div>
 
-    <div class="cf-body">
-
-      <!-- Col 1: Mission Parameters -->
-      <div class="cf-col">
-        <div class="cf-sect">Mission Parameters</div>
-
-        <div class="cf-param">
-          <div class="cf-param-row">
-            <span class="cf-sym">η</span>
-            <span class="cf-desc">Efficiency</span>
-            <input type="number" id="n-eta" class="cf-inp" value="0.65" min="0.10" max="1.00" step="0.01">
-            <span class="cf-unit">0–1</span>
-          </div>
-          <input type="range" id="s-eta" class="cf-slider" min="0.10" max="1.00" step="0.01" value="0.65">
-        </div>
-
-        <div class="cf-param">
-          <div class="cf-param-row">
-            <span class="cf-sym">F</span>
-            <span class="cf-desc">Thrust</span>
-            <input type="number" id="n-F" class="cf-inp" value="1.0" min="0.01" max="20.0" step="0.01">
-            <span class="cf-unit">N</span>
-          </div>
-          <input type="range" id="s-F" class="cf-slider" min="0.01" max="20.0" step="0.01" value="1.0">
-        </div>
-
-        <div class="cf-param">
-          <div class="cf-param-row">
-            <span class="cf-sym">t<sub>m</sub></span>
-            <span class="cf-desc">Mission time</span>
-            <input type="number" id="n-t" class="cf-inp" value="180" min="1" max="2000" step="1">
-            <span class="cf-unit">days</span>
-          </div>
-          <input type="range" id="s-t" class="cf-slider" min="10" max="2000" step="1" value="180">
-        </div>
-
-        <div class="cf-param">
-          <div class="cf-param-row">
-            <span class="cf-sym">ΔV</span>
-            <span class="cf-desc">Delta-V</span>
-            <input type="number" id="n-dv" class="cf-inp" value="3000" min="100" max="60000" step="100">
-            <span class="cf-unit">m/s</span>
-          </div>
-          <input type="range" id="s-dv" class="cf-slider" min="100" max="60000" step="100" value="3000">
-        </div>
+    <!-- Right: controls -->
+    <div class="control-frame">
+      <div class="cf-header">
+        <span class="cf-title">Specific Impulse Optimizer</span>
       </div>
 
-      <!-- Col 2: Specific Mass α -->
-      <div class="cf-col">
-        <div class="cf-sect">Specific Mass</div>
+      <div class="cf-body">
 
-        <div class="cf-param">
-          <div class="cf-param-row">
-            <span class="cf-sym">α</span>
-            <span class="cf-desc">Spec. mass</span>
-            <input type="number" id="n-alpha" class="cf-inp" value="0.02" min="0.0001" max="10" step="any">
-            <span class="cf-unit">kg/W</span>
+        <!-- Left panel: inputs -->
+        <div class="cf-panel">
+          <div class="cf-sect">Mission Parameters</div>
+
+          <div class="cf-param">
+            <div class="cf-param-row">
+              <span class="cf-sym">η</span>
+              <span class="cf-desc">Efficiency</span>
+              <input type="number" id="n-eta" class="cf-inp" value="0.65" min="0.10" max="1.00" step="0.01">
+              <span class="cf-unit">0–1</span>
+            </div>
+            <input type="range" id="s-eta" class="cf-slider" min="0.10" max="1.00" step="0.01" value="0.65">
           </div>
-          <input type="range" id="s-alpha" class="cf-slider" min="-4" max="1" step="0.01">
-        </div>
 
-        <div class="regbox">
-          <div class="regttl">Technology Regimes</div>
-          <div class="regbar" id="alpha-tech-bar"></div>
-          <div class="regticks" id="alpha-tech-ticks"></div>
-        </div>
+          <div class="cf-param">
+            <div class="cf-param-row">
+              <span class="cf-sym">F</span>
+              <span class="cf-desc">Thrust</span>
+              <input type="number" id="n-F" class="cf-inp" value="1.0" min="0.01" max="20.0" step="0.01">
+              <span class="cf-unit">N</span>
+            </div>
+            <input type="range" id="s-F" class="cf-slider" min="0.01" max="20.0" step="0.01" value="1.0">
+          </div>
 
-        <div class="cf-info-box regime" id="h-psrc">—</div>
-      </div>
+          <div class="cf-param">
+            <div class="cf-param-row">
+              <span class="cf-sym">t<sub>m</sub></span>
+              <span class="cf-desc">Mission time</span>
+              <input type="number" id="n-t" class="cf-inp" value="180" min="1" max="2000" step="1">
+              <span class="cf-unit">days</span>
+            </div>
+            <input type="range" id="s-t" class="cf-slider" min="10" max="2000" step="1" value="180">
+          </div>
 
-      <!-- Col 3: Stuhlinger Reference -->
-      <div class="cf-col">
-        <div class="cf-sect">Stuhlinger Velocity</div>
+          <div class="cf-param">
+            <div class="cf-param-row">
+              <span class="cf-sym">ΔV</span>
+              <span class="cf-desc">Delta-V</span>
+              <input type="number" id="n-dv" class="cf-inp" value="3000" min="100" max="60000" step="100">
+              <span class="cf-unit">m/s</span>
+            </div>
+            <input type="range" id="s-dv" class="cf-slider" min="100" max="60000" step="100" value="3000">
+          </div>
 
-        <div class="cf-out-block">
-          <div class="cf-out-label">V<sub>ch</sub> [m/s]</div>
-          <div class="cf-out-value" id="o-vch">—</div>
-          <div class="cf-out-hint" id="h-vch-isp">Isp = — s</div>
-        </div>
-      </div>
+          <div class="cf-panel-divider"></div>
 
-      <!-- Col 4: True Optimum -->
-      <div class="cf-col">
-        <div class="cf-sect">True Optimum Exhaust Velocity</div>
+          <div class="cf-sect">Specific Mass</div>
 
-        <div class="cf-out-block">
-          <div class="cf-out-label">C<sub>opt</sub> [m/s]</div>
-          <div class="cf-out-value" id="o-copt">—</div>
-          <div class="cf-out-hint" id="h-copt-isp">Isp = — s</div>
-        </div>
+          <div class="cf-param">
+            <div class="cf-param-row">
+              <span class="cf-sym">α</span>
+              <span class="cf-desc">Spec. mass</span>
+              <input type="number" id="n-alpha" class="cf-inp" value="0.02" min="0.0001" max="10" step="any">
+              <span class="cf-unit">kg/W</span>
+            </div>
+            <input type="range" id="s-alpha" class="cf-slider" min="-4" max="1" step="0.01">
+          </div>
 
-        <div class="cf-info-box" id="h-thr">—</div>
+          <div class="regbox">
+            <div class="regttl">Technology Regimes</div>
+            <div class="regbar" id="alpha-tech-bar"></div>
+            <div class="regticks" id="alpha-tech-ticks"></div>
+          </div>
 
-        <div class="cf-orow">
-          <span class="cf-olbl">Error E [%]</span>
-          <span class="cf-oval" id="o-err">—</span>
-        </div>
-        <div class="cf-orow">
-          <span class="cf-olbl">Payload ratio λ at C<sub>opt</sub></span>
-          <span class="cf-oval" id="o-lam">—</span>
-        </div>
-      </div>
+          <div class="cf-info-box regime" id="h-psrc">—</div>
+        </div><!-- /.cf-panel (left) -->
 
-    </div><!-- /.cf-body -->
-  </div><!-- /.control-frame -->
+        <!-- Right panel: outputs -->
+        <div class="cf-panel">
+          <div class="cf-sect">Stuhlinger Velocity</div>
+
+          <div class="cf-out-block">
+            <div class="cf-out-label">V<sub>ch</sub> [m/s]</div>
+            <div class="cf-out-value" id="o-vch">—</div>
+            <div class="cf-out-hint" id="h-vch-isp">Isp = — s</div>
+          </div>
+
+          <div class="cf-orow">
+            <span class="cf-olbl">Error E [%]</span>
+            <span class="cf-oval" id="o-err">—</span>
+          </div>
+
+          <div class="cf-panel-divider"></div>
+
+          <div class="cf-sect">True Optimum Exhaust Velocity</div>
+
+          <div class="cf-out-block">
+            <div class="cf-out-label">C<sub>opt</sub> [m/s]</div>
+            <div class="cf-out-value" id="o-copt">—</div>
+            <div class="cf-out-hint" id="h-copt-isp">Isp = — s</div>
+          </div>
+
+          <div class="cf-info-box" id="h-thr">—</div>
+
+          
+          <div class="cf-orow">
+            <span class="cf-olbl">Payload ratio λ at C<sub>opt</sub></span>
+            <span class="cf-oval" id="o-lam">—</span>
+          </div>
+        </div><!-- /.cf-panel (right) -->
+
+      </div><!-- /.cf-body -->
+    </div><!-- /.control-frame -->
+
+  </div><!-- /.applet-body -->
 </div><!-- /.theory-block.applet-host -->
 
 <!-- ════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════ -->
@@ -990,8 +1025,8 @@ footer {
 "use strict";
 const G0           = 9.80665;
 const ISP_AXIS_MIN = 0;
-const ISP_VIEW_MAX = 20000;
-const ISP_DATA_MAX = 20000;
+const ISP_VIEW_MAX = 10000;
+const ISP_DATA_MAX = 10000;
 const ISP_DATA_MIN = 50;
 
 /* ═══════════════════  numeric helpers  ═════════════════════════════════ */
