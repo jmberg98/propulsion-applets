@@ -1805,6 +1805,14 @@ details.deriv-detail > summary:focus-visible {
     el.textContent = (value / G0).toFixed(1);
   }
 
+  function clearRocketParameters() {
+    document.getElementById('lambda').value = '';
+    document.getElementById('epsilon').value = '';
+    document.getElementById('c').value = '';
+    document.getElementById('ispSeconds').textContent = '-';
+    setMRUnavailable();
+  }
+
   function buildMapData() {
     state.nodes = {
       leo:           { x:392, y:792, kind:"transfer", orientation:"h", length:64,  label:"Low Earth Orbit\n(150 km) - Origin", offset:[48,0] },
@@ -2130,15 +2138,14 @@ details.deriv-detail > summary:focus-visible {
 
   function applyCustomDv() {
     try {
-      const dv = parseNonnegativeFloat(document.getElementById('dv').value, "\u0394v");
-      const c  = parsePositiveFloat(document.getElementById('c').value,     "c");
-      const MR = Math.exp(dv / c);
-
+      const dv = parseNonnegativeFloat(document.getElementById('dv').value, "Δv");
+      
       document.getElementById('status').textContent = "";
-      setMR(MR);
-
+      setMRUnavailable();  // Don't calculate MR, just show unavailable
+      
       state.currentBudget = dv;
       updateReachability(dv);
+      clearRocketParameters();
     } catch (e) {
       document.getElementById('status').textContent = e.message;
     }
@@ -2150,6 +2157,7 @@ details.deriv-detail > summary:focus-visible {
     setMRUnavailable();
     state.currentBudget = dv;
     updateReachability(dv);
+    clearRocketParameters();  // Add this line
   }
 
   function updateReachability(budget) {
