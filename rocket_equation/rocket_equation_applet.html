@@ -704,6 +704,260 @@ details.deriv-detail > summary:focus-visible {
   color: #9FE6FF;
   text-decoration: none;
 }
+/* ══════════════════════════════════════════════════════
+   COMPACT RIGHT-SIDE SUBWAY APPLET OVERRIDES
+   Paste at END of <style>
+   ══════════════════════════════════════════════════════ */
+
+/* Keep the whole applet exactly inside the normal page/text width */
+.theory-block.subway-host {
+  width: var(--page-w);
+  max-width: var(--page-w);
+  overflow: hidden;
+}
+
+#subway-applet-scroll,
+#subway-applet {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Main applet layout: map left, controls right */
+#subway-applet .container {
+  width: 100%;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(292px, 24vw, 342px);
+  gap: 12px;
+  align-items: start;
+  padding: 0 14px 14px;
+  overflow: hidden;
+}
+
+/* Left-side subway map */
+#subway-applet .canvas-container {
+  grid-column: 1;
+  grid-row: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 8px 0 0 0;
+  overflow: hidden;
+}
+
+/* This visually scales down the entire canvas map together */
+#subway-applet canvas {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Right-side calculator panel */
+#subway-applet .control-frame {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 10px 10px 11px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Compact header */
+#subway-applet .cf-header {
+  gap: 6px;
+  padding-bottom: 7px;
+  margin-bottom: 9px;
+}
+
+#subway-applet .cf-title {
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+#subway-applet .cf-subtitle {
+  font-size: 11px;
+}
+
+/* Existing columns become stacked rows in the right panel */
+#subway-applet .cf-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  align-items: stretch;
+}
+
+#subway-applet .cf-col {
+  width: 100%;
+  min-width: 0;
+  padding: 0 0 9px 0;
+  margin: 0 0 9px 0;
+  border-left: 0 !important;
+  border-bottom: 1px solid var(--border);
+}
+
+#subway-applet .cf-col + .cf-col {
+  padding-left: 0;
+  border-left: 0 !important;
+}
+
+#subway-applet .cf-col:last-child {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+/* Compact equation block */
+#subway-applet .cf-eq {
+  padding: 5px 7px 2px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  overflow-x: auto;
+}
+
+#subway-applet .cf-eq .katex-display {
+  margin: 5px 0 !important;
+}
+
+#subway-applet .cf-eq .katex {
+  font-size: 0.82em !important;
+}
+
+/* Compact section headings */
+#subway-applet .cf-sect {
+  font-size: 11px;
+  letter-spacing: 0.75px;
+  margin-bottom: 5px;
+}
+
+#subway-applet .cf-sect.cf-sect-spacer {
+  margin-top: 9px;
+}
+
+/* Compact parameter rows */
+#subway-applet .cf-param-row {
+  grid-template-columns: 18px minmax(0, 1fr) 60px 24px;
+  column-gap: 5px;
+  margin-bottom: 5px;
+}
+
+#subway-applet .cf-param-row-meta {
+  margin-top: -2px;
+  margin-bottom: 7px;
+}
+
+#subway-applet .cf-sym {
+  font-size: 12.5px;
+}
+
+#subway-applet .cf-desc {
+  font-size: 12.5px;
+  line-height: 1.15;
+}
+
+#subway-applet .cf-param-row-meta .cf-desc {
+  font-size: 12px;
+}
+
+#subway-applet .cf-inp,
+#subway-applet .cf-derived {
+  font-size: 12px;
+  padding: 4px 5px;
+  border-radius: 3px;
+}
+
+#subway-applet .cf-unit {
+  font-size: 11.5px;
+}
+
+/* Compact buttons */
+#subway-applet .cf-btn-row {
+  gap: 5px;
+  margin-top: 7px;
+}
+
+#subway-applet .cf-btn {
+  padding: 4px 8px;
+  font-size: 11px;
+  letter-spacing: 0.45px;
+  border-radius: 3px;
+}
+
+/* Direct Δv row */
+#subway-applet .cf-dv-row {
+  grid-template-columns: 39px minmax(0, 1fr) 48px 24px;
+  gap: 5px;
+  margin-bottom: 4px;
+}
+
+/* Status/error text */
+#subway-applet .cf-status {
+  font-size: 11.5px;
+  line-height: 1.25;
+  margin-top: 5px;
+}
+
+/* Preset buttons */
+#subway-applet .cf-preset-btns {
+  gap: 4px;
+}
+
+#subway-applet .cf-preset-btns button {
+  padding: 3px 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.35px;
+  border-radius: 3px;
+}
+
+/* Mass ratio output */
+#subway-applet .cf-mr-label {
+  font-size: 11px;
+  letter-spacing: 0.75px;
+  margin-bottom: 3px;
+}
+
+#subway-applet .cf-mr-value {
+  font-size: 23px;
+  line-height: 1.1;
+}
+
+#subway-applet .cf-mr-value.cf-mr-na {
+  font-size: 21px;
+}
+
+/* Compact credits, spanning full applet width */
+#subway-applet .credits {
+  grid-column: 1 / -1;
+  margin: 4px 0 0 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Small screens: prevent overflow. Desktop/tablet keeps controls on right. */
+@media (max-width: 760px) {
+  #subway-applet .container {
+    grid-template-columns: 1fr;
+  }
+
+  #subway-applet .canvas-container {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  #subway-applet .control-frame {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #subway-applet .credits {
+    grid-column: 1;
+  }
+}
 
 /* ── Footer ─────────────────────────────────────────── */
 footer {
