@@ -223,7 +223,7 @@ input:disabled, select:disabled {
 .cf-slider {
   display: block;
   width: 100%;
-  margin: 4px 0 0;
+  margin: 4px 0 2px;
   accent-color: var(--hi-blue);
   cursor: pointer;
 }
@@ -240,7 +240,7 @@ input:disabled, select:disabled {
 .cf-out-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  table-layout: auto;
 }
 .cf-out-table th {
   font-size: 11px;
@@ -445,26 +445,30 @@ input:disabled, select:disabled {
     <!-- ── Field & Velocity ── -->
     <div class="cf-sect">Field &amp; Velocity</div>
 
+    <!-- ── B: number input + slider ── -->
     <div class="cf-param">
       <div class="cf-param-row">
         <span class="cf-sym">B</span>
         <span class="cf-desc">Flux density</span>
-        <input type="number" id="inp-BG" class="cf-inp" value="300" min="1" step="100">
+        <input type="number" id="inp-BG" class="cf-inp" value="300" min="0" step="1">
         <span class="cf-unit">G</span>
       </div>
+      <input type="range" id="sl-BG" class="cf-slider" min="0" max="25000" value="300" step="10">
       <div class="cf-out-hint" style="padding-left:30px;">
         ≡ <span id="b-tesla">0.03000 Te</span>
       </div>
     </div>
 
+    <!-- ── v: number input + slider ── -->
     <div class="cf-param">
       <div class="cf-param-row">
         <span class="cf-sym"><i>v</i></span>
         <span class="cf-desc">Speed</span>
         <input type="number" id="inp-speed" class="cf-inp"
-               value="1000000" min="1" max="299792458" step="10000">
+               value="1000000" min="0" max="299792458" step="10000">
         <span class="cf-unit">m/s</span>
       </div>
+      <input type="range" id="sl-speed" class="cf-slider" min="0" max="1000000" value="100000" step="1000">
       <div class="cf-out-hint" style="padding-left:30px;">
         <span id="speed-frac"></span>
       </div>
@@ -596,7 +600,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
    'two' → Ion (+ charge, locked) + Electron (fully locked)
    'one' → Single particle with free +/- /0 charge
    ───────────────────────────────────────────────────────────── */
-const MODE = 'two';   // ← change to 'one' for single-particle mode
+const MODE = 'two';
 
 /* ── physics constants ── */
 const AMU   = 1.66053906660e-27;
@@ -666,7 +670,6 @@ const PCONF = [
     color: 0x4fc3f7, emissive: 0x082030, sphereScale: 0.050 },
 ];
 
-/* Active particle list — drives both scene objects and computation */
 const ACTIVE = MODE === 'one' ? [PCONF[0]] : PCONF;
 
 /* ── display flags ── */
@@ -771,7 +774,6 @@ let cycleT = 0, cyclePauseT = 0;
 
 function resetCycle() { cycleT = 0; cyclePauseT = 0; }
 
-/* ── charge sign sprite (+, −, 0) floating above the orb ── */
 function setChargeSprite(p, sign) {
   if (p.chargeSprite && p.curSign === sign) return;
   if (p.chargeSprite) {
@@ -786,7 +788,6 @@ function setChargeSprite(p, sign) {
   p.curSign = sign;
 }
 
-/* ── build one particle object ── */
 function makeParticle(conf) {
   const p = { conf, cur: null, data: null, helixLine: null, tubeMesh: null,
               chargeSprite: null, curSign: null };
@@ -796,10 +797,8 @@ function makeParticle(conf) {
     new THREE.MeshStandardMaterial({ color: conf.color, emissive: conf.emissive, roughness: 0.35 })
   );
   scene.add(p.mesh);
-  /* initial sign: electron starts −1, everything else +1 */
   setChargeSprite(p, conf.key === 'B' ? -1 : 1);
 
-  /* total velocity arrow */
   p.velArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
     SCENE_R * 0.85, 0xffd54f, SCENE_R * 0.22, SCENE_R * 0.1
@@ -808,7 +807,6 @@ function makeParticle(conf) {
   p.velLabel = makeTextSprite('V', '#ffd54f', SCENE_R * 0.27);
   scene.add(p.velLabel);
 
-  /* magnetic force arrow */
   p.forceArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
     SCENE_R * 0.6, 0xef5350, SCENE_R * 0.18, SCENE_R * 0.09
@@ -819,7 +817,6 @@ function makeParticle(conf) {
   p.forceLabel.visible = false;
   scene.add(p.forceLabel);
 
-  /* V∥ — parallel to B (green, along z) */
   p.vParArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, 1), new THREE.Vector3(),
     SCENE_R * 0.85, 0x66bb6a, SCENE_R * 0.18, SCENE_R * 0.09
@@ -830,7 +827,6 @@ function makeParticle(conf) {
   p.vParLabel.visible = false;
   scene.add(p.vParLabel);
 
-  /* V⊥ — perpendicular to B (purple, in xy-plane) */
   p.vPerpArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
     SCENE_R * 0.85, 0xab47bc, SCENE_R * 0.18, SCENE_R * 0.09
@@ -844,7 +840,6 @@ function makeParticle(conf) {
   return p;
 }
 
-/* ── init Three.js ── */
 function initViz(container) {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x090909);
@@ -866,7 +861,6 @@ function initViz(container) {
   guideGroup = new THREE.Group();
   scene.add(fieldGroup);
   scene.add(guideGroup);
-  /* build only the active set of particles */
   parts = ACTIVE.map(makeParticle);
   clock = new THREE.Clock();
   window.addEventListener('resize', () => {
@@ -878,7 +872,6 @@ function initViz(container) {
   animate();
 }
 
-/* ── field lines ── */
 function buildFieldLines() {
   fieldGroup.clear();
   guideGroup.clear();
@@ -913,7 +906,6 @@ function buildFieldLines() {
   guideGroup.add(bLabel);
 }
 
-/* ── camera framing ── */
 function frameCamera() {
   const box = new THREE.Box3();
   let any = false;
@@ -932,25 +924,25 @@ function frameCamera() {
   controls.update();
 }
 
-/* ── dispose old trajectory geometry ── */
 function disposeTraj(p) {
   if (p.helixLine) { scene.remove(p.helixLine); p.helixLine.geometry.dispose(); p.helixLine = null; }
   if (p.tubeMesh)  { scene.remove(p.tubeMesh);  p.tubeMesh.geometry.dispose();  p.tubeMesh  = null; }
 }
 
-/* ── physical radius → raw visual radius (monotonic, no floor) ── */
+/* ── clearAll: wipe trajectories and null cur so animate hides everything ── */
+function clearAll() {
+  if (!parts || !parts.length) return;
+  for (const p of parts) {
+    disposeTraj(p);
+    p.cur = null;
+  }
+}
+
 function displayRadiusFromLarmor(rL) {
   if (rL === null || rL === undefined || !Number.isFinite(rL) || rL <= 0) return 0;
   return SCENE_R * 1.35 * (2 / Math.PI) * Math.atan(rL / RADIUS_REF_M);
 }
 
-/* ── joint display radii ─────────────────────────────────────────────────────
-   One-particle mode: just apply a visibility floor.
-   Two-particle mode: guarantee the electron radius is strictly smaller than
-   the ion radius at every speed and pitch angle (the electron's raw radius
-   would otherwise floor to the same value as the ion at small v / small θ).
-   A true r_L = 0 (θ = 0°) still collapses both trajectories to a line.
-   ─────────────────────────────────────────────────────────────────────────── */
 function computeDisplayRadii(datas) {
   if (MODE === 'one') {
     return datas.map(d => {
@@ -958,20 +950,16 @@ function computeDisplayRadii(datas) {
       return r > 0 ? Math.max(r, SCENE_R * 0.05) : 0;
     });
   }
-  /* two-particle: index 0 = ion, index 1 = electron */
   let ionR = displayRadiusFromLarmor(datas[0].r_L);
   let elR  = displayRadiusFromLarmor(datas[1].r_L);
-
-  if (ionR > 0) ionR = Math.max(ionR, SCENE_R * 0.06);   /* ion stays visible */
-
+  if (ionR > 0) ionR = Math.max(ionR, SCENE_R * 0.06);
   if (elR > 0) {
-    const upper = ionR > 0 ? ionR * 0.75 : SCENE_R * 0.2; /* always below ion */
-    elR = clamp(elR, SCENE_R * 0.03, upper);               /* but still visible */
+    const upper = ionR > 0 ? ionR * 0.75 : SCENE_R * 0.2;
+    elR = clamp(elR, SCENE_R * 0.03, upper);
   }
   return [ionR, elR];
 }
 
-/* ── helix helpers ── */
 function helixPoint(rS, sign, turns, z0, commonZ, s) {
   s = clamp(s, 0, 1);
   const phase = sign * 2 * Math.PI * turns * s;
@@ -988,14 +976,12 @@ function turnsFor(d) {
   return clamp(BASE_TURNS * Math.sqrt(d.omega_c / OMEGA_REF), BASE_TURNS, MAX_TURNS);
 }
 
-/* ── build / rebuild one particle's trajectory ── */
 function updateTrajectory(p, data, commonZ, turns, rDisplay) {
   const { r_L, sign } = data;
   const col = p.conf.color;
   const z0  = -commonZ / 2, z1 = commonZ / 2;
   disposeTraj(p);
 
-  /* ── straight line (q = 0 or θ = 0 with no gyration) ── */
   if (r_L === null) {
     const start = new THREE.Vector3(0, 0, z0);
     const end   = new THREE.Vector3(0, 0, z1);
@@ -1017,7 +1003,6 @@ function updateTrajectory(p, data, commonZ, turns, rDisplay) {
     return;
   }
 
-  /* ── helix ── */
   const steps = Math.max(8, Math.ceil(turns * SEG_PER_TURN));
   const pts   = rDisplay === 0
     ? [new THREE.Vector3(0, 0, z0), new THREE.Vector3(0, 0, z1)]
@@ -1049,7 +1034,6 @@ function updateTrajectory(p, data, commonZ, turns, rDisplay) {
   p.cur = { straight: false, rS: rDisplay, sign, turns, z0, commonZ, duration: TRAVEL_SEC };
 }
 
-/* ── position / tangent helpers ── */
 function positionAt(cur, s) {
   if (cur.straight) return cur.start.clone().lerp(cur.end, clamp(s, 0, 1));
   return helixPoint(cur.rS, cur.sign, cur.turns, cur.z0, cur.commonZ, s);
@@ -1062,7 +1046,6 @@ function tangentAt(cur, s) {
   return L < 1e-12 ? new THREE.Vector3(0, 0, 1) : d.normalize();
 }
 
-/* ── helper: set a component arrow to a given direction and length ── */
 function updateComponentArrow(arrow, label, pos, dir, len, baseHead, baseWidth) {
   if (len < SCENE_R * 0.04) { arrow.visible = false; label.visible = false; return; }
   arrow.setDirection(dir);
@@ -1073,7 +1056,6 @@ function updateComponentArrow(arrow, label, pos, dir, len, baseHead, baseWidth) 
   label.visible = true;
 }
 
-/* ── animation loop ── */
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
@@ -1081,16 +1063,31 @@ function animate() {
   const off = new THREE.Vector3(SCENE_R * 0.16, SCENE_R * 0.16, SCENE_R * 0.16);
 
   for (const p of parts) {
-    if (!p.cur) continue;
+    /* ── no trajectory: hide everything and skip ── */
+    if (!p.cur) {
+      p.mesh.visible         = false;
+      p.chargeSprite.visible = false;
+      p.velArrow.visible     = false;
+      p.velLabel.visible     = false;
+      p.forceArrow.visible   = false;
+      p.forceLabel.visible   = false;
+      p.vParArrow.visible    = false;
+      p.vParLabel.visible    = false;
+      p.vPerpArrow.visible   = false;
+      p.vPerpLabel.visible   = false;
+      continue;
+    }
+
+    /* ── trajectory exists: show and animate ── */
+    p.mesh.visible = true;
+
     const s   = Math.min(cycleT / Math.max(p.cur.duration || 1, 1e-9), 1.0);
     const pos = positionAt(p.cur, s);
 
-    /* orb + charge label */
     p.mesh.position.copy(pos);
     p.chargeSprite.position.copy(pos).add(off);
     p.chargeSprite.visible = showLabels;
 
-    /* total velocity arrow */
     const velDir = p.cur.straight ? p.cur.dir : tangentAt(p.cur, s);
     p.velArrow.setDirection(velDir);
     p.velArrow.position.copy(pos);
@@ -1098,7 +1095,6 @@ function animate() {
     p.velLabel.position.copy(pos).addScaledVector(velDir, SCENE_R * 0.95);
     p.velLabel.visible = showVel;
 
-    /* V∥ and V⊥ components */
     {
       const LEN      = SCENE_R * 0.85;
       const parSign  = velDir.z >= 0 ? 1 : -1;
@@ -1119,7 +1115,6 @@ function animate() {
       }
     }
 
-    /* magnetic force arrow (center-seeking, perpendicular to v) */
     if (p.cur.straight) {
       p.forceArrow.visible = false; p.forceLabel.visible = false;
     } else {
@@ -1140,7 +1135,6 @@ function animate() {
 
   renderer.render(scene, camera);
 
-  /* synchronized cycle: both particles begin and finish together */
   const active = parts.filter(p => p.cur);
   if (active.length) {
     const maxDur = Math.max(...active.map(p => p.cur.duration || 0));
@@ -1165,11 +1159,11 @@ function fmt(x) {
 }
 
 function fmtTesla(x) {
-  if (!Number.isFinite(x)) return '(—) T (Tesla)';
-  if (x === 0) return '(0) T (Tesla)';
+  if (!Number.isFinite(x)) return '(—) T';
+  if (x === 0) return '(0) T';
   const a = Math.abs(x);
   const val = (a >= 1e3 || a < 1e-3) ? x.toExponential(3) : x.toPrecision(4);
-  return `(${val}) T (Tesla)`;
+  return `(${val}) T`;
 }
 
 function updateSpeedFrac() {
@@ -1177,7 +1171,7 @@ function updateSpeedFrac() {
   const el  = $('speed-frac');
   const frac = v / C_MAX;
   if (!Number.isFinite(frac) || frac <= 0) { el.textContent = ''; return; }
-  el.textContent = `≡ ${(frac * 100).toPrecision(3)}% c (the speed of light)`;
+  el.textContent = `≡ ${(frac * 100).toPrecision(3)}% c (speed of light)`;
 }
 
 function updateBReadout() {
@@ -1224,7 +1218,24 @@ function runUpdate() {
   clearError();
   updateBReadout();
   updateSpeedFrac();
-  const B_T   = +$('inp-BG').value * GAUSS_TO_TESLA;
+
+  const B_G = +$('inp-BG').value;
+  const v   = +$('inp-speed').value;
+
+  /* ── guard: B ≤ 0 → clear scene and show error ── */
+  if (!Number.isFinite(B_G) || B_G <= 0) {
+    clearAll();
+    showError('Magnetic flux density |B| must be greater than zero.');
+    return;
+  }
+  /* ── guard: v ≤ 0 → clear scene and show error ── */
+  if (!Number.isFinite(v) || v <= 0) {
+    clearAll();
+    showError('Speed |v| must be greater than zero.');
+    return;
+  }
+
+  const B_T   = B_G * GAUSS_TO_TESLA;
   const datas = [];
 
   for (const p of parts) {
@@ -1233,6 +1244,7 @@ function runUpdate() {
       const data = compute(inp.m_amu, inp.q_e, inp.v, inp.theta_deg, inp.B);
       datas.push(data);
     } catch(e) {
+      clearAll();
       showError(p.conf.label + ': ' + e.message);
       return;
     }
@@ -1255,36 +1267,26 @@ function runUpdate() {
   if (isFirst) frameCamera();
 }
 
-/* ─────────────────────────────────────────────────────────────
-   setupMode — configure the panel UI for the current MODE.
-   Must run before the first runUpdate() call.
-   ───────────────────────────────────────────────────────────── */
 function setupMode() {
   const single = MODE === 'one';
   const label  = single ? 'Particle' : 'Ion';
 
-  /* update text labels */
   $('A-head').textContent         = label;
   $('th-A').textContent           = label;
   $('leg-A').textContent          = label;
   $('particles-sect').textContent = single ? 'Particle' : 'Particles';
 
   if (single) {
-    /* ── one-particle mode: hide everything B-related ── */
     $('block-B').style.display      = 'none';
     $('leg-elec-row').style.display = 'none';
     document.querySelectorAll('.col-B').forEach(el => el.style.display = 'none');
-    $('A-sign').disabled = false;     /* free +/- charge */
+    $('A-sign').disabled = false;
   } else {
-    /* ── two-particle mode: lock ion to +, lock electron controls ── */
-
-    /* Ion: force positive charge, disable electron from its preset list */
     $('A-sign').value    = '+';
     $('A-sign').disabled = true;
     [...$('A-preset').options].forEach(o => { if (o.value === 'electron') o.disabled = true; });
     if ($('A-preset').value === 'electron') $('A-preset').value = 'xenon';
 
-    /* Electron: set to electron preset then lock all controls */
     $('B-preset').value = 'electron';
     applyPreset('B');
     ['B-preset', 'B-mass', 'B-qmag', 'B-sign'].forEach(id => { $(id).disabled = true; });
@@ -1295,35 +1297,63 @@ function setupMode() {
 let _deb = null;
 const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate, 150); };
 
-/* particle A */
 $('A-preset').addEventListener('change', () => { applyPreset('A'); debounced(); });
 $('A-mass').addEventListener('input',    () => { $('A-preset').value = 'custom'; debounced(); });
 $('A-qmag').addEventListener('input',    () => { $('A-preset').value = 'custom'; debounced(); });
 $('A-sign').addEventListener('change',   () => { $('A-preset').value = 'custom'; debounced(); });
 
-/* particle B — wired always; disabled controls emit no events in two-particle mode */
 $('B-preset').addEventListener('change', () => { applyPreset('B'); debounced(); });
 $('B-mass').addEventListener('input',    () => { $('B-preset').value = 'custom'; debounced(); });
 $('B-qmag').addEventListener('input',    () => { $('B-preset').value = 'custom'; debounced(); });
 $('B-sign').addEventListener('change',   () => { $('B-preset').value = 'custom'; debounced(); });
 
-/* shared controls */
-$('theta-r').addEventListener('input',   () => { $('theta-disp').textContent = $('theta-r').value; debounced(); });
-$('inp-speed').addEventListener('input', () => { updateSpeedFrac(); debounced(); });
-$('inp-BG').addEventListener('input',    () => { updateBReadout();  debounced(); });
+$('theta-r').addEventListener('input', () => {
+  $('theta-disp').textContent = $('theta-r').value;
+  debounced();
+});
 
-/* display toggles */
+/* ── B: bidirectional slider ↔ number input ── */
+$('sl-BG').addEventListener('input', () => {
+  $('inp-BG').value = $('sl-BG').value;
+  updateBReadout();
+  debounced();
+});
+$('inp-BG').addEventListener('input', () => {
+  let val = +$('inp-BG').value;
+  if (val < 0) { val = 0; $('inp-BG').value = 0; }   // clamp negative
+  $('sl-BG').value = Math.min(val, 3000);              // sync slider (caps at slider max)
+  updateBReadout();
+  debounced();
+});
+
+/* ── v: bidirectional slider ↔ number input ── */
+$('sl-speed').addEventListener('input', () => {
+  $('inp-speed').value = $('sl-speed').value;
+  updateSpeedFrac();
+  debounced();
+});
+$('inp-speed').addEventListener('input', () => {
+  let val = +$('inp-speed').value;
+  if (val < 0) { val = 0; $('inp-speed').value = 0; } // clamp negative
+  $('sl-speed').value = Math.min(val, C_MAX);           // sync slider (caps at c)
+  updateSpeedFrac();
+  debounced();
+});
+
 $('chk-labels').addEventListener('change', () => { showLabels = $('chk-labels').checked; });
 $('chk-vel').addEventListener('change',    () => { showVel    = $('chk-vel').checked; });
 $('chk-vcomp').addEventListener('change',  () => { showVComp  = $('chk-vcomp').checked; });
 $('chk-force').addEventListener('change',  () => { showForces = $('chk-force').checked; });
 
-/* ── boot sequence ── */
-initViz(document.getElementById('viewport'));  /* create scene + particles (uses ACTIVE) */
-setupMode();                                   /* configure UI, locks B in two-particle mode */
-applyPreset('A');                              /* populate A fields from default xenon preset */
+/* ── boot ── */
+initViz(document.getElementById('viewport'));
+setupMode();
+applyPreset('A');
 updateBReadout();
 updateSpeedFrac();
+/* Sync sliders to initial input values */
+$('sl-BG').value    = Math.min(+$('inp-BG').value,    3000);
+$('sl-speed').value = Math.min(+$('inp-speed').value, C_MAX);
 runUpdate();
 </script>
 </body>
