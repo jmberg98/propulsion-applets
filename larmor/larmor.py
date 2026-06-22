@@ -249,17 +249,22 @@ input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const SCENE_R       = 5.0;
-const TURNS         = 4;
-const SEG_PER_TURN  = 128;
-const SEC_PER_TURN  = 2.0;
-const END_PAUSE     = 0.65;
+const SCENE_R        = 5.0;
+const SEG_PER_TURN   = 48;
+const TRAVEL_SEC     = 7.0;
+const END_PAUSE      = 0.6;
 const GAUSS_TO_TESLA = 1e-4;
 
-// Visual scaling reference.
-// r_L = 1 m maps to a large, readable radius.
-// The arctangent keeps huge low-B or high-v radii from blowing up the scene.
+// Visual scaling reference for the (compressed) Larmor radius.
 const RADIUS_REF_M = 1.0;
+
+// Trajectory model.
+const TRAVEL_MULT = 3;            // travel 3x the base distance before regenerating
+const AXIAL_BASE  = SCENE_R * 1.7;
+const BASE_TURNS  = 3;            // coils for the lowest-frequency particle
+const MAX_TURNS   = 30;           // cap so an electron stays renderable
+const OMEGA_REF   = 7.0e5;        // rad/s ≈ heavy-ion cyclotron freq near ~1 T
+const FIELD_HALF  = SCENE_R * 2.8;// FIXED field-line half length (independent of |B|)
 
 const clamp = (x,a,b) => Math.min(b, Math.max(a, x));
 
@@ -335,9 +340,8 @@ let showForces = false;
 let parts = [];
 let firstRenderDone = false;
 
-// Synchronized animation cycle.
-// Both particles start together. If one finishes first, it waits at its endpoint.
-// Both restart together only after both have reached their endpoints.
+// Synchronized animation cycle. Both particles share the same axial travel and the
+// same travel time, so they begin and finish together regardless of coil count.
 let cycleT = 0;
 let cyclePauseT = 0;
 
@@ -444,11 +448,12 @@ function initViz(container) {
   animate();
 }
 
-// ── field lines ───────────────────────────────────────────────────────────────
-function buildFieldLines(zHalf) {
+// ── fixed-length field lines (independent of |B|) ────────────────────────────
+function buildFieldLines() {
   fieldGroup.clear();
   guideGroup.clear();
 
+  const zHalf = FIELD_HALF;
   const N = 3;
   const step = SCENE_R*0.9;
 
@@ -552,7 +557,7 @@ function disposeTraj(p) {
   }
 }
 
-// ── physical radius to visual radius ──────────────────────────────────────────
+// ── physical radius → visual radius (constant along the path) ─────────────────
 function displayRadiusFromLarmor(rL) {
   if (rL === null || rL === undefined || !Number.isFinite(rL) || rL <= 0) {
     return 0;
@@ -560,56 +565,56 @@ function displayRadiusFromLarmor(rL) {
 
   const r = SCENE_R * 1.35 * (2 / Math.PI) * Math.atan(rL / RADIUS_REF_M);
 
-  // Keep tiny charged-particle spirals visible without affecting rL = 0 cases.
+  // Keep tiny charged-particle spirals visible.
   return Math.max(r, SCENE_R*0.035);
 }
 
-// ── centered spiral geometry helper ───────────────────────────────────────────
-// The spiral is centered around the B-axis. The radial envelope makes both
-// particles begin and end at the exact same point while still showing a
-// centered gyromotion spiral in between.
-function centeredSpiralPoint(rS, sign, turns, z0, commonZ, s) {
+// ── constant-radius helix point ───────────────────────────────────────────────
+// Radius rS is constant along the whole trajectory. Both particles share z0/commonZ,
+// so they begin and end at the same axial (propagation) coordinate, but their radial
+// positions are independent.
+function helixPoint(rS, sign, turns, z0, commonZ, s) {
   s = clamp(s, 0, 1);
 
   const phase = sign * 2*Math.PI * turns * s;
-  const env   = Math.sin(Math.PI * s);
 
   return new THREE.Vector3(
-    rS * env * Math.cos(phase),
-    rS * env * Math.sin(phase),
+    rS * Math.cos(phase),
+    rS * Math.sin(phase),
     z0 + commonZ * s
   );
 }
 
-// ── shared axial span so both trajectories share z0/z1 ───────────────────────
-function commonAxialSpan(datas) {
+// ── shared axial span (depends only on pitch angle, not |B|) ──────────────────
+// Travels TRAVEL_MULT× the base distance. Lower pitch angle → longer axial travel;
+// at θ = 90° the motion is pure gyration (no axial advance).
+function commonAxialSpan() {
   const theta = +document.getElementById('theta-r').value;
+  const c = Math.cos(theta * Math.PI / 180);
+  return AXIAL_BASE * TRAVEL_MULT * c;
+}
 
-  if (theta >= 89.999) return 0;
-  if (theta <= 0.001) return SCENE_R*14;
-
-  const maxR = Math.max(
-    SCENE_R*0.2,
-    ...datas.map(d => displayRadiusFromLarmor(d && d.r_L))
-  );
-
-  const tanTheta = Math.tan(theta * Math.PI / 180);
-
-  // Visual pitch model:
-  // lower pitch angle → longer axial travel,
-  // higher pitch angle → tighter, more circular motion.
-  const z = TURNS * 1.5 * maxR / Math.max(tanTheta, 1e-6);
-
-  return clamp(z, SCENE_R*0.3, SCENE_R*18);
+// ── coil count from cyclotron frequency ───────────────────────────────────────
+// turns ∝ ω_c (compressed by a √ law + cap). Lighter / higher-frequency particles
+// get more coils; combined with the shared axial span this also gives them a
+// smaller coil-to-coil pitch, and heavier particles a larger pitch.
+function turnsFor(d) {
+  if (!d || d.omega_c === null || d.omega_c === undefined || !Number.isFinite(d.omega_c)) {
+    return BASE_TURNS;
+  }
+  const t = BASE_TURNS * Math.sqrt(d.omega_c / OMEGA_REF);
+  return clamp(t, BASE_TURNS, MAX_TURNS);
 }
 
 // ── build / rebuild one particle's trajectory ─────────────────────────────────
-function updateTrajectory(p, data, commonZ) {
+function updateTrajectory(p, data, commonZ, turns) {
   const { r_L, sign } = data;
   const col = p.conf.color;
 
   const z0 = -commonZ/2;
   const z1 =  commonZ/2;
+
+  disposeTraj(p);
 
   // ── straight-line case, q = 0 ─────────────────────────────────────────────
   if (r_L === null) {
@@ -624,15 +629,9 @@ function updateTrajectory(p, data, commonZ) {
 
     const pts = Array.from({length:33}, (_,i) => start.clone().lerp(end,i/32));
 
-    disposeTraj(p);
-
     p.helixLine = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
-      new THREE.LineBasicMaterial({
-        color:col,
-        transparent:true,
-        opacity:0.18
-      })
+      new THREE.LineBasicMaterial({ color:col, transparent:true, opacity:0.18 })
     );
     scene.add(p.helixLine);
 
@@ -641,38 +640,20 @@ function updateTrajectory(p, data, commonZ) {
       : new THREE.Vector3(0,0,z0 + SCENE_R*0.01);
 
     p.tubeMesh = new THREE.Mesh(
-      new THREE.TubeGeometry(
-        new THREE.LineCurve3(start, tubeEnd),
-        2,
-        SCENE_R*0.007,
-        8,
-        false
-      ),
+      new THREE.TubeGeometry(new THREE.LineCurve3(start, tubeEnd), 2, SCENE_R*0.007, 8, false),
       new THREE.MeshStandardMaterial({
-        color:col,
-        transparent:true,
-        opacity:0.58,
-        roughness:0.45,
-        metalness:0.15
+        color:col, transparent:true, opacity:0.58, roughness:0.45, metalness:0.15
       })
     );
     scene.add(p.tubeMesh);
 
-    p.cur = {
-      straight:true,
-      start,
-      end,
-      dir,
-      duration:TURNS * SEC_PER_TURN
-    };
-
-    return Math.max(Math.abs(commonZ), SCENE_R*3.2);
+    p.cur = { straight:true, start, end, dir, duration:TRAVEL_SEC };
+    return;
   }
 
-  // ── centered spiral case ──────────────────────────────────────────────────
+  // ── constant-radius helix case ────────────────────────────────────────────
   const rDisplay = displayRadiusFromLarmor(r_L);
-  const turns    = Math.abs(commonZ) < 1e-9 ? 1 : TURNS;
-  const steps    = turns * SEG_PER_TURN;
+  const steps    = Math.max(8, Math.ceil(turns * SEG_PER_TURN));
 
   const pts = [];
 
@@ -682,19 +663,13 @@ function updateTrajectory(p, data, commonZ) {
   } else {
     for (let i=0; i<=steps; i++) {
       const s = i / steps;
-      pts.push(centeredSpiralPoint(rDisplay, sign, turns, z0, commonZ, s));
+      pts.push(helixPoint(rDisplay, sign, turns, z0, commonZ, s));
     }
   }
 
-  disposeTraj(p);
-
   p.helixLine = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pts),
-    new THREE.LineBasicMaterial({
-      color:col,
-      transparent:true,
-      opacity:0.18
-    })
+    new THREE.LineBasicMaterial({ color:col, transparent:true, opacity:0.18 })
   );
   scene.add(p.helixLine);
 
@@ -718,26 +693,12 @@ function updateTrajectory(p, data, commonZ) {
   p.tubeMesh = new THREE.Mesh(
     new THREE.TubeGeometry(tubeCurve, tubeSeg, tubeR, 8, false),
     new THREE.MeshStandardMaterial({
-      color:col,
-      transparent:true,
-      opacity:0.58,
-      roughness:0.45,
-      metalness:0.15
+      color:col, transparent:true, opacity:0.58, roughness:0.45, metalness:0.15
     })
   );
   scene.add(p.tubeMesh);
 
-  p.cur = {
-    straight:false,
-    rS:rDisplay,
-    sign,
-    turns,
-    z0,
-    commonZ,
-    duration:turns * SEC_PER_TURN
-  };
-
-  return Math.max(Math.abs(commonZ), SCENE_R*3.2, rDisplay*2.2);
+  p.cur = { straight:false, rS:rDisplay, sign, turns, z0, commonZ, duration:TRAVEL_SEC };
 }
 
 // ── animation helpers ─────────────────────────────────────────────────────────
@@ -745,8 +706,7 @@ function positionAt(cur, s) {
   if (cur.straight) {
     return cur.start.clone().lerp(cur.end, clamp(s,0,1));
   }
-
-  return centeredSpiralPoint(cur.rS, cur.sign, cur.turns, cur.z0, cur.commonZ, s);
+  return helixPoint(cur.rS, cur.sign, cur.turns, cur.z0, cur.commonZ, s);
 }
 
 function tangentAt(cur, s) {
@@ -817,8 +777,8 @@ function animate() {
 
   renderer.render(scene, camera);
 
-  // Advance the synchronized cycle after rendering.
-  // Shorter-duration particles stay at their endpoint and wait.
+  // Advance the synchronized cycle. Both particles share the same duration,
+  // so they reach the endpoint together; pause, then regenerate.
   const active = parts.filter(p => p.cur);
 
   if (active.length) {
@@ -826,10 +786,7 @@ function animate() {
 
     if (cycleT >= maxDuration) {
       cyclePauseT += dt;
-
-      if (cyclePauseT >= END_PAUSE) {
-        resetCycle();
-      }
+      if (cyclePauseT >= END_PAUSE) resetCycle();
     } else {
       cycleT = Math.min(cycleT + dt, maxDuration);
       cyclePauseT = 0;
@@ -946,17 +903,16 @@ async function runUpdate() {
     writeReadouts(p.conf.key, datas[i]);
   });
 
-  const sharedZ = commonAxialSpan(datas);
+  const sharedZ = commonAxialSpan();
   const isFirst = !firstRenderDone;
-  let maxZ = 0;
 
   resetCycle();
 
   parts.forEach((p,i) => {
-    maxZ = Math.max(maxZ, updateTrajectory(p, datas[i], sharedZ));
+    updateTrajectory(p, datas[i], sharedZ, turnsFor(datas[i]));
   });
 
-  buildFieldLines(Math.max(SCENE_R*1.6, maxZ/2 + SCENE_R*0.9));
+  buildFieldLines();
 
   firstRenderDone = true;
 
