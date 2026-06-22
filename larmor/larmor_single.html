@@ -210,6 +210,12 @@ select.cf-inp {
 }
 .cf-inp-sm:focus { outline: none; border-color: #484848; background: #202020; }
 
+/* ── disabled state ── */
+input:disabled, select:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
 .cf-row2 { display: flex; gap: 6px; align-items: center; }
 .cf-row2 .cf-inp { flex: 1; min-width: 0; }
 
@@ -234,6 +240,7 @@ select.cf-inp {
 .cf-out-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 .cf-out-table th {
   font-size: 11px;
@@ -253,6 +260,8 @@ select.cf-inp {
   text-align: right;
   color: var(--hi-blue);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cf-out-table td:first-child {
   text-align: left;
@@ -340,18 +349,18 @@ select.cf-inp {
 
   <div class="panel-inner">
 
-    <!-- ── Particle ── -->
+    <!-- ── Particle section header ── -->
     <div style="margin-top:14px; margin-bottom:10px;">
-      <div class="cf-sect">Particle</div>
+      <div class="cf-sect" id="particles-sect">Particle</div>
     </div>
 
-    <div class="pblock">
+    <!-- ── Ion / Single Particle (A) ── -->
+    <div class="pblock" id="block-A">
       <div class="phead">
         <span class="dot" style="background:#ff6e40"></span>
         <span id="A-head">Particle</span>
       </div>
 
-      <!-- Preset -->
       <div class="cf-param">
         <div style="display:grid; grid-template-columns:52px 1fr; align-items:center; column-gap:8px; margin-bottom:4px;">
           <span class="cf-desc" style="font-size:15px;">Preset</span>
@@ -365,7 +374,6 @@ select.cf-inp {
         </div>
       </div>
 
-      <!-- Mass -->
       <div class="cf-param">
         <div class="cf-param-row">
           <span class="cf-sym"><i>m</i></span>
@@ -375,7 +383,6 @@ select.cf-inp {
         </div>
       </div>
 
-      <!-- Charge -->
       <div class="cf-param">
         <div style="display:grid; grid-template-columns:22px 1fr 72px 30px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
           <span class="cf-sym"><i>q</i></span>
@@ -390,12 +397,54 @@ select.cf-inp {
       </div>
     </div>
 
+    <!-- ── Electron (B) — two-particle mode only ── -->
+    <div class="pblock" id="block-B">
+      <div class="phead">
+        <span class="dot" style="background:#4fc3f7"></span>
+        <span id="B-head">Electron</span>
+      </div>
+
+      <div class="cf-param">
+        <div style="display:grid; grid-template-columns:52px 1fr; align-items:center; column-gap:8px; margin-bottom:4px;">
+          <span class="cf-desc" style="font-size:15px;">Preset</span>
+          <select id="B-preset" class="cf-inp">
+            <option value="custom">Custom</option>
+            <option value="xenon">Xenon⁺ (131.29 amu)</option>
+            <option value="krypton">Krypton⁺ (83.80 amu)</option>
+            <option value="iodine">Iodine⁺ (126.90 amu)</option>
+            <option value="electron" selected>Electron (e⁻)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym"><i>m</i></span>
+          <span class="cf-desc">Mass</span>
+          <input type="number" id="B-mass" class="cf-inp" value="0.000548579909" min="0.0000001" step="0.001">
+          <span class="cf-unit">amu</span>
+        </div>
+      </div>
+
+      <div class="cf-param">
+        <div style="display:grid; grid-template-columns:22px 1fr 72px 30px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
+          <span class="cf-sym"><i>q</i></span>
+          <span class="cf-desc">Charge</span>
+          <input type="number" id="B-qmag" class="cf-inp" value="1" min="0" step="1">
+          <select id="B-sign" class="cf-inp-sm">
+            <option value="+">+</option>
+            <option value="-" selected>−</option>
+          </select>
+          <span style="font-size:14px; color:#555; text-align:center; font-style:italic;">e</span>
+        </div>
+      </div>
+    </div>
+
     <div class="cf-panel-divider"></div>
 
     <!-- ── Field & Velocity ── -->
     <div class="cf-sect">Field &amp; Velocity</div>
 
-    <!-- B field -->
     <div class="cf-param">
       <div class="cf-param-row">
         <span class="cf-sym">B</span>
@@ -408,7 +457,6 @@ select.cf-inp {
       </div>
     </div>
 
-    <!-- Speed -->
     <div class="cf-param">
       <div class="cf-param-row">
         <span class="cf-sym"><i>v</i></span>
@@ -422,7 +470,6 @@ select.cf-inp {
       </div>
     </div>
 
-    <!-- Pitch angle -->
     <div class="cf-param">
       <div class="cf-param-label-row">
         <span class="cf-desc">Pitch angle θ</span>
@@ -448,7 +495,6 @@ select.cf-inp {
       Show velocity vector&nbsp;<b style="color:#ffd54f;">V</b>
     </label>
 
-    <!-- ── NEW: velocity components toggle ── -->
     <label class="cf-chk" for="chk-vcomp">
       <input type="checkbox" id="chk-vcomp">
       Show velocity components&nbsp;<b style="color:#66bb6a;">V<sub>∥</sub></b>,&nbsp;<b style="color:#ab47bc;">V<sub>⊥</sub></b>
@@ -467,22 +513,39 @@ select.cf-inp {
     <div class="cf-sect">Outputs</div>
 
     <table class="cf-out-table">
-      <colgroup>
-        <col>
-        <col style="width:148px;">
-      </colgroup>
       <thead>
         <tr>
           <th></th>
-          <th style="color:#ff6e40;">Particle</th>
+          <th id="th-A" style="color:#ff6e40; width:108px;">Particle</th>
+          <th id="th-B" class="col-B" style="color:#4fc3f7; width:108px;">Electron</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td>Larmor Radius (<i>r</i><sub>L</sub>)</td>           <td id="A-rL">—</td></tr>
-        <tr><td>Cyclotron Frequency (ω<sub>c</sub>)</td>            <td id="A-wc">—</td></tr>
-        <tr><td>Magnetic Moment (μ)</td>                            <td id="A-mu">—</td></tr>
-        <tr><td>Parallel Velocity (<i>v</i><sub>∥</sub>)</td>       <td id="A-vpar">—</td></tr>
-        <tr><td>Perpendicular Velocity (<i>v</i><sub>⊥</sub>)</td>  <td id="A-vperp">—</td></tr>
+        <tr>
+          <td>Larmor Radius (<i>r</i><sub>L</sub>)</td>
+          <td id="A-rL">—</td>
+          <td id="B-rL" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Cyclotron Frequency (ω<sub>c</sub>)</td>
+          <td id="A-wc">—</td>
+          <td id="B-wc" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Magnetic Moment (μ)</td>
+          <td id="A-mu">—</td>
+          <td id="B-mu" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Parallel Velocity (<i>v</i><sub>∥</sub>)</td>
+          <td id="A-vpar">—</td>
+          <td id="B-vpar" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Perpendicular Velocity (<i>v</i><sub>⊥</sub>)</td>
+          <td id="A-vperp">—</td>
+          <td id="B-vperp" class="col-B">—</td>
+        </tr>
       </tbody>
     </table>
 
@@ -494,11 +557,14 @@ select.cf-inp {
         <span class="sw" style="background:#ff6e40;"></span>
         <b style="color:#ff6e40;" id="leg-A">Particle</b>
       </div>
+      <div class="cf-legend-row" id="leg-elec-row">
+        <span class="sw" style="background:#4fc3f7;"></span>
+        <b style="color:#4fc3f7;">Electron</b>
+      </div>
       <div class="cf-legend-row">
         <span class="sw" style="background:#ffd54f;"></span>
         <span><b style="color:#ffd54f;">V</b>&nbsp;velocity</span>
       </div>
-      <!-- ── NEW legend rows ── -->
       <div class="cf-legend-row">
         <span class="sw" style="background:#66bb6a;"></span>
         <span><b style="color:#66bb6a;">V<sub>∥</sub></b>&nbsp;velocity ∥ B</span>
@@ -525,6 +591,13 @@ select.cf-inp {
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+/* ─────────────────────────────────────────────────────────────
+   DEVELOPER MODE SWITCH
+   'two' → Ion (+ charge, locked) + Electron (fully locked)
+   'one' → Single particle with free +/- /0 charge
+   ───────────────────────────────────────────────────────────── */
+const MODE = 'one';   // ← change to 'one' for single-particle mode
+
 /* ── physics constants ── */
 const AMU   = 1.66053906660e-27;
 const E_C   = 1.602176634e-19;
@@ -532,7 +605,7 @@ const C_MAX = 299792458;
 
 function compute(m_amu, q_e, v, theta_deg, B) {
   for (const [name, val] of [
-    ['m_amu',m_amu],['q_e',q_e],['v',v],['theta_deg',theta_deg],['B',B]
+    ['m_amu', m_amu], ['q_e', q_e], ['v', v], ['theta_deg', theta_deg], ['B', B]
   ]) {
     if (!Number.isFinite(val)) throw new Error(`'${name}' must be a finite number.`);
   }
@@ -547,21 +620,18 @@ function compute(m_amu, q_e, v, theta_deg, B) {
   const v_perp = v * Math.sin(th);
   const absq   = Math.abs(q);
 
-  if (absq === 0) {
-    return { v_par, v_perp, r_L: null, omega_c: null,
-             mu: null, T_c: null, pitch: null, sign: 0 };
-  }
+  if (absq === 0)
+    return { v_par, v_perp, r_L: null, omega_c: null, mu: null, T_c: null, pitch: null, sign: 0 };
+
   const omega_c = absq * B / m;
-  if (omega_c === 0) {
-    return { v_par, v_perp, r_L: null, omega_c: null,
-             mu: null, T_c: null, pitch: null, sign: 0 };
-  }
-  const r_L  = v_perp ? m * v_perp / (absq * B) : 0.0;
-  const mu   = m * v_perp * v_perp / (2.0 * B);
-  const T_c  = 2.0 * Math.PI / omega_c;
+  if (omega_c === 0)
+    return { v_par, v_perp, r_L: null, omega_c: null, mu: null, T_c: null, pitch: null, sign: 0 };
+
+  const r_L   = v_perp ? m * v_perp / (absq * B) : 0.0;
+  const mu    = m * v_perp * v_perp / (2.0 * B);
+  const T_c   = 2.0 * Math.PI / omega_c;
   const pitch = v_par * T_c;
-  return { v_par, v_perp, r_L, omega_c, mu, T_c, pitch,
-           sign: q > 0 ? 1 : -1 };
+  return { v_par, v_perp, r_L, omega_c, mu, T_c, pitch, sign: q > 0 ? 1 : -1 };
 }
 
 /* ── scene constants ── */
@@ -588,14 +658,21 @@ const PRESETS = {
   electron: { m: 5.48579909e-4, q: -1 },
 };
 
+/* ── particle configurations ── */
 const PCONF = [
-  { key:'A', label:'Particle', color:0xff6e40, emissive:0x3a1505, sphereScale:0.090 },
+  { key: 'A', label: MODE === 'one' ? 'Particle' : 'Ion',
+    color: 0xff6e40, emissive: 0x3a1505, sphereScale: 0.090 },
+  { key: 'B', label: 'Electron',
+    color: 0x4fc3f7, emissive: 0x082030, sphereScale: 0.050 },
 ];
+
+/* Active particle list — drives both scene objects and computation */
+const ACTIVE = MODE === 'one' ? [PCONF[0]] : PCONF;
 
 /* ── display flags ── */
 let showLabels = true;
 let showVel    = true;
-let showVComp  = false;   // ← velocity components V∥ and V⊥
+let showVComp  = false;
 let showForces = false;
 
 /* ── text sprite ── */
@@ -611,16 +688,16 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   ctx.fillStyle   = 'rgba(9,9,9,0.78)';
   ctx.strokeStyle = 'rgba(207,216,220,0.22)';
   ctx.lineWidth = 4;
-  const r = 18, [x,y,w,h] = [2,2,canvas.width-4,canvas.height-4];
+  const r = 18, [x, y, w, h] = [2, 2, canvas.width - 4, canvas.height - 4];
   ctx.beginPath();
-  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
-  ctx.quadraticCurveTo(x+w,y,   x+w,y+r);   ctx.lineTo(x+w,y+h-r);
-  ctx.quadraticCurveTo(x+w,y+h, x+w-r,y+h); ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,   x,y+h-r);   ctx.lineTo(x,y+r);
-  ctx.quadraticCurveTo(x,y,     x+r,y);
+  ctx.moveTo(x+r, y);    ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y,   x+w, y+r);    ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h,   x, y+h-r);    ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y,     x+r, y);
   ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = color;
-  ctx.textAlign = 'center';
+  ctx.fillStyle    = color;
+  ctx.textAlign    = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(text, canvas.width / 2, canvas.height / 2);
   const tex = new THREE.CanvasTexture(canvas);
@@ -633,7 +710,7 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   return sp;
 }
 
-/* ── B label with drawn arrow ── */
+/* ── B label with drawn vector arrow ── */
 function makeBLabelSprite(height = SCENE_R * 0.38) {
   const B_COLOR = '#546e7a';
   const canvas  = document.createElement('canvas');
@@ -648,21 +725,21 @@ function makeBLabelSprite(height = SCENE_R * 0.38) {
   ctx.fillStyle   = 'rgba(9,9,9,0.78)';
   ctx.strokeStyle = 'rgba(207,216,220,0.15)';
   ctx.lineWidth = 3;
-  const br = 14, [bx,by,bw,bh] = [2,2,cw-4,ch-4];
+  const br = 14, [bx, by, bw, bh] = [2, 2, cw - 4, ch - 4];
   ctx.beginPath();
-  ctx.moveTo(bx+br,by); ctx.lineTo(bx+bw-br,by);
-  ctx.quadraticCurveTo(bx+bw,by,    bx+bw,by+br);
-  ctx.lineTo(bx+bw,by+bh-br);
-  ctx.quadraticCurveTo(bx+bw,by+bh, bx+bw-br,by+bh);
-  ctx.lineTo(bx+br,by+bh);
-  ctx.quadraticCurveTo(bx,by+bh,    bx,by+bh-br);
-  ctx.lineTo(bx,by+br);
-  ctx.quadraticCurveTo(bx,by,       bx+br,by);
+  ctx.moveTo(bx+br, by);    ctx.lineTo(bx+bw-br, by);
+  ctx.quadraticCurveTo(bx+bw, by,    bx+bw, by+br);
+  ctx.lineTo(bx+bw, by+bh-br);
+  ctx.quadraticCurveTo(bx+bw, by+bh, bx+bw-br, by+bh);
+  ctx.lineTo(bx+br, by+bh);
+  ctx.quadraticCurveTo(bx, by+bh,    bx, by+bh-br);
+  ctx.lineTo(bx, by+br);
+  ctx.quadraticCurveTo(bx, by,       bx+br, by);
   ctx.closePath(); ctx.fill(); ctx.stroke();
-  const midX    = cw / 2;
-  const arrowY  = py + arrowH / 2;
-  const shaftL  = midX - tw * 0.38;
-  const shaftR  = midX + tw * 0.38;
+  const midX     = cw / 2;
+  const arrowY   = py + arrowH / 2;
+  const shaftL   = midX - tw * 0.38;
+  const shaftR   = midX + tw * 0.38;
   const shaftEnd = shaftR - headW * 0.6;
   ctx.strokeStyle = B_COLOR; ctx.lineWidth = 6; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(shaftL, arrowY); ctx.lineTo(shaftEnd, arrowY); ctx.stroke();
@@ -694,6 +771,7 @@ let cycleT = 0, cyclePauseT = 0;
 
 function resetCycle() { cycleT = 0; cyclePauseT = 0; }
 
+/* ── charge sign sprite (+, −, 0) floating above the orb ── */
 function setChargeSprite(p, sign) {
   if (p.chargeSprite && p.curSign === sign) return;
   if (p.chargeSprite) {
@@ -708,58 +786,57 @@ function setChargeSprite(p, sign) {
   p.curSign = sign;
 }
 
+/* ── build one particle object ── */
 function makeParticle(conf) {
   const p = { conf, cur: null, data: null, helixLine: null, tubeMesh: null,
               chargeSprite: null, curSign: null };
+
   p.mesh = new THREE.Mesh(
     new THREE.SphereGeometry(SCENE_R * conf.sphereScale, 24, 24),
     new THREE.MeshStandardMaterial({ color: conf.color, emissive: conf.emissive, roughness: 0.35 })
   );
   scene.add(p.mesh);
-  setChargeSprite(p, 1);
+  /* initial sign: electron starts −1, everything else +1 */
+  setChargeSprite(p, conf.key === 'B' ? -1 : 1);
 
-  /* ── total velocity arrow ── */
+  /* total velocity arrow */
   p.velArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1,0,0), new THREE.Vector3(),
+    new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
     SCENE_R * 0.85, 0xffd54f, SCENE_R * 0.22, SCENE_R * 0.1
   );
   scene.add(p.velArrow);
-
   p.velLabel = makeTextSprite('V', '#ffd54f', SCENE_R * 0.27);
   scene.add(p.velLabel);
 
-  /* ── magnetic force arrow ── */
+  /* magnetic force arrow */
   p.forceArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1,0,0), new THREE.Vector3(),
+    new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
     SCENE_R * 0.6, 0xef5350, SCENE_R * 0.18, SCENE_R * 0.09
   );
   p.forceArrow.visible = false;
   scene.add(p.forceArrow);
-
   p.forceLabel = makeTextSprite('F_b', '#ef5350', SCENE_R * 0.27);
   p.forceLabel.visible = false;
   scene.add(p.forceLabel);
 
-  /* ── V∥ — parallel component (green, along B / z-axis) ── */
+  /* V∥ — parallel to B (green, along z) */
   p.vParArrow = new THREE.ArrowHelper(
     new THREE.Vector3(0, 0, 1), new THREE.Vector3(),
     SCENE_R * 0.85, 0x66bb6a, SCENE_R * 0.18, SCENE_R * 0.09
   );
   p.vParArrow.visible = false;
   scene.add(p.vParArrow);
-
   p.vParLabel = makeTextSprite('V\u2225', '#66bb6a', SCENE_R * 0.26);
   p.vParLabel.visible = false;
   scene.add(p.vParLabel);
 
-  /* ── V⊥ — perpendicular component (purple, in xy-plane) ── */
+  /* V⊥ — perpendicular to B (purple, in xy-plane) */
   p.vPerpArrow = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
     SCENE_R * 0.85, 0xab47bc, SCENE_R * 0.18, SCENE_R * 0.09
   );
   p.vPerpArrow.visible = false;
   scene.add(p.vPerpArrow);
-
   p.vPerpLabel = makeTextSprite('V\u22A5', '#ab47bc', SCENE_R * 0.26);
   p.vPerpLabel.visible = false;
   scene.add(p.vPerpLabel);
@@ -767,6 +844,7 @@ function makeParticle(conf) {
   return p;
 }
 
+/* ── init Three.js ── */
 function initViz(container) {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0x090909);
@@ -788,7 +866,8 @@ function initViz(container) {
   guideGroup = new THREE.Group();
   scene.add(fieldGroup);
   scene.add(guideGroup);
-  parts = PCONF.map(makeParticle);
+  /* build only the active set of particles */
+  parts = ACTIVE.map(makeParticle);
   clock = new THREE.Clock();
   window.addEventListener('resize', () => {
     const w2 = container.clientWidth, h2 = container.clientHeight;
@@ -799,6 +878,7 @@ function initViz(container) {
   animate();
 }
 
+/* ── field lines ── */
 function buildFieldLines() {
   fieldGroup.clear();
   guideGroup.clear();
@@ -833,6 +913,7 @@ function buildFieldLines() {
   guideGroup.add(bLabel);
 }
 
+/* ── camera framing ── */
 function frameCamera() {
   const box = new THREE.Box3();
   let any = false;
@@ -846,30 +927,51 @@ function frameCamera() {
   const fovRad = camera.fov * Math.PI / 180;
   const dist   = sphere.radius / Math.sin(fovRad / 2) * 1.3;
   camera.position.copy(
-    sphere.center.clone().addScaledVector(
-      new THREE.Vector3(1.1, 0.7, 1.3).normalize(), dist
-    )
+    sphere.center.clone().addScaledVector(new THREE.Vector3(1.1, 0.7, 1.3).normalize(), dist)
   );
   controls.update();
 }
 
+/* ── dispose old trajectory geometry ── */
 function disposeTraj(p) {
   if (p.helixLine) { scene.remove(p.helixLine); p.helixLine.geometry.dispose(); p.helixLine = null; }
   if (p.tubeMesh)  { scene.remove(p.tubeMesh);  p.tubeMesh.geometry.dispose();  p.tubeMesh  = null; }
 }
 
+/* ── physical radius → raw visual radius (monotonic, no floor) ── */
 function displayRadiusFromLarmor(rL) {
   if (rL === null || rL === undefined || !Number.isFinite(rL) || rL <= 0) return 0;
   return SCENE_R * 1.35 * (2 / Math.PI) * Math.atan(rL / RADIUS_REF_M);
 }
 
+/* ── joint display radii ─────────────────────────────────────────────────────
+   One-particle mode: just apply a visibility floor.
+   Two-particle mode: guarantee the electron radius is strictly smaller than
+   the ion radius at every speed and pitch angle (the electron's raw radius
+   would otherwise floor to the same value as the ion at small v / small θ).
+   A true r_L = 0 (θ = 0°) still collapses both trajectories to a line.
+   ─────────────────────────────────────────────────────────────────────────── */
 function computeDisplayRadii(datas) {
-  return datas.map(d => {
-    const r = displayRadiusFromLarmor(d.r_L);
-    return r > 0 ? Math.max(r, SCENE_R * 0.05) : 0;
-  });
+  if (MODE === 'one') {
+    return datas.map(d => {
+      const r = displayRadiusFromLarmor(d.r_L);
+      return r > 0 ? Math.max(r, SCENE_R * 0.05) : 0;
+    });
+  }
+  /* two-particle: index 0 = ion, index 1 = electron */
+  let ionR = displayRadiusFromLarmor(datas[0].r_L);
+  let elR  = displayRadiusFromLarmor(datas[1].r_L);
+
+  if (ionR > 0) ionR = Math.max(ionR, SCENE_R * 0.06);   /* ion stays visible */
+
+  if (elR > 0) {
+    const upper = ionR > 0 ? ionR * 0.75 : SCENE_R * 0.2; /* always below ion */
+    elR = clamp(elR, SCENE_R * 0.03, upper);               /* but still visible */
+  }
+  return [ionR, elR];
 }
 
+/* ── helix helpers ── */
 function helixPoint(rS, sign, turns, z0, commonZ, s) {
   s = clamp(s, 0, 1);
   const phase = sign * 2 * Math.PI * turns * s;
@@ -882,19 +984,21 @@ function commonAxialSpan() {
 }
 
 function turnsFor(d) {
-  if (!d || d.omega_c === null || d.omega_c === undefined || !Number.isFinite(d.omega_c))
-    return BASE_TURNS;
+  if (!d || d.omega_c === null || !Number.isFinite(d.omega_c)) return BASE_TURNS;
   return clamp(BASE_TURNS * Math.sqrt(d.omega_c / OMEGA_REF), BASE_TURNS, MAX_TURNS);
 }
 
+/* ── build / rebuild one particle's trajectory ── */
 function updateTrajectory(p, data, commonZ, turns, rDisplay) {
   const { r_L, sign } = data;
   const col = p.conf.color;
-  const z0 = -commonZ / 2, z1 = commonZ / 2;
+  const z0  = -commonZ / 2, z1 = commonZ / 2;
   disposeTraj(p);
 
+  /* ── straight line (q = 0 or θ = 0 with no gyration) ── */
   if (r_L === null) {
-    const start = new THREE.Vector3(0, 0, z0), end = new THREE.Vector3(0, 0, z1);
+    const start = new THREE.Vector3(0, 0, z0);
+    const end   = new THREE.Vector3(0, 0, z1);
     const diff  = end.clone().sub(start), len = diff.length();
     const dir   = len > 1e-12 ? diff.clone().normalize() : new THREE.Vector3(0, 0, 1);
     const pts   = Array.from({length: 33}, (_, i) => start.clone().lerp(end, i / 32));
@@ -913,8 +1017,9 @@ function updateTrajectory(p, data, commonZ, turns, rDisplay) {
     return;
   }
 
+  /* ── helix ── */
   const steps = Math.max(8, Math.ceil(turns * SEG_PER_TURN));
-  const pts = rDisplay === 0
+  const pts   = rDisplay === 0
     ? [new THREE.Vector3(0, 0, z0), new THREE.Vector3(0, 0, z1)]
     : Array.from({length: steps + 1}, (_, i) => helixPoint(rDisplay, sign, turns, z0, commonZ, i / steps));
 
@@ -936,7 +1041,6 @@ function updateTrajectory(p, data, commonZ, turns, rDisplay) {
     tubeCurve = new THREE.CatmullRomCurve3(pts, false);
     tubeSeg   = steps;
   }
-
   p.tubeMesh = new THREE.Mesh(
     new THREE.TubeGeometry(tubeCurve, tubeSeg, tubeR, 8, false),
     new THREE.MeshStandardMaterial({ color: col, transparent: true, opacity: 0.58, roughness: 0.45, metalness: 0.15 })
@@ -945,6 +1049,7 @@ function updateTrajectory(p, data, commonZ, turns, rDisplay) {
   p.cur = { straight: false, rS: rDisplay, sign, turns, z0, commonZ, duration: TRAVEL_SEC };
 }
 
+/* ── position / tangent helpers ── */
 function positionAt(cur, s) {
   if (cur.straight) return cur.start.clone().lerp(cur.end, clamp(s, 0, 1));
   return helixPoint(cur.rS, cur.sign, cur.turns, cur.z0, cur.commonZ, s);
@@ -952,35 +1057,23 @@ function positionAt(cur, s) {
 
 function tangentAt(cur, s) {
   const eps = 0.001;
-  const d = positionAt(cur, clamp(s + eps, 0, 1))
-              .sub(positionAt(cur, clamp(s - eps, 0, 1)));
+  const d = positionAt(cur, clamp(s + eps, 0, 1)).sub(positionAt(cur, clamp(s - eps, 0, 1)));
   const L = d.length();
   return L < 1e-12 ? new THREE.Vector3(0, 0, 1) : d.normalize();
 }
 
-/* ─────────────────────────────────────────────────────────────
-   updateComponentArrow — sets an arrow to a given world-space
-   direction and length, hiding it if the length is negligible.
-   ───────────────────────────────────────────────────────────── */
+/* ── helper: set a component arrow to a given direction and length ── */
 function updateComponentArrow(arrow, label, pos, dir, len, baseHead, baseWidth) {
-  if (len < SCENE_R * 0.04) {
-    arrow.visible = false;
-    label.visible = false;
-    return;
-  }
+  if (len < SCENE_R * 0.04) { arrow.visible = false; label.visible = false; return; }
   arrow.setDirection(dir);
-  arrow.setLength(
-    len,
-    Math.min(baseHead,  len * 0.50),
-    Math.min(baseWidth, len * 0.45)
-  );
+  arrow.setLength(len, Math.min(baseHead, len * 0.50), Math.min(baseWidth, len * 0.45));
   arrow.position.copy(pos);
   arrow.visible = true;
-  /* offset the label slightly past the arrowhead */
   label.position.copy(pos).addScaledVector(dir, len + SCENE_R * 0.12);
   label.visible = true;
 }
 
+/* ── animation loop ── */
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
@@ -992,7 +1085,7 @@ function animate() {
     const s   = Math.min(cycleT / Math.max(p.cur.duration || 1, 1e-9), 1.0);
     const pos = positionAt(p.cur, s);
 
-    /* sphere + charge label */
+    /* orb + charge label */
     p.mesh.position.copy(pos);
     p.chargeSprite.position.copy(pos).add(off);
     p.chargeSprite.visible = showLabels;
@@ -1005,49 +1098,30 @@ function animate() {
     p.velLabel.position.copy(pos).addScaledVector(velDir, SCENE_R * 0.95);
     p.velLabel.visible = showVel;
 
-    /* ── velocity component arrows (V∥ and V⊥) ────────────────
-       velDir is the unit tangent of the helix.
-       Its z-component = cos θ  → parallel to B
-       Its xy-magnitude = sin θ → perpendicular to B
-    ──────────────────────────────────────────────────────────── */
+    /* V∥ and V⊥ components */
     {
-      const ARROW_LEN = SCENE_R * 0.85;
-
-      /* parallel — always along ±z (direction of B field) */
-      const parSign = velDir.z >= 0 ? 1 : -1;
-      const parDir  = new THREE.Vector3(0, 0, parSign);
-      const parLen  = ARROW_LEN * Math.abs(velDir.z);
-
-      /* perpendicular — xy projection of the tangent */
-      const perpVec = new THREE.Vector3(velDir.x, velDir.y, 0);
-      const perpLen = ARROW_LEN * perpVec.length();
-      const perpDir = perpVec.lengthSq() > 1e-12
+      const LEN      = SCENE_R * 0.85;
+      const parSign  = velDir.z >= 0 ? 1 : -1;
+      const parDir   = new THREE.Vector3(0, 0, parSign);
+      const parLen   = LEN * Math.abs(velDir.z);
+      const perpVec  = new THREE.Vector3(velDir.x, velDir.y, 0);
+      const perpLen  = LEN * perpVec.length();
+      const perpDir  = perpVec.lengthSq() > 1e-12
         ? perpVec.normalize()
-        : new THREE.Vector3(1, 0, 0);   // fallback when θ = 0°
+        : new THREE.Vector3(1, 0, 0);
 
       if (showVComp) {
-        updateComponentArrow(
-          p.vParArrow, p.vParLabel,
-          pos, parDir, parLen,
-          SCENE_R * 0.18, SCENE_R * 0.09
-        );
-        updateComponentArrow(
-          p.vPerpArrow, p.vPerpLabel,
-          pos, perpDir, perpLen,
-          SCENE_R * 0.18, SCENE_R * 0.09
-        );
+        updateComponentArrow(p.vParArrow,  p.vParLabel,  pos, parDir,  parLen,  SCENE_R * 0.18, SCENE_R * 0.09);
+        updateComponentArrow(p.vPerpArrow, p.vPerpLabel, pos, perpDir, perpLen, SCENE_R * 0.18, SCENE_R * 0.09);
       } else {
-        p.vParArrow.visible  = false;
-        p.vParLabel.visible  = false;
-        p.vPerpArrow.visible = false;
-        p.vPerpLabel.visible = false;
+        p.vParArrow.visible  = false; p.vParLabel.visible  = false;
+        p.vPerpArrow.visible = false; p.vPerpLabel.visible = false;
       }
     }
 
-    /* magnetic force arrow */
+    /* magnetic force arrow (center-seeking, perpendicular to v) */
     if (p.cur.straight) {
-      p.forceArrow.visible = false;
-      p.forceLabel.visible = false;
+      p.forceArrow.visible = false; p.forceLabel.visible = false;
     } else {
       const radial    = new THREE.Vector3(pos.x, pos.y, 0);
       const radialLen = radial.length();
@@ -1059,14 +1133,14 @@ function animate() {
         p.forceLabel.position.copy(pos).addScaledVector(fd, SCENE_R * 0.72);
         p.forceLabel.visible = true;
       } else {
-        p.forceArrow.visible = false;
-        p.forceLabel.visible = false;
+        p.forceArrow.visible = false; p.forceLabel.visible = false;
       }
     }
   }
 
   renderer.render(scene, camera);
 
+  /* synchronized cycle: both particles begin and finish together */
   const active = parts.filter(p => p.cur);
   if (active.length) {
     const maxDur = Math.max(...active.map(p => p.cur.duration || 0));
@@ -1099,19 +1173,17 @@ function fmtTesla(x) {
 }
 
 function updateSpeedFrac() {
-  const v    = +$('inp-speed').value;
+  const v   = +$('inp-speed').value;
+  const el  = $('speed-frac');
   const frac = v / C_MAX;
-  const el   = $('speed-frac');
   if (!Number.isFinite(frac) || frac <= 0) { el.textContent = ''; return; }
-  const pct = (frac * 100).toPrecision(3);
-  el.textContent = `≡ ${pct}% c (the speed of light)`;
+  el.textContent = `≡ ${(frac * 100).toPrecision(3)}% c (the speed of light)`;
 }
 
 function updateBReadout() {
   $('b-tesla').textContent = fmtTesla(+$('inp-BG').value * GAUSS_TO_TESLA);
 }
 
-/* ── output writer ── */
 function writeReadouts(key, d) {
   const fv = (x, unit) => {
     if (x === null || x === undefined || (typeof x === 'number' && isNaN(x))) return '—';
@@ -1147,6 +1219,7 @@ function readParticle(key, B_T) {
   };
 }
 
+/* ── main update ── */
 function runUpdate() {
   clearError();
   updateBReadout();
@@ -1176,36 +1249,79 @@ function runUpdate() {
   const isFirst = !firstRenderDone;
 
   resetCycle();
-  parts.forEach((p, i) => {
-    updateTrajectory(p, datas[i], sharedZ, turnsFor(datas[i]), dispR[i]);
-  });
-
+  parts.forEach((p, i) => updateTrajectory(p, datas[i], sharedZ, turnsFor(datas[i]), dispR[i]));
   buildFieldLines();
   firstRenderDone = true;
   if (isFirst) frameCamera();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   setupMode — configure the panel UI for the current MODE.
+   Must run before the first runUpdate() call.
+   ───────────────────────────────────────────────────────────── */
+function setupMode() {
+  const single = MODE === 'one';
+  const label  = single ? 'Particle' : 'Ion';
+
+  /* update text labels */
+  $('A-head').textContent         = label;
+  $('th-A').textContent           = label;
+  $('leg-A').textContent          = label;
+  $('particles-sect').textContent = single ? 'Particle' : 'Particles';
+
+  if (single) {
+    /* ── one-particle mode: hide everything B-related ── */
+    $('block-B').style.display      = 'none';
+    $('leg-elec-row').style.display = 'none';
+    document.querySelectorAll('.col-B').forEach(el => el.style.display = 'none');
+    $('A-sign').disabled = false;     /* free +/- charge */
+  } else {
+    /* ── two-particle mode: lock ion to +, lock electron controls ── */
+
+    /* Ion: force positive charge, disable electron from its preset list */
+    $('A-sign').value    = '+';
+    $('A-sign').disabled = true;
+    [...$('A-preset').options].forEach(o => { if (o.value === 'electron') o.disabled = true; });
+    if ($('A-preset').value === 'electron') $('A-preset').value = 'xenon';
+
+    /* Electron: set to electron preset then lock all controls */
+    $('B-preset').value = 'electron';
+    applyPreset('B');
+    ['B-preset', 'B-mass', 'B-qmag', 'B-sign'].forEach(id => { $(id).disabled = true; });
+  }
 }
 
 /* ── event wiring ── */
 let _deb = null;
 const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate, 150); };
 
+/* particle A */
 $('A-preset').addEventListener('change', () => { applyPreset('A'); debounced(); });
 $('A-mass').addEventListener('input',    () => { $('A-preset').value = 'custom'; debounced(); });
 $('A-qmag').addEventListener('input',    () => { $('A-preset').value = 'custom'; debounced(); });
 $('A-sign').addEventListener('change',   () => { $('A-preset').value = 'custom'; debounced(); });
 
+/* particle B — wired always; disabled controls emit no events in two-particle mode */
+$('B-preset').addEventListener('change', () => { applyPreset('B'); debounced(); });
+$('B-mass').addEventListener('input',    () => { $('B-preset').value = 'custom'; debounced(); });
+$('B-qmag').addEventListener('input',    () => { $('B-preset').value = 'custom'; debounced(); });
+$('B-sign').addEventListener('change',   () => { $('B-preset').value = 'custom'; debounced(); });
+
+/* shared controls */
 $('theta-r').addEventListener('input',   () => { $('theta-disp').textContent = $('theta-r').value; debounced(); });
 $('inp-speed').addEventListener('input', () => { updateSpeedFrac(); debounced(); });
-$('inp-BG').addEventListener('input',    () => { updateBReadout(); debounced(); });
+$('inp-BG').addEventListener('input',    () => { updateBReadout();  debounced(); });
 
+/* display toggles */
 $('chk-labels').addEventListener('change', () => { showLabels = $('chk-labels').checked; });
 $('chk-vel').addEventListener('change',    () => { showVel    = $('chk-vel').checked; });
-$('chk-vcomp').addEventListener('change',  () => { showVComp  = $('chk-vcomp').checked; });   // ← new
+$('chk-vcomp').addEventListener('change',  () => { showVComp  = $('chk-vcomp').checked; });
 $('chk-force').addEventListener('change',  () => { showForces = $('chk-force').checked; });
 
-/* ── boot ── */
-initViz(document.getElementById('viewport'));
-applyPreset('A');
+/* ── boot sequence ── */
+initViz(document.getElementById('viewport'));  /* create scene + particles (uses ACTIVE) */
+setupMode();                                   /* configure UI, locks B in two-particle mode */
+applyPreset('A');                              /* populate A fields from default xenon preset */
 updateBReadout();
 updateSpeedFrac();
 runUpdate();
