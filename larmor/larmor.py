@@ -38,13 +38,13 @@ def compute(m_amu, q_e, v, theta_deg, B):
     if absq == 0:
         return {"v_par": v_par, "v_perp": v_perp,
                 "r_L": None, "omega_c": None, "mu": None,
-                "T_c": None, "pitch": None, "sign": 1}
+                "T_c": None, "pitch": None, "sign": 0}
 
     omega_c = absq * B / m
     if omega_c == 0.0:
         return {"v_par": v_par, "v_perp": v_perp,
                 "r_L": None, "omega_c": None, "mu": None,
-                "T_c": None, "pitch": None, "sign": 1}
+                "T_c": None, "pitch": None, "sign": 0}
 
     r_L   = m * v_perp / (absq * B) if v_perp else 0.0
     mu    = m * v_perp**2 / (2.0 * B)
@@ -54,7 +54,7 @@ def compute(m_amu, q_e, v, theta_deg, B):
     return {"v_par": v_par, "v_perp": v_perp,
             "r_L": r_L, "omega_c": omega_c, "mu": mu,
             "T_c": T_c, "pitch": pitch,
-            "sign": 1 if q >= 0 else -1}
+            "sign": 1 if q > 0 else -1}
 
 HTML = r"""<!DOCTYPE html>
 <html lang="en">
@@ -90,6 +90,7 @@ input[type="number"],select{
   background:#0d1117;border:1px solid #263238;border-radius:4px;
   color:#eceff1;padding:5px 8px;font-size:12px;outline:none;width:100%;transition:border-color .15s;}
 input[type="number"]:focus,select:focus{border-color:#42a5f5}
+input:disabled,select:disabled{opacity:.5;cursor:not-allowed}
 input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
 .row2{display:flex;gap:6px}
 .row2 input{flex:1}
@@ -122,7 +123,7 @@ input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
            color:#ef9a9a;font-size:11px;padding:7px 9px;display:none;}
 #legend{margin-top:auto;background:#0d1117;border:1px solid #182330;
         border-radius:5px;padding:8px 10px;font-size:10px;line-height:2.0;}
-#legend span{display:inline-block;width:9px;height:9px;border-radius:50%;
+#legend span.sw{display:inline-block;width:9px;height:9px;border-radius:50%;
              margin-right:6px;vertical-align:middle;}
 #viewport{flex:1;overflow:hidden;position:relative}
 #viewport canvas{display:block}
@@ -133,9 +134,9 @@ input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
 <div id="panel">
   <h1>Larmor Motion</h1>
 
-  <!-- Particle 1 -->
-  <div class="pblock">
-    <div class="phead"><span class="dot" style="background:#ff6e40"></span>Particle 1</div>
+  <!-- Ion / single particle -->
+  <div class="pblock" id="block-A">
+    <div class="phead"><span class="dot" style="background:#ff6e40"></span><span id="A-head">Ion</span></div>
     <div class="field">
       <label>Preset</label>
       <select id="A-preset">
@@ -162,9 +163,9 @@ input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
     </div>
   </div>
 
-  <!-- Particle 2 -->
-  <div class="pblock">
-    <div class="phead"><span class="dot" style="background:#4fc3f7"></span>Particle 2</div>
+  <!-- Electron (two-particle mode) -->
+  <div class="pblock" id="block-B">
+    <div class="phead"><span class="dot" style="background:#4fc3f7"></span><span id="B-head">Electron</span></div>
     <div class="field">
       <label>Preset</label>
       <select id="B-preset">
@@ -208,6 +209,17 @@ input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
     <input type="range" id="theta-r" min="0" max="90" value="45" step="1">
   </div>
 
+  <!-- ── overlay toggles ── -->
+  <label class="chk" for="chk-labels">
+    <input type="checkbox" id="chk-labels" checked>
+    Show charge / name labels
+  </label>
+
+  <label class="chk" for="chk-vel">
+    <input type="checkbox" id="chk-vel" checked>
+    Show velocity vector <b style="color:#ffd54f">V</b>
+  </label>
+
   <label class="chk" for="chk-force">
     <input type="checkbox" id="chk-force">
     Show magnetic force <b style="color:#ef5350">F<sub>b</sub></b>
@@ -221,25 +233,25 @@ input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
     <table id="otable">
       <tr>
         <th></th>
-        <th style="color:#ff6e40">Particle 1</th>
-        <th style="color:#4fc3f7">Particle 2</th>
+        <th id="th-A" style="color:#ff6e40">Ion</th>
+        <th id="th-B" class="col-B" style="color:#4fc3f7">Electron</th>
       </tr>
-      <tr><td>r<sub>L</sub> [m]</td>   <td id="A-rL">&#x2014;</td>  <td id="B-rL">&#x2014;</td></tr>
-      <tr><td>&#x3C9;<sub>c</sub> [rad/s]</td><td id="A-wc">&#x2014;</td><td id="B-wc">&#x2014;</td></tr>
-      <tr><td>&#x3BC; [J/T]</td>        <td id="A-mu">&#x2014;</td>  <td id="B-mu">&#x2014;</td></tr>
-      <tr><td>v&#x2225; [m/s]</td>      <td id="A-vpar">&#x2014;</td><td id="B-vpar">&#x2014;</td></tr>
-      <tr><td>v&#x22A5; [m/s]</td>      <td id="A-vperp">&#x2014;</td><td id="B-vperp">&#x2014;</td></tr>
-      <tr><td>T<sub>c</sub> [s]</td>    <td id="A-Tc">&#x2014;</td>  <td id="B-Tc">&#x2014;</td></tr>
-      <tr><td>pitch [m]</td>            <td id="A-pitch">&#x2014;</td><td id="B-pitch">&#x2014;</td></tr>
+      <tr><td>r<sub>L</sub> [m]</td>   <td id="A-rL">&#x2014;</td>  <td id="B-rL" class="col-B">&#x2014;</td></tr>
+      <tr><td>&#x3C9;<sub>c</sub> [rad/s]</td><td id="A-wc">&#x2014;</td><td id="B-wc" class="col-B">&#x2014;</td></tr>
+      <tr><td>&#x3BC; [J/T]</td>        <td id="A-mu">&#x2014;</td>  <td id="B-mu" class="col-B">&#x2014;</td></tr>
+      <tr><td>v&#x2225; [m/s]</td>      <td id="A-vpar">&#x2014;</td><td id="B-vpar" class="col-B">&#x2014;</td></tr>
+      <tr><td>v&#x22A5; [m/s]</td>      <td id="A-vperp">&#x2014;</td><td id="B-vperp" class="col-B">&#x2014;</td></tr>
+      <tr><td>T<sub>c</sub> [s]</td>    <td id="A-Tc">&#x2014;</td>  <td id="B-Tc" class="col-B">&#x2014;</td></tr>
+      <tr><td>pitch [m]</td>            <td id="A-pitch">&#x2014;</td><td id="B-pitch" class="col-B">&#x2014;</td></tr>
     </table>
   </div>
 
   <div id="legend">
-    <span style="background:#ff6e40"></span>Particle 1<br>
-    <span style="background:#4fc3f7"></span>Particle 2<br>
-    <span style="background:#ffd54f"></span>V velocity<br>
-    <span style="background:#ef5350"></span>F<sub>b</sub> magnetic force<br>
-    <span style="background:#263238;border:1px solid #37474f;border-radius:2px"></span>B field (+z)
+    <div><span class="sw" style="background:#ff6e40"></span><b id="leg-A">Ion</b></div>
+    <div id="leg-elec-row"><span class="sw" style="background:#4fc3f7"></span>Electron</div>
+    <div><span class="sw" style="background:#ffd54f"></span>V velocity</div>
+    <div><span class="sw" style="background:#ef5350"></span>F<sub>b</sub> magnetic force</div>
+    <div><span class="sw" style="background:#37474f;border:1px solid #546e7a;border-radius:2px"></span>B field (+z)</div>
   </div>
 </div>
 
@@ -249,22 +261,27 @@ input[type="range"]{width:100%;accent-color:#42a5f5;margin-top:2px}
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+/* ───────────────────────────────────────────────────────────────────────────
+   DEVELOPER SWITCH
+   'two' → an ion (+ charge) and an electron (- charge)
+   'one' → a single particle whose charge can be +, - or 0
+   ─────────────────────────────────────────────────────────────────────────── */
+const MODE = 'two';
+
 const SCENE_R        = 5.0;
 const SEG_PER_TURN   = 48;
 const TRAVEL_SEC     = 7.0;
 const END_PAUSE      = 0.6;
 const GAUSS_TO_TESLA = 1e-4;
 
-// Visual scaling reference for the (compressed) Larmor radius.
 const RADIUS_REF_M = 1.0;
 
-// Trajectory model.
-const TRAVEL_MULT = 3;            // travel 3x the base distance before regenerating
+const TRAVEL_MULT = 3;
 const AXIAL_BASE  = SCENE_R * 1.7;
-const BASE_TURNS  = 3;            // coils for the lowest-frequency particle
-const MAX_TURNS   = 30;           // cap so an electron stays renderable
-const OMEGA_REF   = 7.0e5;        // rad/s ≈ heavy-ion cyclotron freq near ~1 T
-const FIELD_HALF  = SCENE_R * 2.8;// FIXED field-line half length (independent of |B|)
+const BASE_TURNS  = 3;
+const MAX_TURNS   = 30;
+const OMEGA_REF   = 7.0e5;
+const FIELD_HALF  = SCENE_R * 2.8;
 
 const clamp = (x,a,b) => Math.min(b, Math.max(a, x));
 
@@ -277,11 +294,20 @@ const PRESETS = {
 };
 
 const PCONF = [
-  { key:'A', label:'Particle 1', short:'1', color:0xff6e40, emissive:0x3a1505 },
-  { key:'B', label:'Particle 2', short:'2', color:0x4fc3f7, emissive:0x082030 },
+  { key:'A', label:'Ion',      color:0xff6e40, emissive:0x3a1505, sphereScale:0.090 },
+  { key:'B', label:'Electron', color:0x4fc3f7, emissive:0x082030, sphereScale:0.050 },
 ];
 
-// ── sprite helper ─────────────────────────────────────────────────────────────
+if (MODE === 'one') PCONF[0].label = 'Particle';
+
+const ACTIVE = MODE === 'one' ? [PCONF[0]] : PCONF;
+
+// ── overlay visibility flags ──────────────────────────────────────────────────
+let showLabels = true;
+let showVel    = true;
+let showForces = false;
+
+// ── generic text sprite ───────────────────────────────────────────────────────
 function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
@@ -322,10 +348,7 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   tex.colorSpace = THREE.SRGBColorSpace;
 
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({
-    map:tex,
-    transparent:true,
-    depthTest:false,
-    depthWrite:false
+    map:tex, transparent:true, depthTest:false, depthWrite:false
   }));
 
   sp.scale.set(height*(canvas.width/canvas.height), height, 1);
@@ -333,15 +356,106 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   return sp;
 }
 
+// ── B-field label: "B" with a hand-drawn vector arrow above it ───────────────
+// Uses Canvas 2D paths so the arrow is guaranteed to render on every platform,
+// unlike Unicode combining diacritics which vary by font/OS.
+// Colour matches the 0x37474f B-field ArrowHelpers in the scene.
+function makeBLabelSprite(height = SCENE_R * 0.38) {
+  const B_COLOR = '#37474f'; // identical to the B-field ArrowHelper colour
+
+  const canvas = document.createElement('canvas');
+  const ctx    = canvas.getContext('2d');
+
+  const fs      = 72;          // letter font size (px)
+  const px      = 26, py = 14; // horizontal / vertical padding
+  const arrowH  = 24;          // pixel height reserved for the arrow above B
+  const gap     = 8;           // gap between bottom of arrow zone and top of letter
+
+  // Arrowhead geometry (pixels at canvas resolution).
+  const headW = 22, headH = 18;
+
+  // Measure the "B" glyph width so we can size the canvas correctly.
+  ctx.font = `700 ${fs}px Segoe UI,Arial,sans-serif`;
+  const tw = ctx.measureText('B').width;
+
+  const cw = Math.ceil(tw + px * 2);
+  const ch = Math.ceil(fs * 1.2 + arrowH + gap + py * 2);
+
+  canvas.width  = cw;
+  canvas.height = ch;
+
+  // ── rounded-rect background ────────────────────────────────────────────────
+  ctx.fillStyle   = 'rgba(11,14,20,0.72)';
+  ctx.strokeStyle = 'rgba(207,216,220,0.18)';
+  ctx.lineWidth   = 3;
+
+  const br = 14;
+  const [bx, by, bw, bh] = [2, 2, cw - 4, ch - 4];
+
+  ctx.beginPath();
+  ctx.moveTo(bx+br, by);        ctx.lineTo(bx+bw-br, by);
+  ctx.quadraticCurveTo(bx+bw, by,    bx+bw, by+br);
+  ctx.lineTo(bx+bw, by+bh-br);
+  ctx.quadraticCurveTo(bx+bw, by+bh, bx+bw-br, by+bh);
+  ctx.lineTo(bx+br, by+bh);
+  ctx.quadraticCurveTo(bx, by+bh,    bx, by+bh-br);
+  ctx.lineTo(bx, by+br);
+  ctx.quadraticCurveTo(bx, by,       bx+br, by);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // ── vector arrow above the letter ─────────────────────────────────────────
+  const midX      = cw / 2;
+  const arrowY    = py + arrowH / 2;           // vertical centre of arrow zone
+  const shaftL    = midX - tw * 0.38;          // shaft start x
+  const shaftR    = midX + tw * 0.38;          // tip x (rightmost point)
+  const shaftEnd  = shaftR - headW * 0.6;      // shaft ends before the head
+
+  // Shaft
+  ctx.strokeStyle = B_COLOR;
+  ctx.lineWidth   = 6;
+  ctx.lineCap     = 'round';
+  ctx.beginPath();
+  ctx.moveTo(shaftL, arrowY);
+  ctx.lineTo(shaftEnd, arrowY);
+  ctx.stroke();
+
+  // Filled triangular arrowhead pointing right
+  ctx.fillStyle = B_COLOR;
+  ctx.beginPath();
+  ctx.moveTo(shaftR,           arrowY);
+  ctx.lineTo(shaftR - headW,   arrowY - headH / 2);
+  ctx.lineTo(shaftR - headW,   arrowY + headH / 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── "B" letter ─────────────────────────────────────────────────────────────
+  ctx.font         = `700 ${fs}px Segoe UI,Arial,sans-serif`;
+  ctx.fillStyle    = B_COLOR;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('B', midX, py + arrowH + gap);
+
+  // ── build sprite ───────────────────────────────────────────────────────────
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthTest: false, depthWrite: false
+  }));
+
+  sp.scale.set(height * (cw / ch), height, 1);
+  sp.renderOrder = 999;
+  return sp;
+}
+
 // ── scene globals ─────────────────────────────────────────────────────────────
 let renderer, scene, camera, controls, clock;
 let fieldGroup, guideGroup;
-let showForces = false;
 let parts = [];
 let firstRenderDone = false;
 
-// Synchronized animation cycle. Both particles share the same axial travel and the
-// same travel time, so they begin and finish together regardless of coil count.
 let cycleT = 0;
 let cyclePauseT = 0;
 
@@ -350,46 +464,51 @@ function resetCycle() {
   cyclePauseT = 0;
 }
 
+// ── charge-sign sprite over an orb ────────────────────────────────────────────
+function setChargeSprite(p, sign) {
+  if (p.chargeSprite && p.curSign === sign) return;
+
+  if (p.chargeSprite) {
+    scene.remove(p.chargeSprite);
+    if (p.chargeSprite.material.map) p.chargeSprite.material.map.dispose();
+    p.chargeSprite.material.dispose();
+  }
+
+  const hexC = '#'+p.conf.color.toString(16).padStart(6,'0');
+  const glyph = sign < 0 ? '\u2212' : (sign > 0 ? '+' : '0');
+
+  p.chargeSprite = makeTextSprite(glyph, hexC, SCENE_R*0.40);
+  scene.add(p.chargeSprite);
+  p.curSign = sign;
+}
+
 // ── build one particle object ─────────────────────────────────────────────────
 function makeParticle(conf) {
-  const p = { conf, cur:null, data:null, helixLine:null, tubeMesh:null };
-  const hexC = '#'+conf.color.toString(16).padStart(6,'0');
+  const p = { conf, cur:null, data:null, helixLine:null, tubeMesh:null,
+              chargeSprite:null, curSign:null };
 
   p.mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(SCENE_R*0.075, 24, 24),
+    new THREE.SphereGeometry(SCENE_R*conf.sphereScale, 24, 24),
     new THREE.MeshStandardMaterial({
-      color:conf.color,
-      emissive:conf.emissive,
-      roughness:0.35
+      color:conf.color, emissive:conf.emissive, roughness:0.35
     })
   );
   scene.add(p.mesh);
 
-  p.numLabel = makeTextSprite(conf.short, hexC, SCENE_R*0.34);
-  scene.add(p.numLabel);
+  setChargeSprite(p, conf.key === 'B' ? -1 : 1);
 
-  // velocity arrow + "V" label
   p.velArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1,0,0),
-    new THREE.Vector3(),
-    SCENE_R*0.85,
-    0xffd54f,
-    SCENE_R*0.22,
-    SCENE_R*0.1
+    new THREE.Vector3(1,0,0), new THREE.Vector3(),
+    SCENE_R*0.85, 0xffd54f, SCENE_R*0.22, SCENE_R*0.1
   );
   scene.add(p.velArrow);
 
   p.velLabel = makeTextSprite('V', '#ffd54f', SCENE_R*0.27);
   scene.add(p.velLabel);
 
-  // magnetic force arrow + "F_b" label
   p.forceArrow = new THREE.ArrowHelper(
-    new THREE.Vector3(1,0,0),
-    new THREE.Vector3(),
-    SCENE_R*0.6,
-    0xef5350,
-    SCENE_R*0.18,
-    SCENE_R*0.09
+    new THREE.Vector3(1,0,0), new THREE.Vector3(),
+    SCENE_R*0.6, 0xef5350, SCENE_R*0.18, SCENE_R*0.09
   );
   p.forceArrow.visible = false;
   scene.add(p.forceArrow);
@@ -422,19 +541,16 @@ function initViz(container) {
   controls.dampingFactor = 0.07;
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-
   const dl = new THREE.DirectionalLight(0xffffff, 0.85);
   dl.position.set(1,2,3);
   scene.add(dl);
 
   fieldGroup = new THREE.Group();
   guideGroup = new THREE.Group();
-
   scene.add(fieldGroup);
   scene.add(guideGroup);
 
-  parts = PCONF.map(makeParticle);
-
+  parts = ACTIVE.map(makeParticle);
   clock = new THREE.Clock();
 
   window.addEventListener('resize', () => {
@@ -448,7 +564,7 @@ function initViz(container) {
   animate();
 }
 
-// ── fixed-length field lines (independent of |B|) ────────────────────────────
+// ── field lines ───────────────────────────────────────────────────────────────
 function buildFieldLines() {
   fieldGroup.clear();
   guideGroup.clear();
@@ -458,9 +574,7 @@ function buildFieldLines() {
   const step = SCENE_R*0.9;
 
   const lm = new THREE.LineBasicMaterial({
-    color:0x1a2a35,
-    transparent:true,
-    opacity:0.9
+    color:0x1a2a35, transparent:true, opacity:0.9
   });
 
   for (let i=-N; i<=N; i++) {
@@ -473,7 +587,7 @@ function buildFieldLines() {
       fieldGroup.add(new THREE.Line(
         new THREE.BufferGeometry().setFromPoints([
           new THREE.Vector3(x,y,-zHalf),
-          new THREE.Vector3(x,y,zHalf)
+          new THREE.Vector3(x,y, zHalf)
         ]),
         lm
       ));
@@ -481,10 +595,7 @@ function buildFieldLines() {
       fieldGroup.add(new THREE.ArrowHelper(
         new THREE.Vector3(0,0,1),
         new THREE.Vector3(x,y,zHalf*0.5),
-        zHalf*0.28,
-        0x37474f,
-        zHalf*0.09,
-        SCENE_R*0.05
+        zHalf*0.28, 0x37474f, zHalf*0.09, SCENE_R*0.05
       ));
     }
   }
@@ -492,21 +603,18 @@ function buildFieldLines() {
   const dashed = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(0,0,-zHalf),
-      new THREE.Vector3(0,0,zHalf)
+      new THREE.Vector3(0,0, zHalf)
     ]),
-    new THREE.LineDashedMaterial({
-      color:0x546e7a,
-      dashSize:0.4,
-      gapSize:0.25
-    })
+    new THREE.LineDashedMaterial({ color:0x546e7a, dashSize:0.4, gapSize:0.25 })
   );
-
   dashed.computeLineDistances();
   guideGroup.add(dashed);
 
-  // Magnetic-field label.
-  const bLabel = makeTextSprite('B', '#90caf9', SCENE_R*0.32);
-  bLabel.position.set(SCENE_R*0.55, SCENE_R*0.55, zHalf*0.82);
+  // ── B-field label with canvas-drawn vector arrow ───────────────────────────
+  // Placed at the far edge of the field grid, well away from the particle paths
+  // (which run near x=0, y=0).  Colour matches the 0x37474f ArrowHelpers above.
+  const bLabel = makeBLabelSprite(SCENE_R * 0.38);
+  bLabel.position.set(SCENE_R * 2.4, SCENE_R * 0.4, zHalf * 0.85);
   guideGroup.add(bLabel);
 }
 
@@ -516,40 +624,34 @@ function frameCamera() {
   let any = false;
 
   for (const p of parts) {
-    if (p.helixLine) {
-      box.expandByObject(p.helixLine);
-      any = true;
-    }
+    if (p.helixLine) { box.expandByObject(p.helixLine); any = true; }
   }
 
   if (!any) return;
 
   const sphere = new THREE.Sphere();
   box.getBoundingSphere(sphere);
-
   controls.target.copy(sphere.center);
 
-  const fovRad = camera.fov * Math.PI/180;
+  const fovRad = camera.fov * Math.PI / 180;
   const dist   = sphere.radius / Math.sin(fovRad/2) * 1.3;
 
   camera.position.copy(
     sphere.center.clone().addScaledVector(
-      new THREE.Vector3(1.1,0.7,1.3).normalize(),
-      dist
+      new THREE.Vector3(1.1,0.7,1.3).normalize(), dist
     )
   );
 
   controls.update();
 }
 
-// ── dispose old geometry ──────────────────────────────────────────────────────
+// ── dispose old trajectory ────────────────────────────────────────────────────
 function disposeTraj(p) {
   if (p.helixLine) {
     scene.remove(p.helixLine);
     p.helixLine.geometry.dispose();
     p.helixLine = null;
   }
-
   if (p.tubeMesh) {
     scene.remove(p.tubeMesh);
     p.tubeMesh.geometry.dispose();
@@ -557,77 +659,65 @@ function disposeTraj(p) {
   }
 }
 
-// ── physical radius → visual radius (constant along the path) ─────────────────
+// ── Larmor radius → visual radius ────────────────────────────────────────────
 function displayRadiusFromLarmor(rL) {
-  if (rL === null || rL === undefined || !Number.isFinite(rL) || rL <= 0) {
-    return 0;
-  }
-
-  const r = SCENE_R * 1.35 * (2 / Math.PI) * Math.atan(rL / RADIUS_REF_M);
-
-  // Keep tiny charged-particle spirals visible.
-  return Math.max(r, SCENE_R*0.035);
+  if (rL === null || rL === undefined || !Number.isFinite(rL) || rL <= 0) return 0;
+  return SCENE_R * 1.35 * (2 / Math.PI) * Math.atan(rL / RADIUS_REF_M);
 }
 
-// ── constant-radius helix point ───────────────────────────────────────────────
-// Radius rS is constant along the whole trajectory. Both particles share z0/commonZ,
-// so they begin and end at the same axial (propagation) coordinate, but their radial
-// positions are independent.
+function computeDisplayRadii(datas) {
+  const raw = d => displayRadiusFromLarmor(d.r_L);
+
+  if (MODE === 'one') {
+    return datas.map(d => { const r = raw(d); return r > 0 ? Math.max(r, SCENE_R*0.05) : 0; });
+  }
+
+  const ion = datas[0], el = datas[1];
+  let ionR = raw(ion);
+  if (ionR > 0) ionR = Math.max(ionR, SCENE_R*0.06);
+
+  let elR = raw(el);
+  if (elR > 0) {
+    const upper = ionR > 0 ? ionR*0.75 : SCENE_R*0.2;
+    elR = clamp(elR, SCENE_R*0.03, upper);
+  }
+
+  return [ionR, elR];
+}
+
+// ── helix helpers ─────────────────────────────────────────────────────────────
 function helixPoint(rS, sign, turns, z0, commonZ, s) {
   s = clamp(s, 0, 1);
-
   const phase = sign * 2*Math.PI * turns * s;
-
-  return new THREE.Vector3(
-    rS * Math.cos(phase),
-    rS * Math.sin(phase),
-    z0 + commonZ * s
-  );
+  return new THREE.Vector3(rS*Math.cos(phase), rS*Math.sin(phase), z0+commonZ*s);
 }
 
-// ── shared axial span (depends only on pitch angle, not |B|) ──────────────────
-// Travels TRAVEL_MULT× the base distance. Lower pitch angle → longer axial travel;
-// at θ = 90° the motion is pure gyration (no axial advance).
 function commonAxialSpan() {
   const theta = +document.getElementById('theta-r').value;
-  const c = Math.cos(theta * Math.PI / 180);
-  return AXIAL_BASE * TRAVEL_MULT * c;
+  return AXIAL_BASE * TRAVEL_MULT * Math.cos(theta * Math.PI / 180);
 }
 
-// ── coil count from cyclotron frequency ───────────────────────────────────────
-// turns ∝ ω_c (compressed by a √ law + cap). Lighter / higher-frequency particles
-// get more coils; combined with the shared axial span this also gives them a
-// smaller coil-to-coil pitch, and heavier particles a larger pitch.
 function turnsFor(d) {
-  if (!d || d.omega_c === null || d.omega_c === undefined || !Number.isFinite(d.omega_c)) {
+  if (!d || d.omega_c === null || d.omega_c === undefined || !Number.isFinite(d.omega_c))
     return BASE_TURNS;
-  }
-  const t = BASE_TURNS * Math.sqrt(d.omega_c / OMEGA_REF);
-  return clamp(t, BASE_TURNS, MAX_TURNS);
+  return clamp(BASE_TURNS * Math.sqrt(d.omega_c / OMEGA_REF), BASE_TURNS, MAX_TURNS);
 }
 
-// ── build / rebuild one particle's trajectory ─────────────────────────────────
-function updateTrajectory(p, data, commonZ, turns) {
+// ── build trajectory ──────────────────────────────────────────────────────────
+function updateTrajectory(p, data, commonZ, turns, rDisplay) {
   const { r_L, sign } = data;
   const col = p.conf.color;
-
-  const z0 = -commonZ/2;
-  const z1 =  commonZ/2;
+  const z0 = -commonZ/2, z1 = commonZ/2;
 
   disposeTraj(p);
 
-  // ── straight-line case, q = 0 ─────────────────────────────────────────────
   if (r_L === null) {
     const start = new THREE.Vector3(0,0,z0);
     const end   = new THREE.Vector3(0,0,z1);
     const diff  = end.clone().sub(start);
     const len   = diff.length();
-
-    const dir = len > 1e-12
-      ? diff.clone().normalize()
-      : new THREE.Vector3(0,0,1);
-
-    const pts = Array.from({length:33}, (_,i) => start.clone().lerp(end,i/32));
+    const dir   = len > 1e-12 ? diff.clone().normalize() : new THREE.Vector3(0,0,1);
+    const pts   = Array.from({length:33}, (_,i) => start.clone().lerp(end,i/32));
 
     p.helixLine = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
@@ -635,37 +725,20 @@ function updateTrajectory(p, data, commonZ, turns) {
     );
     scene.add(p.helixLine);
 
-    const tubeEnd = len > 1e-12
-      ? end
-      : new THREE.Vector3(0,0,z0 + SCENE_R*0.01);
-
+    const tubeEnd = len > 1e-12 ? end : new THREE.Vector3(0,0,z0+SCENE_R*0.01);
     p.tubeMesh = new THREE.Mesh(
-      new THREE.TubeGeometry(new THREE.LineCurve3(start, tubeEnd), 2, SCENE_R*0.007, 8, false),
-      new THREE.MeshStandardMaterial({
-        color:col, transparent:true, opacity:0.58, roughness:0.45, metalness:0.15
-      })
+      new THREE.TubeGeometry(new THREE.LineCurve3(start,tubeEnd), 2, SCENE_R*0.007, 8, false),
+      new THREE.MeshStandardMaterial({ color:col, transparent:true, opacity:0.58, roughness:0.45, metalness:0.15 })
     );
     scene.add(p.tubeMesh);
-
     p.cur = { straight:true, start, end, dir, duration:TRAVEL_SEC };
     return;
   }
 
-  // ── constant-radius helix case ────────────────────────────────────────────
-  const rDisplay = displayRadiusFromLarmor(r_L);
-  const steps    = Math.max(8, Math.ceil(turns * SEG_PER_TURN));
-
-  const pts = [];
-
-  if (rDisplay === 0) {
-    pts.push(new THREE.Vector3(0,0,z0));
-    pts.push(new THREE.Vector3(0,0,z1));
-  } else {
-    for (let i=0; i<=steps; i++) {
-      const s = i / steps;
-      pts.push(helixPoint(rDisplay, sign, turns, z0, commonZ, s));
-    }
-  }
+  const steps = Math.max(8, Math.ceil(turns * SEG_PER_TURN));
+  const pts = rDisplay === 0
+    ? [new THREE.Vector3(0,0,z0), new THREE.Vector3(0,0,z1)]
+    : Array.from({length:steps+1}, (_,i) => helixPoint(rDisplay, sign, turns, z0, commonZ, i/steps));
 
   p.helixLine = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pts),
@@ -674,15 +747,10 @@ function updateTrajectory(p, data, commonZ, turns) {
   scene.add(p.helixLine);
 
   const tubeR = Math.max(rDisplay*0.018, SCENE_R*0.007);
-
-  let tubeCurve;
-  let tubeSeg;
+  let tubeCurve, tubeSeg;
 
   if (rDisplay === 0) {
-    const tubeEnd = Math.abs(commonZ) > 1e-12
-      ? new THREE.Vector3(0,0,z1)
-      : new THREE.Vector3(0,0,z0 + SCENE_R*0.01);
-
+    const tubeEnd = Math.abs(commonZ) > 1e-12 ? new THREE.Vector3(0,0,z1) : new THREE.Vector3(0,0,z0+SCENE_R*0.01);
     tubeCurve = new THREE.LineCurve3(new THREE.Vector3(0,0,z0), tubeEnd);
     tubeSeg = 2;
   } else {
@@ -692,36 +760,23 @@ function updateTrajectory(p, data, commonZ, turns) {
 
   p.tubeMesh = new THREE.Mesh(
     new THREE.TubeGeometry(tubeCurve, tubeSeg, tubeR, 8, false),
-    new THREE.MeshStandardMaterial({
-      color:col, transparent:true, opacity:0.58, roughness:0.45, metalness:0.15
-    })
+    new THREE.MeshStandardMaterial({ color:col, transparent:true, opacity:0.58, roughness:0.45, metalness:0.15 })
   );
   scene.add(p.tubeMesh);
-
   p.cur = { straight:false, rS:rDisplay, sign, turns, z0, commonZ, duration:TRAVEL_SEC };
 }
 
-// ── animation helpers ─────────────────────────────────────────────────────────
+// ── position / tangent at parameter s ────────────────────────────────────────
 function positionAt(cur, s) {
-  if (cur.straight) {
-    return cur.start.clone().lerp(cur.end, clamp(s,0,1));
-  }
+  if (cur.straight) return cur.start.clone().lerp(cur.end, clamp(s,0,1));
   return helixPoint(cur.rS, cur.sign, cur.turns, cur.z0, cur.commonZ, s);
 }
 
 function tangentAt(cur, s) {
   const eps = 0.001;
-  const s0 = clamp(s - eps, 0, 1);
-  const s1 = clamp(s + eps, 0, 1);
-
-  const p0 = positionAt(cur, s0);
-  const p1 = positionAt(cur, s1);
-
-  const d = p1.sub(p0);
+  const d = positionAt(cur, clamp(s+eps,0,1)).sub(positionAt(cur, clamp(s-eps,0,1)));
   const L = d.length();
-
-  if (L < 1e-12) return new THREE.Vector3(0,0,1);
-  return d.normalize();
+  return L < 1e-12 ? new THREE.Vector3(0,0,1) : d.normalize();
 }
 
 // ── animation loop ────────────────────────────────────────────────────────────
@@ -735,37 +790,36 @@ function animate() {
   for (const p of parts) {
     if (!p.cur) continue;
 
-    const duration = Math.max(p.cur.duration || 1, 1e-9);
-    const s = Math.min(cycleT / duration, 1.0);
+    const s   = Math.min(cycleT / Math.max(p.cur.duration||1, 1e-9), 1.0);
     const pos = positionAt(p.cur, s);
 
     p.mesh.position.copy(pos);
 
-    p.numLabel.position.copy(pos).add(off);
-    p.numLabel.visible = true;
+    // charge / name label
+    p.chargeSprite.position.copy(pos).add(off);
+    p.chargeSprite.visible = showLabels;
 
+    // velocity arrow + V label
     const velDir = p.cur.straight ? p.cur.dir : tangentAt(p.cur, s);
-
     p.velArrow.setDirection(velDir);
     p.velArrow.position.copy(pos);
+    p.velArrow.visible = showVel;
     p.velLabel.position.copy(pos).addScaledVector(velDir, SCENE_R*0.95);
-    p.velLabel.visible = true;
+    p.velLabel.visible = showVel;
 
+    // magnetic force arrow + F_b label
     if (p.cur.straight) {
       p.forceArrow.visible = false;
       p.forceLabel.visible = false;
     } else {
-      const radial = new THREE.Vector3(pos.x, pos.y, 0);
+      const radial    = new THREE.Vector3(pos.x, pos.y, 0);
       const radialLen = radial.length();
 
-      // Magnetic force direction is center-seeking.
       if (showForces && radialLen > SCENE_R*0.02) {
         const fd = radial.multiplyScalar(-1).normalize();
-
         p.forceArrow.setDirection(fd);
         p.forceArrow.position.copy(pos);
         p.forceArrow.visible = true;
-
         p.forceLabel.position.copy(pos).addScaledVector(fd, SCENE_R*0.72);
         p.forceLabel.visible = true;
       } else {
@@ -777,18 +831,14 @@ function animate() {
 
   renderer.render(scene, camera);
 
-  // Advance the synchronized cycle. Both particles share the same duration,
-  // so they reach the endpoint together; pause, then regenerate.
   const active = parts.filter(p => p.cur);
-
   if (active.length) {
-    const maxDuration = Math.max(...active.map(p => p.cur.duration || 0));
-
-    if (cycleT >= maxDuration) {
+    const maxDur = Math.max(...active.map(p => p.cur.duration||0));
+    if (cycleT >= maxDur) {
       cyclePauseT += dt;
       if (cyclePauseT >= END_PAUSE) resetCycle();
     } else {
-      cycleT = Math.min(cycleT + dt, maxDuration);
+      cycleT = Math.min(cycleT + dt, maxDur);
       cyclePauseT = 0;
     }
   }
@@ -798,33 +848,25 @@ function animate() {
 const $ = id => document.getElementById(id);
 
 function fmt(x) {
-  if (x===null || x===undefined || isNaN(x)) return '\u2014';
+  if (x===null||x===undefined||isNaN(x)) return '\u2014';
   if (x===0) return '0';
-
   const a = Math.abs(x);
-
-  if (a>=1e4 || a<1e-2) return x.toExponential(3);
-  return x.toPrecision(4);
+  return (a>=1e4||a<1e-2) ? x.toExponential(3) : x.toPrecision(4);
 }
 
 function fmtTesla(x) {
   if (!Number.isFinite(x)) return '\u2014 T';
-  if (x === 0) return '0 T';
-
+  if (x===0) return '0 T';
   const a = Math.abs(x);
-  const s = (a >= 1e3 || a < 1e-3) ? x.toExponential(3) : x.toPrecision(4);
-  return s + ' T';
+  return ((a>=1e3||a<1e-3) ? x.toExponential(3) : x.toPrecision(4)) + ' T';
 }
 
 function updateBReadout() {
-  const bG = +$('inp-BG').value;
-  const bT = bG * GAUSS_TO_TESLA;
-  $('b-tesla').textContent = fmtTesla(bT);
+  $('b-tesla').textContent = fmtTesla(+$('inp-BG').value * GAUSS_TO_TESLA);
 }
 
 function writeReadouts(key, d) {
-  const f = (x,u) => x===null || x===undefined ? '\u2014' : fmt(x)+' '+u;
-
+  const f = (x,u) => x===null||x===undefined ? '\u2014' : fmt(x)+' '+u;
   $(key+'-rL').textContent    = f(d.r_L,     'm');
   $(key+'-wc').textContent    = f(d.omega_c, 'rad/s');
   $(key+'-mu').textContent    = f(d.mu,      'J/T');
@@ -839,25 +881,21 @@ function showError(msg) {
   $('error-msg').style.display = 'block';
 }
 
-function clearError() {
-  $('error-msg').style.display = 'none';
-}
+function clearError() { $('error-msg').style.display = 'none'; }
 
 // ── preset fill ───────────────────────────────────────────────────────────────
 function applyPreset(key) {
   const pr = PRESETS[$(key+'-preset').value];
-
   if (!pr) return;
-
   $(key+'-mass').value = pr.m;
   $(key+'-qmag').value = Math.abs(pr.q);
   $(key+'-sign').value = pr.q < 0 ? '-' : '+';
+  if (MODE==='two' && key==='A') $('A-sign').value = '+';
 }
 
 // ── read inputs ───────────────────────────────────────────────────────────────
 function readParticle(key, B_T) {
-  const sign = $(key+'-sign').value === '-' ? -1 : 1;
-
+  const sign = $(key+'-sign').value==='-' ? -1 : 1;
   return {
     m_amu: +$(key+'-mass').value,
     q_e: sign * Math.abs(+$(key+'-qmag').value),
@@ -877,100 +915,89 @@ async function runUpdate() {
 
   for (const p of parts) {
     try {
-      const res = await fetch('/api/compute', {
+      const res  = await fetch('/api/compute', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify(readParticle(p.conf.key, B_T)),
       });
-
       const data = await res.json();
-
-      if (data.error) {
-        showError(p.conf.label + ': ' + data.error);
-        return;
-      }
-
+      if (data.error) { showError(p.conf.label+': '+data.error); return; }
       datas.push(data);
-
-    } catch(e) {
-      showError('Server error: ' + e.message);
-      return;
-    }
+    } catch(e) { showError('Server error: '+e.message); return; }
   }
 
   parts.forEach((p,i) => {
     p.data = datas[i];
     writeReadouts(p.conf.key, datas[i]);
+    setChargeSprite(p, datas[i].sign);
   });
 
   const sharedZ = commonAxialSpan();
+  const dispR   = computeDisplayRadii(datas);
   const isFirst = !firstRenderDone;
 
   resetCycle();
 
   parts.forEach((p,i) => {
-    updateTrajectory(p, datas[i], sharedZ, turnsFor(datas[i]));
+    updateTrajectory(p, datas[i], sharedZ, turnsFor(datas[i]), dispR[i]);
   });
 
   buildFieldLines();
-
   firstRenderDone = true;
-
   if (isFirst) frameCamera();
+}
+
+// ── mode setup ────────────────────────────────────────────────────────────────
+function setupMode() {
+  const single = MODE==='one';
+  const aLabel = single ? 'Particle' : 'Ion';
+  $('A-head').textContent = aLabel;
+  $('th-A').textContent   = aLabel;
+  $('leg-A').textContent  = aLabel;
+
+  if (single) {
+    $('block-B').style.display = 'none';
+    document.querySelectorAll('.col-B').forEach(el => el.style.display='none');
+    $('leg-elec-row').style.display = 'none';
+    $('A-sign').disabled = false;
+  } else {
+    $('A-sign').value = '+';
+    $('A-sign').disabled = true;
+    [...$('A-preset').options].forEach(o => { if (o.value==='electron') o.disabled=true; });
+    if ($('A-preset').value==='electron') $('A-preset').value='xenon';
+
+    $('B-preset').value = 'electron';
+    applyPreset('B');
+    ['B-preset','B-mass','B-qmag','B-sign'].forEach(id => { $(id).disabled=true; });
+  }
 }
 
 // ── event wiring ──────────────────────────────────────────────────────────────
 let _deb = null;
+const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate,150); };
 
-const debounced = () => {
-  clearTimeout(_deb);
-  _deb = setTimeout(runUpdate, 150);
-};
-
-['A','B'].forEach(k => {
-  $(k+'-preset').addEventListener('change', () => {
-    applyPreset(k);
-    debounced();
-  });
-
-  $(k+'-mass').addEventListener('input', () => {
-    $(k+'-preset').value = 'custom';
-    debounced();
-  });
-
-  $(k+'-qmag').addEventListener('input', () => {
-    $(k+'-preset').value = 'custom';
-    debounced();
-  });
-
-  $(k+'-sign').addEventListener('change', () => {
-    $(k+'-preset').value = 'custom';
-    debounced();
-  });
+ACTIVE.forEach(c => {
+  const k = c.key;
+  $(k+'-preset').addEventListener('change', () => { applyPreset(k); debounced(); });
+  $(k+'-mass').addEventListener('input',  () => { $(k+'-preset').value='custom'; debounced(); });
+  $(k+'-qmag').addEventListener('input',  () => { $(k+'-preset').value='custom'; debounced(); });
+  $(k+'-sign').addEventListener('change', () => { $(k+'-preset').value='custom'; debounced(); });
 });
 
-$('theta-r').addEventListener('input', () => {
-  $('theta-disp').textContent = $('theta-r').value;
-  debounced();
-});
-
+$('theta-r').addEventListener('input', () => { $('theta-disp').textContent=$('theta-r').value; debounced(); });
 $('inp-speed').addEventListener('input', debounced);
+$('inp-BG').addEventListener('input', () => { updateBReadout(); debounced(); });
 
-$('inp-BG').addEventListener('input', () => {
-  updateBReadout();
-  debounced();
-});
-
-$('chk-force').addEventListener('change', () => {
-  showForces = $('chk-force').checked;
-});
+$('chk-labels').addEventListener('change', () => { showLabels = $('chk-labels').checked; });
+$('chk-vel').addEventListener('change',    () => { showVel    = $('chk-vel').checked; });
+$('chk-force').addEventListener('change',  () => { showForces = $('chk-force').checked; });
 
 $('btn-run').addEventListener('click', runUpdate);
 
 // ── boot ──────────────────────────────────────────────────────────────────────
 initViz(document.getElementById('viewport'));
+setupMode();
 applyPreset('A');
-applyPreset('B');
 updateBReadout();
 runUpdate();
 </script>
@@ -1006,14 +1033,8 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             p = json.loads(raw)
-
-            r = compute(**{
-                k: float(p[k])
-                for k in ("m_amu","q_e","v","theta_deg","B")
-            })
-
+            r = compute(**{k: float(p[k]) for k in ("m_amu","q_e","v","theta_deg","B")})
             self._send(200, "application/json", json.dumps(r).encode())
-
         except (ValueError, KeyError, TypeError, ZeroDivisionError) as exc:
             self._send(400, "application/json", json.dumps({"error":str(exc)}).encode())
 
@@ -1022,11 +1043,8 @@ HOST, PORT = "127.0.0.1", 8000
 if __name__ == "__main__":
     srv = _Server((HOST, PORT), Handler)
     url = f"http://{HOST}:{PORT}"
-
     print(f"\n  Larmor Motion Applet → {url}\n  Ctrl-C to quit.\n")
-
     webbrowser.open(url)
-
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
