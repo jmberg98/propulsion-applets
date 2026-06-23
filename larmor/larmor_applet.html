@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Larmor Motion &amp; Cyclotron Orbits — Electric Propulsion</title>
+<title>Larmor Motion &amp; Cyclotron Orbits — Plasma Physics</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -233,7 +233,15 @@ details.clarify-detail > summary:focus-visible {
   text-transform: uppercase;
   color: #8a8b8c;
   margin-top: 10px;
-  margin-bottom: 0;
+  margin-bottom: 2px;
+}
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
 }
 .eq-caption {
   display: block;
@@ -285,6 +293,68 @@ details.deriv-detail > summary:focus-visible {
   padding: 10px 14px 14px;
   background: var(--bg-panel-1);
   border-top: 1px solid var(--border);
+}
+
+/* ── two-column derivation layout ───────────────────── */
+.deriv-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.deriv-col {
+  padding: 14px 20px;
+}
+.deriv-col + .deriv-col {
+  border-left: 1px solid var(--border);
+}
+.deriv-col-hdr {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── inline equation row ─────────────────────────────── */
+.eq-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 6px 0;
+}
+.eq-row-label {
+  font-size: 15px;
+  color: #545454;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+/* ── callout box ─────────────────────────────────────── */
+.eq-callout {
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
 }
 
 /* ── Applet host overrides ──────────────────────────── */
@@ -416,8 +486,8 @@ footer {
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Larmor Motion &amp; Cyclotron Orbits</h1>
-  <span class="badge">Electric Propulsion</span>
+  <h1>Larmor Motion</h1>
+  <span class="badge">Plasma Physics</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
@@ -534,145 +604,7 @@ footer {
   <div class="demo-placeholder"></div>
 </div>
 
-<!-- ════════════════════ LARMOR RADIUS ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Larmor Radius</div>
-
-  <p class="th-body">
-    The <span class="key hl-ve">Larmor radius</span> is the radius of a particle's circular orbit in a uniform
-    <span class="key hl-B">magnetic field</span>. The greater the <span class="key hl-mass">mass</span> of the
-    particle, the <span class="key">larger</span> the radius. Conversely, the greater the
-    <span class="key hl-q">charge</span> and <span class="key hl-B">magnetic field strength</span>, the
-    <span class="key">smaller</span> the radius.
-  </p>
-
-  <div class="eq-panel">
-    <span class="eq-step-label">Larmor Radius</span>
-    $$
-    \boxed{
-    \textcolor{#3DBFFF}{r_L}
-    =
-    \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
-    }
-    $$
-
-    <details class="deriv-detail">
-      <summary>Show derivation</summary>
-      <div class="deriv-inner">
-
-        <span class="eq-step-label">Magnetic Lorentz Force</span>
-        $$
-        \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}(\textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}})
-        $$
-
-        <span class="eq-step-label">For purely perpendicular motion ($\textcolor{#3DBFFF}{\vec{v}} \perp \textcolor{#00DDB5}{\vec{B}}$)</span>
-        $$
-        |\textcolor{#FF4400}{\vec{F}}| = |\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}
-        $$
-
-        <span class="eq-step-label">The magnetic force is the centripetal force</span>
-        $$
-        |\textcolor{#FF4400}{\vec{F}_{cp}}| = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}
-        $$
-
-        <span class="eq-step-label">Equate and solve for $r_L$</span>
-        $$
-        |\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}
-        =
-        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}
-        $$
-
-        $$
-        \boxed{
-        \textcolor{#3DBFFF}{r_L}
-        =
-        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
-        }
-        $$
-
-      </div>
-    </details>
-  </div>
-</div>
-
-<!-- ════════════════════ CYCLOTRON FREQUENCY ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Cyclotron Frequency</div>
-
-  <p class="th-body">
-    The <span class="key hl-ve">cyclotron frequency</span> is the angular frequency of a particle's circular
-    orbit in a uniform <span class="key hl-B">magnetic field</span>. The greater the
-    <span class="key hl-mass">mass</span> of the particle, the <span class="key">lesser</span> the frequency.
-    Conversely, the greater the <span class="key hl-q">charge</span> and
-    <span class="key hl-B">magnetic field strength</span>, the <span class="key">greater</span> the frequency.
-  </p>
-
-  <div class="eq-panel">
-    <span class="eq-step-label">Cyclotron Frequency</span>
-    $$
-    \boxed{
-    \textcolor{#3DBFFF}{\omega_c}
-    =
-    \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
-    }
-    $$
-
-    <details class="deriv-detail">
-      <summary>Show derivation</summary>
-      <div class="deriv-inner">
-
-        <span class="eq-step-label">Period of one circular revolution</span>
-        $$
-        \textcolor{#3DBFFF}{T_c}
-        =
-        \frac{2\pi\,\textcolor{#3DBFFF}{r_L}}{\textcolor{#3DBFFF}{v_\perp}}
-        $$
-
-        <span class="eq-step-label">Substitute the Larmor radius</span>
-        $$
-        \textcolor{#3DBFFF}{T_c}
-        =
-        \frac{2\pi}{\textcolor{#3DBFFF}{v_\perp}}
-        \cdot
-        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
-        =
-        \frac{2\pi\,\textcolor{#FF4400}{m}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
-        $$
-
-        <span class="eq-step-label">Note: period is independent of velocity</span>
-
-        <span class="eq-step-label">Angular frequency</span>
-        $$
-        \textcolor{#3DBFFF}{\omega_c}
-        =
-        \frac{2\pi}{\textcolor{#3DBFFF}{T_c}}
-        =
-        \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
-        $$
-
-        $$
-        \boxed{
-        \textcolor{#3DBFFF}{\omega_c}
-        =
-        \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
-        }
-        $$
-
-        <span class="eq-step-label">Linear frequency</span>
-        $$
-        f_c
-        =
-        \frac{\textcolor{#3DBFFF}{\omega_c}}{2\pi}
-        =
-        \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{2\pi\,\textcolor{#FF4400}{m}}
-        $$
-
-      </div>
-    </details>
-  </div>
-</div>
-
-<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
+<!-- ════════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Conceptual Questions</div>
 
@@ -726,6 +658,167 @@ footer {
       <span class="key">greater <span class="hl-ve">cyclotron frequency</span></span>.
     </div>
   </details>
+</div>
+
+<!-- ════════════════════ LARMOR RADIUS ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Larmor Radius</div>
+
+  <p class="th-body">
+    The <span class="key hl-ve">Larmor radius</span> is the radius of a particle's circular orbit in a uniform
+    <span class="key hl-B">magnetic field</span>. The greater the <span class="key hl-mass">mass</span> of the
+    particle, the <span class="key">larger</span> the radius. Conversely, the greater the
+    <span class="key hl-q">charge</span> and <span class="key hl-B">magnetic field strength</span>, the
+    <span class="key">smaller</span> the radius.
+  </p>
+
+  $$
+  \boxed{
+  \textcolor{#3DBFFF}{r_L}
+  =
+  \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+  }
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Setup — particle parameters</span>
+        <span class="eq-note">
+          Apply the <span class="hl-B">Lorentz force</span> to a particle of
+          <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>
+          traveling at total speed $|\textcolor{#3DBFFF}{v}|$ at pitch angle $\theta$ to
+          $\textcolor{#00DDB5}{\vec{B}}$, decomposed into perpendicular and parallel components:
+        </span>
+        $$
+        \textcolor{#3DBFFF}{v_\perp} = |\textcolor{#3DBFFF}{v}|\cos\theta
+        \qquad
+        \textcolor{#3DBFFF}{v_\parallel} = |\textcolor{#3DBFFF}{v}|\sin\theta
+        $$
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Lorentz Force &amp; Newton's Second Law</span>
+        $$
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        \qquad
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#FF4400}{m}\,\vec{a}
+        $$
+
+        <span class="eq-step-label">For $\textcolor{#3DBFFF}{\vec{E}} = 0$ with $\textcolor{#00DDB5}{\vec{B}} = B\hat{z}$</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+
+        <div class="eq-callout">
+          The <span class="hl-B">magnetic force</span> is always <strong>perpendicular</strong>
+          to the particle's velocity, so it provides centripetal accleration.
+        </div>
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Equate magnetic force to centripetal force</span>
+        $$
+        \underbrace{|\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}}_{\text{magnetic}}
+        \;=\;
+        \underbrace{\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}}_{\text{centripetal}}
+        $$
+
+        <span class="eq-step-label">Solve for $r_L$</span>
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{r_L}
+        =
+        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+        }
+        $$
+
+        <div class="eq-callout highlight-blue">
+          A heavier <span class="hl-mass">ion</span> gyrates with a
+          <strong>larger</strong> radius than a light <span class="hl-power">electron</span>
+          at the same speed. A stronger <span class="hl-B">field</span> or larger
+          <span class="hl-q">charge</span> tightens the orbit.
+        </div>
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ CYCLOTRON FREQUENCY ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Cyclotron Frequency</div>
+
+  <p class="th-body">
+    The <span class="key hl-ve">cyclotron frequency</span> is the angular frequency of a particle's circular
+    orbit in a uniform <span class="key hl-B">magnetic field</span>. The greater the
+    <span class="key hl-mass">mass</span> of the particle, the <span class="key">lesser</span> the frequency.
+    Conversely, the greater the <span class="key hl-q">charge</span> and
+    <span class="key hl-B">magnetic field strength</span>, the <span class="key">greater</span> the frequency.
+  </p>
+
+  $$
+  \boxed{
+  \textcolor{#3DBFFF}{\omega_c}
+  =
+  \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
+  }
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Starting point — centripetal balance (from Larmor radius)</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}
+        =
+        |\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}
+        $$
+
+        <span class="eq-step-label">Centripetal motion has angular velocity $\omega_c = v_\perp / r_L$</span>
+        $$
+        \textcolor{#3DBFFF}{v_\perp} = \textcolor{#3DBFFF}{\omega_c}\,\textcolor{#3DBFFF}{r_L}
+        $$
+
+        <span class="eq-step-label">Substitute into the centripetal balance</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{(\textcolor{#3DBFFF}{\omega_c}\,\textcolor{#3DBFFF}{r_L})^2}{\textcolor{#3DBFFF}{r_L}}
+        =
+        |\textcolor{#C060FF}{q}|\,(\textcolor{#3DBFFF}{\omega_c}\,\textcolor{#3DBFFF}{r_L})\,\textcolor{#00DDB5}{B}
+        $$
+
+        $$
+        \textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{\omega_c}\,\cancel{\textcolor{#3DBFFF}{r_L}}
+        =
+        |\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}\,\cancel{\textcolor{#3DBFFF}{r_L}}
+        $$
+
+        <span class="eq-step-label">Solve for $\omega_c$</span>
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{\omega_c}
+        =
+        \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
+        }
+        $$
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Linear frequency &amp; period</span>
+        $$
+        f_c = \frac{\textcolor{#3DBFFF}{\omega_c}}{2\pi} = \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{2\pi\,\textcolor{#FF4400}{m}}
+        \qquad
+        T_c = \frac{1}{f_c} = \frac{2\pi\,\textcolor{#FF4400}{m}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+        $$
+
+
+      </div>
+    </details>
+  </div>
 </div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
