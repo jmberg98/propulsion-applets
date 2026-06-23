@@ -370,10 +370,12 @@ details.deriv-detail > summary:focus-visible {
   margin: 0 18px 12px;
 }
 
-/* ── Demo placeholder ───────────────────────────────── */
-.demo-placeholder {
-  min-height: 500px;
-  background: var(--bg-canvas);
+/* ── Demo iframe ────────────────────────────────────── */
+.demo-frame {
+  display: block;
+  width: 100%;
+  height: 680px;
+  border: none;
   border-top: 1px solid var(--border);
 }
 
@@ -503,7 +505,7 @@ footer {
 <!-- ════════════════════ Q1 ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Conceptual Question</div>
-  <div class="quiz-block">
+  <div class="quiz-block" data-unlocks="demo1-frame">
     <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
     travels entirely <em>perpendicular</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
     <div class="quiz-options">
@@ -521,10 +523,15 @@ footer {
   </div>
 </div>
 
-<!-- ════════════════════ DEMO 1 ════════════════════ -->
+<!-- ════════════════════ DEMO 1 — circle ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo 1 &#x2014; Perpendicular Motion</div>
-  <div class="demo-placeholder"></div>
+  <iframe
+    id="demo1-frame"
+    class="demo-frame"
+    src="larmor_circle.html"
+    title="Demo 1 – Perpendicular (Circular) Larmor Motion"
+  ></iframe>
 </div>
 
 <!-- ════════════════════ CYCLOTRON MOTION ════════════════════ -->
@@ -543,7 +550,7 @@ footer {
 <div class="quiz-section">
   <div class="quiz-hdr">Conceptual Questions</div>
 
-  <div class="quiz-block">
+  <div class="quiz-block" data-unlocks="demo2-frame">
     <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
     travels entirely <em>parallel</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
     <div class="quiz-options">
@@ -560,7 +567,7 @@ footer {
     <div class="quiz-feedback"></div>
   </div>
 
-  <div class="quiz-block">
+  <div class="quiz-block" data-unlocks="demo2-frame">
     <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
     travels <em>neither entirely parallel nor entirely perpendicular</em> to a uniform
     <span class="hl-B">magnetic field</span>?</p>
@@ -579,10 +586,15 @@ footer {
   </div>
 </div>
 
-<!-- ════════════════════ DEMO 2 ════════════════════ -->
+<!-- ════════════════════ DEMO 2 — single ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo 2 &#x2014; Helical Motion</div>
-  <div class="demo-placeholder"></div>
+  <iframe
+    id="demo2-frame"
+    class="demo-frame"
+    src="larmor_single.html"
+    title="Demo 2 – Helical Larmor Motion"
+  ></iframe>
 </div>
 
 <!-- ════════════════════ ION VS ELECTRON ════════════════════ -->
@@ -598,10 +610,15 @@ footer {
   </p>
 </div>
 
-<!-- ════════════════════ DEMO 3 ════════════════════ -->
+<!-- ════════════════════ DEMO 3 — double (quiz disabled) ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo 3 &#x2014; Ion vs. Electron Comparison</div>
-  <div class="demo-placeholder"></div>
+  <iframe
+    id="demo3-frame"
+    class="demo-frame"
+    src="larmor_double.html"
+    title="Demo 3 – Ion vs. Electron Larmor Motion Comparison"
+  ></iframe>
 </div>
 
 <!-- ════════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════════ -->
@@ -815,7 +832,6 @@ footer {
         T_c = \frac{1}{f_c} = \frac{2\pi\,\textcolor{#FF4400}{m}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
         $$
 
-
       </div>
     </details>
   </div>
@@ -823,29 +839,66 @@ footer {
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
 
-<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<!-- ════════════════════ QUIZ + IFRAME-UNLOCK JAVASCRIPT ════════════════════ -->
 <script>
 "use strict";
+
+/**
+ * Calls markQuizComplete() inside the target iframe.
+ * Retries after short delays to handle iframes that are still loading
+ * when the quiz is answered.
+ */
+function unlockFrame(frameId) {
+  const attempts = [0, 300, 800, 2000];          // ms after click to try
+  let done = false;
+
+  const tryUnlock = () => {
+    if (done) return;
+    const frame = document.getElementById(frameId);
+    if (!frame) return;
+    try {
+      if (frame.contentWindow && typeof frame.contentWindow.markQuizComplete === 'function') {
+        frame.contentWindow.markQuizComplete();
+        done = true;
+      }
+    } catch(e) { /* cross-origin guard — shouldn't happen for same-folder files */ }
+  };
+
+  attempts.forEach(delay => setTimeout(tryUnlock, delay));
+
+  // Also fire on the iframe's own load event in case it hasn't finished yet
+  const frame = document.getElementById(frameId);
+  if (frame && !done) {
+    frame.addEventListener('load', tryUnlock, { once: true });
+  }
+}
+
+// Each .quiz-block carries a data-unlocks attribute naming the iframe to unlock.
 document.querySelectorAll('.quiz-block').forEach(block => {
-  const opts = block.querySelectorAll('.quiz-opt');
-  const fb   = block.querySelector('.quiz-feedback');
+  const opts       = block.querySelectorAll('.quiz-opt');
+  const fb         = block.querySelector('.quiz-feedback');
+  const targetFrame = block.dataset.unlocks;   // e.g. "demo1-frame"
 
   opts.forEach(opt => {
     opt.addEventListener('click', () => {
+      // Lock all options
       opts.forEach(o => { o.disabled = true; });
 
+      // Show result
       if (opt.dataset.correct === 'true') {
         opt.classList.add('correct');
         fb.textContent = 'Correct!';
         fb.style.color = '#51cf66';
       } else {
         opt.classList.add('wrong');
-        opts.forEach(o => {
-          if (o.dataset.correct === 'true') o.classList.add('correct');
-        });
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
         fb.textContent = 'Not quite \u2014 the correct answer is highlighted.';
         fb.style.color = '#ff8e8e';
       }
+
+      // Unlock the associated demo iframe (regardless of correct/incorrect —
+      // the correct answer is always revealed, so the gate has been engaged)
+      if (targetFrame) unlockFrame(targetFrame);
     });
   });
 });
