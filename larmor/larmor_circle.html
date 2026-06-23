@@ -1,1 +1,1433 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Larmor Motion Applet</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<script type="importmap">
+{"imports":{
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<style>
+:root {
+  --bg-page:    #090909;
+  --bg-panel-1: #0e0e0e;
+  --bg-panel-2: #121212;
+  --bg-panel-3: #171717;
+  --bg-panel-4: #1d1d1d;
+  --border:     #282828;
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+  --hi-blue:        #3DBFFF;
+  --hi-blue-soft:   #9FE6FF;
+  --c-accent:       #a0a0a0;
+  --c-particle:     #ff6e40;
+  --c-vel:          #ffd54f;
+  --c-force:        #ef5350;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  display: flex;
+  height: 100vh;
+  background: var(--bg-page);
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+#viewport {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-page);
+}
+#viewport canvas { display: block; }
+
+#panel {
+  width: 400px;
+  min-width: 400px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8,8,8,.97);
+  border-left: 1px solid #252525;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 24px;
+}
+
+.cf-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px 11px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.cf-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+
+.panel-inner {
+  padding: 14px 20px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-sect {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 10px;
+}
+
+.cf-panel-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 13px 0;
+}
+
+.pblock {
+  background: var(--bg-panel-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 13px;
+}
+.phead {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.cf-param { margin-bottom: 8px; }
+.cf-param:last-child { margin-bottom: 0; }
+
+.cf-param-row {
+  display: grid;
+  grid-template-columns: 22px 1fr 96px 34px;
+  align-items: center;
+  column-gap: 8px;
+  margin-bottom: 4px;
+}
+.cf-param-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.cf-sym  { text-align: center; font-size: 17px; color: var(--text-secondary); }
+.cf-desc { font-size: 16px; color: #727272; line-height: 1.3; }
+.cf-unit { font-size: 15px; color: #444; white-space: nowrap; }
+
+.cf-inp {
+  width: 100%;
+  padding: 5px 7px;
+  font-family: 'Courier New', monospace;
+  font-size: 19px;
+  text-align: right;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: border-color .15s, background .15s;
+  appearance: textfield;
+}
+.cf-inp::-webkit-outer-spin-button,
+.cf-inp::-webkit-inner-spin-button { -webkit-appearance: none; }
+.cf-inp:focus { outline: none; border-color: #484848; background: #202020; }
+
+select.cf-inp {
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  padding: 5px 8px;
+}
+
+.cf-inp-sm {
+  width: 100%;
+  padding: 5px 2px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  text-align: center;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: border-color .15s, background .15s;
+  cursor: pointer;
+}
+.cf-inp-sm:focus { outline: none; border-color: #484848; background: #202020; }
+
+input:disabled, select:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+.cf-row2 { display: flex; gap: 6px; align-items: center; }
+.cf-row2 .cf-inp { flex: 1; min-width: 0; }
+
+.cf-slider {
+  display: block;
+  width: 100%;
+  margin: 4px 0 2px;
+  accent-color: var(--hi-blue);
+  cursor: pointer;
+}
+
+.cf-out-hint {
+  font-size: 15px;
+  color: var(--hi-blue);
+  margin-top: 2px;
+  min-height: 16px;
+}
+
+.cf-out-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.cf-out-table th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #545454;
+  padding: 3px 5px 5px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+.cf-out-table th:first-child { text-align: left; }
+.cf-out-table td {
+  padding: 5px 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  text-align: right;
+  color: var(--hi-blue);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cf-out-table td:first-child {
+  text-align: left;
+  color: #545454;
+  font-family: 'Barlow', sans-serif;
+  font-size: 11.5px;
+  line-height: 1.35;
+  white-space: normal;
+  padding-right: 8px;
+}
+.cf-out-table tr + tr td { border-top: 1px solid #141d27; }
+
+.cf-chk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  transition: background .15s, border-color .15s;
+}
+.cf-chk:last-of-type { margin-bottom: 0; }
+.cf-chk:hover { background: var(--bg-panel-3); border-color: #333; }
+.cf-chk input {
+  accent-color: var(--hi-blue);
+  width: 14px; height: 14px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+#error-msg {
+  background: rgba(74,0,0,.85);
+  border: 1px solid #c62828;
+  border-radius: 4px;
+  color: #ef9a9a;
+  font-size: 14px;
+  padding: 7px 9px;
+  display: none;
+  margin-top: 6px;
+}
+
+.cf-legend {
+  background: var(--bg-panel-1);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 2.1;
+}
+.cf-legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #727272;
+}
+.sw {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.sw-rect { border-radius: 2px; border: 1px solid #3a7fa0; }
+</style>
+</head>
+<body>
+
+<div id="viewport"></div>
+
+<div id="panel">
+  <div class="cf-header">
+    <span class="cf-title">Larmor Motion</span>
+  </div>
+
+  <div class="panel-inner">
+
+    <div style="margin-top:14px; margin-bottom:10px;">
+      <div class="cf-sect" id="particles-sect">Particle</div>
+    </div>
+
+    <!-- ── Particle A ── -->
+    <div class="pblock" id="block-A">
+      <div class="phead">
+        <span class="dot" style="background:#ff6e40"></span>
+        <span id="A-head">Particle</span>
+      </div>
+
+      <div class="cf-param">
+        <div style="display:grid; grid-template-columns:52px 1fr; align-items:center; column-gap:8px; margin-bottom:4px;">
+          <span class="cf-desc" style="font-size:15px;">Preset</span>
+          <select id="A-preset" class="cf-inp">
+            <option value="custom">Custom</option>
+            <option value="xenon" selected>Xenon⁺ (131.29 amu)</option>
+            <option value="krypton">Krypton⁺ (83.80 amu)</option>
+            <option value="iodine">Iodine⁺ (126.90 amu)</option>
+            <option value="electron">Electron (e⁻)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym"><i>m</i></span>
+          <span class="cf-desc">Mass</span>
+          <input type="number" id="A-mass" class="cf-inp" value="131.293" min="0.0000001" step="0.001">
+          <span class="cf-unit">amu</span>
+        </div>
+      </div>
+
+      <div class="cf-param">
+        <div style="display:grid; grid-template-columns:22px 1fr 72px 30px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
+          <span class="cf-sym"><i>q</i></span>
+          <span class="cf-desc">Charge</span>
+          <input type="number" id="A-qmag" class="cf-inp" value="1" min="0" step="1">
+          <select id="A-sign" class="cf-inp-sm">
+            <option value="+">+</option>
+            <option value="-">−</option>
+          </select>
+          <span style="font-size:14px; color:#555; text-align:center; font-style:italic;">e</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Particle B (two-particle mode) ── -->
+    <div class="pblock" id="block-B">
+      <div class="phead">
+        <span class="dot" style="background:#4fc3f7"></span>
+        <span id="B-head">Electron</span>
+      </div>
+
+      <div class="cf-param">
+        <div style="display:grid; grid-template-columns:52px 1fr; align-items:center; column-gap:8px; margin-bottom:4px;">
+          <span class="cf-desc" style="font-size:15px;">Preset</span>
+          <select id="B-preset" class="cf-inp">
+            <option value="custom">Custom</option>
+            <option value="xenon">Xenon⁺ (131.29 amu)</option>
+            <option value="krypton">Krypton⁺ (83.80 amu)</option>
+            <option value="iodine">Iodine⁺ (126.90 amu)</option>
+            <option value="electron" selected>Electron (e⁻)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cf-param">
+        <div class="cf-param-row">
+          <span class="cf-sym"><i>m</i></span>
+          <span class="cf-desc">Mass</span>
+          <input type="number" id="B-mass" class="cf-inp" value="0.000548579909" min="0.0000001" step="0.001">
+          <span class="cf-unit">amu</span>
+        </div>
+      </div>
+
+      <div class="cf-param">
+        <div style="display:grid; grid-template-columns:22px 1fr 72px 30px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
+          <span class="cf-sym"><i>q</i></span>
+          <span class="cf-desc">Charge</span>
+          <input type="number" id="B-qmag" class="cf-inp" value="1" min="0" step="1">
+          <select id="B-sign" class="cf-inp-sm">
+            <option value="+">+</option>
+            <option value="-" selected>−</option>
+          </select>
+          <span style="font-size:14px; color:#555; text-align:center; font-style:italic;">e</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ── Field & Velocity ── -->
+    <div class="cf-sect">Field &amp; Velocity</div>
+
+    <div class="cf-param">
+      <div class="cf-param-row">
+        <span class="cf-sym">B</span>
+        <span class="cf-desc">Flux density</span>
+        <input type="number" id="inp-BG" class="cf-inp" value="300" min="0" step="1">
+        <span class="cf-unit">G</span>
+      </div>
+      <input type="range" id="sl-BG" class="cf-slider" min="0" max="3000" value="300" step="1">
+      <div class="cf-out-hint" style="padding-left:30px;">
+        ≡ <span id="b-tesla">0.03000 Te</span>
+      </div>
+    </div>
+
+    <div class="cf-param">
+      <div class="cf-param-row">
+        <span class="cf-sym"><i>v</i></span>
+        <span class="cf-desc">Speed</span>
+        <input type="number" id="inp-speed" class="cf-inp"
+               value="1000000" min="0" max="299792458" step="10000">
+        <span class="cf-unit">m/s</span>
+      </div>
+      <input type="range" id="sl-speed" class="cf-slider" min="0" max="299792458" value="1000000" step="1000000">
+      <div class="cf-out-hint" style="padding-left:30px;">
+        <span id="speed-frac"></span>
+      </div>
+    </div>
+
+    <!-- ── Pitch angle — typeable number input + slider ── -->
+    <div class="cf-param" id="theta-param">
+      <div style="display:grid; grid-template-columns:1fr 80px 28px; align-items:center; column-gap:8px; margin-bottom:4px;">
+        <span class="cf-desc">Pitch angle θ</span>
+        <input type="number" id="theta-num" class="cf-inp" value="45" min="0" max="90" step="1">
+        <span class="cf-unit">°</span>
+      </div>
+      <input type="range" id="theta-r" class="cf-slider" min="0" max="90" value="45" step="1">
+    </div>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ── Display ── -->
+    <div class="cf-sect">Display</div>
+
+    <label class="cf-chk" for="chk-labels">
+      <input type="checkbox" id="chk-labels" checked>
+      Show charge / name label
+    </label>
+
+    <!-- row-vel: hidden in circle mode -->
+    <label class="cf-chk" for="chk-vel" id="row-vel">
+      <input type="checkbox" id="chk-vel" checked>
+      Show velocity vector&nbsp;<b style="color:#ffd54f;">V</b>
+    </label>
+
+    <!-- row-vpar: hidden in circle mode -->
+    <label class="cf-chk" for="chk-vpar" id="row-vpar">
+      <input type="checkbox" id="chk-vpar">
+      Show parallel velocity&nbsp;<b style="color:#66bb6a;">V<sub>∥</sub></b>
+    </label>
+
+    <!-- row-vperp: always visible -->
+    <label class="cf-chk" for="chk-vperp" id="row-vperp">
+      <input type="checkbox" id="chk-vperp">
+      Show perp. velocity&nbsp;<b style="color:#ab47bc;">V<sub>⊥</sub></b>
+    </label>
+
+    <label class="cf-chk" for="chk-force">
+      <input type="checkbox" id="chk-force">
+      Show magnetic force&nbsp;<b style="color:#ef5350;">F<sub>b</sub></b>
+    </label>
+
+    <div id="error-msg"></div>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ── Outputs ── -->
+    <div class="cf-sect">Outputs</div>
+
+    <table class="cf-out-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th id="th-A" style="color:#ff6e40; width:108px;">Particle</th>
+          <th id="th-B" class="col-B" style="color:#4fc3f7; width:108px;">Electron</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Larmor Radius (<i>r</i><sub>L</sub>)</td>
+          <td id="A-rL">—</td>
+          <td id="B-rL" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Cyclotron Frequency (ω<sub>c</sub>)</td>
+          <td id="A-wc">—</td>
+          <td id="B-wc" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Magnetic Moment (μ)</td>
+          <td id="A-mu">—</td>
+          <td id="B-mu" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Parallel Velocity (<i>v</i><sub>∥</sub>)</td>
+          <td id="A-vpar">—</td>
+          <td id="B-vpar" class="col-B">—</td>
+        </tr>
+        <tr>
+          <td>Perpendicular Velocity (<i>v</i><sub>⊥</sub>)</td>
+          <td id="A-vperp">—</td>
+          <td id="B-vperp" class="col-B">—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ── Legend ── -->
+    <div class="cf-legend">
+      <div class="cf-legend-row">
+        <span class="sw" style="background:#ff6e40;"></span>
+        <b style="color:#ff6e40;" id="leg-A">Particle</b>
+      </div>
+      <div class="cf-legend-row" id="leg-elec-row">
+        <span class="sw" style="background:#4fc3f7;"></span>
+        <b style="color:#4fc3f7;">Electron</b>
+      </div>
+      <div class="cf-legend-row" id="leg-vel-row">
+        <span class="sw" style="background:#ffd54f;"></span>
+        <span><b style="color:#ffd54f;">V</b>&nbsp;velocity</span>
+      </div>
+      <div class="cf-legend-row" id="leg-vpar-row">
+        <span class="sw" style="background:#66bb6a;"></span>
+        <span><b style="color:#66bb6a;">V<sub>∥</sub></b>&nbsp;velocity ∥ B</span>
+      </div>
+      <div class="cf-legend-row">
+        <span class="sw" style="background:#ab47bc;"></span>
+        <span><b style="color:#ab47bc;">V<sub>⊥</sub></b>&nbsp;velocity ⊥ B</span>
+      </div>
+      <div class="cf-legend-row">
+        <span class="sw" style="background:#ef5350;"></span>
+        <span><b style="color:#ef5350;">F<sub>b</sub></b>&nbsp;magnetic force</span>
+      </div>
+      <div class="cf-legend-row">
+        <span class="sw sw-rect" style="background:#2a5a78;"></span>
+        <span>B&#x20;field (+z)</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════ THREE.JS ════════════════ -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ─────────────────────────────────────────────────────────────
+   DEVELOPER MODE SWITCH
+   'two'    → Ion (locked +) + Electron (locked −)
+   'one'    → Single particle, free charge
+   'circle' → Single particle, pitch locked 90°, circle with
+              direction arrows, only V⊥ toggleable
+   ───────────────────────────────────────────────────────────── */
+const MODE = 'circle';
+
+/* ── physics constants ── */
+const AMU   = 1.66053906660e-27;
+const E_C   = 1.602176634e-19;
+const C_MAX = 299792458;
+
+function compute(m_amu, q_e, v, theta_deg, B) {
+  for (const [name, val] of [
+    ['m_amu', m_amu], ['q_e', q_e], ['v', v], ['theta_deg', theta_deg], ['B', B]
+  ]) {
+    if (!Number.isFinite(val)) throw new Error(`'${name}' must be a finite number.`);
+  }
+  if (B  <= 0) throw new Error('|B| must be positive.');
+  if (v === 0) throw new Error('|v| cannot be zero.');
+  if (m_amu <= 0) throw new Error('Mass must be positive.');
+
+  const m      = m_amu * AMU;
+  const q      = q_e   * E_C;
+  const th     = theta_deg * Math.PI / 180;
+  const v_par  = v * Math.cos(th);
+  const v_perp = v * Math.sin(th);
+  const absq   = Math.abs(q);
+
+  if (absq === 0)
+    return { v_par, v_perp, r_L: null, omega_c: null, mu: null, T_c: null, pitch: null, sign: 0 };
+
+  const omega_c = absq * B / m;
+  if (omega_c === 0)
+    return { v_par, v_perp, r_L: null, omega_c: null, mu: null, T_c: null, pitch: null, sign: 0 };
+
+  const r_L   = v_perp ? m * v_perp / (absq * B) : 0.0;
+  const mu    = m * v_perp * v_perp / (2.0 * B);
+  const T_c   = 2.0 * Math.PI / omega_c;
+  const pitch = v_par * T_c;
+  return { v_par, v_perp, r_L, omega_c, mu, T_c, pitch, sign: q > 0 ? 1 : -1 };
+}
+
+/* ── scene constants ── */
+const SCENE_R        = 5.0;
+const SEG_PER_TURN   = 48;
+const TRAVEL_SEC     = 7.0;
+const END_PAUSE      = 0.6;
+const GAUSS_TO_TESLA = 1e-4;
+const RADIUS_REF_M   = 1.0;
+const TRAVEL_MULT    = 3;
+const AXIAL_BASE     = SCENE_R * 1.7;
+const BASE_TURNS     = 3;
+const MAX_TURNS      = 30;
+const OMEGA_REF      = 7.0e5;
+const FIELD_HALF     = SCENE_R * 2.8;
+const N_CIRCLE_ARROWS = 8;
+
+const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+
+const PRESETS = {
+  custom:   null,
+  xenon:    { m: 131.293,         q: +1 },
+  krypton:  { m: 83.798,          q: +1 },
+  iodine:   { m: 126.90447,       q: +1 },
+  electron: { m: 5.48579909e-4,   q: -1 },
+};
+
+const PCONF = [
+  { key: 'A',
+    label: (MODE === 'one' || MODE === 'circle') ? 'Particle' : 'Ion',
+    color: 0xff6e40, emissive: 0x3a1505, sphereScale: 0.090 },
+  { key: 'B', label: 'Electron',
+    color: 0x4fc3f7, emissive: 0x082030, sphereScale: 0.050 },
+];
+
+const ACTIVE = (MODE === 'one' || MODE === 'circle') ? [PCONF[0]] : PCONF;
+
+/* ── display flags ── */
+let showLabels = true;
+let showVel    = true;   // forced false in circle mode by setupMode
+let showVPar   = false;
+let showVPerp  = false;
+let showForces = false;
+
+/* ── text sprite ── */
+function makeTextSprite(text, color, height = SCENE_R * 0.28) {
+  const canvas = document.createElement('canvas');
+  const ctx    = canvas.getContext('2d');
+  const fs = 72, px = 24, py = 16;
+  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
+  const tw = ctx.measureText(text).width;
+  canvas.width  = Math.ceil(tw + px * 2);
+  canvas.height = Math.ceil(fs * 1.25 + py * 2);
+  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
+  ctx.fillStyle   = 'rgba(9,9,9,0.78)';
+  ctx.strokeStyle = 'rgba(207,216,220,0.22)';
+  ctx.lineWidth = 4;
+  const r = 18, [x, y, w, h] = [2, 2, canvas.width - 4, canvas.height - 4];
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);    ctx.lineTo(x+w-r, y);
+  ctx.quadraticCurveTo(x+w, y,   x+w, y+r);    ctx.lineTo(x+w, y+h-r);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);  ctx.lineTo(x+r, y+h);
+  ctx.quadraticCurveTo(x, y+h,   x, y+h-r);    ctx.lineTo(x, y+r);
+  ctx.quadraticCurveTo(x, y,     x+r, y);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle    = color;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthTest: false, depthWrite: false
+  }));
+  sp.scale.set(height * (canvas.width / canvas.height), height, 1);
+  sp.renderOrder = 999;
+  return sp;
+}
+
+/* ── B label with vector arrow ── */
+function makeBLabelSprite(height = SCENE_R * 0.38) {
+  const B_COLOR = '#4a9fc0';   // vivid blue to match field lines
+  const canvas  = document.createElement('canvas');
+  const ctx     = canvas.getContext('2d');
+  const fs = 72, px = 26, py = 14;
+  const arrowH = 24, gap = 8, headW = 22, headH = 18;
+  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
+  const tw = ctx.measureText('B').width;
+  const cw = Math.ceil(tw + px * 2);
+  const ch = Math.ceil(fs * 1.2 + arrowH + gap + py * 2);
+  canvas.width = cw; canvas.height = ch;
+  ctx.fillStyle   = 'rgba(9,9,9,0.78)';
+  ctx.strokeStyle = 'rgba(207,216,220,0.15)';
+  ctx.lineWidth = 3;
+  const br = 14, [bx, by, bw, bh] = [2, 2, cw - 4, ch - 4];
+  ctx.beginPath();
+  ctx.moveTo(bx+br, by);    ctx.lineTo(bx+bw-br, by);
+  ctx.quadraticCurveTo(bx+bw, by,    bx+bw, by+br);
+  ctx.lineTo(bx+bw, by+bh-br);
+  ctx.quadraticCurveTo(bx+bw, by+bh, bx+bw-br, by+bh);
+  ctx.lineTo(bx+br, by+bh);
+  ctx.quadraticCurveTo(bx, by+bh,    bx, by+bh-br);
+  ctx.lineTo(bx, by+br);
+  ctx.quadraticCurveTo(bx, by,       bx+br, by);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  const midX     = cw / 2;
+  const arrowY   = py + arrowH / 2;
+  const shaftL   = midX - tw * 0.38;
+  const shaftR   = midX + tw * 0.38;
+  const shaftEnd = shaftR - headW * 0.6;
+  ctx.strokeStyle = B_COLOR; ctx.lineWidth = 6; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(shaftL, arrowY); ctx.lineTo(shaftEnd, arrowY); ctx.stroke();
+  ctx.fillStyle = B_COLOR;
+  ctx.beginPath();
+  ctx.moveTo(shaftR,         arrowY);
+  ctx.lineTo(shaftR - headW, arrowY - headH / 2);
+  ctx.lineTo(shaftR - headW, arrowY + headH / 2);
+  ctx.closePath(); ctx.fill();
+  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
+  ctx.fillStyle = B_COLOR; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.fillText('B', midX, py + arrowH + gap);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: tex, transparent: true, depthTest: false, depthWrite: false
+  }));
+  sp.scale.set(height * (cw / ch), height, 1);
+  sp.renderOrder = 999;
+  return sp;
+}
+
+/* ── scene globals ── */
+let renderer, scene, camera, controls, clock;
+let fieldGroup, guideGroup;
+let parts = [];
+let firstRenderDone = false;
+let cycleT = 0, cyclePauseT = 0;
+
+function resetCycle() { cycleT = 0; cyclePauseT = 0; }
+
+function setChargeSprite(p, sign) {
+  if (p.chargeSprite && p.curSign === sign) return;
+  if (p.chargeSprite) {
+    scene.remove(p.chargeSprite);
+    if (p.chargeSprite.material.map) p.chargeSprite.material.map.dispose();
+    p.chargeSprite.material.dispose();
+  }
+  const hexC  = '#' + p.conf.color.toString(16).padStart(6, '0');
+  const glyph = sign < 0 ? '\u2212' : (sign > 0 ? '+' : '0');
+  p.chargeSprite = makeTextSprite(glyph, hexC, SCENE_R * 0.40);
+  scene.add(p.chargeSprite);
+  p.curSign = sign;
+}
+
+function makeParticle(conf) {
+  const p = { conf, cur: null, data: null, helixLine: null, tubeMesh: null,
+              chargeSprite: null, curSign: null, circleArrows: [] };
+
+  p.mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(SCENE_R * conf.sphereScale, 24, 24),
+    new THREE.MeshStandardMaterial({ color: conf.color, emissive: conf.emissive, roughness: 0.35 })
+  );
+  scene.add(p.mesh);
+  setChargeSprite(p, conf.key === 'B' ? -1 : 1);
+
+  p.velArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
+    SCENE_R * 0.85, 0xffd54f, SCENE_R * 0.22, SCENE_R * 0.1
+  );
+  scene.add(p.velArrow);
+  p.velLabel = makeTextSprite('V', '#ffd54f', SCENE_R * 0.27);
+  scene.add(p.velLabel);
+
+  p.forceArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
+    SCENE_R * 0.6, 0xef5350, SCENE_R * 0.18, SCENE_R * 0.09
+  );
+  p.forceArrow.visible = false;
+  scene.add(p.forceArrow);
+  p.forceLabel = makeTextSprite('F_b', '#ef5350', SCENE_R * 0.27);
+  p.forceLabel.visible = false;
+  scene.add(p.forceLabel);
+
+  p.vParArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(0, 0, 1), new THREE.Vector3(),
+    SCENE_R * 0.85, 0x66bb6a, SCENE_R * 0.18, SCENE_R * 0.09
+  );
+  p.vParArrow.visible = false;
+  scene.add(p.vParArrow);
+  p.vParLabel = makeTextSprite('V\u2225', '#66bb6a', SCENE_R * 0.26);
+  p.vParLabel.visible = false;
+  scene.add(p.vParLabel);
+
+  p.vPerpArrow = new THREE.ArrowHelper(
+    new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
+    SCENE_R * 0.85, 0xab47bc, SCENE_R * 0.18, SCENE_R * 0.09
+  );
+  p.vPerpArrow.visible = false;
+  scene.add(p.vPerpArrow);
+  p.vPerpLabel = makeTextSprite('V\u22A5', '#ab47bc', SCENE_R * 0.26);
+  p.vPerpLabel.visible = false;
+  scene.add(p.vPerpLabel);
+
+  return p;
+}
+
+function initViz(container) {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x090909);
+  const w = container.clientWidth, h = container.clientHeight;
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(w, h);
+  container.appendChild(renderer.domElement);
+  camera = new THREE.PerspectiveCamera(50, w / h, 0.01, 5000);
+  camera.position.set(SCENE_R * 2.4, SCENE_R * 1.7, SCENE_R * 2.8);
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.85);
+  dl.position.set(1, 2, 3);
+  scene.add(dl);
+  fieldGroup = new THREE.Group();
+  guideGroup = new THREE.Group();
+  scene.add(fieldGroup);
+  scene.add(guideGroup);
+  parts = ACTIVE.map(makeParticle);
+  clock = new THREE.Clock();
+  window.addEventListener('resize', () => {
+    const w2 = container.clientWidth, h2 = container.clientHeight;
+    camera.aspect = w2 / h2;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w2, h2);
+  });
+  animate();
+}
+
+/* ── field lines — more vibrant blue palette ── */
+function buildFieldLines() {
+  fieldGroup.clear();
+  guideGroup.clear();
+  const zHalf = FIELD_HALF, N = 3, step = SCENE_R * 0.9;
+  /* brighter blue-teal for field lines */
+  const lm = new THREE.LineBasicMaterial({ color: 0x1a5272, transparent: true, opacity: 0.92 });
+  for (let i = -N; i <= N; i++) {
+    for (let j = -N; j <= N; j++) {
+      if (Math.abs(i) + Math.abs(j) > N + 1) continue;
+      const x = i * step, y = j * step;
+      fieldGroup.add(new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(x, y, -zHalf), new THREE.Vector3(x, y, zHalf)
+        ]), lm
+      ));
+      /* vivid arrow tips */
+      fieldGroup.add(new THREE.ArrowHelper(
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(x, y, zHalf * 0.5),
+        zHalf * 0.28, 0x3a9bd5, zHalf * 0.09, SCENE_R * 0.05
+      ));
+    }
+  }
+  const dashed = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(0, 0, -zHalf), new THREE.Vector3(0, 0, zHalf)
+    ]),
+    new THREE.LineDashedMaterial({ color: 0x5aafcc, dashSize: 0.4, gapSize: 0.25 })
+  );
+  dashed.computeLineDistances();
+  guideGroup.add(dashed);
+  const bLabel = makeBLabelSprite(SCENE_R * 0.38);
+  bLabel.position.set(SCENE_R * 2.4, SCENE_R * 0.4, zHalf * 0.85);
+  guideGroup.add(bLabel);
+}
+
+function frameCamera() {
+  const box = new THREE.Box3();
+  let any = false;
+  for (const p of parts) {
+    if (p.helixLine) { box.expandByObject(p.helixLine); any = true; }
+  }
+  if (!any) return;
+  const sphere = new THREE.Sphere();
+  box.getBoundingSphere(sphere);
+  controls.target.copy(sphere.center);
+  const fovRad = camera.fov * Math.PI / 180;
+  const dist   = sphere.radius / Math.sin(fovRad / 2) * 1.3;
+  camera.position.copy(
+    sphere.center.clone().addScaledVector(new THREE.Vector3(1.1, 0.7, 1.3).normalize(), dist)
+  );
+  controls.update();
+}
+
+/* ── dispose trajectory + circle arrows ── */
+function disposeTraj(p) {
+  if (p.helixLine) { scene.remove(p.helixLine); p.helixLine.geometry.dispose(); p.helixLine = null; }
+  if (p.tubeMesh)  { scene.remove(p.tubeMesh);  p.tubeMesh.geometry.dispose();  p.tubeMesh  = null; }
+  if (p.circleArrows && p.circleArrows.length) {
+    for (const a of p.circleArrows) scene.remove(a);
+    p.circleArrows = [];
+  }
+}
+
+function clearAll() {
+  if (!parts || !parts.length) return;
+  for (const p of parts) { disposeTraj(p); p.cur = null; }
+}
+
+function displayRadiusFromLarmor(rL) {
+  if (rL === null || rL === undefined || !Number.isFinite(rL) || rL <= 0) return 0;
+  return SCENE_R * 1.35 * (2 / Math.PI) * Math.atan(rL / RADIUS_REF_M);
+}
+
+function computeDisplayRadii(datas) {
+  if (MODE === 'one' || MODE === 'circle') {
+    return datas.map(d => {
+      const r = displayRadiusFromLarmor(d.r_L);
+      return r > 0 ? Math.max(r, SCENE_R * 0.05) : 0;
+    });
+  }
+  let ionR = displayRadiusFromLarmor(datas[0].r_L);
+  let elR  = displayRadiusFromLarmor(datas[1].r_L);
+  if (ionR > 0) ionR = Math.max(ionR, SCENE_R * 0.06);
+  if (elR > 0) {
+    const upper = ionR > 0 ? ionR * 0.75 : SCENE_R * 0.2;
+    elR = clamp(elR, SCENE_R * 0.03, upper);
+  }
+  return [ionR, elR];
+}
+
+function helixPoint(rS, sign, turns, z0, commonZ, s) {
+  s = clamp(s, 0, 1);
+  const phase = sign * 2 * Math.PI * turns * s;
+  return new THREE.Vector3(rS * Math.cos(phase), rS * Math.sin(phase), z0 + commonZ * s);
+}
+
+function commonAxialSpan() {
+  const theta = +document.getElementById('theta-r').value;
+  return AXIAL_BASE * TRAVEL_MULT * Math.cos(theta * Math.PI / 180);
+}
+
+function turnsFor(d) {
+  if (MODE === 'circle') return 1;  // exactly one orbit for circle mode
+  if (!d || d.omega_c === null || !Number.isFinite(d.omega_c)) return BASE_TURNS;
+  return clamp(BASE_TURNS * Math.sqrt(d.omega_c / OMEGA_REF), BASE_TURNS, MAX_TURNS);
+}
+
+/* ── build direction arrows on circle trajectory ── */
+function buildCircleArrows(p, rDisplay, sign, z0, turns) {
+  // circleArrows already cleared by disposeTraj at start of updateTrajectory
+  if (rDisplay <= 0) return;
+  const arrowLen  = Math.max(rDisplay * 0.18, SCENE_R * 0.11);
+  const headLen   = arrowLen * 0.48;
+  const headWidth = arrowLen * 0.28;
+  for (let i = 0; i < N_CIRCLE_ARROWS; i++) {
+    const s     = (i + 0.5) / N_CIRCLE_ARROWS;
+    const phase = sign * 2 * Math.PI * turns * s;
+    const pos   = new THREE.Vector3(
+      rDisplay * Math.cos(phase),
+      rDisplay * Math.sin(phase),
+      z0
+    );
+    /* tangent = d/dphase (cos,sin) * sign of rotation */
+    const tx = -sign * Math.sin(phase);
+    const ty =  sign * Math.cos(phase);
+    const tangent = new THREE.Vector3(tx, ty, 0).normalize();
+    const arrow = new THREE.ArrowHelper(
+      tangent, pos, arrowLen,
+      p.conf.color, headLen, headWidth
+    );
+    scene.add(arrow);
+    p.circleArrows.push(arrow);
+  }
+}
+
+function updateTrajectory(p, data, commonZ, turns, rDisplay) {
+  const { r_L, sign } = data;
+  const col = p.conf.color;
+  const z0  = -commonZ / 2, z1 = commonZ / 2;
+  disposeTraj(p);  // clears helixLine, tubeMesh, circleArrows
+
+  /* ── straight-line (q=0 or omega_c=0) ── */
+  if (r_L === null) {
+    const start = new THREE.Vector3(0, 0, z0);
+    const end   = new THREE.Vector3(0, 0, z1);
+    const diff  = end.clone().sub(start), len = diff.length();
+    const dir   = len > 1e-12 ? diff.clone().normalize() : new THREE.Vector3(0, 0, 1);
+    const pts   = Array.from({length: 33}, (_, i) => start.clone().lerp(end, i / 32));
+    p.helixLine = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(pts),
+      new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.30 })
+    );
+    scene.add(p.helixLine);
+    const tubeEnd = len > 1e-12 ? end : new THREE.Vector3(0, 0, z0 + SCENE_R * 0.01);
+    p.tubeMesh = new THREE.Mesh(
+      new THREE.TubeGeometry(new THREE.LineCurve3(start, tubeEnd), 2, SCENE_R * 0.007, 8, false),
+      new THREE.MeshStandardMaterial({
+        color: col, transparent: true, opacity: 0.75,
+        roughness: 0.30, metalness: 0.20
+      })
+    );
+    scene.add(p.tubeMesh);
+    p.cur = { straight: true, start, end, dir, duration: TRAVEL_SEC };
+    return;
+  }
+
+  /* ── helix / circle ── */
+  const steps = Math.max(8, Math.ceil(turns * SEG_PER_TURN));
+  const pts   = rDisplay === 0
+    ? [new THREE.Vector3(0, 0, z0), new THREE.Vector3(0, 0, z1)]
+    : Array.from({length: steps + 1}, (_, i) =>
+        helixPoint(rDisplay, sign, turns, z0, commonZ, i / steps));
+
+  p.helixLine = new THREE.Line(
+    new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.30 })
+  );
+  scene.add(p.helixLine);
+
+  const tubeR = Math.max(rDisplay * 0.018, SCENE_R * 0.007);
+  let tubeCurve, tubeSeg;
+  if (rDisplay === 0) {
+    const tubeEnd = Math.abs(commonZ) > 1e-12
+      ? new THREE.Vector3(0, 0, z1)
+      : new THREE.Vector3(0, 0, z0 + SCENE_R * 0.01);
+    tubeCurve = new THREE.LineCurve3(new THREE.Vector3(0, 0, z0), tubeEnd);
+    tubeSeg   = 2;
+  } else {
+    tubeCurve = new THREE.CatmullRomCurve3(pts, false);
+    tubeSeg   = steps;
+  }
+  p.tubeMesh = new THREE.Mesh(
+    new THREE.TubeGeometry(tubeCurve, tubeSeg, tubeR, 8, false),
+    new THREE.MeshStandardMaterial({
+      color: col, transparent: true, opacity: 0.75,
+      roughness: 0.30, metalness: 0.20
+    })
+  );
+  scene.add(p.tubeMesh);
+  p.cur = { straight: false, rS: rDisplay, sign, turns, z0, commonZ, duration: TRAVEL_SEC };
+
+  /* ── circle mode: add directional travel arrows ── */
+  if (MODE === 'circle' && rDisplay > 0) {
+    buildCircleArrows(p, rDisplay, sign, z0, turns);
+  }
+}
+
+function positionAt(cur, s) {
+  if (cur.straight) return cur.start.clone().lerp(cur.end, clamp(s, 0, 1));
+  return helixPoint(cur.rS, cur.sign, cur.turns, cur.z0, cur.commonZ, s);
+}
+
+function tangentAt(cur, s) {
+  const eps = 0.001;
+  const d = positionAt(cur, clamp(s + eps, 0, 1)).sub(positionAt(cur, clamp(s - eps, 0, 1)));
+  const L = d.length();
+  return L < 1e-12 ? new THREE.Vector3(0, 0, 1) : d.normalize();
+}
+
+function updateComponentArrow(arrow, label, pos, dir, len, baseHead, baseWidth) {
+  if (len < SCENE_R * 0.04) { arrow.visible = false; label.visible = false; return; }
+  arrow.setDirection(dir);
+  arrow.setLength(len, Math.min(baseHead, len * 0.50), Math.min(baseWidth, len * 0.45));
+  arrow.position.copy(pos);
+  arrow.visible = true;
+  label.position.copy(pos).addScaledVector(dir, len + SCENE_R * 0.12);
+  label.visible = true;
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  const dt  = Math.min(clock.getDelta(), 0.05);
+  const off = new THREE.Vector3(SCENE_R * 0.16, SCENE_R * 0.16, SCENE_R * 0.16);
+
+  for (const p of parts) {
+    if (!p.cur) {
+      p.mesh.visible         = false;
+      p.chargeSprite.visible = false;
+      p.velArrow.visible     = false;
+      p.velLabel.visible     = false;
+      p.forceArrow.visible   = false;
+      p.forceLabel.visible   = false;
+      p.vParArrow.visible    = false;
+      p.vParLabel.visible    = false;
+      p.vPerpArrow.visible   = false;
+      p.vPerpLabel.visible   = false;
+      continue;
+    }
+
+    p.mesh.visible = true;
+
+    const s   = Math.min(cycleT / Math.max(p.cur.duration || 1, 1e-9), 1.0);
+    const pos = positionAt(p.cur, s);
+
+    p.mesh.position.copy(pos);
+    p.chargeSprite.position.copy(pos).add(off);
+    p.chargeSprite.visible = showLabels;
+
+    const velDir = p.cur.straight ? p.cur.dir : tangentAt(p.cur, s);
+
+    /* ── total velocity arrow (hidden in circle mode) ── */
+    p.velArrow.setDirection(velDir);
+    p.velArrow.position.copy(pos);
+    p.velArrow.visible = showVel;
+    p.velLabel.position.copy(pos).addScaledVector(velDir, SCENE_R * 0.95);
+    p.velLabel.visible = showVel;
+
+    /* ── component arrows — individually toggleable ── */
+    {
+      const LEN     = SCENE_R * 0.85;
+      const parSign = velDir.z >= 0 ? 1 : -1;
+      const parDir  = new THREE.Vector3(0, 0, parSign);
+      const parLen  = LEN * Math.abs(velDir.z);
+      const perpVec = new THREE.Vector3(velDir.x, velDir.y, 0);
+      const perpLen = LEN * perpVec.length();
+      const perpDir = perpVec.lengthSq() > 1e-12
+        ? perpVec.normalize()
+        : new THREE.Vector3(1, 0, 0);
+
+      if (showVPar) {
+        updateComponentArrow(p.vParArrow, p.vParLabel, pos, parDir, parLen,
+          SCENE_R * 0.18, SCENE_R * 0.09);
+      } else {
+        p.vParArrow.visible = false; p.vParLabel.visible = false;
+      }
+
+      if (showVPerp) {
+        updateComponentArrow(p.vPerpArrow, p.vPerpLabel, pos, perpDir, perpLen,
+          SCENE_R * 0.18, SCENE_R * 0.09);
+      } else {
+        p.vPerpArrow.visible = false; p.vPerpLabel.visible = false;
+      }
+    }
+
+    /* ── magnetic force arrow ── */
+    if (p.cur.straight) {
+      p.forceArrow.visible = false; p.forceLabel.visible = false;
+    } else {
+      const radial    = new THREE.Vector3(pos.x, pos.y, 0);
+      const radialLen = radial.length();
+      if (showForces && radialLen > SCENE_R * 0.02) {
+        const fd = radial.clone().multiplyScalar(-1).normalize();
+        p.forceArrow.setDirection(fd);
+        p.forceArrow.position.copy(pos);
+        p.forceArrow.visible = true;
+        p.forceLabel.position.copy(pos).addScaledVector(fd, SCENE_R * 0.72);
+        p.forceLabel.visible = true;
+      } else {
+        p.forceArrow.visible = false; p.forceLabel.visible = false;
+      }
+    }
+  }
+
+  renderer.render(scene, camera);
+
+  const active = parts.filter(p => p.cur);
+  if (active.length) {
+    const maxDur = Math.max(...active.map(p => p.cur.duration || 0));
+    if (cycleT >= maxDur) {
+      cyclePauseT += dt;
+      if (cyclePauseT >= END_PAUSE) resetCycle();
+    } else {
+      cycleT = Math.min(cycleT + dt, maxDur);
+      cyclePauseT = 0;
+    }
+  }
+}
+
+/* ── DOM helpers ── */
+const $ = id => document.getElementById(id);
+
+function fmt(x) {
+  if (x === null || x === undefined || (typeof x === 'number' && isNaN(x))) return '—';
+  if (x === 0) return '0';
+  const a = Math.abs(x);
+  return (a >= 1e4 || a < 1e-2) ? x.toExponential(3) : x.toPrecision(4);
+}
+
+function fmtTesla(x) {
+  if (!Number.isFinite(x)) return '(—) T';
+  if (x === 0) return '(0) T';
+  const a = Math.abs(x);
+  const val = (a >= 1e3 || a < 1e-3) ? x.toExponential(3) : x.toPrecision(4);
+  return `(${val}) T`;
+}
+
+function updateSpeedFrac() {
+  const v   = +$('inp-speed').value;
+  const el  = $('speed-frac');
+  const frac = v / C_MAX;
+  if (!Number.isFinite(frac) || frac <= 0) { el.textContent = ''; return; }
+  el.textContent = `≡ ${(frac * 100).toPrecision(3)}% c (speed of light)`;
+}
+
+function updateBReadout() {
+  $('b-tesla').textContent = fmtTesla(+$('inp-BG').value * GAUSS_TO_TESLA);
+}
+
+function writeReadouts(key, d) {
+  const fv = (x, unit) => {
+    if (x === null || x === undefined || (typeof x === 'number' && isNaN(x))) return '—';
+    const v = fmt(x);
+    return v === '—' ? '—' : v + '\u2009' + unit;
+  };
+  $(`${key}-rL`).textContent    = fv(d.r_L,    'm');
+  $(`${key}-wc`).textContent    = fv(d.omega_c, 'rad/s');
+  $(`${key}-mu`).textContent    = fv(d.mu,      'J/T');
+  $(`${key}-vpar`).textContent  = fv(d.v_par,   'm/s');
+  $(`${key}-vperp`).textContent = fv(d.v_perp,  'm/s');
+}
+
+function showError(msg) { $('error-msg').textContent = msg; $('error-msg').style.display = 'block'; }
+function clearError()   { $('error-msg').style.display = 'none'; }
+
+function applyPreset(key) {
+  const pr = PRESETS[$(`${key}-preset`).value];
+  if (!pr) return;
+  $(`${key}-mass`).value = pr.m;
+  $(`${key}-qmag`).value = Math.abs(pr.q);
+  $(`${key}-sign`).value = pr.q < 0 ? '-' : '+';
+}
+
+function readParticle(key, B_T) {
+  const sign = $(`${key}-sign`).value === '-' ? -1 : 1;
+  return {
+    m_amu:     +$(`${key}-mass`).value,
+    q_e:       sign * Math.abs(+$(`${key}-qmag`).value),
+    v:         +$('inp-speed').value,
+    theta_deg: +$('theta-r').value,
+    B:         B_T,
+  };
+}
+
+/* ── main update ── */
+function runUpdate() {
+  clearError();
+  updateBReadout();
+  updateSpeedFrac();
+
+  const B_G = +$('inp-BG').value;
+  const v   = +$('inp-speed').value;
+
+  if (!Number.isFinite(B_G) || B_G <= 0) {
+    clearAll();
+    showError('Magnetic flux density |B| must be greater than zero.');
+    return;
+  }
+  if (!Number.isFinite(v) || v <= 0) {
+    clearAll();
+    showError('Speed |v| must be greater than zero.');
+    return;
+  }
+
+  const B_T   = B_G * GAUSS_TO_TESLA;
+  const datas = [];
+
+  for (const p of parts) {
+    try {
+      const inp  = readParticle(p.conf.key, B_T);
+      const data = compute(inp.m_amu, inp.q_e, inp.v, inp.theta_deg, inp.B);
+      datas.push(data);
+    } catch(e) {
+      clearAll();
+      showError(p.conf.label + ': ' + e.message);
+      return;
+    }
+  }
+
+  parts.forEach((p, i) => {
+    p.data = datas[i];
+    writeReadouts(p.conf.key, datas[i]);
+    setChargeSprite(p, datas[i].sign);
+  });
+
+  const sharedZ = commonAxialSpan();
+  const dispR   = computeDisplayRadii(datas);
+  const isFirst = !firstRenderDone;
+
+  resetCycle();
+  parts.forEach((p, i) => updateTrajectory(p, datas[i], sharedZ, turnsFor(datas[i]), dispR[i]));
+  buildFieldLines();
+  firstRenderDone = true;
+  if (isFirst) frameCamera();
+}
+
+/* ── mode setup ── */
+function setupMode() {
+  const single = MODE === 'one' || MODE === 'circle';
+  const label  = single ? 'Particle' : 'Ion';
+
+  $('A-head').textContent         = label;
+  $('th-A').textContent           = label;
+  $('leg-A').textContent          = label;
+  $('particles-sect').textContent = single ? 'Particle' : 'Particles';
+
+  if (single) {
+    $('block-B').style.display      = 'none';
+    $('leg-elec-row').style.display = 'none';
+    document.querySelectorAll('.col-B').forEach(el => el.style.display = 'none');
+    $('A-sign').disabled = false;
+  } else {
+    $('A-sign').value    = '+';
+    $('A-sign').disabled = true;
+    [...$('A-preset').options].forEach(o => { if (o.value === 'electron') o.disabled = true; });
+    if ($('A-preset').value === 'electron') $('A-preset').value = 'xenon';
+    $('B-preset').value = 'electron';
+    applyPreset('B');
+    ['B-preset', 'B-mass', 'B-qmag', 'B-sign'].forEach(id => { $(id).disabled = true; });
+  }
+
+  /* ── circle mode: lock theta, hide V and V∥ ── */
+  if (MODE === 'circle') {
+    $('theta-r').value   = 90;
+    $('theta-num').value = 90;
+    $('theta-r').disabled   = true;
+    $('theta-num').disabled = true;
+
+    $('row-vel').style.display   = 'none';
+    $('row-vpar').style.display  = 'none';
+    $('leg-vel-row').style.display  = 'none';
+    $('leg-vpar-row').style.display = 'none';
+
+    showVel  = false;
+    showVPar = false;
+  }
+}
+
+/* ── event wiring ── */
+let _deb = null;
+const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate, 150); };
+
+$('A-preset').addEventListener('change', () => { applyPreset('A'); debounced(); });
+$('A-mass').addEventListener('input',    () => { $('A-preset').value = 'custom'; debounced(); });
+$('A-qmag').addEventListener('input',    () => { $('A-preset').value = 'custom'; debounced(); });
+$('A-sign').addEventListener('change',   () => { $('A-preset').value = 'custom'; debounced(); });
+
+$('B-preset').addEventListener('change', () => { applyPreset('B'); debounced(); });
+$('B-mass').addEventListener('input',    () => { $('B-preset').value = 'custom'; debounced(); });
+$('B-qmag').addEventListener('input',    () => { $('B-preset').value = 'custom'; debounced(); });
+$('B-sign').addEventListener('change',   () => { $('B-preset').value = 'custom'; debounced(); });
+
+/* ── pitch angle: bidirectional number input ↔ slider ── */
+$('theta-num').addEventListener('input', () => {
+  const v = parseFloat($('theta-num').value);
+  if (!Number.isFinite(v)) return;
+  const clamped = clamp(v, 0, 90);
+  $('theta-r').value = clamped;
+  debounced();
+});
+$('theta-r').addEventListener('input', () => {
+  $('theta-num').value = $('theta-r').value;
+  debounced();
+});
+
+/* ── B: bidirectional slider ↔ number input ── */
+$('sl-BG').addEventListener('input', () => {
+  $('inp-BG').value = $('sl-BG').value;
+  updateBReadout();
+  debounced();
+});
+$('inp-BG').addEventListener('input', () => {
+  let val = +$('inp-BG').value;
+  if (val < 0) { val = 0; $('inp-BG').value = 0; }
+  $('sl-BG').value = Math.min(val, 3000);
+  updateBReadout();
+  debounced();
+});
+
+/* ── v: bidirectional slider ↔ number input ── */
+$('sl-speed').addEventListener('input', () => {
+  $('inp-speed').value = $('sl-speed').value;
+  updateSpeedFrac();
+  debounced();
+});
+$('inp-speed').addEventListener('input', () => {
+  let val = +$('inp-speed').value;
+  if (val < 0) { val = 0; $('inp-speed').value = 0; }
+  $('sl-speed').value = Math.min(val, C_MAX);
+  updateSpeedFrac();
+  debounced();
+});
+
+/* ── display toggles ── */
+$('chk-labels').addEventListener('change', () => { showLabels = $('chk-labels').checked; });
+$('chk-vel').addEventListener('change',    () => { showVel    = $('chk-vel').checked; });
+$('chk-vpar').addEventListener('change',   () => { showVPar   = $('chk-vpar').checked; });
+$('chk-vperp').addEventListener('change',  () => { showVPerp  = $('chk-vperp').checked; });
+$('chk-force').addEventListener('change',  () => { showForces = $('chk-force').checked; });
+
+/* ── boot ── */
+initViz(document.getElementById('viewport'));
+setupMode();
+applyPreset('A');
+updateBReadout();
+updateSpeedFrac();
+$('sl-BG').value    = Math.min(+$('inp-BG').value, 3000);
+$('sl-speed').value = Math.min(+$('inp-speed').value, C_MAX);
+/* sync theta number input to slider's initial (possibly overridden) value */
+$('theta-num').value = $('theta-r').value;
+runUpdate();
+</script>
+</body>
+</html>
