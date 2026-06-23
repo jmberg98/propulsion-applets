@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -320,6 +319,82 @@ input:disabled, select:disabled {
   flex-shrink: 0;
 }
 .sw-rect { border-radius: 2px; border: 1px solid #3a7fa0; }
+
+/* ═══════════════════════════════════════════════
+   QUIZ GATE OVERLAY
+   ═══════════════════════════════════════════════ */
+#quiz-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* frosted dark glass */
+  background: rgba(9, 9, 9, 0.78);
+  backdrop-filter: blur(6px) saturate(0.6);
+  -webkit-backdrop-filter: blur(6px) saturate(0.6);
+
+  /* smooth fade-out when dismissed */
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+#quiz-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#quiz-overlay-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 48px 36px;
+  background: rgba(18, 18, 18, 0.92);
+  border: 1px solid #2e2e2e;
+  border-radius: 14px;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.7);
+  max-width: 460px;
+  width: calc(100% - 48px);
+  text-align: center;
+}
+
+#quiz-overlay-title {
+  font-family: 'Barlow', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #f0f0f0;
+  line-height: 1.3;
+}
+
+#quiz-overlay-subtitle {
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.05px;
+  color: #aaaaaa;
+  line-height: 1.4;
+}
+
+#quiz-skip-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.18s;
+  letter-spacing: 0.05px;
+  margin-top: 6px;
+}
+#quiz-skip-btn:hover { color: #999; }
+#quiz-skip-btn:active { color: #bbb; }
 </style>
 </head>
 <body>
@@ -367,13 +442,14 @@ input:disabled, select:disabled {
       </div>
 
       <div class="cf-param">
-        <div style="display:grid; grid-template-columns:22px 1fr 72px 30px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
+        <div style="display:grid; grid-template-columns:22px 1fr 72px 36px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
           <span class="cf-sym"><i>q</i></span>
           <span class="cf-desc">Charge</span>
           <input type="number" id="A-qmag" class="cf-inp" value="1" min="0" step="1">
           <select id="A-sign" class="cf-inp-sm">
             <option value="+">+</option>
             <option value="-">−</option>
+            <option value="0">0</option>
           </select>
           <span style="font-size:14px; color:#555; text-align:center; font-style:italic;">e</span>
         </div>
@@ -410,13 +486,14 @@ input:disabled, select:disabled {
       </div>
 
       <div class="cf-param">
-        <div style="display:grid; grid-template-columns:22px 1fr 72px 30px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
+        <div style="display:grid; grid-template-columns:22px 1fr 72px 36px 20px; align-items:center; column-gap:8px; margin-bottom:4px;">
           <span class="cf-sym"><i>q</i></span>
           <span class="cf-desc">Charge</span>
           <input type="number" id="B-qmag" class="cf-inp" value="1" min="0" step="1">
           <select id="B-sign" class="cf-inp-sm">
             <option value="+">+</option>
             <option value="-" selected>−</option>
+            <option value="0">0</option>
           </select>
           <span style="font-size:14px; color:#555; text-align:center; font-style:italic;">e</span>
         </div>
@@ -437,7 +514,7 @@ input:disabled, select:disabled {
       </div>
       <input type="range" id="sl-BG" class="cf-slider" min="0" max="3000" value="300" step="1">
       <div class="cf-out-hint" style="padding-left:30px;">
-        ≡ <span id="b-tesla">0.03000 Te</span>
+        ≡ <span id="b-tesla">0.03000 T</span>
       </div>
     </div>
 
@@ -455,7 +532,7 @@ input:disabled, select:disabled {
       </div>
     </div>
 
-    <!-- ── Pitch angle — typeable number input + slider ── -->
+    <!-- ── Pitch angle ── -->
     <div class="cf-param" id="theta-param">
       <div style="display:grid; grid-template-columns:1fr 80px 28px; align-items:center; column-gap:8px; margin-bottom:4px;">
         <span class="cf-desc">Pitch angle θ</span>
@@ -475,19 +552,16 @@ input:disabled, select:disabled {
       Show charge / name label
     </label>
 
-    <!-- row-vel: hidden in circle mode -->
     <label class="cf-chk" for="chk-vel" id="row-vel">
       <input type="checkbox" id="chk-vel" checked>
       Show velocity vector&nbsp;<b style="color:#ffd54f;">V</b>
     </label>
 
-    <!-- row-vpar: hidden in circle mode -->
     <label class="cf-chk" for="chk-vpar" id="row-vpar">
       <input type="checkbox" id="chk-vpar">
       Show parallel velocity&nbsp;<b style="color:#66bb6a;">V<sub>∥</sub></b>
     </label>
 
-    <!-- row-vperp: always visible -->
     <label class="cf-chk" for="chk-vperp" id="row-vperp">
       <input type="checkbox" id="chk-vperp">
       Show perp. velocity&nbsp;<b style="color:#ab47bc;">V<sub>⊥</sub></b>
@@ -579,21 +653,57 @@ input:disabled, select:disabled {
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════
+     QUIZ GATE OVERLAY
+     ════════════════════════════════════════════ -->
+<div id="quiz-overlay">
+  <div id="quiz-overlay-card">
+    <div id="quiz-overlay-title">Try the questions first!</div>
+    <div id="quiz-overlay-subtitle">Complete the quiz to unlock the interactive demo.</div>
+    <button id="quiz-skip-btn">Skip the questions, I want to see the demo</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUIZ GATE LOGIC  (plain script — edit here)
+     Set QUIZ_COMPLETED = true  to always unlock,
+     or call markQuizComplete() from your quiz code.
+     ════════════════════════════════════════════ -->
+<script>
+  // ── Developer flag ──────────────────────────────────────────
+  // Set to true to bypass the gate entirely (e.g. during dev).
+  // Set to false to enforce the gate until the quiz is finished
+  // or the user clicks "Skip".
+  const QUIZ_COMPLETED = false;
+  // ────────────────────────────────────────────────────────────
+
+  const _overlay   = document.getElementById('quiz-overlay');
+  const _skipBtn   = document.getElementById('quiz-skip-btn');
+
+  function dismissOverlay() {
+    _overlay.classList.add('hidden');
+  }
+
+  // Called by your external quiz code when the student finishes:
+  //   window.markQuizComplete();
+  window.markQuizComplete = dismissOverlay;
+
+  // Skip button
+  _skipBtn.addEventListener('click', dismissOverlay);
+
+  // Apply initial state immediately (before Three.js loads)
+  if (QUIZ_COMPLETED) {
+    dismissOverlay();
+  }
+</script>
+
 <!-- ════════════════ THREE.JS ════════════════ -->
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-/* ─────────────────────────────────────────────────────────────
-   DEVELOPER MODE SWITCH
-   'two'    → Ion (locked +) + Electron (locked −)
-   'one'    → Single particle, free charge
-   'circle' → Single particle, pitch locked 90°, circle with
-              direction arrows, only V⊥ toggleable
-   ───────────────────────────────────────────────────────────── */
 const MODE = 'one';
 
-/* ── physics constants ── */
 const AMU   = 1.66053906660e-27;
 const E_C   = 1.602176634e-19;
 const C_MAX = 299792458;
@@ -604,9 +714,9 @@ function compute(m_amu, q_e, v, theta_deg, B) {
   ]) {
     if (!Number.isFinite(val)) throw new Error(`'${name}' must be a finite number.`);
   }
-  if (B  <= 0) throw new Error('|B| must be positive.');
-  if (v === 0) throw new Error('|v| cannot be zero.');
   if (m_amu <= 0) throw new Error('Mass must be positive.');
+  if (v < 0)     throw new Error('Speed must be non-negative.');
+  if (B < 0)     throw new Error('|B| must be non-negative.');
 
   const m      = m_amu * AMU;
   const q      = q_e   * E_C;
@@ -614,22 +724,31 @@ function compute(m_amu, q_e, v, theta_deg, B) {
   const v_par  = v * Math.cos(th);
   const v_perp = v * Math.sin(th);
   const absq   = Math.abs(q);
+  const signQ  = q > 0 ? 1 : (q < 0 ? -1 : 0);
 
-  if (absq === 0)
-    return { v_par, v_perp, r_L: null, omega_c: null, mu: null, T_c: null, pitch: null, sign: 0 };
+  if (v === 0) {
+    return { v_par: 0, v_perp: 0, r_L: null, omega_c: null, mu: null,
+             T_c: null, pitch: null, sign: signQ, atRest: true, pitchLine: false };
+  }
+  if (absq === 0 || B === 0) {
+    return { v_par, v_perp, r_L: null, omega_c: null, mu: null,
+             T_c: null, pitch: null, sign: signQ, atRest: false, pitchLine: true };
+  }
 
   const omega_c = absq * B / m;
-  if (omega_c === 0)
-    return { v_par, v_perp, r_L: null, omega_c: null, mu: null, T_c: null, pitch: null, sign: 0 };
+  if (omega_c === 0 || !Number.isFinite(omega_c)) {
+    return { v_par, v_perp, r_L: null, omega_c: null, mu: null,
+             T_c: null, pitch: null, sign: signQ, atRest: false, pitchLine: true };
+  }
 
   const r_L   = v_perp ? m * v_perp / (absq * B) : 0.0;
   const mu    = m * v_perp * v_perp / (2.0 * B);
   const T_c   = 2.0 * Math.PI / omega_c;
   const pitch = v_par * T_c;
-  return { v_par, v_perp, r_L, omega_c, mu, T_c, pitch, sign: q > 0 ? 1 : -1 };
+  return { v_par, v_perp, r_L, omega_c, mu, T_c, pitch,
+           sign: signQ, atRest: false, pitchLine: false };
 }
 
-/* ── scene constants ── */
 const SCENE_R        = 5.0;
 const SEG_PER_TURN   = 48;
 const TRAVEL_SEC     = 7.0;
@@ -664,14 +783,12 @@ const PCONF = [
 
 const ACTIVE = (MODE === 'one' || MODE === 'circle') ? [PCONF[0]] : PCONF;
 
-/* ── display flags ── */
 let showLabels = true;
-let showVel    = true;   // forced false in circle mode by setupMode
+let showVel    = true;
 let showVPar   = false;
 let showVPerp  = false;
 let showForces = false;
 
-/* ── text sprite ── */
 function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
@@ -706,9 +823,8 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   return sp;
 }
 
-/* ── B label with vector arrow ── */
 function makeBLabelSprite(height = SCENE_R * 0.38) {
-  const B_COLOR = '#4a9fc0';   // vivid blue to match field lines
+  const B_COLOR = '#4a9fc0';
   const canvas  = document.createElement('canvas');
   const ctx     = canvas.getContext('2d');
   const fs = 72, px = 26, py = 14;
@@ -758,7 +874,6 @@ function makeBLabelSprite(height = SCENE_R * 0.38) {
   return sp;
 }
 
-/* ── scene globals ── */
 let renderer, scene, camera, controls, clock;
 let fieldGroup, guideGroup;
 let parts = [];
@@ -842,7 +957,7 @@ function initViz(container) {
   renderer.setSize(w, h);
   container.appendChild(renderer.domElement);
   camera = new THREE.PerspectiveCamera(50, w / h, 0.01, 5000);
-  camera.position.set(SCENE_R * 2.4, SCENE_R * 1.7, SCENE_R * 2.8);
+  camera.position.set(-SCENE_R * 4.5, SCENE_R * 2.2, SCENE_R * 0.8);
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.07;
@@ -865,12 +980,10 @@ function initViz(container) {
   animate();
 }
 
-/* ── field lines — more vibrant blue palette ── */
 function buildFieldLines() {
   fieldGroup.clear();
   guideGroup.clear();
   const zHalf = FIELD_HALF, N = 3, step = SCENE_R * 0.9;
-  /* brighter blue-teal for field lines */
   const lm = new THREE.LineBasicMaterial({ color: 0x1a5272, transparent: true, opacity: 0.92 });
   for (let i = -N; i <= N; i++) {
     for (let j = -N; j <= N; j++) {
@@ -881,7 +994,6 @@ function buildFieldLines() {
           new THREE.Vector3(x, y, -zHalf), new THREE.Vector3(x, y, zHalf)
         ]), lm
       ));
-      /* vivid arrow tips */
       fieldGroup.add(new THREE.ArrowHelper(
         new THREE.Vector3(0, 0, 1),
         new THREE.Vector3(x, y, zHalf * 0.5),
@@ -898,7 +1010,7 @@ function buildFieldLines() {
   dashed.computeLineDistances();
   guideGroup.add(dashed);
   const bLabel = makeBLabelSprite(SCENE_R * 0.38);
-  bLabel.position.set(SCENE_R * 2.4, SCENE_R * 0.4, zHalf * 0.85);
+  bLabel.position.set(-SCENE_R * 0.4, SCENE_R * 1.9, zHalf * 0.82);
   guideGroup.add(bLabel);
 }
 
@@ -915,12 +1027,13 @@ function frameCamera() {
   const fovRad = camera.fov * Math.PI / 180;
   const dist   = sphere.radius / Math.sin(fovRad / 2) * 1.3;
   camera.position.copy(
-    sphere.center.clone().addScaledVector(new THREE.Vector3(1.1, 0.7, 1.3).normalize(), dist)
+    sphere.center.clone().addScaledVector(
+      new THREE.Vector3(-1.1, 0.70, 0.30).normalize(), dist
+    )
   );
   controls.update();
 }
 
-/* ── dispose trajectory + circle arrows ── */
 function disposeTraj(p) {
   if (p.helixLine) { scene.remove(p.helixLine); p.helixLine.geometry.dispose(); p.helixLine = null; }
   if (p.tubeMesh)  { scene.remove(p.tubeMesh);  p.tubeMesh.geometry.dispose();  p.tubeMesh  = null; }
@@ -969,14 +1082,14 @@ function commonAxialSpan() {
 }
 
 function turnsFor(d) {
-  if (MODE === 'circle') return 1;  // exactly one orbit for circle mode
-  if (!d || d.omega_c === null || !Number.isFinite(d.omega_c)) return BASE_TURNS;
+  if (!d) return BASE_TURNS;
+  if (MODE === 'circle') return 1;
+  if (d.atRest || d.pitchLine || d.omega_c === null || !Number.isFinite(d.omega_c))
+    return BASE_TURNS;
   return clamp(BASE_TURNS * Math.sqrt(d.omega_c / OMEGA_REF), BASE_TURNS, MAX_TURNS);
 }
 
-/* ── build direction arrows on circle trajectory ── */
 function buildCircleArrows(p, rDisplay, sign, z0, turns) {
-  // circleArrows already cleared by disposeTraj at start of updateTrajectory
   if (rDisplay <= 0) return;
   const arrowLen  = Math.max(rDisplay * 0.18, SCENE_R * 0.11);
   const headLen   = arrowLen * 0.48;
@@ -989,7 +1102,6 @@ function buildCircleArrows(p, rDisplay, sign, z0, turns) {
       rDisplay * Math.sin(phase),
       z0
     );
-    /* tangent = d/dphase (cos,sin) * sign of rotation */
     const tx = -sign * Math.sin(phase);
     const ty =  sign * Math.cos(phase);
     const tangent = new THREE.Vector3(tx, ty, 0).normalize();
@@ -1003,37 +1115,49 @@ function buildCircleArrows(p, rDisplay, sign, z0, turns) {
 }
 
 function updateTrajectory(p, data, commonZ, turns, rDisplay) {
-  const { r_L, sign } = data;
   const col = p.conf.color;
   const z0  = -commonZ / 2, z1 = commonZ / 2;
-  disposeTraj(p);  // clears helixLine, tubeMesh, circleArrows
+  disposeTraj(p);
 
-  /* ── straight-line (q=0 or omega_c=0) ── */
-  if (r_L === null) {
-    const start = new THREE.Vector3(0, 0, z0);
-    const end   = new THREE.Vector3(0, 0, z1);
-    const diff  = end.clone().sub(start), len = diff.length();
-    const dir   = len > 1e-12 ? diff.clone().normalize() : new THREE.Vector3(0, 0, 1);
-    const pts   = Array.from({length: 33}, (_, i) => start.clone().lerp(end, i / 32));
+  if (data.atRest) {
+    p.cur = { atRest: true, straight: false,
+              pos: new THREE.Vector3(0, 0, 0), duration: TRAVEL_SEC };
+    return;
+  }
+
+  if (data.pitchLine) {
+    const totalLen = AXIAL_BASE * TRAVEL_MULT;
+    const vTot = Math.hypot(data.v_par, data.v_perp);
+    const dir = vTot > 1e-12
+      ? new THREE.Vector3(0, data.v_perp / vTot, data.v_par / vTot).normalize()
+      : new THREE.Vector3(0, 0, 1);
+    const start = dir.clone().multiplyScalar(-totalLen / 2);
+    const end   = dir.clone().multiplyScalar( totalLen / 2);
+
+    const pts = Array.from({length: 33}, (_, i) => start.clone().lerp(end, i / 32));
     p.helixLine = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(pts),
       new THREE.LineBasicMaterial({ color: col, transparent: true, opacity: 0.30 })
     );
     scene.add(p.helixLine);
-    const tubeEnd = len > 1e-12 ? end : new THREE.Vector3(0, 0, z0 + SCENE_R * 0.01);
+
     p.tubeMesh = new THREE.Mesh(
-      new THREE.TubeGeometry(new THREE.LineCurve3(start, tubeEnd), 2, SCENE_R * 0.007, 8, false),
+      new THREE.TubeGeometry(
+        new THREE.LineCurve3(start.clone(), end.clone()),
+        2, SCENE_R * 0.007, 8, false
+      ),
       new THREE.MeshStandardMaterial({
         color: col, transparent: true, opacity: 0.75,
         roughness: 0.30, metalness: 0.20
       })
     );
     scene.add(p.tubeMesh);
-    p.cur = { straight: true, start, end, dir, duration: TRAVEL_SEC };
+
+    p.cur = { straight: true, atRest: false, start, end, dir, duration: TRAVEL_SEC };
     return;
   }
 
-  /* ── helix / circle ── */
+  const { sign } = data;
   const steps = Math.max(8, Math.ceil(turns * SEG_PER_TURN));
   const pts   = rDisplay === 0
     ? [new THREE.Vector3(0, 0, z0), new THREE.Vector3(0, 0, z1)]
@@ -1066,20 +1190,21 @@ function updateTrajectory(p, data, commonZ, turns, rDisplay) {
     })
   );
   scene.add(p.tubeMesh);
-  p.cur = { straight: false, rS: rDisplay, sign, turns, z0, commonZ, duration: TRAVEL_SEC };
+  p.cur = { straight: false, atRest: false, rS: rDisplay, sign, turns, z0, commonZ, duration: TRAVEL_SEC };
 
-  /* ── circle mode: add directional travel arrows ── */
   if (MODE === 'circle' && rDisplay > 0) {
     buildCircleArrows(p, rDisplay, sign, z0, turns);
   }
 }
 
 function positionAt(cur, s) {
+  if (cur.atRest)   return cur.pos.clone();
   if (cur.straight) return cur.start.clone().lerp(cur.end, clamp(s, 0, 1));
   return helixPoint(cur.rS, cur.sign, cur.turns, cur.z0, cur.commonZ, s);
 }
 
 function tangentAt(cur, s) {
+  if (cur.atRest) return new THREE.Vector3(0, 0, 1);
   const eps = 0.001;
   const d = positionAt(cur, clamp(s + eps, 0, 1)).sub(positionAt(cur, clamp(s - eps, 0, 1)));
   const L = d.length();
@@ -1119,6 +1244,17 @@ function animate() {
 
     p.mesh.visible = true;
 
+    if (p.cur.atRest) {
+      p.mesh.position.copy(p.cur.pos);
+      p.chargeSprite.position.copy(p.cur.pos).add(off);
+      p.chargeSprite.visible = showLabels;
+      p.velArrow.visible   = false;  p.velLabel.visible   = false;
+      p.forceArrow.visible = false;  p.forceLabel.visible = false;
+      p.vParArrow.visible  = false;  p.vParLabel.visible  = false;
+      p.vPerpArrow.visible = false;  p.vPerpLabel.visible = false;
+      continue;
+    }
+
     const s   = Math.min(cycleT / Math.max(p.cur.duration || 1, 1e-9), 1.0);
     const pos = positionAt(p.cur, s);
 
@@ -1128,14 +1264,12 @@ function animate() {
 
     const velDir = p.cur.straight ? p.cur.dir : tangentAt(p.cur, s);
 
-    /* ── total velocity arrow (hidden in circle mode) ── */
     p.velArrow.setDirection(velDir);
     p.velArrow.position.copy(pos);
     p.velArrow.visible = showVel;
     p.velLabel.position.copy(pos).addScaledVector(velDir, SCENE_R * 0.95);
     p.velLabel.visible = showVel;
 
-    /* ── component arrows — individually toggleable ── */
     {
       const LEN     = SCENE_R * 0.85;
       const parSign = velDir.z >= 0 ? 1 : -1;
@@ -1145,7 +1279,7 @@ function animate() {
       const perpLen = LEN * perpVec.length();
       const perpDir = perpVec.lengthSq() > 1e-12
         ? perpVec.normalize()
-        : new THREE.Vector3(1, 0, 0);
+        : new THREE.Vector3(0, 1, 0);
 
       if (showVPar) {
         updateComponentArrow(p.vParArrow, p.vParLabel, pos, parDir, parLen,
@@ -1162,7 +1296,6 @@ function animate() {
       }
     }
 
-    /* ── magnetic force arrow ── */
     if (p.cur.straight) {
       p.forceArrow.visible = false; p.forceLabel.visible = false;
     } else {
@@ -1196,7 +1329,6 @@ function animate() {
   }
 }
 
-/* ── DOM helpers ── */
 const $ = id => document.getElementById(id);
 
 function fmt(x) {
@@ -1251,17 +1383,19 @@ function applyPreset(key) {
 }
 
 function readParticle(key, B_T) {
-  const sign = $(`${key}-sign`).value === '-' ? -1 : 1;
+  const signStr = $(`${key}-sign`).value;
+  const q_e = signStr === '0'
+    ? 0
+    : (signStr === '-' ? -1 : 1) * Math.abs(+$(`${key}-qmag`).value);
   return {
     m_amu:     +$(`${key}-mass`).value,
-    q_e:       sign * Math.abs(+$(`${key}-qmag`).value),
+    q_e,
     v:         +$('inp-speed').value,
     theta_deg: +$('theta-r').value,
     B:         B_T,
   };
 }
 
-/* ── main update ── */
 function runUpdate() {
   clearError();
   updateBReadout();
@@ -1270,15 +1404,11 @@ function runUpdate() {
   const B_G = +$('inp-BG').value;
   const v   = +$('inp-speed').value;
 
-  if (!Number.isFinite(B_G) || B_G <= 0) {
-    clearAll();
-    showError('Magnetic flux density |B| must be greater than zero.');
-    return;
+  if (!Number.isFinite(B_G) || B_G < 0) {
+    clearAll(); showError('Magnetic flux density |B| must be non-negative.'); return;
   }
-  if (!Number.isFinite(v) || v <= 0) {
-    clearAll();
-    showError('Speed |v| must be greater than zero.');
-    return;
+  if (!Number.isFinite(v) || v < 0) {
+    clearAll(); showError('Speed |v| must be non-negative.'); return;
   }
 
   const B_T   = B_G * GAUSS_TO_TESLA;
@@ -1290,9 +1420,7 @@ function runUpdate() {
       const data = compute(inp.m_amu, inp.q_e, inp.v, inp.theta_deg, inp.B);
       datas.push(data);
     } catch(e) {
-      clearAll();
-      showError(p.conf.label + ': ' + e.message);
-      return;
+      clearAll(); showError(p.conf.label + ': ' + e.message); return;
     }
   }
 
@@ -1313,7 +1441,6 @@ function runUpdate() {
   if (isFirst) frameCamera();
 }
 
-/* ── mode setup ── */
 function setupMode() {
   const single = MODE === 'one' || MODE === 'circle';
   const label  = single ? 'Particle' : 'Ion';
@@ -1338,24 +1465,20 @@ function setupMode() {
     ['B-preset', 'B-mass', 'B-qmag', 'B-sign'].forEach(id => { $(id).disabled = true; });
   }
 
-  /* ── circle mode: lock theta, hide V and V∥ ── */
   if (MODE === 'circle') {
     $('theta-r').value   = 90;
     $('theta-num').value = 90;
     $('theta-r').disabled   = true;
     $('theta-num').disabled = true;
-
     $('row-vel').style.display   = 'none';
     $('row-vpar').style.display  = 'none';
     $('leg-vel-row').style.display  = 'none';
     $('leg-vpar-row').style.display = 'none';
-
     showVel  = false;
     showVPar = false;
   }
 }
 
-/* ── event wiring ── */
 let _deb = null;
 const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate, 150); };
 
@@ -1369,12 +1492,10 @@ $('B-mass').addEventListener('input',    () => { $('B-preset').value = 'custom';
 $('B-qmag').addEventListener('input',    () => { $('B-preset').value = 'custom'; debounced(); });
 $('B-sign').addEventListener('change',   () => { $('B-preset').value = 'custom'; debounced(); });
 
-/* ── pitch angle: bidirectional number input ↔ slider ── */
 $('theta-num').addEventListener('input', () => {
   const v = parseFloat($('theta-num').value);
   if (!Number.isFinite(v)) return;
-  const clamped = clamp(v, 0, 90);
-  $('theta-r').value = clamped;
+  $('theta-r').value = clamp(v, 0, 90);
   debounced();
 });
 $('theta-r').addEventListener('input', () => {
@@ -1382,42 +1503,34 @@ $('theta-r').addEventListener('input', () => {
   debounced();
 });
 
-/* ── B: bidirectional slider ↔ number input ── */
 $('sl-BG').addEventListener('input', () => {
   $('inp-BG').value = $('sl-BG').value;
-  updateBReadout();
-  debounced();
+  updateBReadout(); debounced();
 });
 $('inp-BG').addEventListener('input', () => {
   let val = +$('inp-BG').value;
   if (val < 0) { val = 0; $('inp-BG').value = 0; }
   $('sl-BG').value = Math.min(val, 3000);
-  updateBReadout();
-  debounced();
+  updateBReadout(); debounced();
 });
 
-/* ── v: bidirectional slider ↔ number input ── */
 $('sl-speed').addEventListener('input', () => {
   $('inp-speed').value = $('sl-speed').value;
-  updateSpeedFrac();
-  debounced();
+  updateSpeedFrac(); debounced();
 });
 $('inp-speed').addEventListener('input', () => {
   let val = +$('inp-speed').value;
   if (val < 0) { val = 0; $('inp-speed').value = 0; }
   $('sl-speed').value = Math.min(val, C_MAX);
-  updateSpeedFrac();
-  debounced();
+  updateSpeedFrac(); debounced();
 });
 
-/* ── display toggles ── */
 $('chk-labels').addEventListener('change', () => { showLabels = $('chk-labels').checked; });
 $('chk-vel').addEventListener('change',    () => { showVel    = $('chk-vel').checked; });
 $('chk-vpar').addEventListener('change',   () => { showVPar   = $('chk-vpar').checked; });
 $('chk-vperp').addEventListener('change',  () => { showVPerp  = $('chk-vperp').checked; });
 $('chk-force').addEventListener('change',  () => { showForces = $('chk-force').checked; });
 
-/* ── boot ── */
 initViz(document.getElementById('viewport'));
 setupMode();
 applyPreset('A');
@@ -1425,7 +1538,6 @@ updateBReadout();
 updateSpeedFrac();
 $('sl-BG').value    = Math.min(+$('inp-BG').value, 3000);
 $('sl-speed').value = Math.min(+$('inp-speed').value, C_MAX);
-/* sync theta number input to slider's initial (possibly overridden) value */
 $('theta-num').value = $('theta-r').value;
 runUpdate();
 </script>

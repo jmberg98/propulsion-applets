@@ -1,1 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Larmor Motion &amp; Cyclotron Orbits — Electric Propulsion</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  --c-thrust: #FF4400;
+  --c-ve:     #3DBFFF;
+  --c-mass:   #FF4400;
+  --c-power:  #C060FF;
+  --c-press:  #00DDB5;
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 48px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ───────────────────────────────── */
+.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
+.hl-ve, .hl-v            { color: var(--c-ve); }
+.hl-mass                 { color: var(--c-mass); }
+.hl-power                { color: var(--c-power); }
+.hl-press                { color: var(--c-press); }
+.hl-B                    { color: var(--c-press); }
+.hl-q                    { color: var(--c-power); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 4px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Demo placeholder ───────────────────────────────── */
+.demo-placeholder {
+  min-height: 500px;
+  background: var(--bg-canvas);
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+.quiz-opt.correct .quiz-opt-label { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label { color: #ff8e8e; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.2em !important; }
+.katex-display { font-size: 1.2em !important; }
+.theory-block .katex { font-size: 1.25em !important; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 10px;
+  font-size: 18.5px;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Larmor Motion &amp; Cyclotron Orbits</h1>
+  <span class="badge">Electric Propulsion</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  <span class="key">Thermochemistry</span> and <span class="key">compressible flow</span> govern the operating
+  fundamentals of <span class="key hl-thrust">chemical rocket engines</span>. Likewise,
+  <span class="key">electromagnetism</span> and <span class="key hl-power">plasma physics</span> govern the
+  operating fundamentals of <span class="key hl-thrust">electric thrusters</span>. We start by exploring the
+  non-intuitive behavior of <span class="key hl-q">charged particles</span> in a uniform
+  <span class="key hl-B">magnetic field</span>.
+</p>
+
+<!-- ════════════════════ Q1 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Conceptual Question</div>
+  <div class="quiz-block">
+    <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
+    travels entirely <em>perpendicular</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>Straight line
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>Circular path
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>Spiral path
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DEMO 1 ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 1 &#x2014; Perpendicular Motion</div>
+  <div class="demo-placeholder"></div>
+</div>
+
+<!-- ════════════════════ CYCLOTRON MOTION ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Cyclotron &amp; Larmor Motion</div>
+  <p class="th-body">
+    When a particle travels perpendicular to a uniform <span class="key hl-B">magnetic field</span>, it travels
+    circularly, undergoing <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>. The
+    radius of this circle is called the <span class="key hl-ve">Larmor radius</span>, and the angular frequency
+    of the motion is called the <span class="key hl-ve">cyclotron frequency</span>. A particle in Larmor motion
+    is said to be <span class="key">"magnetized"</span> (more on this in the magnetic mirror applet!).
+  </p>
+</div>
+
+<!-- ════════════════════ Q2 + Q3 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Conceptual Questions</div>
+
+  <div class="quiz-block">
+    <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
+    travels entirely <em>parallel</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>Straight line
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>Circular path
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>Spiral path
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-block">
+    <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
+    travels <em>neither entirely parallel nor entirely perpendicular</em> to a uniform
+    <span class="hl-B">magnetic field</span>?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>Straight line
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>Circular path
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">c</span>Spiral path
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DEMO 2 ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 2 &#x2014; Helical Motion</div>
+  <div class="demo-placeholder"></div>
+</div>
+
+<!-- ════════════════════ ION VS ELECTRON ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Ion vs. Electron Behavior</div>
+  <p class="th-body">
+    Let's compare the behavior of <span class="key hl-q">ions</span> and
+    <span class="key hl-power">electrons</span>. <span class="key hl-q">Ions</span> are far more
+    <span class="key hl-mass">massive</span> than <span class="key hl-power">electrons</span> — by three to
+    five orders of magnitude! How might this affect their <span class="key">cyclotron motion</span>? Assume that
+    the <span class="key hl-power">electron</span> and <span class="key hl-q">ion</span> are in isolation of
+    each other. They are shown together for visual purposes only.
+  </p>
+</div>
+
+<!-- ════════════════════ DEMO 3 ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 3 &#x2014; Ion vs. Electron Comparison</div>
+  <div class="demo-placeholder"></div>
+</div>
+
+<!-- ════════════════════ LARMOR RADIUS ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Larmor Radius</div>
+
+  <p class="th-body">
+    The <span class="key hl-ve">Larmor radius</span> is the radius of a particle's circular orbit in a uniform
+    <span class="key hl-B">magnetic field</span>. The greater the <span class="key hl-mass">mass</span> of the
+    particle, the <span class="key">larger</span> the radius. Conversely, the greater the
+    <span class="key hl-q">charge</span> and <span class="key hl-B">magnetic field strength</span>, the
+    <span class="key">smaller</span> the radius.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Larmor Radius</span>
+    $$
+    \boxed{
+    \textcolor{#3DBFFF}{r_L}
+    =
+    \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+    }
+    $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Magnetic Lorentz Force</span>
+        $$
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}(\textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}})
+        $$
+
+        <span class="eq-step-label">For purely perpendicular motion ($\textcolor{#3DBFFF}{\vec{v}} \perp \textcolor{#00DDB5}{\vec{B}}$)</span>
+        $$
+        |\textcolor{#FF4400}{\vec{F}}| = |\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}
+        $$
+
+        <span class="eq-step-label">The magnetic force is the centripetal force</span>
+        $$
+        |\textcolor{#FF4400}{\vec{F}_{cp}}| = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}
+        $$
+
+        <span class="eq-step-label">Equate and solve for $r_L$</span>
+        $$
+        |\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}
+        =
+        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}
+        $$
+
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{r_L}
+        =
+        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+        }
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ CYCLOTRON FREQUENCY ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Cyclotron Frequency</div>
+
+  <p class="th-body">
+    The <span class="key hl-ve">cyclotron frequency</span> is the angular frequency of a particle's circular
+    orbit in a uniform <span class="key hl-B">magnetic field</span>. The greater the
+    <span class="key hl-mass">mass</span> of the particle, the <span class="key">lesser</span> the frequency.
+    Conversely, the greater the <span class="key hl-q">charge</span> and
+    <span class="key hl-B">magnetic field strength</span>, the <span class="key">greater</span> the frequency.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Cyclotron Frequency</span>
+    $$
+    \boxed{
+    \textcolor{#3DBFFF}{\omega_c}
+    =
+    \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
+    }
+    $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Period of one circular revolution</span>
+        $$
+        \textcolor{#3DBFFF}{T_c}
+        =
+        \frac{2\pi\,\textcolor{#3DBFFF}{r_L}}{\textcolor{#3DBFFF}{v_\perp}}
+        $$
+
+        <span class="eq-step-label">Substitute the Larmor radius</span>
+        $$
+        \textcolor{#3DBFFF}{T_c}
+        =
+        \frac{2\pi}{\textcolor{#3DBFFF}{v_\perp}}
+        \cdot
+        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+        =
+        \frac{2\pi\,\textcolor{#FF4400}{m}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+        $$
+
+        <span class="eq-step-label">Note: period is independent of velocity</span>
+
+        <span class="eq-step-label">Angular frequency</span>
+        $$
+        \textcolor{#3DBFFF}{\omega_c}
+        =
+        \frac{2\pi}{\textcolor{#3DBFFF}{T_c}}
+        =
+        \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
+        $$
+
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{\omega_c}
+        =
+        \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m}}
+        }
+        $$
+
+        <span class="eq-step-label">Linear frequency</span>
+        $$
+        f_c
+        =
+        \frac{\textcolor{#3DBFFF}{\omega_c}}{2\pi}
+        =
+        \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{2\pi\,\textcolor{#FF4400}{m}}
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>What does a <span class="hl-B">magnetic field</span> do to a
+    <span class="hl-q">charged particle</span>? How is the particle accelerated? Does the
+    <span class="hl-B">magnetic field</span> speed up or slow down the
+    <span class="hl-q">charged particle</span>?</summary>
+    <div class="clarify-body">
+      A <span class="key hl-B">magnetic field</span> exerts no force on a
+      <span class="key hl-q">charged particle</span> if the particle has zero velocity, or if the particle has
+      nonzero velocity but is traveling entirely tangent to the
+      <span class="key hl-B">magnetic field lines</span>. If instead the
+      <span class="key hl-q">charged particle</span> has a nonzero
+      <span class="key hl-v">velocity component</span> perpendicular to
+      $\textcolor{#00DDB5}{\vec{B}}$, the
+      <span class="key hl-B">magnetic force</span> provides
+      <span class="key">centripetal acceleration</span> to the particle. Recall that centripetal acceleration
+      doesn't speed up or slow down a body, but rather <span class="key">changes its direction</span>. In fact,
+      the particle undergoes <span class="key">circular motion</span> around the field line! Furthermore, because
+      the particle can be positively or negatively
+      <span class="key hl-q">charged</span>, the direction of rotation can either be
+      <span class="key">clockwise</span> or <span class="key">counter-clockwise</span>.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>The ionization chambers of <span class="hl-thrust">electric propulsion devices</span> generally
+    contain three species: neutral propellant atoms, positively
+    <span class="hl-q">charged ions</span>, and negatively
+    <span class="hl-power">charged electrons</span>. How are each of these three species affected by a
+    <span class="hl-B">magnetic field</span>?</summary>
+    <div class="clarify-body">
+      Neutral propellant atoms are (by definition) not
+      <span class="key hl-q">charged</span>, so they are entirely unaffected by a
+      <span class="key hl-B">magnetic field</span>. Positively
+      <span class="key hl-q">charged ions</span> and negatively
+      <span class="key hl-power">charged electrons</span> are both magnetized by
+      <span class="key hl-B">magnetic field lines</span> and travel in a
+      <span class="key">spiral-shaped trajectory</span>. They will spiral in
+      <span class="key">opposite directions</span>, given that they are oppositely
+      <span class="key hl-q">charged</span>. More interestingly, the
+      <span class="key hl-mass">mass</span> of the
+      <span class="key hl-q">ion</span> is 3–5 orders of magnitude larger than the
+      <span class="key hl-power">electron</span>. The
+      <span class="key hl-q">ion</span> will therefore have a much
+      <span class="key">larger <span class="hl-ve">Larmor radius</span></span> and
+      <span class="key">smaller <span class="hl-ve">cyclotron frequency</span></span>, while the
+      <span class="key hl-power">electron</span> will have a much
+      <span class="key">smaller <span class="hl-ve">Larmor radius</span></span> and
+      <span class="key">greater <span class="hl-ve">cyclotron frequency</span></span>.
+    </div>
+  </details>
+</div>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+document.querySelectorAll('.quiz-block').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => {
+          if (o.dataset.correct === 'true') o.classList.add('correct');
+        });
+        fb.textContent = 'Not quite \u2014 the correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
