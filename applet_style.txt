@@ -1,341 +1,1506 @@
 ================================================================================
-  STYLE GUIDE — MIT Propulsion Applet Series
-  Jordan Bergmann · MIT · 2026
+  SPACE PROPULSION EDUCATIONAL APPLET — AGENT & DEVELOPER GUIDE
+  Version 2.0 | MIT Propulsion | Jordan Bergmann
 ================================================================================
 
---------------------------------------------------------------------------------
-  TYPOGRAPHY
---------------------------------------------------------------------------------
+Paste this document as project knowledge (or system prompt) for any Claude
+session working on this codebase. All sections marked [AGENT] are directives
+for the AI. Sections marked [DEV] are workflow notes for the human developer.
 
-  Primary Font      : Barlow (Google Fonts)
-  Code / Mono Font  : 'Courier New', monospace
-  UI Fallback       : 'Segoe UI', sans-serif (SVG diagrams only)
+________________________________________________________________________________
+SECTION 0 — HOW TO USE THIS DOCUMENT
+________________________________________________________________________________
 
-  Import URL:
-    https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap
+[AGENT]
+Read this document in full before writing any code. Every design decision,
+naming convention, and component pattern described here has already been
+established in the live codebase. Your job is to extend — not redesign — this
+system. When in doubt, copy existing patterns exactly.
 
-  Font Sizes (body / UI text):
-    Page heading (h1)       : 21px  weight 700
-    Section heading (h2)    : 17px  weight 700
-    Page intro paragraph    : 16.5px
-    Clarify body / th-body  : 16.5px  line-height 1.70
-    Demo blurb              : 16px    line-height 1.65
-    Radio row labels        : 16px
-    Badge text              : 12px  weight 700  letter-spacing 1px
-    Section header label    : 13px  weight 700  letter-spacing 1.2px
-    Slider label (sl-label) : 13px  uppercase   letter-spacing 0.7px
-    Slider textbox          : 14.5px  monospace
-    Eq step label           : 11px  uppercase   letter-spacing 0.8px
-    Eq caption              : 14.5px
-    Deriv detail summary    : 12px  weight 700  letter-spacing 0.9px
-    Footer                  : 14.5px
-    Clarify detail summary  : 16.5px  weight 600
+[DEV]
+Before starting a new applet, prepare the following source documents:
+  1. Learning Objectives Doc   — bullet list of what the student should
+                                 understand after the applet.
+  2. Applet Spec Doc           — inputs list, outputs list, rough sketch of
+                                 the 3D scene, governing equations, and
+                                 MODE options.
+  3. Webpage Content Doc       — the full written text of the page (intro,
+                                 explanations, conceptual questions with
+                                 correct answers, derivation text).
+                                 Text is copied VERBATIM into HTML.
+  4. Derivation Doc            — scanned or typed step-by-step derivation
+                                 for each boxed equation.
 
-  Simulation Output (UNCHANGED — do not modify):
-    .out-label              : 9px   uppercase   letter-spacing 0.7px
-    .out-val                : 19px  weight 600  monospace
-    .out-sub                : 11.5px            monospace
+Supply all four documents to Claude at the start of the conversation.
 
---------------------------------------------------------------------------------
-  COLOR PALETTE — PHYSICS QUANTITIES
---------------------------------------------------------------------------------
+________________________________________________________________________________
+SECTION 1 — PROJECT IDENTITY
+________________________________________________________________________________
 
-  These colors are semantically tied to physical quantities.
-  Use them CONSISTENTLY across all applet pages.
+This codebase produces self-contained educational applets for MIT-level space
+propulsion and plasma physics courses.
 
-  Thrust / Mass Flow Rate   : #FF4400   (orange-red)
-  Exhaust Velocity / Isp    : #3DBFFF   (sky blue)
-  Input Power / Efficiency  : #C060FF   (violet)
-  Pressure terms            : #00DDB5   (teal-green)
+Each module consists of the following files (all in the SAME directory):
 
-  CSS custom properties:
-    --c-thrust : #FF4400
-    --c-ve     : #3DBFFF
-    --c-mass   : #FF4400   (same as thrust — mass flow is a thrust-family quantity)
-    --c-power  : #C060FF
-    --c-press  : #00DDB5
+  FILE                   ROLE
+  --------------------   ------------------------------------------------------
+  larmor.py              Python prototype (local HTTP server + embedded HTML)
+  larmor_circle.html     Standalone applet — MODE = circle
+  larmor_single.html     Standalone applet — MODE = one
+  larmor_double.html     Standalone applet — MODE = double
+  larmor_applet.html     Webpage that embeds all three applets via <iframe>
 
-  Highlight classes (apply inline to <strong> or <span>):
-    .hl-thrust  →  color: #FF4400
-    .hl-F       →  color: #FF4400   (force / thrust)
-    .hl-m       →  color: #FF4400   (mass flow)
-    .hl-ve      →  color: #3DBFFF
-    .hl-v       →  color: #3DBFFF   (velocity)
-    .hl-mass    →  color: #FF4400
-    .hl-power   →  color: #C060FF
-    .hl-press   →  color: #00DDB5
+All files for a module live in the same directory. Applets are embedded as
+same-origin iframes; cross-origin restrictions do not apply.
 
---------------------------------------------------------------------------------
-  COLOR PALETTE — UI CHROME
---------------------------------------------------------------------------------
+________________________________________________________________________________
+SECTION 2 — TECHNOLOGY STACK
+________________________________________________________________________________
 
-  Accent (borders, labels, badges, form controls):
-    --c-accent      : #a0a0a0
-    --c-accent-bg   : rgba(160,160,160,0.07)
-    --c-accent-glow : rgba(160,160,160,0.13)
+  Three.js  0.160.0   3D scene, particles, field lines, tube geometry
+  OrbitControls       Camera drag/zoom/pan (from three/addons/)
+  KaTeX     0.16.9    Math rendering on the webpage (CDN, auto-render)
+  Google Fonts        Barlow (all weights; loaded via link in HTML)
+  Courier New         Monospace numerics in panel
+  Plain JS (ES modules) — no build step, no bundler, no framework
 
-  Text:
-    --text-main      : #d6d6d6   (body copy)
-    --text-secondary : #aaaaaa   (secondary body)
-    --text-muted     : #7a7a7a   (labels, captions, footer)
-    --text-heading   : #f0f0f0   (headings, summary text)
+[AGENT]
+Never introduce npm packages, React, Vue, or any bundler. Everything must run
+by opening the HTML file directly in a browser (or via the Python dev server).
+Use the exact CDN URLs already in the codebase:
 
-  Borders:
-    --border : #282828
+  Three.js:
+    https://unpkg.com/three@0.160.0/build/three.module.js
+  OrbitControls:
+    https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js
+  KaTeX CSS:
+    https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css
+  KaTeX JS:
+    https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js
+  KaTeX auto-render:
+    https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js
+  Google Fonts (Barlow):
+    https://fonts.googleapis.com/css2?family=Barlow:ital,wght@
+    0,300;0,400;0,500;0,600;0,700;1,400&display=swap
 
---------------------------------------------------------------------------------
-  COLOR PALETTE — BACKGROUNDS
---------------------------------------------------------------------------------
+________________________________________________________________________________
+SECTION 3 — DEVELOPER WORKFLOW — STAGE BY STAGE
+________________________________________________________________________________
 
-  --bg-page     : #090909   (outermost page background)
-  --bg-panel-1  : #0e0e0e   (primary panel / card background)
-  --bg-panel-2  : #121212   (summary / collapsed state background)
-  --bg-panel-3  : #171717   (mid-level panel)
-  --bg-panel-4  : #1d1d1d   (slider textbox background)
-  --bg-input    : #191919   (deriv-detail summary background)
-  --bg-out-cell : #0c0c0c   (output bar cells)
-  --bg-canvas   : #090909   (simulation canvas background)
-  --bg-diagram  : #0e0e0e   (SVG diagram background)
+STAGE 1 — PYTHON PROTOTYPE
+---------------------------
+[DEV]
+Build and iterate the applet logic as <module>_applet.py. This gives instant
+feedback without rebuilding HTML.
 
-  Note: bg-page and bg-canvas are intentionally the same.
-  The canvas blends flush into the page background.
+[AGENT]
+When asked to generate a Python prototype:
+  - Embed the full HTML/JS as a multiline string:   HTML = r"""..."""
+  - Use ThreadingMixIn + HTTPServer
+  - Expose a single /api/compute POST endpoint that accepts JSON and
+    returns JSON
+  - The compute function raises ValueError for bad inputs; the handler
+    returns {"error": "..."} on exception
+  - The browser-side JS does:
+      fetch('/api/compute', { method:'POST', ... })
+    and awaits the result
+  - Keep the prototype's panel simpler than the final HTML
+    (no sliders needed, just <input type="number">)
 
---------------------------------------------------------------------------------
-  PROPELLANT PARTICLE COLORS (simulation canvas only)
---------------------------------------------------------------------------------
 
-  H₂O         : #ffb17a   glow rgba(255,177,122,0.22)   radius 3.5px
-  Hydrazine   : #ff6d00   glow rgba(255,109,0,0.22)     radius 4.5px
-  Argon       : #d500f9   glow rgba(213,0,249,0.22)     radius 5.0px
-  Lithium     : #ff1744   glow rgba(255,23,68,0.22)     radius 3.0px
+STAGE 2 — STANDALONE HTML APPLET
+----------------------------------
+[DEV]
+Once the physics and visualization are correct in the prototype, convert to a
+standalone HTML file. The compute logic moves fully into the browser.
 
-  Particle glow drawn at 2.8× particle radius, full opacity, then
-  solid core drawn at 1× radius on top.
+[AGENT]
+When converting prototype to standalone applet:
+  - Replace all fetch('/api/compute') calls with a local compute(...) function
+    that throws Error (not ValueError)
+  - Add the full panel design (sliders, preset dropdowns, display toggles,
+    output table, legend)
+  - Add the quiz overlay system (see Section 10)
+  - Add the MODE and QUIZ_COMPLETED constants at the top of the
+    <script type="module"> block
+  - One file per MODE variant (circle / single / double)
+  - Only MODE and QUIZ_COMPLETED differ between variant files
 
---------------------------------------------------------------------------------
-  LAYOUT
---------------------------------------------------------------------------------
 
-  Page max-width  : min(1040px, calc(100vw - 32px))
-                    stored as --page-w
-                    applied to: #hdr, .page-intro, .clarify-section,
-                                #theory, .demo-hdr-row, .demo-blurb,
-                                #app, footer
+STAGE 3 — WEBPAGE ASSEMBLY
+----------------------------
+[DEV]
+Provide the Webpage Content Doc. Claude assembles the HTML page from
+components in Section 5.
 
-  Page padding    : 22px 16px 36px (top / sides / bottom)
+[AGENT]
+When building the webpage:
+  - Copy explanatory text VERBATIM from the content document — do not
+    paraphrase
+  - Each quiz question immediately precedes the demo it unlocks
+  - Derivations go inside details.deriv-detail inside the relevant
+    theory-block
+  - The footer reads:  Created by [Name] — MIT Propulsion — [Year]
 
-  Body layout     : flex column, align-items center
+________________________________________________________________________________
+SECTION 4 — DESIGN SYSTEM
+________________________________________________________________________________
 
-  Section vertical rhythm:
-    Between major sections   : margin-bottom 20px
-    Theory blocks            : margin-bottom 16px
-    Theory block padding     : 16px 18px
-    Clarify body padding     : 10px 18px 14px
-    Output cell padding      : 10px 14px
+4.1  CSS CUSTOM PROPERTIES
+---------------------------
+Always declare ALL of the following in :root on every HTML file.
 
-  Simulation app (#app):
-    Top row      : flex row, canvas left (flex 0 0 auto), controls right (flex 1 1 auto)
-    Canvas size  : 700 × 400 px (intrinsic); scales down on narrow viewports
-    Output bar   : flex row of 3 equal cells, border-top separating from canvas
+  /* --- Physics highlight colors --- */
+  --c-thrust:      #FF4400    /* F, thrust, mass flow (orange-red)  */
+  --c-ve:          #3DBFFF    /* velocity, r_L, omega_c (sky blue)  */
+  --c-mass:        #FF4400    /* alias for thrust — same color family */
+  --c-power:       #C060FF    /* charge q, electron (violet)        */
+  --c-press:       #00DDB5    /* B field, pressure (teal-green)     */
 
-  Responsive breakpoints:
+  /* --- UI chrome --- */
+  --c-accent:      #a0a0a0
+  --c-accent-bg:   rgba(160,160,160,0.07)
+  --c-accent-glow: rgba(160,160,160,0.13)
+
+  /* --- Background surface stack (darkest → lightest) --- */
+  --bg-page:       #090909    /* outermost page background              */
+  --bg-panel-1:    #0e0e0e    /* primary panel / card background        */
+  --bg-panel-2:    #121212    /* summary / collapsed state background   */
+  --bg-panel-3:    #171717    /* mid-level panel                        */
+  --bg-panel-4:    #1d1d1d    /* slider textbox background              */
+  --bg-input:      #191919    /* deriv-detail summary background        */
+  --bg-out-cell:   #0c0c0c    /* output bar cells                       */
+  --bg-canvas:     #090909    /* simulation canvas (same as bg-page,    */
+                              /* intentional — canvas bleeds into page) */
+  --bg-diagram:    #0e0e0e    /* SVG diagram background                 */
+
+  /* --- Borders --- */
+  --border:        #282828
+
+  /* --- Text --- */
+  --text-main:     #d6d6d6    /* body copy                */
+  --text-secondary:#aaaaaa    /* secondary body           */
+  --text-muted:    #7a7a7a    /* labels, captions, footer */
+  --text-heading:  #f0f0f0    /* headings, summary text   */
+
+  /* --- Blue scale (readouts, links) --- */
+  --hi-blue:       #3DBFFF
+  --hi-blue-soft:  #9FE6FF
+
+  /* --- Layout --- */
+  --page-w: min(1500px, calc(100vw - 48px))
+  /* NOTE: modules with a smaller 2D canvas use
+           min(1040px, calc(100vw - 32px)) instead */
+
+
+4.2  TYPOGRAPHY
+---------------
+Primary font:  Barlow (Google Fonts — see Section 2 for import URL)
+Monospace:     'Courier New', monospace
+SVG fallback:  'Segoe UI', sans-serif
+
+[AGENT]
+Rows marked ← LOCKED must never be resized or reweighted.
+
+  CONTEXT / ELEMENT                 FONT         SIZE     WEIGHT   NOTES
+  --------------------------------  -----------  -------  -------  ---------------------------
+  h1  Page heading                  Barlow       21px     700
+  h2  Section heading               Barlow       17px     700
+  Page intro (.page-intro)          Barlow       16.5px   400
+  Clarify body / .th-body           Barlow       16.5px   400      line-height 1.70
+  Demo blurb                        Barlow       16px     400      line-height 1.65
+  Body / labels — applet page       Barlow       20.5px   400–600  (3D-viewport pages)
+  Body / labels — control panel     Barlow       13px     400–600
+  Radio row labels                  Barlow       16px     400
+  Clarify detail summary            Barlow       16.5px   600
+  Section headers (.th-hdr etc.)    Barlow       13px     700      uppercase, ls 1.2px
+  Badge text                        Barlow       12px     700      uppercase, ls 1px
+  Slider label (.sl-label)          Barlow       13px     —        uppercase, ls 0.7px
+  Eq step label (.eq-step-label)    Barlow       11px     —        uppercase, ls 0.8px
+  Deriv detail summary              Barlow       12px     700      uppercase, ls 0.9px
+  Footer                            Barlow       14.5px   —
+  Eq caption (.eq-caption)          Barlow       14.5px   —
+  Slider textbox input              Courier New  14.5px   —
+  Numbers in panel (readouts)       Courier New  19px     400
+  Output table numbers              Courier New  13px     400
+  .out-label  ← LOCKED              —            9px      —        uppercase, ls 0.7px
+  .out-val    ← LOCKED              Courier New  19px     600
+  .out-sub    ← LOCKED              Courier New  11.5px   —
+  KaTeX inline                      —            1.25em   —        relative to parent
+  KaTeX display                     —            1.20em   —        relative to parent
+
+
+4.3  COLOR SEMANTICS — PHYSICS VARIABLES
+-----------------------------------------
+[AGENT]
+Always color-code physics variables consistently in BOTH prose and equations.
+
+  PROSE & EQUATION COLORS:
+
+  VARIABLE                    COLOR     CSS CLASSES              KATEX
+  --------------------------  --------  -----------------------  --------------------------
+  F, thrust, mass m, ṁ        #FF4400   .hl-thrust .hl-F         \textcolor{#FF4400}{...}
+                                        .hl-m .hl-mass
+  v, v_perp, r_L, omega_c,    #3DBFFF   .hl-ve .hl-v             \textcolor{#3DBFFF}{...}
+  Isp
+  q, electron, power,         #C060FF   .hl-power .hl-q          \textcolor{#C060FF}{...}
+  efficiency η
+  B field, pressure p         #00DDB5   .hl-B .hl-press          \textcolor{#00DDB5}{...}
+
+  3D SCENE OBJECT COLORS:
+
+  OBJECT                      COLOR     NOTES
+  --------------------------  --------  ------------------------------------------
+  Ion particle                #ff6e40
+  Electron                    #4fc3f7
+  Velocity arrow V            #ffd54f
+  Force arrow F_b             #ef5350
+  V_par arrow                 #66bb6a   parallel to B
+  V_perp arrow                #ab47bc   perpendicular to B
+  B field line tubes          #1a5272   vibrant blue (NOT the dark prototype value)
+  B field arrow heads         #3a9bd5   bright cyan-blue (NOT #37474f)
+  Center dashed guideline     #5aafcc
+
+
+4.4  SCROLLBAR
+--------------
+Include in every HTML file:
+
+  ::-webkit-scrollbar              { width:6px; height:6px; }
+  ::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+  ::-webkit-scrollbar-thumb        { background:#383838; border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover  { background:#d0d0d0; }
+
+
+4.5  LAYOUT & SPACING
+----------------------
+[AGENT] Apply the following layout rules consistently across all pages.
+
+  PAGE STRUCTURE:
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 22px 16px 36px;
+    }
+    /* All direct children: width: var(--page-w) */
+
+  PAGE WIDTH — TWO VARIANTS:
+    3D-viewport applet pages (Larmor, field-based sims):
+      --page-w: min(1500px, calc(100vw - 48px))
+    Smaller-canvas module pages (thruster, basic sims):
+      --page-w: min(1040px, calc(100vw - 32px))
+    Applied to: #hdr, .page-intro, .clarify-section, #theory,
+                .demo-hdr-row, .demo-blurb, #app, footer
+
+  SECTION VERTICAL RHYTHM:
+    Between major sections:    margin-bottom: 20px
+    Theory blocks:             margin-bottom: 16px
+    Theory block padding:      16px 18px
+    Clarify body padding:      10px 18px 14px
+    Output cell padding:       10px 14px
+
+  SIMULATION APP — 3D viewport modules (Larmor etc.):
+    display: flex; flex-direction: row;
+    #viewport: flex: 1 1 auto (Three.js canvas fills remainder)
+    #panel:    width: 400px; min-width: 400px; (see Section 6.1)
+
+  SIMULATION APP — smaller 2D canvas modules (thruster etc.):
+    Top row: flex row, canvas left (flex 0 0 auto),
+             controls right (flex 1 1 auto)
+    Canvas intrinsic size: 700 × 400 px (scales down on narrow viewports)
+    Output bar: flex row of 3 equal cells,
+                border-top separating from canvas
+
+  IFRAME HEIGHT:  680px (all embedded applet demos)
+
+  RESPONSIVE BREAKPOINTS (smaller 2D canvas modules only):
     ≤ 980px : canvas stacks above controls (flex-wrap wrap, full width)
     ≤ 720px : output bar stacks vertically
 
---------------------------------------------------------------------------------
-  COMPONENT SPECIFICATIONS
---------------------------------------------------------------------------------
+
+4.6  COMPONENT SPECIFICATIONS
+------------------------------
+[AGENT] Use these exact CSS specs for all recurring UI components.
 
   BADGE
-    font-size       : 12px
-    font-weight     : 700
-    letter-spacing  : 1px
-    text-transform  : uppercase
-    padding         : 2px 8px
-    border          : 1px solid #a0a0a0
-    border-radius   : 3px
-    color           : #a0a0a0
-    background      : rgba(160,160,160,0.07)
-    white-space     : nowrap
+    font-size: 12px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; padding: 2px 8px;
+    border: 1px solid #a0a0a0; border-radius: 3px;
+    color: #a0a0a0; background: rgba(160,160,160,0.07);
+    white-space: nowrap;
 
   SECTION HEADER LABELS  (.sect-hdr, .th-hdr, .clarify-hdr)
-    font-size       : 13px
-    font-weight     : 700
-    color           : #a0a0a0
-    letter-spacing  : 1.2px
-    text-transform  : uppercase
-    padding-bottom  : 5px
-    border-bottom   : 1px solid #282828
-    margin-bottom   : 7px (sect-hdr) / 12px (th-hdr)
+    font-size: 13px; font-weight: 700; color: #a0a0a0;
+    letter-spacing: 1.2px; text-transform: uppercase;
+    padding-bottom: 5px; border-bottom: 1px solid #282828;
+    /* .sect-hdr:  margin-bottom: 7px  */
+    /* .th-hdr:    margin-bottom: 12px */
 
   CLARIFY / ACCORDION SECTION  (.clarify-section)
-    border          : 1px solid #282828
-    border-radius   : 6px
-    overflow        : hidden
-    background      : #0e0e0e
+    border: 1px solid #282828; border-radius: 6px;
+    overflow: hidden; background: #0e0e0e;
 
-    summary styling:
-      list-style    : none  (removes default arrow)
-      ::before      : ▶ triangle, 10px, color #a0a0a0
-                      rotates 90° when [open], transition 0.15s ease
-      padding       : 10px 14px
-      background    : #121212
-      font-size     : 16.5px  weight 600  color #f0f0f0
+    summary {
+      list-style: none;
+      padding: 10px 14px; background: #121212;
+      font-size: 16.5px; font-weight: 600; color: #f0f0f0;
+    }
+    summary::before {
+      content: '▶'; font-size: 10px; color: #a0a0a0;
+      display: inline-block; margin-right: 8px;
+      transition: transform 0.15s ease;
+    }
+    details[open] > summary::before { transform: rotate(90deg); }
+    summary::-webkit-details-marker { display: none; }
 
-    body styling:
-      padding       : 10px 18px 14px
-      border-top    : 1px solid #282828
-      background    : #0e0e0e
+    .clarify-body {
+      padding: 10px 18px 14px; border-top: 1px solid #282828;
+      background: #0e0e0e;
+    }
 
   DERIVATION DETAILS  (details.deriv-detail)
-    border          : 1px solid #282828
-    border-radius   : 4px
-    margin          : 8px 0
+    border: 1px solid #282828; border-radius: 4px; margin: 8px 0;
 
-    summary:
-      background    : #191919
-      font-size     : 12px  weight 700  letter-spacing 0.9px  uppercase
-      color         : #a0a0a0
-      ::before      : ▶ 9px, same rotation behavior as clarify
+    summary {
+      list-style: none; background: #191919;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 0.9px; text-transform: uppercase; color: #a0a0a0;
+    }
+    summary::before {
+      content: '▶'; font-size: 9px; color: #a0a0a0;
+      display: inline-block; margin-right: 6px;
+      transition: transform 0.15s ease;
+    }
+    details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
 
-    inner body (.deriv-inner):
-      padding       : 10px 14px 14px
-      background    : #0e0e0e
-      border-top    : 1px solid #282828
+    .deriv-inner {
+      padding: 10px 14px 14px; background: #0e0e0e;
+      border-top: 1px solid #282828;
+    }
 
   EQUATION STEP LABEL  (.eq-step-label)
-    display         : block
-    font-size       : 11px
-    letter-spacing  : 0.8px
-    text-transform  : uppercase
-    color           : #8a8b8c
-    margin-top      : 10px
+    display: block; font-size: 11px; letter-spacing: 0.8px;
+    text-transform: uppercase; color: #8a8b8c; margin-top: 10px;
 
   EQUATION CAPTION  (.eq-caption)
-    display         : block
-    font-size       : 14.5px
-    color           : #7a7a7a
-    text-align      : center
-    margin-top      : 8px
-    padding-top     : 8px
-    border-top      : 1px solid #282828
+    display: block; font-size: 14.5px; color: #7a7a7a;
+    text-align: center; margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid #282828;
 
   EQUATION DIVIDER  (.eq-divider)
-    height          : 1px
-    background      : #282828
-    margin          : 14px 0
+    height: 1px; background: #282828; margin: 14px 0;
+
+  EQUATION CALLOUT  (.eq-callout)
+    background: #141414; border-left: 3px solid #383838;
+    padding: 8px 12px; margin: 8px 0; border-radius: 0 3px 3px 0;
+    font-size: 14px; color: #aaaaaa;
+    /* .eq-callout.highlight-blue:  border-left-color: #3DBFFF */
+    /* .eq-callout.highlight-green: border-left-color: #00DDB5 */
 
   SLIDER GROUP  (.sl-group)
-    layout          : flex column, gap 5px
+    display: flex; flex-direction: column; gap: 5px;
 
-    label (.sl-label):
-      font-size     : 13px
-      color         : #7a7a7a
-      uppercase, letter-spacing 0.7px
-
-    range input:
-      flex          : 1 1 auto
-      accent-color  : #a0a0a0
-
-    text input:
-      flex          : 0 0 66px  (fixed width, never shrinks)
-      font-size     : 14.5px  monospace
-      background    : #1d1d1d
-      color         : #a0a0a0
-      border        : 1px solid #282828
-      border-radius : 3px
-      text-align    : center
+    .sl-label {
+      font-size: 13px; color: #7a7a7a;
+      text-transform: uppercase; letter-spacing: 0.7px;
+    }
+    range input { flex: 1 1 auto; accent-color: #a0a0a0; }
+    text input  {
+      flex: 0 0 66px;       /* fixed width — must never shrink */
+      font-size: 14.5px; font-family: 'Courier New', monospace;
+      background: #1d1d1d; color: #a0a0a0;
+      border: 1px solid #282828; border-radius: 3px; text-align: center;
+    }
 
   OUTPUT BAR CELLS  (.out-cell)
-    flex            : 1 1 0  (equal width)
-    padding         : 10px 14px
-    background      : #0c0c0c
-    border-right    : 1px solid #282828
+    flex: 1 1 0;   /* equal width */
+    padding: 10px 14px; background: #0c0c0c;
+    border-right: 1px solid #282828;
 
-    .out-label : 9px    uppercase  letter-spacing 0.7px  color #7a7a7a
-    .out-val   : 19px   weight 600  monospace  (color set per-quantity inline)
-    .out-sub   : 11.5px monospace  (color set per-quantity inline)
+    .out-label  {
+      font-size: 9px; text-transform: uppercase;
+      letter-spacing: 0.7px; color: #7a7a7a;
+    }
+    .out-val    { font-size: 19px; font-weight: 600;
+                  font-family: 'Courier New', monospace; }
+    .out-sub    { font-size: 11.5px;
+                  font-family: 'Courier New', monospace; }
+    /* color on .out-val and .out-sub is set inline per quantity */
 
---------------------------------------------------------------------------------
-  MATH RENDERING
---------------------------------------------------------------------------------
+  [AGENT] .out-label / .out-val / .out-sub sizes and weights are LOCKED.
+  Never change them.
 
-  Library         : KaTeX 0.16.9  (CDN)
-  CSS             : https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css
-  JS              : https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js
-  Auto-render     : https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js
 
-  Delimiters configured:
-    Display block  : $$...$$  or  \[...\]
-    Inline         : $...$    or  \(...\)
+4.7  MATH RENDERING
+--------------------
+  Library:  KaTeX 0.16.9  (CDN — exact URLs in Section 2)
 
-  Color in equations:
-    Use \textcolor{#RRGGBB}{...} with the physics-quantity hex codes above.
-    Example: \textcolor{#FF4400}{\dot{m}}  for mass flow rate
+  Delimiters registered in auto-render config:
+    Display block:   $$...$$   or   \[...\]
+    Inline:          $...$     or   \(...\)
 
-  Boxed results:
-    Use \boxed{...} for final derived expressions.
+  Font sizes (relative to parent element):
+    KaTeX inline:    font-size: 1.25em
+    KaTeX display:   font-size: 1.20em
 
---------------------------------------------------------------------------------
-  SVG DIAGRAM CONVENTIONS
---------------------------------------------------------------------------------
+  Coloring equations:
+    Use \textcolor{#RRGGBB}{...} with the physics-quantity hex codes.
+    \textcolor{#FF4400}{...}   thrust / mass
+    \textcolor{#3DBFFF}{...}   velocity / r_L
+    \textcolor{#C060FF}{...}   charge q
+    \textcolor{#00DDB5}{...}   B field / pressure
 
-  Background fill       : #0e0e0e  (matches --bg-diagram)
-  Control volume dashes : stroke #404040  stroke-width 1.8  dasharray 7 4
-  CV label text         : fill #404040  font-size 9.5  letter-spacing 1.5  weight 700
-  Assumption caption    : fill #404040  font-size 9  letter-spacing 0.3
+  Boxed results: use \boxed{...} for final derived expressions.
+  Rule: the boxed result appears ABOVE the details.deriv-detail element
+  so it remains visible without expanding the derivation.
 
-  Arrow marker colors match physics-quantity palette:
-    Exhaust velocity arrows  : #3DBFFF
-    Thrust / force arrows    : #FF4400
-    Mass flow indicator      : #FF4400
 
-  Spacecraft body fill      : #d6deed  (light blue-gray)
-  Spacecraft shading strip  : #c2ccde  (slightly darker)
-  Exhaust plume channel     : rgba(0,180,220,0.09)
+4.8  SVG DIAGRAM CONVENTIONS
+-----------------------------
+  Background fill:          #0e0e0e  (matches --bg-diagram)
+  Control volume dashes:    stroke #404040; stroke-width 1.8; dasharray 7 4
+  CV label text:            fill #404040; font-size 9.5; ls 1.5; weight 700
+  Assumption caption:       fill #404040; font-size 9; ls 0.3
 
-  Label fonts in SVG        : 'Courier New', monospace  (italic for variable names)
-  Subscript offset          : +3px y from variable baseline
+  Arrow colors → match physics-quantity palette:
+    Exhaust velocity arrows:   #3DBFFF
+    Thrust / force arrows:     #FF4400
+    Mass flow indicator:       #FF4400
 
-  Exit plane dashed line    : stroke #FF4400  stroke-width 1.4  dasharray 4 3  opacity 0.72
-  Ambient pressure labels   : opacity 0.38  (intentionally de-emphasized)
+  Spacecraft body:     fill #d6deed (light blue-gray)
+  Spacecraft shading:  fill #c2ccde (slightly darker strip)
+  Exhaust plume:       rgba(0,180,220,0.09)
 
---------------------------------------------------------------------------------
-  STAR FIELD (simulation background)
---------------------------------------------------------------------------------
+  Variable labels:     font-family 'Courier New', monospace; font-style italic
+  Subscript offset:    +3px y from variable baseline
 
-  Count           : 220 stars
-  Position        : random over full canvas extent
-  Radius          : random 0.15 – 1.25 px
-  Opacity         : random 0.2 – 0.7
-  Color           : rgba(255,255,255,α)
-  Regenerated     : once on page load, static thereafter
+  Exit plane dashed line:
+    stroke #FF4400; stroke-width 1.4; dasharray 4 3; opacity 0.72
+  Ambient pressure labels:  opacity 0.38  (intentionally de-emphasized)
 
---------------------------------------------------------------------------------
-  CONSTANTS (JavaScript)
---------------------------------------------------------------------------------
 
-  G0              : 9.80665  m/s²
-  MAX_THRUST_VIS  : 2000 N   (thrust arrow scales to this)
-  MAX_VE_VIS      : 50000 m/s (particle speed scales to this)
-  MAX_ORBS        : 2000     (particle count cap)
+4.9  STAR FIELD (canvas simulation background)
+----------------------------------------------
+  Count:     220 stars
+  Position:  random over full canvas extent
+  Radius:    random  0.15 – 1.25 px
+  Opacity:   random  0.2  – 0.7
+  Color:     rgba(255,255,255, α)
+  Timing:    generated once on page load; static thereafter
 
---------------------------------------------------------------------------------
-  NAMING CONVENTIONS
---------------------------------------------------------------------------------
 
-  IDs             : kebab-case   e.g. #out-bar, #cv-wrap, #sl-flow
-  Classes         : kebab-case   e.g. .clarify-section, .eq-step-label
-  JS variables    : camelCase
-  JS constants    : UPPER_SNAKE_CASE
-  CSS variables   : --prefix-name
+4.10  PROPELLANT PARTICLE COLORS (thruster simulation canvas only)
+------------------------------------------------------------------
+  NOTE: These colors apply to particle simulations in THRUSTER modules.
+  They are NOT used in the Larmor 3D applet (see Section 4.3 for Larmor colors).
 
-  Section header labels always:  uppercase, letter-spacing 1.2px, color #a0a0a0
+  PROPELLANT   COLOR     GLOW                        CORE RADIUS
+  -----------  --------  --------------------------  -----------
+  H₂O          #ffb17a   rgba(255,177,122,0.22)       3.5 px
+  Hydrazine    #ff6d00   rgba(255,109,0,0.22)         4.5 px
+  Argon        #d500f9   rgba(213,0,249,0.22)         5.0 px
+  Lithium      #ff1744   rgba(255,23,68,0.22)         3.0 px
 
-  All accordion summaries use custom ::before triangle rather than
-  native browser disclosure widget (list-style: none on summary,
-  ::-webkit-details-marker hidden).
+  Rendering order: draw glow circle at 2.8× core radius (full opacity),
+  then draw solid core at 1× radius on top.
 
---------------------------------------------------------------------------------
-  END OF STYLE GUIDE
---------------------------------------------------------------------------------
+
+4.11  APPLICATION CONSTANTS (non-physics UI/simulation values)
+--------------------------------------------------------------
+  [AGENT] Physics constants (AMU, E_C) live in Section 8.
+  The values below are simulation/display constants only.
+
+  THRUSTER SIMULATION MODULES:
+    G0              = 9.80665        m/s²   (standard gravity)
+    MAX_THRUST_VIS  = 2000           N      (thrust arrow max scale)
+    MAX_VE_VIS      = 50000          m/s    (particle speed max scale)
+    MAX_ORBS        = 2000                  (particle count cap)
+
+  LARMOR / 3D SCENE MODULES (see also Section 7.1 for full list):
+    SCENE_R         = 5.0                  (base scale unit — all geometry
+                                            sizes derive from this)
+    SEG_PER_TURN    = 48                   (helix segments per full turn)
+    TRAVEL_SEC      = 7.0                  (animation cycle length, s)
+    END_PAUSE       = 0.6                  (pause before loop restart, s)
+    GAUSS_TO_TESLA  = 1e-4
+    RADIUS_REF_M    = 1.0
+    TRAVEL_MULT     = 3
+    AXIAL_BASE      = SCENE_R * 1.7
+    BASE_TURNS      = 3
+    MAX_TURNS       = 30
+    OMEGA_REF       = 7.0e5
+    FIELD_HALF      = SCENE_R * 2.8
+    N_CIRCLE_ARROWS = 8
+
+
+4.12  NAMING CONVENTIONS
+------------------------
+  IDs             kebab-case         e.g. #out-bar, #sl-flow, #demo1-frame
+  Classes         kebab-case         e.g. .clarify-section, .eq-step-label
+  JS variables    camelCase
+  JS constants    UPPER_SNAKE_CASE
+  CSS variables   --prefix-name
+
+  Section header labels: always uppercase, letter-spacing 1.2px, color #a0a0a0
+
+  [AGENT] All accordion summaries must use a custom ::before triangle (▶)
+  rather than the native browser disclosure widget. Always include:
+    summary { list-style: none; }
+    summary::-webkit-details-marker { display: none; }
+
+________________________________________________________________________________
+SECTION 5 — WEBPAGE COMPONENT LIBRARY
+________________________________________________________________________________
+
+[AGENT]
+The webpage is a single-column centered layout. Build top-to-bottom:
+  header → intro → quiz+demo pairs → clarify section →
+  theory blocks with equations → footer
+
+
+5.1  PAGE SHELL
+----------------
+  <body>
+    <!-- flex column, align-items:center, padding:22px 16px 36px -->
+    <!-- All direct children: width: var(--page-w) -->
+  </body>
+
+
+5.2  HEADER
+------------
+  <div id="hdr">
+    <!-- flex row, align-items:baseline, gap:12px -->
+    <h1>Module Title</h1>
+    <span class="badge">Plasma Physics</span>
+    <!-- badge: uppercase, border, 12px, #a0a0a0 (see Section 4.6) -->
+  </div>
+
+
+5.3  INTRO PARAGRAPH
+---------------------
+  <p class="page-intro">
+    <!-- font-size:16.5px, line-height:1.72 -->
+    <!-- Wrap key terms: -->
+    <span class="key hl-thrust">chemical rocket engines</span>
+    <!-- "key" = font-weight:700, font-style:italic -->
+  </p>
+
+
+5.4  QUIZ SECTION
+------------------
+  <div class="quiz-section">
+    <div class="quiz-hdr">Conceptual Question</div>
+
+    <!-- One .quiz-block per question -->
+    <!-- data-unlocks = id of the iframe to unlock -->
+    <div class="quiz-block" data-unlocks="demo1-frame">
+      <p class="quiz-q">Question text?</p>
+      <div class="quiz-options">
+        <button class="quiz-opt" data-correct="false">
+          <span class="quiz-opt-label">a</span>Wrong answer
+        </button>
+        <button class="quiz-opt" data-correct="true">
+          <span class="quiz-opt-label">b</span>Correct answer
+        </button>
+        <button class="quiz-opt" data-correct="false">
+          <span class="quiz-opt-label">c</span>Wrong answer
+        </button>
+      </div>
+      <div class="quiz-feedback"></div>
+    </div>
+  </div>
+
+  Rules:
+  - Exactly one correct answer per question (data-correct="true")
+  - On any click: disable all buttons, mark correct green, mark clicked
+    wrong red (if incorrect), show feedback text
+  - Unlock named iframe regardless of correct/wrong — the gate is
+    released simply by attempting the question
+
+
+5.5  APPLET HOST (iframe)
+--------------------------
+  <div class="theory-block applet-host">
+    <div class="th-hdr">Demo N — Descriptive Title</div>
+    <iframe
+      id="demo1-frame"
+      class="demo-frame"
+      src="larmor_circle.html"
+      title="Accessible description"
+    ></iframe>
+  </div>
+
+  CSS rules:
+    .demo-frame {
+      display: block; width: 100%; height: 680px;
+      border: none; border-top: 1px solid var(--border);
+    }
+    .theory-block.applet-host { padding: 16px 0 0; }
+    .theory-block.applet-host .th-hdr { margin: 0 18px 12px; }
+
+  Note: zero side padding so iframe bleeds edge-to-edge.
+
+
+5.6  THEORY BLOCK
+------------------
+  <div class="theory-block">
+    <div class="th-hdr">Section Title</div>
+    <p class="th-body">Explanatory paragraph verbatim from content doc.</p>
+
+    <!-- Optional: display equation (KaTeX) -->
+    $$
+    \boxed{
+      \textcolor{#3DBFFF}{r_L} =
+      \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}
+           {|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+    }
+    $$
+
+    <!-- Optional: derivation detail (see 5.8) -->
+  </div>
+
+
+5.7  CLARIFY SECTION (Dropdown Q&A)
+-------------------------------------
+  <div class="clarify-section">
+    <div class="clarify-hdr">Conceptual Questions</div>
+
+    <details class="clarify-detail">
+      <summary>Question text as summary?</summary>
+      <div class="clarify-body">
+        Answer text verbatim from content doc.
+      </div>
+    </details>
+  </div>
+
+  The summary::before pseudo-element renders a ▶ triangle (see Section 4.6).
+  Do not add custom toggle icons.
+
+
+5.8  DERIVATION DETAIL
+-----------------------
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Step name</span>
+        <span class="eq-note">Prose note about this step.</span>
+        $$ equation $$
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Next step</span>
+        $$ equation $$
+
+        <div class="eq-callout">
+          A callout note.
+        </div>
+        <div class="eq-callout highlight-blue">
+          A blue callout — use for results or insights.
+        </div>
+        <div class="eq-callout highlight-green">
+          A green callout — use for physical interpretation.
+        </div>
+
+      </div>
+    </details>
+  </div>
+
+  AVAILABLE ELEMENTS:
+    .eq-step-label    Uppercase step name (e.g., "Lorentz Force")
+    .eq-note          Italic prose between steps
+    .eq-caption       Centered caption below a display equation
+    .eq-divider       1px horizontal rule between major steps
+    .eq-callout       Grey callout box for notes/caveats
+    .eq-callout.highlight-blue    Blue callout (result / insight)
+    .eq-callout.highlight-green   Green callout (physical interpretation)
+
+
+5.9  FOOTER
+------------
+  <footer>Created by [Full Name] &mdash; MIT Propulsion &mdash; [Year]</footer>
+
+  CSS: font-size 14.5px; color: var(--text-muted);
+
+________________________________________________________________________________
+SECTION 6 — APPLET COMPONENT LIBRARY
+________________________________________________________________________________
+
+The applet is a display:flex row:
+  - #viewport   flex:1 (Three.js canvas)
+  - #panel      fixed 400px width (controls)
+
+
+6.1  PANEL WIDTH
+-----------------
+[AGENT]
+The panel is always 400px. Never reduce this — unit labels like "rad/s"
+and "J/T" will be clipped at narrower widths.
+
+  #panel {
+    width: 400px;
+    min-width: 400px;
+  }
+
+
+6.2  PARTICLE BLOCK (pblock)
+-----------------------------
+  <div class="pblock" id="block-A">
+    <div class="phead">
+      <span class="dot" style="background:#ff6e40"></span>
+      <span id="A-head">Particle</span>
+    </div>
+
+    <!-- Preset dropdown -->
+    <div class="cf-param">
+      <div style="display:grid; grid-template-columns:52px 1fr;">
+        <span class="cf-desc">Preset</span>
+        <select id="A-preset" class="cf-inp">
+          <option value="custom">Custom</option>
+          <option value="xenon" selected>Xenon+ (131.29 amu)</option>
+          <option value="krypton">Krypton+ (83.80 amu)</option>
+          <option value="iodine">Iodine+ (126.90 amu)</option>
+          <option value="electron">Electron (e-)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Mass input -->
+    <!-- cf-param-row grid: 22px 1fr 96px 34px -->
+    <div class="cf-param">
+      <div class="cf-param-row">
+        <span class="cf-sym"><i>m</i></span>
+        <span class="cf-desc">Mass</span>
+        <input type="number" id="A-mass" class="cf-inp" value="131.293">
+        <span class="cf-unit">amu</span>
+      </div>
+    </div>
+
+    <!-- Charge input (magnitude + sign selector) -->
+    <!-- grid: 22px 1fr 72px 36px 20px -->
+    <div class="cf-param">
+      <div style="display:grid;
+                  grid-template-columns:22px 1fr 72px 36px 20px;">
+        <span class="cf-sym"><i>q</i></span>
+        <span class="cf-desc">Charge</span>
+        <input type="number" id="A-qmag" class="cf-inp" value="1">
+        <select id="A-sign" class="cf-inp-sm">
+          <option value="+">+</option>
+          <option value="-">−</option>
+          <option value="0">0</option>
+        </select>
+        <span style="font-size:14px; color:#555; font-style:italic;">e</span>
+      </div>
+    </div>
+  </div>
+
+  PRESET VALUES — DO NOT CHANGE (physics constants):
+    xenon:    { m: 131.293,         q: +1 }
+    krypton:  { m: 83.798,          q: +1 }
+    iodine:   { m: 126.90447,       q: +1 }
+    electron: { m: 5.48579909e-4,   q: -1 }
+
+
+6.3  FIELD & VELOCITY CONTROLS
+--------------------------------
+Every applet has B (Gauss), speed (m/s), and pitch angle theta.
+Each numeric input is paired with a range slider.
+Sliders update the number field on input and vice versa.
+
+  <!-- B field example -->
+  <div class="cf-param">
+    <div class="cf-param-row">
+      <span class="cf-sym">B</span>
+      <span class="cf-desc">Flux density</span>
+      <input type="number" id="inp-BG" class="cf-inp" value="300">
+      <span class="cf-unit">G</span>
+    </div>
+    <input type="range" id="sl-BG" class="cf-slider"
+           min="0" max="3000" value="300">
+    <div class="cf-out-hint" style="padding-left:30px;">
+      equiv. <span id="b-tesla">0.03000 T</span>
+    </div>
+  </div>
+
+  Tesla readout format:
+    fmtTesla(G * 1e-4) → "0.03000 T" or scientific if out of range.
+
+
+6.4  DISPLAY TOGGLES
+---------------------
+  <label class="cf-chk" for="chk-labels">
+    <input type="checkbox" id="chk-labels" checked>
+    Show charge / name label
+  </label>
+  <label class="cf-chk" for="chk-vel">
+    <input type="checkbox" id="chk-vel" checked>
+    Show velocity vector V
+  </label>
+  <label class="cf-chk" for="chk-vpar">
+    <input type="checkbox" id="chk-vpar">
+    Show parallel velocity V_par
+  </label>
+  <label class="cf-chk" for="chk-vperp">
+    <input type="checkbox" id="chk-vperp">
+    Show perp. velocity V_perp
+  </label>
+  <label class="cf-chk" for="chk-force">
+    <input type="checkbox" id="chk-force">
+    Show magnetic force F_b
+  </label>
+
+
+6.5  OUTPUT TABLE
+------------------
+Columns: right-aligned numerics (Courier New) with left-aligned label
+column. Use class="col-B" on second-particle cells so they can be hidden
+in single-particle modes.
+
+  Rows to include:
+    Larmor Radius          (r_L)
+    Cyclotron Frequency    (omega_c)
+    Magnetic Moment        (mu)
+    Parallel Velocity      (v_par)
+    Perpendicular Velocity (v_perp)
+
+
+6.6  LEGEND
+------------
+Always include at the bottom of the panel. The sw-rect class renders a
+small rectangle instead of a circle (used for the B-field line swatch).
+
+  Entries:
+    #ff6e40  Particle (or Ion)
+    #4fc3f7  Electron          (hidden in single-particle modes)
+    #ffd54f  V velocity
+    #66bb6a  V_par velocity parallel B
+    #ab47bc  V_perp velocity perpendicular B
+    #ef5350  F_b magnetic force
+    #2a5a78  B field (+z)      (sw-rect style)
+
+________________________________________________________________________________
+SECTION 7 — THREE.JS ARCHITECTURE
+________________________________________________________________________________
+
+7.1  SCALE CONSTANTS
+---------------------
+[AGENT]
+Always derive geometric sizes from SCENE_R as a multiplier.
+Never hardcode absolute values in the 3D scene.
+
+  const SCENE_R         = 5.0;    // base scale unit for everything
+  const SEG_PER_TURN    = 48;     // helix segments per full turn
+  const TRAVEL_SEC      = 7.0;    // seconds for one animation cycle
+  const END_PAUSE       = 0.6;    // pause at end before loop restart
+  const GAUSS_TO_TESLA  = 1e-4;
+  const RADIUS_REF_M    = 1.0;    // Larmor radius mapping ~half SCENE_R
+  const TRAVEL_MULT     = 3;
+  const AXIAL_BASE      = SCENE_R * 1.7;
+  const BASE_TURNS      = 3;
+  const MAX_TURNS       = 30;
+  const OMEGA_REF       = 7.0e5;
+  const FIELD_HALF      = SCENE_R * 2.8;
+  const N_CIRCLE_ARROWS = 8;      // directional arrows in circle mode
+
+
+7.2  SCENE SETUP
+-----------------
+  scene.background = new THREE.Color(0x090909);
+  camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 5000);
+  camera.position.set(-SCENE_R*4.5, SCENE_R*2.2, SCENE_R*0.8);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.85);
+  dl.position.set(1, 2, 3);
+  scene.add(dl);
+
+
+7.3  DISPLAY RADIUS MAPPING
+-----------------------------
+Larmor radii span many orders of magnitude. Map to display radius with an
+arctan compression so extreme values remain visible:
+
+  function displayRadiusFromLarmor(rL) {
+    if (!rL || rL <= 0) return 0;
+    return SCENE_R * 1.35 * (2 / Math.PI) * Math.atan(rL / RADIUS_REF_M);
+  }
+
+In double mode, the electron radius is additionally clamped below
+ionR * 0.75 to ensure visual distinction from the ion.
+
+
+7.4  TRAJECTORY TYPES
+----------------------
+Three trajectory cases determined by compute() output:
+
+  CASE         CONDITION          VISUAL
+  -----------  -----------------  ------------------------------------------
+  atRest       v === 0            Stationary sphere, no path rendered
+  pitchLine    q === 0 or B === 0 Straight TubeGeometry in velocity direction
+  Helix        otherwise          CatmullRomCurve3 + TubeGeometry
+
+  Helix ghost trail:  opacity 0.30  (LineBasicMaterial)
+  Helix tube:         opacity 0.75  (MeshStandardMaterial)
+
+
+7.5  ANIMATION CYCLE
+---------------------
+  // Global time state
+  let cycleT = 0, cyclePauseT = 0;
+
+  // In animate():
+  const s   = Math.min(cycleT / duration, 1.0);   // s in [0, 1]
+  const pos = positionAt(cur, s);
+
+  // After all particles reach end:
+  if (cycleT >= maxDur) {
+    cyclePauseT += dt;
+    if (cyclePauseT >= END_PAUSE) resetCycle();
+  } else {
+    cycleT += dt;
+  }
+
+The animation always loops. TRAVEL_SEC = 7.0 is intentionally slow — it
+should feel deliberate and educational.
+
+
+7.6  TEXT SPRITES
+------------------
+All labels use THREE.Sprite with CanvasTexture.
+
+  Pattern:
+    1. Create canvas, measure text width with ctx.measureText()
+    2. Draw rounded-rect background  (rgba(9,9,9,0.78))
+    3. Draw border stroke            (rgba(207,216,220,0.22))
+    4. Draw text in color, centered
+    5. Build CanvasTexture → SpriteMaterial → Sprite
+    6. Scale sprite so height matches argument; width proportional
+    7. sp.renderOrder = 999   (always renders on top of geometry)
+
+  The B-field label uses makeBLabelSprite() which draws a vector arrow
+  above the letter "B" using Canvas 2D paths (NOT Unicode diacritics),
+  ensuring identical rendering on all platforms.
+  Arrow color: #4a9fc0.
+
+
+7.7  VECTOR ARROWS (ArrowHelper sizes)
+---------------------------------------
+  // Velocity arrow
+  new THREE.ArrowHelper(dir, origin, SCENE_R*0.85, 0xffd54f,
+                        SCENE_R*0.22, SCENE_R*0.10)
+
+  // Force arrow F_b
+  new THREE.ArrowHelper(dir, origin, SCENE_R*0.60, 0xef5350,
+                        SCENE_R*0.18, SCENE_R*0.09)
+
+  // Component arrows (v_par, v_perp)
+  new THREE.ArrowHelper(dir, origin, SCENE_R*0.85, color,
+                        SCENE_R*0.18, SCENE_R*0.09)
+
+  Force arrow F_b direction is always radially inward (centripetal):
+    new THREE.Vector3(pos.x, pos.y, 0).multiplyScalar(-1).normalize()
+
+________________________________________________________________________________
+SECTION 8 — PHYSICS & COMPUTE LAYER
+________________________________________________________________________________
+
+[AGENT]
+This function must be IDENTICAL in the Python prototype and all HTML applets.
+Never approximate or simplify the physics.
+
+  const AMU = 1.66053906660e-27;
+  const E_C = 1.602176634e-19;
+
+  function compute(m_amu, q_e, v, theta_deg, B) {
+
+    // Validate: all inputs must be finite numbers
+    // Validate: m_amu > 0, v >= 0, B >= 0
+
+    const m      = m_amu * AMU;
+    const q      = q_e   * E_C;
+    const th     = theta_deg * Math.PI / 180;
+    const v_par  = v * Math.cos(th);
+    const v_perp = v * Math.sin(th);
+    const absq   = Math.abs(q);
+    const signQ  = q > 0 ? 1 : (q < 0 ? -1 : 0);
+
+    // Edge case: particle at rest
+    if (v === 0) {
+      return { v_par:0, v_perp:0, r_L:null, omega_c:null, mu:null,
+               T_c:null, pitch:null, sign:signQ,
+               atRest:true, pitchLine:false };
+    }
+
+    // Edge case: no charge or no field → straight line
+    if (absq === 0 || B === 0) {
+      return { v_par, v_perp, r_L:null, omega_c:null, mu:null,
+               T_c:null, pitch:null, sign:signQ,
+               atRest:false, pitchLine:true };
+    }
+
+    const omega_c = absq * B / m;
+    const r_L     = v_perp ? m * v_perp / (absq * B) : 0.0;
+    const mu      = m * v_perp * v_perp / (2.0 * B);
+    const T_c     = 2.0 * Math.PI / omega_c;
+    const pitch   = v_par * T_c;
+
+    return { v_par, v_perp, r_L, omega_c, mu, T_c, pitch,
+             sign:signQ, atRest:false, pitchLine:false };
+  }
+
+OUTPUT FIELDS:
+  FIELD     UNIT    PANEL LABEL
+  --------- ------- -----------------------
+  r_L       m       Larmor Radius
+  omega_c   rad/s   Cyclotron Frequency
+  mu        J/T     Magnetic Moment
+  v_par     m/s     Parallel Velocity
+  v_perp    m/s     Perpendicular Velocity
+
+NUMBER FORMATTING:
+  fmt(x): returns scientific notation if |x| >= 1e4 or |x| < 1e-2,
+          otherwise toPrecision(4).
+  Display as "1.234\u2009m/s"  (thin-space U+2009 before unit).
+  Null / undefined / NaN  →  "—"  (em dash U+2014).
+
+________________________________________________________________________________
+SECTION 9 — MODE SYSTEM
+________________________________________________________________________________
+
+Each applet file declares one constant at the top of the module script:
+
+  const MODE = 'circle';   // 'circle' | 'one' | 'double'
+
+  MODE       PARTICLES        PITCH ANGLE     EXTRA BEHAVIORS
+  ---------  ---------------  --------------  --------------------------------
+  'circle'   Single (A only)  Locked at 90°   Directional arrows on circle
+                                              path; hide V and V_par toggles
+                                              and their legend rows
+  'one'      Single (A only)  User-controlled Full controls enabled
+  'double'   A (ion) +        User-controlled B particle locked to electron
+             B (electron)                     preset; A locked to + charge;
+                                              B controls disabled
+
+setupMode() is called once at boot and applies all UI changes based on MODE.
+
+  DOUBLE mode specific rules:
+    $('A-sign').value    = '+';
+    $('A-sign').disabled = true;
+    Electron option in A-preset is disabled.
+    B-preset forced to 'electron' and all B inputs disabled.
+
+  CIRCLE mode specific rules:
+    $('theta-r').value   = 90;
+    $('theta-num').value = 90;
+    Both theta inputs disabled.
+    #row-vel and #row-vpar hidden (display:none).
+    #leg-vel-row and #leg-vpar-row hidden.
+    showVel  = false;
+    showVPar = false;
+
+________________________________________________________________________________
+SECTION 10 — QUIZ GATE SYSTEM
+________________________________________________________________________________
+
+10.1  IN THE APPLET (iframe side)
+-----------------------------------
+Add the following overlay HTML just before </body> in every applet file:
+
+  <div id="quiz-overlay">
+    <div id="quiz-overlay-card">
+      <div id="quiz-overlay-title">Try the questions first!</div>
+      <div id="quiz-overlay-subtitle">
+        Complete the quiz to unlock the interactive demo.
+      </div>
+      <button id="quiz-skip-btn">
+        Skip the questions, I want to see the demo
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ---- Developer flag ------------------------------------------------
+    // Set to true  to bypass the gate (e.g., during development).
+    // Set to false to enforce the gate until quiz is finished or skipped.
+    const QUIZ_COMPLETED = false;
+    // --------------------------------------------------------------------
+
+    function dismissOverlay() {
+      document.getElementById('quiz-overlay').classList.add('hidden');
+    }
+
+    // Called by parent page when student finishes quiz:
+    //   frame.contentWindow.markQuizComplete()
+    window.markQuizComplete = dismissOverlay;
+
+    document.getElementById('quiz-skip-btn')
+      .addEventListener('click', dismissOverlay);
+
+    if (QUIZ_COMPLETED) dismissOverlay();
+  </script>
+
+  OVERLAY CSS:
+    #quiz-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(9,9,9,0.78);
+      backdrop-filter: blur(6px) saturate(0.6);
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    #quiz-overlay.hidden {
+      opacity: 0; visibility: hidden; pointer-events: none;
+    }
+
+
+10.2  IN THE WEBPAGE (parent side)
+------------------------------------
+Add this JavaScript to the webpage's main <script> block:
+
+  function unlockFrame(frameId) {
+    const attempts = [0, 300, 800, 2000];   // ms after click to try
+    let done = false;
+
+    const tryUnlock = () => {
+      if (done) return;
+      const frame = document.getElementById(frameId);
+      if (!frame) return;
+      try {
+        if (frame.contentWindow &&
+            typeof frame.contentWindow.markQuizComplete === 'function') {
+          frame.contentWindow.markQuizComplete();
+          done = true;
+        }
+      } catch(e) { /* cross-origin guard */ }
+    };
+
+    attempts.forEach(delay => setTimeout(tryUnlock, delay));
+    document.getElementById(frameId)
+      ?.addEventListener('load', tryUnlock, { once: true });
+  }
+
+  // Wire up all quiz blocks
+  document.querySelectorAll('.quiz-block').forEach(block => {
+    const opts        = block.querySelectorAll('.quiz-opt');
+    const fb          = block.querySelector('.quiz-feedback');
+    const targetFrame = block.dataset.unlocks;
+
+    opts.forEach(opt => {
+      opt.addEventListener('click', () => {
+        opts.forEach(o => { o.disabled = true; });
+
+        if (opt.dataset.correct === 'true') {
+          opt.classList.add('correct');
+          fb.textContent = 'Correct!';
+          fb.style.color = '#51cf66';
+        } else {
+          opt.classList.add('wrong');
+          opts.forEach(o => {
+            if (o.dataset.correct === 'true') o.classList.add('correct');
+          });
+          fb.textContent = 'Not quite \u2014 the correct answer is highlighted.';
+          fb.style.color = '#ff8e8e';
+        }
+
+        if (targetFrame) unlockFrame(targetFrame);
+      });
+    });
+  });
+
+  Rules:
+  - The quiz gate fires on ANY answer, correct or wrong.
+  - ALWAYS show the correct answer highlighted green.
+  - NEVER hide the applet after a wrong answer without revealing
+    the correct one.
+
+________________________________________________________________________________
+SECTION 11 — FIELD LINES (buildFieldLines)
+________________________________________________________________________________
+
+  function buildFieldLines() {
+    fieldGroup.clear();
+    guideGroup.clear();
+
+    const zHalf = FIELD_HALF;
+    const N     = 3;
+    const step  = SCENE_R * 0.9;
+
+    // Field lines
+    // color: 0x1a5272, transparent: true, opacity: 0.92
+    // Grid: skip if |i| + |j| > N + 1
+
+    // Directional arrows on field lines
+    // color: 0x3a9bd5 (bright cyan-blue)
+    // positioned at zHalf * 0.5, length zHalf * 0.28
+
+    // Center dashed guideline
+    // color: 0x5aafcc, dashSize: 0.4, gapSize: 0.25
+
+    // B label sprite (from makeBLabelSprite)
+    // position: (-SCENE_R*0.4, SCENE_R*1.9, zHalf*0.82)
+  }
+
+[AGENT]
+Use the BRIGHTER field line colors listed above (0x1a5272, 0x3a9bd5), NOT
+the darker prototype colors (0x1a2a35, 0x37474f). The vibrant colors are
+the approved final version.
+
+________________________________________________________________________________
+SECTION 12 — DEBOUNCE PATTERN
+________________________________________________________________________________
+
+All input/slider event handlers call through a shared debounce:
+
+  let _deb = null;
+  const debounced = () => {
+    clearTimeout(_deb);
+    _deb = setTimeout(runUpdate, 150);
+  };
+
+Sliders mirror their paired number input immediately (no debounce on the
+mirror step, only on runUpdate).
+
+Slider wiring pattern:
+  $('sl-BG').addEventListener('input', () => {
+    $('inp-BG').value = $('sl-BG').value;
+    updateBReadout();
+    debounced();
+  });
+  $('inp-BG').addEventListener('input', () => {
+    let val = +$('inp-BG').value;
+    if (val < 0) { val = 0; $('inp-BG').value = 0; }
+    $('sl-BG').value = Math.min(val, 3000);
+    updateBReadout();
+    debounced();
+  });
+
+________________________________________________________________________________
+SECTION 13 — AGENT CONSTRAINTS (HARD RULES)
+________________________________________________________________________________
+
+[AGENT]
+Treat the following as non-negotiable. Do not deviate under any circumstances.
+
+  1.  NEVER PARAPHRASE body text from the content document.
+      Copy verbatim from the supplied source material.
+
+  2.  NEVER CHANGE preset mass/charge values.
+      The exact AMU values are physics constants:
+        Xenon:    131.293 amu
+        Krypton:  83.798 amu
+        Iodine:   126.90447 amu
+        Electron: 5.48579909e-4 amu
+
+  3.  PANEL WIDTH IS 400px. Do not reduce it. Unit labels will be clipped.
+
+  4.  THREE.JS VERSION IS 0.160.0. Do not upgrade or change the CDN URL.
+
+  5.  NO BUILD TOOLS. Every file must open directly in a browser.
+
+  6.  MODE AND QUIZ_COMPLETED ARE THE ONLY DIFFERENCES between applet
+      variant files. Do not duplicate logic or create separate scripts.
+
+  7.  SCENE_R = 5.0 IS THE SINGLE SCALE AUTHORITY. All geometry sizes
+      derive from it as multipliers.
+
+  8.  KATEX DELIMITERS: display equations use $$...$$, inline use $...$
+      Both delimiters are registered in auto-render config.
+
+  9.  renderOrder = 999 ON ALL SPRITES. Labels must never disappear
+      behind geometry.
+
+  10. DERIVE FIRST, BOX RESULT. The derivation steps go inside
+      details.deriv-detail; the boxed final result appears ABOVE the
+      details element so it is visible without expanding.
+
+  11. FIELD LINE COLORS: always use 0x1a5272 (lines) and 0x3a9bd5
+      (arrows). Never revert to the dark prototype values.
+
+  12. .out-label / .out-val / .out-sub SIZES ARE LOCKED.
+      Do not modify font-size or font-weight on these elements.
+
+  13. ACCORDION SUMMARIES always use ::before ▶ triangle.
+      Always set: summary { list-style: none; }
+      and:        summary::-webkit-details-marker { display: none; }
+
+  14. ALL COLORS follow the physics-quantity semantic system in
+      Section 4.3. Never use an ad-hoc color for a variable that
+      already has an assigned color.
+
+________________________________________________________________________________
+SECTION 14 — PRE-FLIGHT CHECKLIST
+________________________________________________________________________________
+
+[DEV]
+Run through this checklist before handing off to Claude for each stage.
+
+
+BEFORE PYTHON PROTOTYPE:
+  [ ] Learning objectives written (bullet list, 8 items or fewer)
+  [ ] Input parameters listed with units and valid ranges
+  [ ] Output quantities listed with units
+  [ ] Governing equations stated (exact form, not approximation)
+  [ ] Rough sketch of 3D scene described
+  [ ] Edge cases identified: q=0, v=0, B=0, theta=0, theta=90
+
+
+BEFORE HTML APPLET CONVERSION:
+  [ ] Prototype physics validated (check r_L, omega_c against hand calc)
+  [ ] MODE variants decided (circle / one / double)
+  [ ] QUIZ_COMPLETED defaults decided per variant
+  [ ] Particle color assignments confirmed
+
+
+BEFORE WEBPAGE ASSEMBLY:
+  [ ] Webpage Content Doc finalized (verbatim text, no placeholders)
+  [ ] Quiz questions finalized with correct answers marked
+  [ ] Derivation steps typed out (or scan uploaded)
+  [ ] iframe src filenames match the actual HTML files in the folder
+  [ ] Footer name and year confirmed
+
+
+FINAL REVIEW:
+  [ ] Open each .html applet directly in browser — verify it loads
+  [ ] Open webpage — verify all iframes embed correctly
+  [ ] Click each quiz answer — verify overlay dismisses in correct iframe
+  [ ] Test at 1280px and 1920px viewport widths
+  [ ] Verify KaTeX renders (check browser console for KaTeX errors)
+  [ ] Verify Barlow font loads (check Network tab for font requests)
+  [ ] Verify field lines use approved colors (0x1a5272 / 0x3a9bd5)
+  [ ] Verify panel is 400px and no unit labels are clipped
+
+________________________________________________________________________________
+SECTION 15 — NEW MODULE SCAFFOLD
+________________________________________________________________________________
+
+[DEV]
+When starting a completely new module, fill in this template and supply it
+to Claude at the start of the conversation. Claude will not ask for
+information that is already in this template.
+
+================  COPY BELOW THIS LINE  ================
+
+MODULE: <name, e.g., "Magnetic Mirror">
+TOPIC: <topic, e.g., "Plasma Confinement">
+
+LEARNING OBJECTIVES:
+  1.
+  2.
+  3.
+
+APPLET INPUTS:
+  - <name> [unit, range, default]
+  - <name> [unit, range, default]
+
+APPLET OUTPUTS (computed):
+  - <name> [unit]
+  - <name> [unit]
+
+GOVERNING EQUATIONS:
+  <LaTeX — exact form>
+
+3D SCENE DESCRIPTION:
+  <Describe what the camera sees. What objects move, what is static.
+   What vectors are shown. What the B-field geometry looks like.>
+
+MODES NEEDED:
+  circle / one / double
+  (list which modes are needed and what QUIZ_COMPLETED defaults to for each)
+
+QUIZ QUESTIONS:
+  Q1: <question text>
+       a) <answer>
+       b) <answer> (correct)
+       c) <answer>
+  Q2: <question text>
+       ...
+
+VERBATIM PAGE TEXT:
+  INTRO:
+    <paste intro paragraph from Word doc>
+
+  SECTION: <name>
+    <paste section text verbatim>
+
+  CLARIFY Q1:
+    QUESTION: <paste>
+    ANSWER:   <paste>
+
+DERIVATIONS:
+  <Paste or describe each step. Reference variable colors where known.>
+
+================  END TEMPLATE  ================
+
+________________________________________________________________________________
+SECTION 16 — QUICK REFERENCE CARD
+________________________________________________________________________________
+
+PHYSICS COLORS (use everywhere, always):
+  Thrust / F / mass:    #FF4400
+  Velocity / r_L / wc:  #3DBFFF
+  Charge q / electron:  #C060FF
+  B field / pressure:   #00DDB5
+
+3D OBJECT COLORS:
+  Ion particle:     #ff6e40
+  Electron:         #4fc3f7
+  Velocity arrow:   #ffd54f
+  Force arrow F_b:  #ef5350
+  V_par arrow:      #66bb6a
+  V_perp arrow:     #ab47bc
+  B field lines:    #1a5272 (tubes)  /  #3a9bd5 (arrow heads)
+  Center guideline: #5aafcc
+
+BACKGROUND SURFACES (darkest → lightest):
+  #090909  page / canvas
+  #0e0e0e  primary panel / SVG diagram
+  #121212  collapsed summary
+  #171717  mid panel
+  #1d1d1d  slider textbox
+  #191919  deriv summary
+  #0c0c0c  output bar cells
+
+KEY PHYSICS CONSTANTS:
+  AMU       = 1.66053906660e-27  kg
+  E_C       = 1.602176634e-19    C
+
+KEY SCENE CONSTANTS:
+  SCENE_R   = 5.0    (base scale — all geometry derived from this)
+  TRAVEL_SEC= 7.0 s  (animation cycle)
+  FIELD_HALF= SCENE_R * 2.8
+
+KEY UI CONSTANTS:
+  Panel width  = 400px  (minimum — never reduce)
+  iframe height= 680px
+  Page width   = min(1500px, calc(100vw - 48px))  [3D-viewport pages]
+               = min(1040px, calc(100vw - 32px))   [smaller canvas pages]
+
+PRESET MASSES (exact, do not round):
+  Xenon:    131.293 amu
+  Krypton:  83.798 amu
+  Iodine:   126.90447 amu
+  Electron: 5.48579909e-4 amu
+
+FILE NAMING CONVENTION:
+  <module>.py            Python prototype
+  <module>_circle.html   Circle mode applet
+  <module>_single.html   Single particle applet
+  <module>_double.html   Double particle applet
+  <module>_applet.html   Full webpage
+
+QUIZ DEFAULTS PER IFRAME:
+  demo 1 (circle):   QUIZ_COMPLETED = false  (gated)
+  demo 2 (single):   QUIZ_COMPLETED = false  (gated)
+  demo 3 (double):   QUIZ_COMPLETED = true   (always unlocked)
+
+LOCKED ELEMENTS (never resize or reweight):
+  .out-label  9px uppercase
+  .out-val    19px 600 Courier New
+  .out-sub    11.5px Courier New
+
+================================================================================
+  END OF DOCUMENT
+  MIT Propulsion | Jordan Bergmann | 2026
+================================================================================
