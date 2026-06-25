@@ -546,10 +546,10 @@ details.cf-outputs > summary:focus-visible {
         <span class="cf-sym"><i>v</i></span>
         <span class="cf-desc">Speed</span>
         <input type="number" id="inp-speed" class="cf-inp"
-               value="1000000" min="0" max="299792458" step="10000">
+               value="1000000" min="0" max="29979246" step="10000">
         <span class="cf-unit">m/s</span>
       </div>
-      <input type="range" id="sl-speed" class="cf-slider" min="0" max="299792458" value="1000000" step="1000000">
+      <input type="range" id="sl-speed" class="cf-slider" min="0" max="29979246" value="1000000" step="50000">
       <div class="cf-out-hint" style="padding-left:30px;">
         <span id="speed-frac"></span>
       </div>
@@ -737,6 +737,7 @@ const MODE = 'two';
 const AMU   = 1.66053906660e-27;
 const E_C   = 1.602176634e-19;
 const C_MAX = 299792458;
+const V_MAX = 0.10 * C_MAX;        // speed slider tops out at 10 % of c
 
 function compute(m_amu, q_e, v, theta_deg, B) {
   for (const [name, val] of [
@@ -789,6 +790,11 @@ const TRAVEL_MULT    = 3;
 const AXIAL_BASE     = SCENE_R * 1.7;
 const FIELD_HALF     = SCENE_R * 2.8;
 const N_CIRCLE_ARROWS = 8;
+
+// Trajectory-size smoothing: when a control changes the orbit radius, the drawn
+// orbit eases from its current size to the new size along a smoothstep curve
+// instead of snapping, so dragging the speed slider grows/shrinks it smoothly.
+const R_TWEEN_SEC = 0.45;
 
 // ── Larmor-radius display mapping ─────────────────────────────────
 // Log-compressed so the orbit stays on-screen across many decades while
@@ -1006,7 +1012,9 @@ function setChargeSprite(p, sign) {
 
 function makeParticle(conf) {
   const p = { conf, cur: null, data: null, helixLine: null, tubeMesh: null,
-              chargeSprite: null, curSign: null, circleArrows: [] };
+              chargeSprite: null, curSign: null, circleArrows: [],
+              dispR: null, rFrom: 0, rTo: 0, rTweenT: 0, rTweening: false,
+              trajParams: null };
 
   p.mesh = new THREE.Mesh(
     new THREE.SphereGeometry(SCENE_R * conf.sphereScale, 24, 24),
@@ -1385,6 +1393,19 @@ function animate() {
   if (refLabel) refLabel.visible = showLabels;
 
   for (const p of parts) {
+    // Ease the drawn orbit toward its new size (smoothstep) so the trajectory
+    // grows/shrinks smoothly when a slider is dragged, rebuilding the geometry
+    // at the interpolated radius each frame while the tween is active.
+    if (p.rTweening && p.trajParams) {
+      p.rTweenT += dt;
+      const u = clamp(p.rTweenT / R_TWEEN_SEC, 0, 1);
+      const e = u * u * (3 - 2 * u);                 // smoothstep
+      p.dispR = p.rFrom + (p.rTo - p.rFrom) * e;
+      updateTrajectory(p, p.trajParams.data, p.trajParams.commonZ,
+                       p.trajParams.turns, p.dispR);
+      if (u >= 1) { p.dispR = p.rTo; p.rTweening = false; }
+    }
+
     if (!p.cur) {
       p.mesh.visible         = false;
       p.chargeSprite.visible = false;
@@ -1605,8 +1626,20 @@ function runUpdate() {
   const dispR   = computeDisplayRadii(datas);
   const isFirst = !firstRenderDone;
 
-  resetCycle();
-  parts.forEach((p, i) => updateTrajectory(p, datas[i], sharedZ, turnsFor(datas[i]), dispR[i]));
+  parts.forEach((p, i) => {
+    const turns = turnsFor(datas[i]);
+    const tR    = dispR[i];
+    // Ease each orbit from its current drawn size toward the new one; on the
+    // very first render there is nothing to ease from, so snap straight to size.
+    const fromR = (firstRenderDone && p.dispR != null) ? p.dispR : tR;
+    p.trajParams = { data: datas[i], commonZ: sharedZ, turns };
+    p.rFrom      = fromR;
+    p.rTo        = tR;
+    p.rTweenT    = 0;
+    p.rTweening  = Math.abs(fromR - tR) > 1e-6;
+    p.dispR      = fromR;
+    updateTrajectory(p, datas[i], sharedZ, turns, fromR);
+  });
   buildFieldLines();
   firstRenderDone = true;
   if (isFirst) frameCamera();
@@ -1650,7 +1683,7 @@ function setupMode() {
 }
 
 let _deb = null;
-const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate, 150); };
+const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate, 50); };
 
 $('A-preset').addEventListener('change', () => { applyPreset('A'); debounced(); });
 $('A-mass').addEventListener('input',    () => { $('A-preset').value = 'custom'; debounced(); });
@@ -1691,7 +1724,7 @@ $('sl-speed').addEventListener('input', () => {
 $('inp-speed').addEventListener('input', () => {
   let val = +$('inp-speed').value;
   if (val < 0) { val = 0; $('inp-speed').value = 0; }
-  $('sl-speed').value = Math.min(val, C_MAX);
+  $('sl-speed').value = Math.min(val, V_MAX);
   updateSpeedFrac(); debounced();
 });
 
@@ -1707,7 +1740,7 @@ applyPreset('A');
 updateBReadout();
 updateSpeedFrac();
 $('sl-BG').value    = Math.min(+$('inp-BG').value, 3000);
-$('sl-speed').value = Math.min(+$('inp-speed').value, C_MAX);
+$('sl-speed').value = Math.min(+$('inp-speed').value, V_MAX);
 $('theta-num').value = $('theta-r').value;
 runUpdate();
 </script>
