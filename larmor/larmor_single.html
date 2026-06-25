@@ -852,6 +852,7 @@ let showVel    = true;
 let showVPar   = false;
 let showVPerp  = false;
 let showForces = false;
+let dragging   = false;   // true while a slider is held down (particle hidden)
 
 function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   const canvas = document.createElement('canvas');
@@ -1406,6 +1407,19 @@ function animate() {
       if (u >= 1) { p.dispR = p.rTo; p.rTweening = false; }
     }
 
+    // While a slider is being dragged, hide the moving particle and its
+    // arrows/labels; the orbit (trajectory) stays visible and keeps resizing.
+    // On release the cycle resets, so the particle reappears at the spawn point.
+    if (dragging) {
+      p.mesh.visible         = false;
+      p.chargeSprite.visible = false;
+      p.velArrow.visible     = false;  p.velLabel.visible   = false;
+      p.forceArrow.visible   = false;  p.forceLabel.visible = false;
+      p.vParArrow.visible    = false;  p.vParLabel.visible  = false;
+      p.vPerpArrow.visible   = false;  p.vPerpLabel.visible = false;
+      continue;
+    }
+
     if (!p.cur) {
       p.mesh.visible         = false;
       p.chargeSprite.visible = false;
@@ -1733,6 +1747,18 @@ $('chk-vel').addEventListener('change',    () => { showVel    = $('chk-vel').che
 $('chk-vpar').addEventListener('change',   () => { showVPar   = $('chk-vpar').checked; });
 $('chk-vperp').addEventListener('change',  () => { showVPerp  = $('chk-vperp').checked; });
 $('chk-force').addEventListener('change',  () => { showForces = $('chk-force').checked; });
+
+// Hide the particle while any slider is actively dragged, then respawn it at
+// the start of the path (resetCycle) once the slider is released.
+['sl-BG', 'sl-speed', 'theta-r'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('pointerdown', () => { dragging = true; });
+});
+window.addEventListener('pointerup', () => {
+  if (!dragging) return;
+  dragging = false;
+  resetCycle();          // particle reappears at the spawn point
+});
 
 initViz(document.getElementById('viewport'));
 setupMode();
