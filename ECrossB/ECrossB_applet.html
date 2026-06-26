@@ -1,1 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>E &#215; B Motion &amp; Drift — Plasma Physics</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  --c-thrust: #FF4400;
+  --c-ve:     #3DBFFF;
+  --c-mass:   #FF4400;
+  --c-power:  #C060FF;
+  --c-press:  #00DDB5;
+  --c-efield: #F5C518;
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ───────────────────────────────── */
+.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
+.hl-ve, .hl-v            { color: var(--c-ve); }
+.hl-mass                 { color: var(--c-mass); }
+.hl-power                { color: var(--c-power); }
+.hl-press                { color: var(--c-press); }
+.hl-B                    { color: var(--c-press); }
+.hl-q                    { color: var(--c-power); }
+.hl-E                    { color: var(--c-efield); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 4px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+
+/* ── two-column derivation layout ───────────────────── */
+.deriv-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.deriv-col {
+  padding: 14px 20px;
+}
+.deriv-col + .deriv-col {
+  border-left: 1px solid var(--border);
+}
+.deriv-col-hdr {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── inline equation row ─────────────────────────────── */
+.eq-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 6px 0;
+}
+.eq-row-label {
+  font-size: 15px;
+  color: #545454;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+/* ── callout box ─────────────────────────────────────── */
+.eq-callout {
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
+}
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Demo placeholder ───────────────────────────────── */
+.demo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 480px;
+  border-top: 1px solid var(--border);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.012) 0,
+      rgba(255,255,255,0.012) 12px,
+      transparent 12px,
+      transparent 24px
+    ),
+    var(--bg-canvas);
+  text-align: center;
+  padding: 24px;
+}
+.demo-placeholder-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.demo-placeholder-note {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+.quiz-opt.correct .quiz-opt-label { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label { color: #ff8e8e; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.2em !important; }
+.katex-display { font-size: 1.2em !important; }
+.theory-block .katex { font-size: 1.25em !important; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 10px;
+  font-size: 18.5px;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>E &#215; B Motion</h1>
+  <span class="badge">Plasma Physics</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  To give a <span class="key hl-q">charged particle</span> speed, we must apply an
+  <span class="key hl-E">electric field</span> over a distance, applying a
+  <span class="key hl-E">voltage</span> to the <span class="key hl-q">charged particle</span>. Recall the common
+  phrase &ldquo;opposites attract, likes repel.&rdquo; In doing so, we repel a positively
+  <span class="key hl-q">charged particle</span> away from our positively charged surface, creating
+  <span class="key hl-thrust">thrust</span>! Using the first demo, experiment with different
+  <span class="key hl-E">voltages</span> or <span class="key hl-E">electric field</span> setups with different
+  <span class="key hl-q">charged particles</span> to see what exhaust speeds are possible!
+</p>
+
+<!-- ════════════════════ Q1 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Conceptual Question</div>
+  <div class="quiz-block" data-unlocks="demo1-frame">
+    <p class="quiz-q">Is it possible to exceed the specific impulse of a chemical rocket by accelerating a
+    <span class="hl-q">charged particle</span> with an <span class="hl-E">electric field</span>?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>True
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>False
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DEMO 1 — E field only ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 1 &#x2014; Electric Field Only</div>
+  <div id="demo1-frame" class="demo-placeholder">
+    <span class="demo-placeholder-tag">Applet Placeholder</span>
+    <span class="demo-placeholder-note">
+      Mode&nbsp;1 &mdash; linear acceleration of a charged particle through an electric field over an accelerator
+      length, with exhaust velocity output. (Demo coming soon.)
+    </span>
+  </div>
+</div>
+
+<!-- ════════════════════ E PERP B DRIFT ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Crossed Fields &amp; Drift</div>
+  <p class="th-body">
+    <span class="key hl-B">Magnetic fields</span> do not speed up nor slow down
+    <span class="key hl-q">charged particles</span>, but instead change their direction of travel. If we apply an
+    <span class="key hl-E">electric field</span> perpendicular to the <span class="key hl-B">magnetic field</span>,
+    <span class="key hl-q">charged particles</span> begin to drift in a direction perpendicular to both fields!
+    Using the second and third demos, experiment with different field strengths with different
+    <span class="key hl-q">charged particles</span> to become more familiar with this
+    &ldquo;<span class="key">E cross B</span>&rdquo; drift.
+  </p>
+</div>
+
+<!-- ════════════════════ Q2 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Conceptual Question</div>
+  <div class="quiz-block" data-unlocks="demo2-frame">
+    <p class="quiz-q">If a particle starts stationary with a uniform <span class="hl-E">electric field</span> $E$ in
+    the $\hat{\jmath}$ direction and a uniform <span class="hl-B">magnetic field</span> in the $\hat{k}$ direction,
+    which way will the particle drift?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>$\hat{\imath}$ direction (perpendicular to both fields!)
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>$\hat{\jmath}$ direction (parallel to the electric field)
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>$\hat{k}$ direction (parallel to the magnetic field)
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DEMO 2 — E & B fields ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 2 &#x2014; E &amp; B Fields</div>
+  <div id="demo2-frame" class="demo-placeholder">
+    <span class="demo-placeholder-tag">Applet Placeholder</span>
+    <span class="demo-placeholder-note">
+      Mode&nbsp;2 &mdash; a charged particle in crossed electric and magnetic fields, showing the superposition of
+      cyclotron (Larmor) motion and the steady E&nbsp;&times;&nbsp;B drift. (Demo coming soon.)
+    </span>
+  </div>
+</div>
+
+<!-- ════════════════════ ION VS ELECTRON ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Ion vs. Electron Behavior</div>
+  <p class="th-body">
+    Let&rsquo;s compare the behavior of <span class="key hl-q">ions</span> and
+    <span class="key hl-power">electrons</span>. <span class="key hl-q">Ions</span> are far more
+    <span class="key hl-mass">massive</span> than <span class="key hl-power">electrons</span> (by three to five
+    orders of magnitude)! How might this affect their <span class="key">E cross B</span> behavior? Assume that the
+    <span class="key hl-power">electron</span> and <span class="key hl-q">ion</span> are in isolation of each
+    other. They are shown together for visual purposes only.
+  </p>
+</div>
+
+<!-- ════════════════════ DEMO 3 — ion & electron ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 3 &#x2014; Ion vs. Electron in E &amp; B Fields</div>
+  <div id="demo3-frame" class="demo-placeholder">
+    <span class="demo-placeholder-tag">Applet Placeholder</span>
+    <span class="demo-placeholder-note">
+      Mode&nbsp;3 &mdash; identical to Mode&nbsp;2 with mass &amp; charge selection for both particles. The ion
+      rotates clockwise; the electron rotates counter-clockwise. (Demo coming soon.)
+    </span>
+  </div>
+</div>
+
+<!-- ════════════════════ EXHAUST VELOCITY ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Exhaust Velocity</div>
+
+  <p class="th-body">
+    The <span class="key hl-ve">exhaust velocity</span> of a <span class="key hl-q">charged particle</span> with
+    <span class="key hl-q">charge $q$</span> and <span class="key hl-mass">mass $m$</span> after having an
+    <span class="key hl-E">electric field</span> of magnitude $E$ over a distance $d$, or equivalently a
+    <span class="key hl-E">voltage</span> difference $\Delta V$ or $\phi$ applied is:
+  </p>
+
+  $$
+  \boxed{\;
+  \textcolor{#3DBFFF}{v_e}
+  =
+  \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,\Delta \textcolor{#F5C518}{V}}
+  \;}
+  \qquad
+  \boxed{\;
+  \textcolor{#3DBFFF}{v_e}
+  =
+  \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,d}
+  \;}
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+        <div class="deriv-cols">
+
+          <!-- ── Via the electric field ── -->
+          <div class="deriv-col">
+            <div class="deriv-col-hdr">Via the Electric Field</div>
+
+            <span class="eq-note">
+              Apply the <span class="hl-E">Lorentz force</span> to a stationary particle with
+              <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>.
+            </span>
+
+            <span class="eq-step-label">Lorentz Force &amp; Newton's Second Law</span>
+            $$
+            \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+            \quad
+            \vec{\textcolor{#FF4400}{F}} = \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt}
+            $$
+
+            <span class="eq-step-label">For $\textcolor{#00DDB5}{\vec{B}} = 0$</span>
+            $$
+            \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\vec{E}}
+            \;\Longrightarrow\;
+            \frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,\textcolor{#F5C518}{\vec{E}}
+            $$
+
+            <span class="eq-step-label">For uniform, constant $\textcolor{#F5C518}{\vec{E}}$</span>
+            $$
+            \textcolor{#3DBFFF}{v} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t
+            \qquad
+            x = \tfrac{1}{2}\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t^2
+            $$
+
+            <span class="eq-step-label">Use variables at desired $v_e$ &amp; distance $d$</span>
+            $$
+            \textcolor{#3DBFFF}{v_e} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t_e
+            $$
+            $$
+            d = \tfrac{1}{2}\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t_e^2
+            \;\Longrightarrow\;
+            t_e = \sqrt{2\,\frac{\textcolor{#FF4400}{m}\,d}{\textcolor{#C060FF}{q}\,|\textcolor{#F5C518}{E}|}}
+            $$
+
+            <span class="eq-step-label">Substitute $t_e$</span>
+            $$
+            \textcolor{#3DBFFF}{v_e}
+            = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\sqrt{2\,\frac{\textcolor{#FF4400}{m}\,d}{\textcolor{#C060FF}{q}\,|\textcolor{#F5C518}{E}|}}
+            = \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,d}
+            $$
+          </div>
+
+          <!-- ── Via the voltage ── -->
+          <div class="deriv-col">
+            <div class="deriv-col-hdr">Via the Voltage</div>
+
+            <span class="eq-note">
+              Apply a <span class="hl-E">potential difference</span> (or voltage) to a stationary particle with
+              <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>. The
+              <span class="hl-ve">exhaust velocity</span> is measured when $V_f = 0$.
+            </span>
+
+            <span class="eq-step-label">Energy Balance</span>
+            $$
+            KE_i + \text{PE}_i = KE_f + \text{PE}_f
+            $$
+            $$
+            \underbrace{\tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_i}^{2}}_{=\,0}
+            + \textcolor{#C060FF}{q}\,\Delta \textcolor{#F5C518}{V}
+            = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_e}^{2}
+            + \underbrace{\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi_f}}_{=\,0}
+            $$
+
+            <span class="eq-step-label">Solve for $v_e$</span>
+            $$
+            \textcolor{#C060FF}{q}\,\Delta \textcolor{#F5C518}{V} = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_e}^{2}
+            $$
+            $$
+            \boxed{\;
+            \textcolor{#3DBFFF}{v_e} = \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,\Delta \textcolor{#F5C518}{V}}
+            \;}
+            $$
+
+            <div class="eq-callout highlight-blue">
+              The two forms are equivalent: the field and voltage are related by
+              $\Delta \textcolor{#F5C518}{V} = |\textcolor{#F5C518}{E}|\,d$, so
+              $|\textcolor{#F5C518}{E}| = \dfrac{\Delta \textcolor{#F5C518}{V}}{d}$.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ ELECTRIC FIELD & POTENTIAL ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Electric Field &amp; Potential</div>
+
+  <p class="th-body">
+    The <span class="key hl-E">electric field</span> and <span class="key hl-E">potential</span> are related by a
+    work-energy relation. For a given <span class="key hl-E">electric potential difference</span> applied over a
+    greater distance, there is a weaker <span class="key hl-E">electric field</span>. Likewise, for a given
+    <span class="key hl-E">electric potential difference</span> applied over a smaller distance, there is a stronger
+    <span class="key hl-E">electric field</span>. Notice that the <span class="key hl-E">electric field</span> lines
+    point in the direction of decreasing <span class="key hl-E">electric potential</span>. This is very similar to
+    gravitational potential energy (think of a ball on a slope!). We will return to these potential gradients when
+    examining magnetic mirrors.
+  </p>
+
+  $$
+  \boxed{\;
+  \textcolor{#F5C518}{\vec{E}} = -\nabla\textcolor{#F5C518}{\phi} = -\frac{d\textcolor{#F5C518}{\phi}}{dx}\ \text{(in 1D)}
+  \;}
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-note">
+          Connect the <span class="hl-E">electric field $\vec{E}$</span> and
+          <span class="hl-E">electric potential $\phi$ or $V$</span> by energy balance.
+        </span>
+
+        <span class="eq-step-label">Work done on charge = Change in electric potential energy</span>
+        $$
+        -\!\int \textcolor{#FF4400}{F_e}\,dx = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
+        $$
+        $$
+        -\!\int \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E}\,dx = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
+        $$
+
+        <span class="eq-step-label">Use the Fundamental Theorem of Calculus</span>
+        $$
+        -\cancel{\textcolor{#C060FF}{q}}\,\textcolor{#F5C518}{E} = \cancel{\textcolor{#C060FF}{q}}\,\frac{d\textcolor{#F5C518}{V}}{dx}
+        $$
+
+        <span class="eq-step-label">Solve for $E$</span>
+        $$
+        \boxed{\;
+        \textcolor{#F5C518}{E} = -\frac{d\textcolor{#F5C518}{V}}{dx} = -\frac{d\textcolor{#F5C518}{\phi}}{dx}
+        \;}
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ E CROSS B DRIFT ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">E &#215; B Drift</div>
+
+  <p class="th-body">
+    The <span class="key">E Cross B Drift</span> behavior occurs due to the nature of acceleration of the
+    <span class="key hl-E">electric field</span>. At the halfway point of the
+    <span class="key">cyclotron motion</span>, the <span class="key hl-E">electric field</span> prevents the
+    trajectory from making a full circle, instead forcing the particle into starting the next circle. The greater the
+    strength of the <span class="key hl-E">electric field</span>, the greater the
+    <span class="key hl-ve">drift velocity</span>. The greater the strength of the
+    <span class="key hl-B">magnetic field</span>, the smaller the
+    <span class="key hl-ve">drift velocity</span>.
+  </p>
+
+  $$
+  \boxed{\;
+  \textcolor{#3DBFFF}{\vec{v}_d}
+  =
+  \frac{\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}}{\textcolor{#00DDB5}{B}^2}
+  \;}
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-note">
+          Apply the <span class="hl-E">Lorentz force</span> to a stationary particle with
+          <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>, where
+          $\textcolor{#F5C518}{\vec{E}}, \textcolor{#00DDB5}{\vec{B}} \neq \vec{0}$.
+        </span>
+
+        <span class="eq-step-label">Lorentz Force &amp; Newton's Second Law</span>
+        $$
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        \qquad
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+
+        <span class="eq-note">
+          Suppose $\textcolor{#3DBFFF}{\vec{v}} = \textcolor{#3DBFFF}{\vec{v}_L}(t) + \textcolor{#3DBFFF}{\vec{v}_d}$,
+          where $\textcolor{#3DBFFF}{\vec{v}_L}(t)$ is time-varying cyclotron motion about the
+          <span class="hl-B">magnetic field</span> and $\textcolor{#3DBFFF}{\vec{v}_d}$ is constant motion assumed
+          perpendicular to the <span class="hl-B">magnetic field</span>.
+        </span>
+
+        <span class="eq-step-label">Decompose the velocity</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d}{dt}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_d}\right)
+        = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\vec{E}}
+        + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_d}\right)\times\textcolor{#00DDB5}{\vec{B}}
+        $$
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}_L}}{dt} + 0
+        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+
+        <span class="eq-step-label">Recall the solution for cyclotron motion</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}_L}}{dt} = \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+        $$
+        \cancel{\textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)}
+        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        + \cancel{\textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)}
+        $$
+        $$
+        0 = \cancel{\textcolor{#C060FF}{q}}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        \;\Longrightarrow\;
+        \textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}} = 0
+        $$
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Take the cross product of both sides with $\textcolor{#00DDB5}{\vec{B}}$</span>
+        $$
+        \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
+        + \left(\textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)\times\textcolor{#00DDB5}{\vec{B}} = 0
+        $$
+
+        <span class="eq-step-label">Use the vector identity $(\vec{A}\times\vec{B})\times\vec{C} = \vec{B}(\vec{A}\cdot\vec{C}) - \vec{A}(\vec{B}\cdot\vec{C})$</span>
+        $$
+        \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
+        + \textcolor{#00DDB5}{\vec{B}}\underbrace{\left(\textcolor{#3DBFFF}{\vec{v}_d}\cdot\textcolor{#00DDB5}{\vec{B}}\right)}_{=\,0}
+        - \textcolor{#3DBFFF}{\vec{v}_d}\left(\textcolor{#00DDB5}{\vec{B}}\cdot\textcolor{#00DDB5}{\vec{B}}\right) = 0
+        $$
+        $$
+        \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
+        - \textcolor{#3DBFFF}{\vec{v}_d}\,\textcolor{#00DDB5}{B}^2 = 0
+        $$
+
+        <span class="eq-step-label">Solve for the drift velocity</span>
+        $$
+        \boxed{\;
+        \textcolor{#3DBFFF}{\vec{v}_d}
+        =
+        \frac{\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}}{\textcolor{#00DDB5}{B}^2}
+        \;}
+        $$
+
+        <div class="eq-callout highlight-blue">
+          The drift is perpendicular to <strong>both</strong> fields, and is independent of the particle's
+          <span class="hl-mass">mass</span> and <span class="hl-q">charge</span> &mdash; ions and electrons drift
+          together. A stronger <span class="hl-E">electric field</span> speeds up the drift; a stronger
+          <span class="hl-B">magnetic field</span> slows it down.
+        </div>
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>Why are we exploring both <span class="hl-E">electric</span> and
+    <span class="hl-B">magnetic fields</span>? If an <span class="hl-E">electric field</span> is all that is needed
+    to accelerate a particle to very high velocities, why are
+    <span class="hl-thrust">electric propulsion devices</span> complex?</summary>
+    <div class="clarify-body">
+      <span class="key hl-E">Electric</span> and <span class="key hl-B">magnetic fields</span> allow us to
+      manipulate the trajectories of <span class="key hl-q">charged particles</span> in more ways than simply
+      &ldquo;forward&rdquo; or &ldquo;backward.&rdquo; Recall that the inert gas propellant of
+      <span class="key hl-thrust">electric propulsion devices</span> is not itself
+      <span class="key">ionized</span>. It must be <span class="key">ionized</span> by other means, requiring
+      radio-frequency (RF) devices or emitters, before it can be accelerated by a plate.
+      <br><br>
+      Additionally, the positively <span class="key hl-q">charged</span> exhaust jet must be
+      <span class="key">neutralized</span>! Why? Recall that <span class="key">charge</span>, like mass and energy,
+      must be <span class="key">conserved</span>. If a lot of positive <span class="key hl-q">charge</span> leaves the
+      spacecraft, the spacecraft is left charged highly <span class="key hl-power">negative</span>, which can disrupt
+      electronics and be catastrophic. Moreover, if the positive <span class="key hl-q">charge</span> is not
+      <span class="key">neutralized</span>, it will eventually accelerate back to the negatively
+      <span class="key hl-power">charged</span> spacecraft, canceling the <span class="key hl-thrust">thrust</span>!
+      These factors introduce engineering requirements of <span class="key hl-thrust">electric propulsion
+      devices</span> beyond an accelerating <span class="key hl-E">electric field</span>.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>What might happen if the initial vertical velocity ($+\hat{\jmath}$) of the
+    <span class="hl-q">charged particle</span> in the demos is larger? Will the
+    <span class="key">E cross B</span> drift trajectory still be half circles, or something different?</summary>
+    <div class="clarify-body">
+      If the initial vertical velocity is larger, then the <span class="key hl-B">magnetic force</span> will grow in
+      strength. Thus, the <span class="key">cyclotron motion</span> &ldquo;occurs faster&rdquo; than the
+      <span class="key hl-ve">drift velocity</span>. At the halfway point of the
+      <span class="key">cyclotron motion</span>, the particle begins heading backwards to complete the circle. If the
+      <span class="key hl-ve">drift velocity</span> is equal to or greater than the initial vertical velocity, then
+      the particle will stop or continue moving forward. However, with sufficiently large vertical velocity, the
+      <span class="key">cyclotron motion</span> plus the <span class="key">drift motion</span> results in some
+      backwards loop behavior. The path of the particle will then look a lot like a coil or strand of curly hair!
+    </div>
+  </details>
+</div>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<!-- ════════════════════ QUIZ + DEMO-UNLOCK JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+
+/**
+ * Calls markQuizComplete() inside the target demo (iframe).
+ * Retries after short delays to handle demos that are still loading
+ * when the quiz is answered. Gracefully no-ops for placeholder demos
+ * that are not yet implemented as iframes.
+ */
+function unlockFrame(frameId) {
+  const attempts = [0, 300, 800, 2000];          // ms after click to try
+  let done = false;
+
+  const tryUnlock = () => {
+    if (done) return;
+    const frame = document.getElementById(frameId);
+    if (!frame) return;
+    try {
+      if (frame.contentWindow && typeof frame.contentWindow.markQuizComplete === 'function') {
+        frame.contentWindow.markQuizComplete();
+        done = true;
+      }
+    } catch(e) { /* cross-origin guard — shouldn't happen for same-folder files */ }
+  };
+
+  attempts.forEach(delay => setTimeout(tryUnlock, delay));
+
+  // Also fire on the iframe's own load event in case it hasn't finished yet
+  const frame = document.getElementById(frameId);
+  if (frame && typeof frame.addEventListener === 'function' && !done) {
+    frame.addEventListener('load', tryUnlock, { once: true });
+  }
+}
+
+// Each .quiz-block carries a data-unlocks attribute naming the demo to unlock.
+document.querySelectorAll('.quiz-block').forEach(block => {
+  const opts        = block.querySelectorAll('.quiz-opt');
+  const fb          = block.querySelector('.quiz-feedback');
+  const targetFrame = block.dataset.unlocks;   // e.g. "demo1-frame"
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      // Lock all options
+      opts.forEach(o => { o.disabled = true; });
+
+      // Show result
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+
+      // Unlock the associated demo (regardless of correct/incorrect —
+      // the correct answer is always revealed, so the gate has been engaged)
+      if (targetFrame) unlockFrame(targetFrame);
+    });
+  });
+});
+</script>
+</body>
+</html>
