@@ -601,7 +601,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 <div id="quiz-overlay">
   <div id="quiz-overlay-card">
     <div id="quiz-overlay-title">Try the questions first!</div>
-    <div id="quiz-overlay-subtitle">Complete the quiz to unlock the interactive demo.</div>
+    <div id="quiz-overlay-subtitle">They might help guide your use<br>of the interactive demo...</div>
     <button id="quiz-skip-btn">Skip the questions, I want to see the demo</button>
   </div>
 </div>
@@ -612,8 +612,9 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
      or call markQuizComplete() from your quiz code.
      ════════════════════════════════════════════ -->
 <script>
-  // Set to true to bypass the gate entirely (e.g. during dev).
-  const QUIZ_COMPLETED = false;
+  // Gate bypass: true during dev, or when embedded with ?gate=0 (e.g. an
+  // ungated demo whose lesson section has no associated quiz).
+  const QUIZ_COMPLETED = new URLSearchParams(location.search).get('gate') === '0';
 
   const _overlay = document.getElementById('quiz-overlay');
   const _skipBtn = document.getElementById('quiz-skip-btn');
@@ -1710,11 +1711,28 @@ window.addEventListener('pointerup', () => {
 });
 
 // ── boot ──────────────────────────────────────────────────────────────────────
+// When embedded in the lesson page, ?mode=accel|drift|pair (aliases 1|2|3) boots
+// straight into that single demo and hides the tab bar so each iframe is locked
+// to one mode. Standalone (no param) keeps all three tabs and defaults to Mode 1.
+const _bootParams = new URLSearchParams(location.search);
+const _MODE_ALIAS = { accel:'accel', drift:'drift', pair:'pair',
+                      '1':'accel', '2':'drift', '3':'pair' };
+const _modeParam  = _bootParams.get('mode');
+const _bootMode   = _MODE_ALIAS[_modeParam] || 'accel';
+if (_modeParam) {
+  const tabsEl = document.getElementById('tabs');
+  if (tabsEl) {
+    tabsEl.classList.add('hide');
+    const div = tabsEl.nextElementSibling;   // collapse the divider that follows the tabs
+    if (div && div.classList.contains('cf-panel-divider')) div.classList.add('hide');
+  }
+}
+
 initViz(document.getElementById('viewport'));
 updateBReadout();
 updateFieldDisplays();
 ['S','A','B'].forEach(updateParticleDisplay);
-setMode('accel');
+setMode(_bootMode);
 </script>
 </body>
 </html>

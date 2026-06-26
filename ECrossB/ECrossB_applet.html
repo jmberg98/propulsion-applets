@@ -412,6 +412,16 @@ details.deriv-detail > summary:focus-visible {
   line-height: 1.5;
 }
 
+/* ── Embedded applet iframe ─────────────────────────── */
+.applet-frame {
+  display: block;
+  width: 100%;
+  height: 560px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
+}
+
 /* ══════════════════════════════════════════════════════
    QUIZ SECTION
    ══════════════════════════════════════════════════════ */
@@ -558,13 +568,9 @@ footer {
 <!-- ════════════════════ DEMO 1 — E field only ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo 1 &#x2014; Electric Field Only</div>
-  <div id="demo1-frame" class="demo-placeholder">
-    <span class="demo-placeholder-tag">Applet Placeholder</span>
-    <span class="demo-placeholder-note">
-      Mode&nbsp;1 &mdash; linear acceleration of a charged particle through an electric field over an accelerator
-      length, with exhaust velocity output. (Demo coming soon.)
-    </span>
-  </div>
+  <iframe id="demo1-frame" class="applet-frame" src="ECrossB.html?mode=accel"
+          title="Demo 1 — linear acceleration of a charged particle through an electric field"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ E PERP B DRIFT ════════════════════ -->
@@ -606,13 +612,9 @@ footer {
 <!-- ════════════════════ DEMO 2 — E & B fields ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo 2 &#x2014; E &amp; B Fields</div>
-  <div id="demo2-frame" class="demo-placeholder">
-    <span class="demo-placeholder-tag">Applet Placeholder</span>
-    <span class="demo-placeholder-note">
-      Mode&nbsp;2 &mdash; a charged particle in crossed electric and magnetic fields, showing the superposition of
-      cyclotron (Larmor) motion and the steady E&nbsp;&times;&nbsp;B drift. (Demo coming soon.)
-    </span>
-  </div>
+  <iframe id="demo2-frame" class="applet-frame" src="ECrossB.html?mode=drift"
+          title="Demo 2 — a charged particle in crossed electric and magnetic fields"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ ION VS ELECTRON ════════════════════ -->
@@ -631,13 +633,9 @@ footer {
 <!-- ════════════════════ DEMO 3 — ion & electron ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo 3 &#x2014; Ion vs. Electron in E &amp; B Fields</div>
-  <div id="demo3-frame" class="demo-placeholder">
-    <span class="demo-placeholder-tag">Applet Placeholder</span>
-    <span class="demo-placeholder-note">
-      Mode&nbsp;3 &mdash; identical to Mode&nbsp;2 with mass &amp; charge selection for both particles. The ion
-      rotates clockwise; the electron rotates counter-clockwise. (Demo coming soon.)
-    </span>
-  </div>
+  <iframe id="demo3-frame" class="applet-frame" src="ECrossB.html?mode=pair&amp;gate=0"
+          title="Demo 3 — ion vs. electron in crossed electric and magnetic fields"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ EXHAUST VELOCITY ════════════════════ -->
