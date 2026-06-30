@@ -61,7 +61,7 @@ def compute_induced(q_e, v):
 
 
 # ── Mode 2 — Magnetic moment (uniform-field gyration) ───────────────────────────
-def compute_moment(m_amu, q_e, v_perp, B):
+def compute_moment(m_amu, q_e, v_perp, B, B_dir=1):
     for n, x in (("m_amu", m_amu), ("q_e", q_e), ("v_perp", v_perp), ("B", B)):
         _finite(n, x)
     if float(m_amu) <= 0:
@@ -77,10 +77,11 @@ def compute_moment(m_amu, q_e, v_perp, B):
     Bf   = float(B)
     vp   = float(v_perp)
     sign = 1 if q > 0 else (-1 if q < 0 else 0)
+    bdir = 1 if float(B_dir) >= 0 else -1   # direction of B along the x-axis (±x)
 
     mu = m * vp ** 2 / (2.0 * Bf)
     if absq == 0:
-        return {"mode": "moment", "sign": 0, "v_perp": vp, "B": Bf,
+        return {"mode": "moment", "sign": 0, "v_perp": vp, "B": Bf, "B_dir": bdir,
                 "r_L": None, "omega_c": None, "mu": mu, "T_c": None,
                 "I": None, "A": None}
 
@@ -89,13 +90,13 @@ def compute_moment(m_amu, q_e, v_perp, B):
     T_c     = 2.0 * math.pi / omega_c
     I       = absq * omega_c / (2.0 * math.pi)   # loop current  q*f
     A       = math.pi * r_L ** 2                 # loop area
-    return {"mode": "moment", "sign": sign, "v_perp": vp, "B": Bf,
+    return {"mode": "moment", "sign": sign, "v_perp": vp, "B": Bf, "B_dir": bdir,
             "r_L": r_L, "omega_c": omega_c, "mu": mu, "T_c": T_c,
             "I": I, "A": A}
 
 
 # ── Mode 3 — Magnetic mirror ────────────────────────────────────────────────────
-def compute_mirror(m_amu, q_e, v0, theta_deg, B0, R):
+def compute_mirror(m_amu, q_e, v0, theta_deg, B0, R, B_dir=1):
     for n, v in (("m_amu", m_amu), ("q_e", q_e), ("v0", v0),
                  ("theta_deg", theta_deg), ("B0", B0), ("R", R)):
         _finite(n, v)
@@ -121,6 +122,7 @@ def compute_mirror(m_amu, q_e, v0, theta_deg, B0, R):
     s    = math.sin(th)
     c    = math.cos(th)
     sign = 1 if q > 0 else (-1 if q < 0 else 0)
+    bdir = 1 if float(B_dir) >= 0 else -1   # direction of B along the x-axis (±x)
 
     v_perp0 = v0f * s
     v_par0  = v0f * c
@@ -165,7 +167,7 @@ def compute_mirror(m_amu, q_e, v0, theta_deg, B0, R):
 
     return {
         "mode": "mirror",
-        "sign": sign,
+        "sign": sign, "B_dir": bdir,
         "v0": v0f, "v_par0": v_par0, "v_perp0": v_perp0,
         "mu": mu,
         "B0": B0f, "B_max": B_max, "B_stop": B_stop,
@@ -185,10 +187,12 @@ def compute(payload):
         return compute_induced(payload["q_e"], payload["v"])
     if mode == "moment":
         return compute_moment(payload["m_amu"], payload["q_e"],
-                              payload["v_perp"], payload["B"])
+                              payload["v_perp"], payload["B"],
+                              payload.get("B_dir", 1))
     if mode == "mirror":
         return compute_mirror(payload["m_amu"], payload["q_e"], payload["v0"],
-                              payload["theta_deg"], payload["B0"], payload["R"])
+                              payload["theta_deg"], payload["B0"], payload["R"],
+                              payload.get("B_dir", 1))
     raise ValueError(f"Unknown mode '{mode}'.")
 
 
@@ -313,22 +317,22 @@ input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
       <input type="number" id="inp-mass" value="1.007276" min="0.0000001" step="0.001">
     </div>
     <div class="field">
-      <label>Charge <i>q</i> [e]</label>
-      <div class="row2">
-        <input type="number" id="inp-qmag" value="1" min="0" step="1">
-        <select id="inp-sign">
-          <option value="+">+</option>
-          <option value="-">&#x2212;</option>
-        </select>
-      </div>
+      <label>Charge <i>q</i></label>
+      <select id="inp-sign">
+        <option value="+">Positive (+e)</option>
+        <option value="-">Negative (&#x2212;e)</option>
+      </select>
     </div>
   </div>
 
   <!-- ══ Mode 1 (induced) fields ══ -->
   <div id="grp-induced">
     <div class="field">
-      <label>Speed |<i>v</i>| [m/s]</label>
-      <input type="number" id="ind-speed" value="200000" min="0" step="10000">
+      <label>Charge <i>q</i></label>
+      <select id="ind-charge">
+        <option value="+">Positive (+e)</option>
+        <option value="-">Negative (&#x2212;e)</option>
+      </select>
     </div>
     <div class="readout">B circulates around the velocity axis (Biot&#8211;Savart).
       Flip the charge sign to reverse it.</div>
@@ -337,29 +341,34 @@ input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
   <!-- ══ Mode 2 (moment) fields ══ -->
   <div id="grp-moment" class="hide">
     <div class="field">
-      <label>Perp. speed <i>v</i><sub>&#x22A5;</sub> [m/s]</label>
-      <input type="number" id="mom-vperp" value="300000" min="0" step="10000">
+      <label>Flux density |<i>B</i>| = <b id="mom-B-disp">0.50</b> T</label>
+      <input type="range" id="mom-B" min="0.05" max="5" value="0.5" step="0.05">
     </div>
     <div class="field" style="margin-top:8px">
-      <label>Flux density |<i>B</i>| [T]</label>
-      <input type="number" id="mom-B" value="0.5" min="0.0001" step="0.05">
+      <label>Field direction <i>B</i></label>
+      <select id="mom-Bdir">
+        <option value="+">+x (right-hand axis)</option>
+        <option value="-">&#x2212;x (reversed)</option>
+      </select>
+      <div class="readout">Reversing <i>B</i> flips the gyration sense; &#956; stays
+        antiparallel to <i>B</i>.</div>
     </div>
   </div>
 
   <!-- ══ Mode 3 (mirror) fields ══ -->
   <div id="grp-mirror" class="hide">
     <div class="field">
-      <label>Speed |<i>v</i><sub>0</sub>| [m/s]</label>
-      <input type="number" id="mir-speed" value="300000" min="0" step="10000">
-    </div>
-    <div class="field" style="margin-top:8px">
-      <label>Pitch angle &#952;<sub>0</sub> = <b id="theta-disp">45</b>&#xB0;
+      <label>Pitch angle &#952;<sub>0</sub> [&#xB0;]
              <span style="float:right;color:#607d8b">0&#x2013;90</span></label>
-      <input type="range" id="theta-r" min="0" max="90" value="45" step="1">
+      <div class="row2">
+        <input type="range" id="theta-r" min="0" max="90" value="45" step="1">
+        <input type="number" id="theta-n" min="0" max="90" value="45" step="1"
+               style="width:60px;flex:none">
+      </div>
     </div>
     <div class="field" style="margin-top:8px">
-      <label>Initial flux density <i>B</i><sub>0</sub> [T]</label>
-      <input type="number" id="mir-B0" value="0.5" min="0.0001" step="0.05">
+      <label>Initial flux density <i>B</i><sub>0</sub> = <b id="mir-B0-disp">0.50</b> T</label>
+      <input type="range" id="mir-B0" min="0.05" max="5" value="0.5" step="0.05">
     </div>
     <div class="field" style="margin-top:8px">
       <label>Mirror ratio <i>R</i> = <i>B</i><sub>max</sub>/<i>B</i><sub>0</sub> =
@@ -367,6 +376,15 @@ input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
       <input type="range" id="R-r" min="1.2" max="20" value="6" step="0.1">
       <div class="readout">Loss cone: <b id="b-loss">24.1&#xB0;</b> &nbsp; |
                            <i>B</i><sub>max</sub> = <b id="b-bmax">3.000 T</b></div>
+    </div>
+    <div class="field" style="margin-top:8px">
+      <label>Field direction <i>B</i></label>
+      <select id="mir-Bdir">
+        <option value="+">+x (right-hand axis)</option>
+        <option value="-">&#x2212;x (reversed)</option>
+      </select>
+      <div class="readout">Reversing <i>B</i> flips the gyration sense; &#956; stays
+        antiparallel to <i>B</i> (the bounce along the axis is unchanged).</div>
     </div>
   </div>
 
@@ -422,7 +440,7 @@ input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
     <div class="row m-comp hide"><span class="sw" style="background:#29b6f6"></span>v&#x22A5; perpendicular</div>
     <div class="row m-mu hide"><span class="sw" style="background:#ec407a"></span>&#956; magnetic moment</div>
     <div class="row m-field"><span class="sw" style="background:#5c6bc0"></span><b style="color:#5c6bc0">B</b> field</div>
-    <div class="row m-mirror hide"><span class="sw" style="background:#ffb300"></span>Mirror point</div>
+    <div class="row m-mirror hide"><span class="sw" style="background:#ffb300"></span>B<sub>mirror</sub> point</div>
     <div class="row m-mirror hide"><span class="sw" style="background:#ef5350"></span>Throat (B<sub>max</sub>)</div>
   </div>
 </div>
@@ -444,7 +462,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const SCENE_R     = 5.0;
 const BOTTLE_L    = SCENE_R * 2.6;     // mirror half-length: throats at x = ±L
 const R_FL_MAX    = SCENE_R * 1.05;    // mirror field-line radius at the centre
-const TRAVEL_TRAP = 8.5, TRAVEL_ESC = 5.0, END_PAUSE = 0.6;
+const TRAVEL_TRAP = 8.5, TRAVEL_ESC = 7.5, END_PAUSE = 0.6;
 const NS          = 1800;
 const OMEGA_REF   = 5.0e7;
 const BASE_GYRO   = 9, GYRO_MIN = 4, GYRO_MAX = 34;
@@ -527,6 +545,7 @@ function makeTextSprite(text, color, height = SCENE_R * 0.26) {
 
 // ── scene globals ─────────────────────────────────────────────────────────────
 let renderer, scene, camera, controls, clock;
+let axisScene, axisCam;          // fixed reference-frame gizmo (î, ĵ, k̂)
 let fieldGroup, guideGroup, extraGroup;
 let particle = null;
 let curData = null;
@@ -560,13 +579,16 @@ function makeParticle() {
   p.mesh = new THREE.Mesh(
     new THREE.SphereGeometry(SCENE_R*0.07, 24, 24),
     new THREE.MeshStandardMaterial({ color:COL.part, emissive:COL.part,
-                                     emissiveIntensity:0.45, roughness:0.3 })
+                                     emissiveIntensity:0.45, roughness:0.3,
+                                     transparent:true })
   );
   scene.add(p.mesh);
 
   const mkArrow = (c, len) => {
     const a = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(),
                                     len, c, len*0.28, len*0.16);
+    a.line.material.transparent = true;
+    a.cone.material.transparent = true;
     a.visible = false; scene.add(a); return a;
   };
   p.velArrow   = mkArrow(COL.vel,   SCENE_R*0.9);
@@ -588,6 +610,35 @@ function hideAllVectors() {
   for (const a of [particle.velArrow, particle.vparArrow, particle.vperpArrow, particle.muArrow,
                    particle.velLabel, particle.vparLabel, particle.vperpLabel, particle.muLabel])
     a.visible = false;
+}
+
+// fade the particle (and its glyph / arrows / trail) — 1 = solid, 0 = invisible
+function setParticleOpacity(a) {
+  particle.mesh.material.opacity = a;
+  if (particle.chargeSprite) particle.chargeSprite.material.opacity = a;
+  for (const ar of [particle.velArrow, particle.vparArrow, particle.vperpArrow, particle.muArrow]) {
+    ar.line.material.opacity = a; ar.cone.material.opacity = a;
+  }
+  for (const lb of [particle.velLabel, particle.vparLabel, particle.vperpLabel, particle.muLabel])
+    lb.material.opacity = a;
+}
+
+// ── reference coordinate frame (î ĵ k̂) ─────────────────────────────────────────
+// A small fixed gizmo drawn in the lower-left corner whose orientation tracks the
+// camera. k̂ points along the parallel travel direction (+x, i.e. along B); î and ĵ
+// span the perpendicular plane and complete a right-handed triad (î × ĵ = k̂).
+function buildAxisGizmo() {
+  axisScene = new THREE.Scene();
+  axisCam   = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  const mk = (dir, color, label) => {
+    axisScene.add(new THREE.ArrowHelper(dir, new THREE.Vector3(0,0,0), 1, color, 0.32, 0.2));
+    const sp = makeTextSprite(label, color, 0.55);
+    sp.position.copy(dir).multiplyScalar(1.4);
+    axisScene.add(sp);
+  };
+  mk(new THREE.Vector3(0,1,0), '#ff8a80', 'î');   // î = +y
+  mk(new THREE.Vector3(0,0,1), '#69f0ae', 'ĵ');   // ĵ = +z
+  mk(new THREE.Vector3(1,0,0), '#82b1ff', 'k̂');   // k̂ = +x  (∥ to travel / B)
 }
 
 // ── init ──────────────────────────────────────────────────────────────────────
@@ -616,6 +667,7 @@ function initViz(container) {
   scene.add(fieldGroup, guideGroup, extraGroup);
 
   particle = makeParticle();
+  buildAxisGizmo();
   clock = new THREE.Clock();
 
   window.addEventListener('resize', () => {
@@ -662,7 +714,7 @@ function makeCircArrows(group, xpos, radius, sense, color, opacity, nHeads = 4) 
 // y-z plane at x=0). Each little loop encircles the wire; by the right-hand rule the
 // field threads −x̂ through the centre of the ring — the same direction as μ for a
 // gyrating charge — so these loops "add up" to the magnetic dipole moment.
-function makePoloidalLoops(group, ringR, color, opacity, nLoops = 8) {
+function makePoloidalLoops(group, ringR, color, opacity, nLoops = 8, dirSign = 1) {
   const rho  = ringR * 0.26;
   const xhat = new THREE.Vector3(1,0,0);
   const lm   = new THREE.LineBasicMaterial({ color, transparent:true, opacity });
@@ -679,7 +731,7 @@ function makePoloidalLoops(group, ringR, color, opacity, nLoops = 8) {
     group.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), lm));
     for (const b of [Math.PI*0.5, Math.PI*1.5]) {                  // two arrowheads / loop
       const p = ctr.clone().addScaledVector(rhat, rho*Math.cos(b)).addScaledVector(xhat, rho*Math.sin(b));
-      const t = rhat.clone().multiplyScalar(-Math.sin(b)).addScaledVector(xhat, Math.cos(b)).normalize();
+      const t = rhat.clone().multiplyScalar(-Math.sin(b)).addScaledVector(xhat, dirSign*Math.cos(b)).normalize();
       const hl = rho*0.5;
       const ar = new THREE.ArrowHelper(t, p, hl, color, hl*0.8, hl*0.55);
       ar.line.material.transparent = true; ar.line.material.opacity = opacity;
@@ -727,6 +779,7 @@ function buildInduced(d) {
   }
   extraGroup.visible = showField;
   setChargeSprite(particle, d.sign);
+  setParticleOpacity(1);
   resetCycle();
 }
 
@@ -761,32 +814,36 @@ function buildMoment(d) {
   extraGroup.position.set(0,0,0); extraGroup.visible = true;
   if (particle.trail) { scene.remove(particle.trail); particle.trail.geometry.dispose(); particle.trail = null; }
 
-  // display radius (atan-compressed) and animation rate
+  // display radius and animation rate. A √-compression keeps the Larmor radius
+  // visibly responsive across the whole |B| range — it shrinks (and never pins to a
+  // floor) as B grows — while still fitting a very large r_L on screen at small B.
   const rL = (d.r_L === null) ? 0 : d.r_L;
   const rDisp = (rL > 0)
-    ? clamp(SCENE_R * 1.25 * (2/Math.PI) * Math.atan(rL / MOM_RREF), SCENE_R*0.35, SCENE_R*1.7)
+    ? clamp(SCENE_R * 0.62 * Math.sqrt(rL / MOM_RREF), SCENE_R*0.18, SCENE_R*1.6)
     : SCENE_R*0.5;
   const visOmega = (d.omega_c)
     ? clamp(Math.sqrt(d.omega_c / MOM_WREF), 0.35, 2.6) * 1.6
     : 0;
-  // gyration sense: +q in B(+x) rotates clockwise seen from +x → −alpha; reverse for −q
-  const rotSign = (d.sign === 0) ? 0 : -d.sign;
-  momView = { rDisp, visOmega, rotSign };
+  const bdir = (d.B_dir < 0) ? -1 : 1;   // B along +x (bdir=+1) or −x (bdir=−1)
+  // gyration sense: +q in B(+x) rotates clockwise seen from +x → −alpha; reverse for
+  // −q and reverse again when B is flipped to −x.
+  const rotSign = (d.sign === 0) ? 0 : -d.sign * bdir;
+  momView = { rDisp, visOmega, rotSign, bdir };
 
-  // applied uniform B field, faint straight arrows along +x (the field the charge gyrates in)
+  // applied uniform B field, faint straight arrows along ±x (the field the charge gyrates in)
   const H = SCENE_R*1.3, step = SCENE_R*0.85;
   for (let iy=-1; iy<=1; iy++) for (let iz=-1; iz<=1; iz++) {
-    const a = new THREE.ArrowHelper(new THREE.Vector3(1,0,0),
-              new THREE.Vector3(-H, iy*step, iz*step), 2*H, COL.field,
+    const a = new THREE.ArrowHelper(new THREE.Vector3(bdir,0,0),
+              new THREE.Vector3(-bdir*H, iy*step, iz*step), 2*H, COL.field,
               SCENE_R*0.18, SCENE_R*0.09);
     a.line.material.transparent = true; a.line.material.opacity = (iy||iz)?0.13:0.22;
     a.cone.material.transparent = true; a.cone.material.opacity = (iy||iz)?0.13:0.22;
     fieldGroup.add(a);
   }
 
-  // induced field OF the loop: poloidal circles wrapping the wire. They thread −x̂
-  // through the ring centre and add up to the dipole moment μ.
-  if (d.sign !== 0) makePoloidalLoops(fieldGroup, rDisp, COL.field, 0.5, 8);
+  // induced field OF the loop: poloidal circles wrapping the wire. They thread along μ
+  // (antiparallel to B, i.e. −bdir·x̂) through the ring centre and add up to μ.
+  if (d.sign !== 0) makePoloidalLoops(fieldGroup, rDisp, COL.field, 0.5, 8, bdir);
   fieldGroup.visible = showField;
 
   // the gyration orbit in the y-z plane
@@ -798,28 +855,23 @@ function buildMoment(d) {
   // MOTION-direction arrowheads around the orbit — these reverse with charge sign
   // (an ion and an electron gyrate in opposite senses). Yellow = velocity sense.
   if (d.sign !== 0) makeCircArrows(extraGroup, 0, rDisp, momView.rotSign, COL.vel, 0.95, 6);
-  // CONVENTIONAL-current arrowheads, drawn just outside the orbit. Current follows
-  // +charge motion but OPPOSES electron motion, so this sense is the SAME for ±q —
-  // which is why μ and the loop's field below do not flip (diamagnetic gyration).
-  if (d.sign !== 0) makeCircArrows(extraGroup, 0, rDisp*1.14, d.sign * momView.rotSign, COL.curr, 0.8, 4);
 
   if (showField) {
     const vl = makeTextSprite('v', '#ffd54f', SCENE_R*0.22);
     vl.position.set(0, rDisp - SCENE_R*0.3, 0);
     guideGroup.add(vl);
-    const il = makeTextSprite('I', '#ffa726', SCENE_R*0.22);
-    il.position.set(0, rDisp*1.14 + SCENE_R*0.32, 0);
-    guideGroup.add(il);
     const bl = makeTextSprite('B', '#9fa8da', SCENE_R*0.26);
-    bl.position.set(H*0.92, SCENE_R*0.2, 0);
+    bl.position.set(bdir*H*0.92, SCENE_R*0.2, 0);
     guideGroup.add(bl);
+    // label the induced field of the gyration current (the poloidal loops wrapping the wire)
     if (d.sign !== 0) {
-      const sl = makeTextSprite('ΣB → μ', '#ec407a', SCENE_R*0.22);
-      sl.position.set(-SCENE_R*0.9, 0, 0);
-      guideGroup.add(sl);
+      const il = makeTextSprite('B from I', '#9fa8da', SCENE_R*0.2);
+      il.position.set(0, rDisp*1.26 + SCENE_R*0.34, 0);
+      guideGroup.add(il);
     }
   }
   setChargeSprite(particle, d.sign);
+  setParticleOpacity(1);
   resetCycle();
 }
 
@@ -839,10 +891,10 @@ function animateMoment(d) {
   const tan = new THREE.Vector3(0, -Math.sin(phase), Math.cos(phase)).multiplyScalar(mv.rotSign);
   if (showVel && d.sign !== 0 && d.v_perp > 0)
     setArrow(particle.velArrow, particle.velLabel, pos, tan, SCENE_R*0.85, true);
-  // magnetic moment μ antiparallel to B (diamagnetic) → −x, drawn from the centre
+  // magnetic moment μ antiparallel to B (diamagnetic) → −bdir·x, drawn from the centre
   if (showMu && d.sign !== 0)
     setArrow(particle.muArrow, particle.muLabel, new THREE.Vector3(0,0,0),
-             new THREE.Vector3(-1,0,0), SCENE_R*0.9, true);
+             new THREE.Vector3(-mv.bdir,0,0), SCENE_R*0.9, true);
   return null;   // free-running, no end pause
 }
 
@@ -853,6 +905,7 @@ function buildMirrorField(d) {
   fieldGroup.clear(); guideGroup.clear(); extraGroup.clear();
   extraGroup.position.set(0,0,0); extraGroup.visible = true;
   const R = d.R, L = BOTTLE_L;
+  const bdir = (d.B_dir < 0) ? -1 : 1;     // B along +x (bdir=+1) or −x (bdir=−1)
   const rFL = xn => R_FL_MAX / Math.sqrt(bfac(xn, R));
 
   const NLINES = 14, SEG = 80;
@@ -872,6 +925,20 @@ function buildMirrorField(d) {
     fieldGroup.add(new THREE.Line(
       new THREE.BufferGeometry().setFromPoints(ringPoints(rFL(xn), xn*L)), rm));
 
+  // small B-field arrows riding the field lines, tangent and pointing along B (±x)
+  const ptFL = (t, ca, sa) => new THREE.Vector3(t*L, rFL(t)*ca, rFL(t)*sa);
+  for (const k of [0, 3, 7, 10]) {
+    const a = (k / NLINES) * 2 * Math.PI, ca = Math.cos(a), sa = Math.sin(a);
+    for (const xn of [-0.5, 0.0, 0.5]) {
+      const tan = ptFL(xn+0.02, ca, sa).sub(ptFL(xn-0.02, ca, sa)).normalize().multiplyScalar(bdir);
+      const ln  = SCENE_R*0.3;
+      const ar  = new THREE.ArrowHelper(tan, ptFL(xn, ca, sa), ln, COL.field, ln*0.55, ln*0.34);
+      ar.line.material.transparent = true; ar.line.material.opacity = 0.7;
+      ar.cone.material.transparent = true; ar.cone.material.opacity = 0.7;
+      fieldGroup.add(ar);
+    }
+  }
+
   const dashed = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints([
       new THREE.Vector3(-L*1.15,0,0), new THREE.Vector3(L*1.15,0,0)]),
@@ -879,7 +946,7 @@ function buildMirrorField(d) {
   dashed.computeLineDistances();
   guideGroup.add(dashed);
   for (const xn of [-0.55, 0.05, 0.65])
-    guideGroup.add(new THREE.ArrowHelper(new THREE.Vector3(1,0,0),
+    guideGroup.add(new THREE.ArrowHelper(new THREE.Vector3(bdir,0,0),
       new THREE.Vector3(xn*L,0,0), SCENE_R*0.5, COL.axis, SCENE_R*0.16, SCENE_R*0.08));
 
   const throatMat = new THREE.LineBasicMaterial({ color:COL.throat, transparent:true, opacity:0.9 });
@@ -898,11 +965,11 @@ function buildMirrorField(d) {
 
   if (showField) {
     const bL = makeTextSprite('B', '#9fa8da', SCENE_R*0.3);
-    bL.position.set(L*0.95, SCENE_R*0.25, 0); guideGroup.add(bL);
+    bL.position.set(0, R_FL_MAX + SCENE_R*0.55, 0); guideGroup.add(bL);
     const throat = makeTextSprite('B_max', '#ef5350', SCENE_R*0.24);
     throat.position.set(L, rFL(1) + SCENE_R*0.45, 0); guideGroup.add(throat);
     if (d.trapped && d.turn_frac > 0.01) {
-      const mp = makeTextSprite('mirror', '#ffb300', SCENE_R*0.22);
+      const mp = makeTextSprite('B_mirror', '#ffb300', SCENE_R*0.22);
       mp.position.set(d.turn_frac*L, rFL(d.turn_frac) + SCENE_R*0.4, 0); guideGroup.add(mp);
     }
   }
@@ -916,6 +983,8 @@ function buildMirrorTrajectory(d) {
   const th = d.theta_deg * Math.PI/180;
   const s2 = Math.sin(th)*Math.sin(th);
   const chargeSign = d.sign;
+  const bdir = (d.B_dir < 0) ? -1 : 1;     // reversing B flips the gyration sense
+  const rot  = chargeSign * bdir;          // signed winding direction of the gyration
   const pos = [], bfA = [], vparA = [], vperpA = [];
 
   let nGyro = BASE_GYRO;
@@ -936,7 +1005,7 @@ function buildMirrorTrajectory(d) {
     let acc = 0;
     for (let i = 0; i <= NS; i++) {
       const psi = 2*Math.PI*i/NS, xn = d.turn_frac*Math.sin(psi), bf = bfac(xn, R);
-      const phi = chargeSign * 2*Math.PI*nGyro * (acc/Itot), rG = gyroFrac(xn);
+      const phi = rot * 2*Math.PI*nGyro * (acc/Itot), rG = gyroFrac(xn);
       pos.push(new THREE.Vector3(xn*L, rG*Math.cos(phi), rG*Math.sin(phi)));
       bfA.push(bf);
       vparA.push(Math.sqrt(Math.max(0,1 - s2*bf)) * Math.sign(Math.cos(psi)));
@@ -945,13 +1014,13 @@ function buildMirrorTrajectory(d) {
     }
     path = { pos, bf:bfA, vpar:vparA, vperp:vperpA, periodic:true, dur:TRAVEL_TRAP };
   } else {
-    const XN_END = 1.18;
+    const XN_END = 1.55;
     let Itot = 0;
     for (let i = 0; i < NS; i++) Itot += bfac(XN_END*i/NS, R) * (1/NS);
     let acc = 0;
     for (let i = 0; i <= NS; i++) {
       const xn = XN_END*i/NS, bf = bfac(xn, R);
-      const phi = chargeSign * 2*Math.PI*nGyro * (Itot > 0 ? acc/Itot : 0), rG = gyroFrac(xn);
+      const phi = rot * 2*Math.PI*nGyro * (Itot > 0 ? acc/Itot : 0), rG = gyroFrac(xn);
       pos.push(new THREE.Vector3(xn*L, rG*Math.cos(phi), rG*Math.sin(phi)));
       bfA.push(bf);
       vparA.push(Math.sqrt(Math.max(0,1 - s2*bf)));
@@ -961,9 +1030,11 @@ function buildMirrorTrajectory(d) {
     path = { pos, bf:bfA, vpar:vparA, vperp:vperpA, periodic:false, dur:TRAVEL_ESC };
   }
 
+  // the full trajectory drawn as a slightly-transparent overlay, anchored at the start;
+  // it stays put (does not fade with the particle) so it reads as a reference path
   particle.trail = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(pos),
-    new THREE.LineBasicMaterial({ color:COL.part, transparent:true, opacity:0.22 }));
+    new THREE.LineBasicMaterial({ color:COL.part, transparent:true, opacity:0.45 }));
   scene.add(particle.trail);
   setChargeSprite(particle, d.sign);
   resetCycle();
@@ -984,6 +1055,9 @@ function animateMirror(d) {
   const idx = clamp(Math.round(u*(N-1)), 0, N-1);
   const pos = path.pos[idx];
   const off = new THREE.Vector3(SCENE_R*0.13, SCENE_R*0.16, SCENE_R*0.13);
+
+  // escaping particles fade out as they leave the bottle through the throat
+  setParticleOpacity(d.escapes ? (1.0 - clamp((u - 0.55) / 0.40, 0, 1)) : 1.0);
 
   particle.mesh.position.copy(pos);
   particle.mesh.visible = true;
@@ -1009,8 +1083,11 @@ function animateMirror(d) {
   setArrow(particle.vperpArrow, particle.vperpLabel, pos, perpD,
            vlen*Math.max(vperpF,0.001), sComp && vperpF>0.02);
 
-  setArrow(particle.muArrow, particle.muLabel, pos, new THREE.Vector3(-1,0,0),
-           SCENE_R*0.6, showMu && d.sign !== 0);
+  // μ antiparallel to B (so it flips when B reverses); no perpendicular speed
+  // (pitch angle 0) ⇒ no gyration ⇒ μ = 0, so hide it
+  const bdir = (d.B_dir < 0) ? -1 : 1;
+  setArrow(particle.muArrow, particle.muLabel, pos, new THREE.Vector3(-bdir,0,0),
+           SCENE_R*0.6, showMu && d.sign !== 0 && d.v_perp0 > 0);
 
   if ((liveTick++ % 4) === 0) updateLive(idx);
   return path.dur;
@@ -1044,6 +1121,18 @@ function animate() {
   }
 
   renderer.render(scene, camera);
+
+  // reference-frame gizmo: lower-left inset, orientation locked to the main camera
+  const sz = renderer.getSize(new THREE.Vector2());
+  const inset = Math.round(Math.min(190, sz.x*0.30, sz.y*0.38));
+  axisCam.position.set(0,0,1).applyQuaternion(camera.quaternion).multiplyScalar(4.2);
+  axisCam.quaternion.copy(camera.quaternion);
+  renderer.autoClear = false;
+  renderer.clearDepth();
+  renderer.setViewport(10, 10, inset, inset);
+  renderer.render(axisScene, axisCam);
+  renderer.setViewport(0, 0, sz.x, sz.y);
+  renderer.autoClear = true;
 
   // advance / loop (modes that report a finite duration; moment free-runs on tAccum)
   if (dur !== null) {
@@ -1108,6 +1197,7 @@ function updateLive(idx) {
 function updateGeomReadout() {
   const R  = +$('R-r').value, B0 = +$('mir-B0').value;
   $('R-disp').textContent = R.toFixed(1);
+  $('mir-B0-disp').textContent = B0.toFixed(2);
   $('b-loss').textContent = (Math.asin(Math.min(1,Math.sqrt(1/R)))*180/Math.PI).toFixed(1)+'°';
   $('b-bmax').textContent = fmtT(R*B0);
 }
@@ -1117,24 +1207,25 @@ function applyPreset() {
   const pr = PRESETS[$('preset').value];
   if (!pr) return;
   $('inp-mass').value = pr.m;
-  $('inp-qmag').value = Math.abs(pr.q);
   $('inp-sign').value = pr.q < 0 ? '-' : '+';
 }
 
 function chargeSigned() {
-  const sign = $('inp-sign').value === '-' ? -1 : 1;
-  return sign * Math.abs(+$('inp-qmag').value);
+  // magnitude fixed at one elementary charge e; only the sign is user-selectable
+  return $('inp-sign').value === '-' ? -1 : 1;
 }
 
 function readInputs() {
   if (mode === 'induced')
-    return { mode:'induced', q_e: chargeSigned(), v: +$('ind-speed').value };
+    return { mode:'induced', q_e: ($('ind-charge').value === '-' ? -1 : 1), v: V_REF_IND };
   if (mode === 'moment')
     return { mode:'moment', m_amu:+$('inp-mass').value, q_e: chargeSigned(),
-             v_perp:+$('mom-vperp').value, B:+$('mom-B').value };
+             v_perp: 3.0e5, B:+$('mom-B').value,
+             B_dir: $('mom-Bdir').value === '-' ? -1 : 1 };
   return { mode:'mirror', m_amu:+$('inp-mass').value, q_e: chargeSigned(),
-           v0:+$('mir-speed').value, theta_deg:+$('theta-r').value,
-           B0:+$('mir-B0').value, R:+$('R-r').value };
+           v0: 3.0e5, theta_deg:+$('theta-r').value,
+           B0:+$('mir-B0').value, R:+$('R-r').value,
+           B_dir: $('mir-Bdir').value === '-' ? -1 : 1 };
 }
 
 async function api(payload) {
@@ -1184,10 +1275,9 @@ function setMode(m) {
   $('grp-moment').classList.toggle('hide',  !isMom);
   $('grp-mirror').classList.toggle('hide',  !isMir);
 
-  // particle block: induced needs only charge sign (no mass / magnitude / preset)
-  $('row-mass').classList.toggle('hide', isInd);
-  $('row-preset').classList.toggle('hide', isInd);
-  $('inp-qmag').parentElement.parentElement.style.display = '';   // keep charge row
+  // particle block: induced's only input is the +e/−e select inside grp-induced,
+  // so hide the whole Particle block (mass / charge / preset) in that mode.
+  $('block-P').classList.toggle('hide', isInd);
 
   // output rows
   document.querySelectorAll('.r-induced').forEach(el => el.classList.toggle('hide', !isInd));
@@ -1223,16 +1313,26 @@ document.querySelectorAll('.tab').forEach(t =>
   t.addEventListener('click', () => setMode(t.dataset.mode)));
 
 $('preset').addEventListener('change', () => { applyPreset(); debounced(); });
-['inp-mass','inp-qmag','inp-sign'].forEach(id =>
+['inp-mass','inp-sign'].forEach(id =>
   $(id).addEventListener('input', () => { $('preset').value='custom'; debounced(); }));
 
-$('ind-speed').addEventListener('input', debounced);
-$('mom-vperp').addEventListener('input', debounced);
-$('mom-B').addEventListener('input', debounced);
-$('mir-speed').addEventListener('input', debounced);
+function updateMomReadout() {
+  $('mom-B-disp').textContent = (+$('mom-B').value).toFixed(2);
+}
+
+$('ind-charge').addEventListener('change', debounced);
+$('mom-B').addEventListener('input', () => { updateMomReadout(); debounced(); });
+$('mom-Bdir').addEventListener('change', debounced);
 $('mir-B0').addEventListener('input', () => { updateGeomReadout(); debounced(); });
-$('theta-r').addEventListener('input', () => { $('theta-disp').textContent=$('theta-r').value; debounced(); });
+$('theta-r').addEventListener('input', () => { $('theta-n').value = $('theta-r').value; debounced(); });
+$('theta-n').addEventListener('input', () => {
+  $('theta-r').value = clamp(Math.round(+$('theta-n').value || 0), 0, 90); debounced();
+});
+$('theta-n').addEventListener('change', () => {
+  $('theta-n').value = clamp(Math.round(+$('theta-n').value || 0), 0, 90);
+});
 $('R-r').addEventListener('input', () => { updateGeomReadout(); debounced(); });
+$('mir-Bdir').addEventListener('change', debounced);
 
 $('chk-labels').addEventListener('change', () => {
   showField = $('chk-labels').checked;
@@ -1251,6 +1351,7 @@ $('btn-run').addEventListener('click', runUpdate);
 initViz(document.getElementById('viewport'));
 applyPreset();
 updateGeomReadout();
+updateMomReadout();
 setMode('induced');
 </script>
 </body>
