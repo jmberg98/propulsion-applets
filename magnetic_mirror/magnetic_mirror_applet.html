@@ -1,1 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Magnetic Mirror — Plasma Physics</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  --c-thrust: #FF4400;
+  --c-ve:     #3DBFFF;
+  --c-mass:   #FF4400;
+  --c-power:  #C060FF;
+  --c-press:  #00DDB5;
+  --c-efield: #F5C518;
+  --c-moment: #F5C518;
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ───────────────────────────────── */
+.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
+.hl-ve, .hl-v            { color: var(--c-ve); }
+.hl-mass                 { color: var(--c-mass); }
+.hl-power                { color: var(--c-power); }
+.hl-press                { color: var(--c-press); }
+.hl-B                    { color: var(--c-press); }
+.hl-q                    { color: var(--c-power); }
+.hl-E                    { color: var(--c-efield); }
+.hl-moment               { color: var(--c-moment); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 20px;
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  flex-shrink: 0;
+  margin-top: 4px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 2px;
+}
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+
+/* ── two-column derivation layout ───────────────────── */
+.deriv-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.deriv-col {
+  padding: 14px 20px;
+}
+.deriv-col + .deriv-col {
+  border-left: 1px solid var(--border);
+}
+.deriv-col-hdr {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── inline equation row ─────────────────────────────── */
+.eq-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 6px 0;
+}
+.eq-row-label {
+  font-size: 15px;
+  color: #545454;
+  flex-shrink: 0;
+  min-width: 140px;
+}
+
+/* ── callout box ─────────────────────────────────────── */
+.eq-callout {
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
+}
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Demo placeholder ───────────────────────────────── */
+.demo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 480px;
+  border-top: 1px solid var(--border);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.012) 0,
+      rgba(255,255,255,0.012) 12px,
+      transparent 12px,
+      transparent 24px
+    ),
+    var(--bg-canvas);
+  text-align: center;
+  padding: 24px;
+}
+.demo-placeholder-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.demo-placeholder-note {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+/* ── Embedded applet iframe ─────────────────────────── */
+.applet-frame {
+  display: block;
+  width: 100%;
+  height: 560px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+.quiz-opt.correct .quiz-opt-label { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label { color: #ff8e8e; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.2em !important; }
+.katex-display { font-size: 1.2em !important; }
+.theory-block .katex { font-size: 1.25em !important; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 10px;
+  font-size: 18.5px;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Magnetic Mirror</h1>
+  <span class="badge">Plasma Physics</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  We may be interested in trapping or guiding <span class="key hl-q">charged particles</span> along paths of
+  interest. To do this, we must implement <span class="key">magnetic mirrors</span>, which trap particles that
+  approach it at a specific angle. The &ldquo;how&rdquo; of <span class="key">magnetic mirrors</span> lies in how
+  <span class="key hl-q">charged particles</span> exhibiting <span class="key">cyclotron motion</span> generate a
+  <span class="key hl-moment">magnetic moment</span> and act as a <span class="key">magnetic dipole</span> (think of a
+  bar magnet)! Explore the demos below to see how these orbiting <span class="key hl-q">charged particles</span> act
+  as bar magnets. Then explore how they function in non-uniform <span class="key hl-B">magnetic fields</span> to see
+  <span class="key">magnetic mirrors</span> in action.
+</p>
+
+<!-- ════════════════════ Q (intro) ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Conceptual Question</div>
+  <div class="quiz-block" data-unlocks="demo1-host">
+    <p class="quiz-q">If a <span class="hl-q">charged particle</span> is in motion, it induces a
+    <span class="hl-B">magnetic field</span>. What is the shape of the induced
+    <span class="hl-B">magnetic field</span>?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>A straight line in the same direction as the particle&rsquo;s motion
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>A circular path around the direction of the particle&rsquo;s motion
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ FIRST DEMO ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">First Demo</div>
+  <div class="demo-placeholder" id="demo1-host">
+    <span class="demo-placeholder-tag">Insert First Demo Here</span>
+  </div>
+</div>
+
+<!-- ════════════════════ CYCLOTRON / LARMOR RECALL ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Cyclotron &amp; Larmor Motion</div>
+  <p class="th-body">
+    Recall that when a particle travels perpendicular to a uniform <span class="key hl-B">magnetic field</span>, it
+    travels circularly, undergoing <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>. The
+    <span class="key hl-q">charged particle&rsquo;s</span> circular motion induces a
+    <span class="key hl-B">magnetic field</span>.
+  </p>
+</div>
+
+<!-- ════════════════════ Q1 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Conceptual Question</div>
+  <div class="quiz-block" data-unlocks="demo2-host">
+    <p class="quiz-q">The induced <span class="hl-B">magnetic field</span> of a particle in circular motion can be
+    summed to form a net <span class="hl-B">magnetic field</span> or <span class="hl-moment">moment</span>. What is the
+    shape of the net <span class="hl-B">magnetic field</span> or <span class="hl-moment">moment</span> from a particle
+    exhibiting <span class="hl-B">cyclotron</span> or <span class="hl-B">Larmor motion</span>?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>A straight line pointing in/out of the circular path.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>A circular path along the particle&rsquo;s motion.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ SECOND DEMO ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Second Demo</div>
+  <div class="demo-placeholder" id="demo2-host">
+    <span class="demo-placeholder-tag">Insert Second Demo Here</span>
+  </div>
+</div>
+
+<!-- ════════════════════ NO WORK / CONSTANT MOMENT ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">No Work &amp; Constant Moment</div>
+  <p class="th-body">
+    Also recall that the <span class="key hl-B">magnetic force</span> does no work on particles. The net
+    <span class="key">kinetic energy</span> of a <span class="key hl-q">charged particle</span> in a
+    <span class="key hl-B">magnetic field</span> that does not change with time, is constant. Additionally, the
+    <span class="key hl-moment">magnetic moment</span> of the particle is constant. By using a
+    <span class="key hl-B">magnetic field</span> that varies in strength in different regions, we can reduce the speed
+    along the field lines by increasing the rotational speed around them.
+  </p>
+</div>
+
+<!-- ════════════════════ Q3 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Conceptual Question</div>
+  <div class="quiz-block" data-unlocks="demo3-host">
+    <p class="quiz-q">If a <span class="hl-q">charged particle</span> in <span class="hl-B">cyclotron motion</span>
+    travels toward a stronger <span class="hl-B">magnetic field</span>, what happens to its motion?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>It will orbit the magnetic field line faster and travel along it slower.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>It will orbit the magnetic field line slower, and travel along it faster.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>It will orbit the magnetic field line faster and travel along it faster.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">d</span>It will orbit the magnetic field line slower and travel along it slower.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ THIRD DEMO ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Third Demo</div>
+  <div class="demo-placeholder" id="demo3-host">
+    <span class="demo-placeholder-tag">Insert Third Demo Here</span>
+  </div>
+</div>
+
+<!-- ════════════════════ MAGNETIC MOMENT ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Magnetic Moment</div>
+
+  <p class="th-body">
+    The net <span class="key hl-B">magnetic field</span> or <span class="key hl-moment">moment</span> of a particle in
+    <span class="key">cyclotron</span> or <span class="key">Larmor motion</span> is its
+    <span class="key hl-moment">magnetic moment</span>. Its strength is determined by its current and the area of its
+    circular path. It scales with the square of the particle&rsquo;s <span class="key hl-v">perpendicular velocity</span>
+    and inversely scales with the strength of the <span class="key hl-B">magnetic field</span> it is traveling about.
+  </p>
+
+  $$
+  \boxed{\;
+  \textcolor{#F5C518}{\mu}
+  =
+  \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
+  \;}
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-note">
+          A moving <span class="hl-q">charged particle</span> carries current. Current induces a
+          <span class="hl-B">magnetic field</span> about the particle&rsquo;s path. To obtain the direction of
+          <span class="hl-B">$\vec{B}$</span>, stick your thumb in the direction of travel if positively charged, or
+          opposite direction if the particle is negatively charged. Then, curl your fingers to obtain
+          <span class="hl-B">$\vec{B}$</span>&rsquo;s clockwise or counterclockwise orientation.
+        </span>
+
+        <span class="eq-step-label">Maxwell&ndash;Ampere&rsquo;s Law</span>
+        $$
+        \oint \textcolor{#00DDB5}{\vec{B}}\cdot d\vec{s}
+        = \mu_0 I + \mu_0\varepsilon_0\frac{d\Phi_E}{dt}
+        $$
+
+        <span class="eq-note">
+          In a loop, the <span class="hl-B">magnetic field</span> induced by the current of the moving
+          <span class="hl-q">charged particle</span> creates a net <span class="hl-moment">magnetic moment</span> by
+          vector sum of each induced <span class="hl-B">magnetic field</span>.
+        </span>
+
+        <span class="eq-step-label">For a particle in Larmor motion</span>
+        $$
+        \textcolor{#F5C518}{\mu} = \tfrac{1}{2}\int \vec{r}\times\vec{\jmath}\,dV = IA
+        $$
+        $$
+        I = \frac{\textcolor{#C060FF}{q}\,\omega_c}{2\pi}
+        \qquad
+        A = \pi r_L^{2}
+        $$
+        $$
+        \rightarrow\;
+        \textcolor{#F5C518}{\mu}
+        = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ INVARIANT MAGNETIC MOMENT ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Invariant Magnetic Moment</div>
+
+  <p class="th-body">
+    Key to the derivation of <span class="key">magnetic mirrors</span>, but very non-intuitive, is the invariance of
+    the <span class="key hl-moment">magnetic moment</span>. The <span class="key">kinetic energy</span> of the particle
+    can be written as the sum of its <span class="key hl-v">parallel</span> and
+    <span class="key hl-v">perpendicular</span> kinetic energy components. Then, it can be further rearranged to be the
+    sum of a magnetic potential energy and the <span class="key hl-v">parallel</span> component of the
+    particle&rsquo;s kinetic energy. Because the <span class="key hl-moment">magnetic moment</span> is constant, a
+    varying <span class="key hl-B">magnetic field</span> will affect the <span class="key hl-v">parallel velocity</span>
+    of the particle, allowing us to &ldquo;speed up&rdquo; and &ldquo;slow down&rdquo; the particle without adding or
+    removing energy.
+  </p>
+
+  $$
+  \boxed{\;
+  \frac{d\textcolor{#F5C518}{\mu}}{dt} = 0
+  \;}
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        $$
+        \textcolor{#3DBFFF}{\vec{v}} = \textcolor{#3DBFFF}{v_\parallel}\,\hat{k} + \textcolor{#3DBFFF}{v_\perp}\,\hat{\theta}
+        \qquad
+        \textcolor{#3DBFFF}{v_\parallel} = \textcolor{#3DBFFF}{v}\cos\theta_0
+        \qquad
+        \textcolor{#3DBFFF}{v_\perp} = \textcolor{#3DBFFF}{v}\sin\theta_0
+        $$
+        $$
+        \textcolor{#00DDB5}{\vec{B}} = \textcolor{#00DDB5}{B_z}\,\hat{k} + \textcolor{#00DDB5}{B_r}\,\hat{r}
+        $$
+
+        <span class="eq-step-label">Magnetic Gauss&rsquo; Law</span>
+        $$
+        \nabla\cdot\textcolor{#00DDB5}{\vec{B}} = 0
+        $$
+        $$
+        \frac{1}{r}\frac{\partial(r\textcolor{#00DDB5}{B_r})}{\partial r}
+        + \frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z} = 0
+        $$
+
+        <span class="eq-note">
+          Assume $\dfrac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}$ approximately constant (independent of $r$)
+        </span>
+        $$
+        \frac{\partial}{\partial r}(r\textcolor{#00DDB5}{B_r})
+        = -r\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
+        $$
+
+        <span class="eq-step-label">Integrate both sides w/ respect to r</span>
+        $$
+        \rightarrow\; r\textcolor{#00DDB5}{B_r}
+        = -\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}\int_0^{r} r'\,dr'
+        $$
+        $$
+        \rightarrow\; r\textcolor{#00DDB5}{B_r}
+        = -\frac{r^2}{2}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
+        $$
+        $$
+        \rightarrow\; \textcolor{#00DDB5}{B_r}
+        = -\frac{r}{2}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
+        $$
+
+        <span class="eq-step-label">Lorentz Force</span>
+        $$
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}\,\textcolor{#3DBFFF}{\vec{v}}\times\textcolor{#00DDB5}{\vec{B}}
+        $$
+        $$
+        \textcolor{#FF4400}{F_\parallel} = \textcolor{#C060FF}{q}\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B_r}
+        $$
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{v_\parallel}}{dt}
+        = -\textcolor{#C060FF}{q}\,\frac{r}{2}\,\textcolor{#3DBFFF}{v_\perp}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
+        $$
+
+        <span class="eq-step-label">If Larmor motion</span>
+        $$
+        r = r_L = \frac{\textcolor{#FF4400}{m}}{\textcolor{#C060FF}{q}\,\textcolor{#00DDB5}{B}}\,\textcolor{#3DBFFF}{v_\perp}
+        $$
+        $$
+        \rightarrow\;
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{v_\parallel}}{dt}
+        = -\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
+        = -\textcolor{#F5C518}{\mu}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
+        $$
+
+        <span class="eq-step-label">Kinetic Energy</span>
+        $$
+        \textcolor{#FF4400}{K} = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v}^{2}
+        = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\parallel}^{2}}{2}
+        + \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2}
+        \equiv \text{constant}
+        $$
+        <span class="eq-note">(no work added or removed)</span>
+        $$
+        \frac{d\textcolor{#FF4400}{K}}{dt} = 0
+        = \textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\parallel}\frac{d\textcolor{#3DBFFF}{v_\parallel}}{dt}
+        + \frac{d}{dt}\!\left(\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}\,\textcolor{#00DDB5}{B}\right)
+        $$
+        $$
+        = -\textcolor{#F5C518}{\mu}\frac{\partial \textcolor{#00DDB5}{B}}{\partial z}\frac{dz}{dt}
+        + \frac{d}{dt}\!\left(\textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B}\right)
+        $$
+        $$
+        0 = -\textcolor{#F5C518}{\mu}\frac{d\textcolor{#00DDB5}{B}}{dt}
+        + \frac{d\textcolor{#F5C518}{\mu}}{dt}\,\textcolor{#00DDB5}{B}
+        + \frac{d\textcolor{#00DDB5}{B}}{dt}\,\textcolor{#F5C518}{\mu}
+        $$
+        $$
+        \rightarrow\; \frac{d\textcolor{#F5C518}{\mu}}{dt} = 0
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ MAGNETIC MIRROR DERIVATION ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Magnetic Mirror Derivation</div>
+
+  <p class="th-body">
+    <span class="key">Magnetic mirrors</span> do not affect all particles equally. Whether a particle is or isn&rsquo;t
+    trapped by the <span class="key">magnetic mirror</span> depends on the initial pitch angle of the traveling
+    particle.
+  </p>
+
+  $$
+  \boxed{\;
+  \textcolor{#00DDB5}{B_B} = \textcolor{#00DDB5}{B_0}\csc^2\theta_0
+  \;}
+  \qquad
+  \boxed{\;
+  \theta_0 = \arcsin\sqrt{\frac{\textcolor{#00DDB5}{B_0}}{\textcolor{#00DDB5}{B_B}}}
+  \;}
+  \qquad
+  \boxed{\;
+  R = \frac{\textcolor{#00DDB5}{B_{max}}}{\textcolor{#00DDB5}{B_0}}
+  \;}
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-note">
+          Use our two constant quantities, <span class="hl-m">kinetic energy $K$</span> &amp;
+          <span class="hl-moment">magnetic moment $\mu$</span>.
+        </span>
+
+        $$
+        \textcolor{#FF4400}{K} = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\parallel}^{2}
+        + \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}
+        $$
+        $$
+        \textcolor{#F5C518}{\mu} = \tfrac{1}{2}\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{\textcolor{#00DDB5}{B}}
+        $$
+        $$
+        \rightarrow\;
+        \textcolor{#FF4400}{K} = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\parallel}^{2}
+        + \textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B}
+        $$
+
+        <span class="eq-note">
+          Because <span class="hl-m">$K$</span> &amp; <span class="hl-moment">$\mu$</span> are constant, changing
+          <span class="hl-B">$B$</span> will change <span class="hl-v">$v_\parallel$</span>. In fact, at a sufficient
+          <span class="hl-B">$B_B$</span>, the particle will &ldquo;stop&rdquo; and be reflected backwards by the
+          <span class="hl-B">Lorentz force</span>. Let&rsquo;s see what particle trajectories are reflected by the
+          <span class="hl-B">magnetic mirror</span>.
+        </span>
+
+        $$
+        \textcolor{#FF4400}{K_0} = \textcolor{#FF4400}{K_f}
+        \qquad
+        \textcolor{#F5C518}{\mu} = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\perp 0}}^{2}}{2\,\textcolor{#00DDB5}{B_0}}
+        $$
+        $$
+        \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel 0}}^{2} + \textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B_0}
+        = \underbrace{\tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel B}}^{2}}_{=\,0}
+        + \textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B_B}
+        $$
+        $$
+        \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel 0}}^{2}
+        = \textcolor{#F5C518}{\mu}\!\left(\textcolor{#00DDB5}{B_B} - \textcolor{#00DDB5}{B_0}\right)
+        $$
+        $$
+        \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel 0}}^{2}
+        = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\perp 0}}^{2}\!\left(\frac{\textcolor{#00DDB5}{B_B}}{\textcolor{#00DDB5}{B_0}} - 1\right)
+        $$
+        $$
+        \rightarrow\;
+        \left(\frac{\textcolor{#3DBFFF}{v_{\parallel 0}}}{\textcolor{#3DBFFF}{v_{\perp 0}}}\right)^{2}
+        = \frac{\textcolor{#00DDB5}{B_B}}{\textcolor{#00DDB5}{B_0}} - 1
+        $$
+
+        <span class="eq-note">
+          Recall from the particle&rsquo;s original trajectory:
+          $\tan\theta_0 = \dfrac{\textcolor{#3DBFFF}{v_{\perp 0}}}{\textcolor{#3DBFFF}{v_{\parallel 0}}}$
+        </span>
+        $$
+        \rightarrow\; \cot^2\theta_0 = \frac{\textcolor{#00DDB5}{B_B}}{\textcolor{#00DDB5}{B_0}} - 1
+        $$
+        $$
+        \rightarrow\; \frac{\textcolor{#00DDB5}{B_B}}{\textcolor{#00DDB5}{B_0}}
+        = 1 + \cot^2\theta_0 = 1 + \frac{\cos^2\theta_0}{\sin^2\theta_0}
+        $$
+        $$
+        \frac{\textcolor{#00DDB5}{B_B}}{\textcolor{#00DDB5}{B_0}}
+        = \frac{1}{\sin^2\theta_0}\underbrace{\left(\sin^2\theta_0 + \cos^2\theta_0\right)}_{1}
+        $$
+        $$
+        \rightarrow\; \textcolor{#00DDB5}{B_B} = \textcolor{#00DDB5}{B_0}\csc^2\theta_0
+        $$
+        $$
+        \frac{\textcolor{#00DDB5}{B_0}}{\textcolor{#00DDB5}{B_B}} = \sin^2\theta_0
+        $$
+        $$
+        \rightarrow\; \theta_0 = \arcsin\sqrt{\frac{\textcolor{#00DDB5}{B_0}}{\textcolor{#00DDB5}{B_B}}}
+        $$
+
+        <span class="eq-note">
+          To get the maximum $\theta_{max}$ for which a particle is not yet trapped, define a mirror ratio
+          $R = \textcolor{#00DDB5}{B_{max}}/\textcolor{#00DDB5}{B_0}$
+        </span>
+        $$
+        \rightarrow\; \theta_{max} = \arcsin\sqrt{\frac{1}{R}}
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>How does a spatially-varying <span class="hl-B">magnetic field</span> speed up or slow down a
+    <span class="hl-q">charged particle</span> if it cannot do work?</summary>
+    <div class="clarify-body">
+      The total <span class="key">kinetic energy</span> of the <span class="key hl-q">charged particle</span> remains
+      constant. However, the <span class="key hl-v">parallel velocity</span> component of the particle&rsquo;s kinetic
+      energy can be changed by changing the <span class="key hl-v">perpendicular velocity</span> component of its
+      kinetic energy. Thus, we are able to &ldquo;speed up&rdquo; or &ldquo;slow down&rdquo; the particle&rsquo;s
+      travel without adding or removing kinetic energy.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>Why do we not allow for a time-varying <span class="hl-B">magnetic field</span> in the derivation of the
+    <span class="hl-B">magnetic mirror</span>?</summary>
+    <div class="clarify-body">
+      Though not explored in this applet, a time-varying <span class="key hl-B">magnetic field</span> produces an
+      <span class="key hl-E">electric field</span> by Faraday&rsquo;s Law. <span class="key hl-E">Electric fields</span>
+      do work on electrically <span class="key hl-q">charged particles</span>. Because
+      <span class="key">magnetic mirrors</span> work without energy input, a time-varying
+      <span class="key hl-B">magnetic field</span> wouldn&rsquo;t effectively represent the physics of how
+      <span class="key">magnetic mirrors</span> modify the motion of <span class="key hl-q">charged particles</span>. It
+      would appear as though changing a particle&rsquo;s <span class="key hl-v">parallel velocity</span> must be the
+      result of removing energy from the <span class="key hl-q">charged particle</span>, which is not necessarily true!
+    </div>
+  </details>
+</div>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<!-- ════════════════════ QUIZ + DEMO-UNLOCK JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+
+/**
+ * Calls markQuizComplete() inside the target demo (iframe).
+ * Retries after short delays to handle demos that are still loading
+ * when the quiz is answered. Gracefully no-ops for placeholder demos
+ * that are not yet implemented as iframes.
+ */
+function unlockFrame(frameId) {
+  const attempts = [0, 300, 800, 2000];          // ms after click to try
+  let done = false;
+
+  const tryUnlock = () => {
+    if (done) return;
+    const frame = document.getElementById(frameId);
+    if (!frame) return;
+    try {
+      if (frame.contentWindow && typeof frame.contentWindow.markQuizComplete === 'function') {
+        frame.contentWindow.markQuizComplete();
+        done = true;
+      }
+    } catch(e) { /* cross-origin guard — shouldn't happen for same-folder files */ }
+  };
+
+  attempts.forEach(delay => setTimeout(tryUnlock, delay));
+
+  // Also fire on the iframe's own load event in case it hasn't finished yet
+  const frame = document.getElementById(frameId);
+  if (frame && typeof frame.addEventListener === 'function' && !done) {
+    frame.addEventListener('load', tryUnlock, { once: true });
+  }
+}
+
+// Each .quiz-block carries a data-unlocks attribute naming the demo to unlock.
+document.querySelectorAll('.quiz-block').forEach(block => {
+  const opts        = block.querySelectorAll('.quiz-opt');
+  const fb          = block.querySelector('.quiz-feedback');
+  const targetFrame = block.dataset.unlocks;   // e.g. "demo1-host"
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      // Lock all options
+      opts.forEach(o => { o.disabled = true; });
+
+      // Show result
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+
+      // Unlock the associated demo (regardless of correct/incorrect —
+      // the correct answer is always revealed, so the gate has been engaged)
+      if (targetFrame) unlockFrame(targetFrame);
+    });
+  });
+});
+</script>
+</body>
+</html>
