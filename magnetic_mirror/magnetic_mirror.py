@@ -789,18 +789,26 @@ function buildMoment(d) {
   if (d.sign !== 0) makePoloidalLoops(fieldGroup, rDisp, COL.field, 0.5, 8);
   fieldGroup.visible = showField;
 
-  // the gyration orbit / current loop in the y-z plane
+  // the gyration orbit in the y-z plane
   const orbit = new THREE.Line(
     new THREE.BufferGeometry().setFromPoints(ringPoints(rDisp, 0)),
     new THREE.LineBasicMaterial({ color:COL.part, transparent:true, opacity:0.32 }));
   extraGroup.add(orbit);
 
-  // current-direction arrowheads (conventional current follows +charge motion)
-  if (d.sign !== 0) makeCircArrows(extraGroup, 0, rDisp, d.sign * momView.rotSign, COL.curr, 0.9, 4);
+  // MOTION-direction arrowheads around the orbit — these reverse with charge sign
+  // (an ion and an electron gyrate in opposite senses). Yellow = velocity sense.
+  if (d.sign !== 0) makeCircArrows(extraGroup, 0, rDisp, momView.rotSign, COL.vel, 0.95, 6);
+  // CONVENTIONAL-current arrowheads, drawn just outside the orbit. Current follows
+  // +charge motion but OPPOSES electron motion, so this sense is the SAME for ±q —
+  // which is why μ and the loop's field below do not flip (diamagnetic gyration).
+  if (d.sign !== 0) makeCircArrows(extraGroup, 0, rDisp*1.14, d.sign * momView.rotSign, COL.curr, 0.8, 4);
 
   if (showField) {
+    const vl = makeTextSprite('v', '#ffd54f', SCENE_R*0.22);
+    vl.position.set(0, rDisp - SCENE_R*0.3, 0);
+    guideGroup.add(vl);
     const il = makeTextSprite('I', '#ffa726', SCENE_R*0.22);
-    il.position.set(0, rDisp + SCENE_R*0.42, 0);
+    il.position.set(0, rDisp*1.14 + SCENE_R*0.32, 0);
     guideGroup.add(il);
     const bl = makeTextSprite('B', '#9fa8da', SCENE_R*0.26);
     bl.position.set(H*0.92, SCENE_R*0.2, 0);
