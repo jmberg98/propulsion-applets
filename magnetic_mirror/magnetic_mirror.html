@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!-- KaTeX stylesheet: provides the Computer-Modern math fonts used for the 3-D LaTeX labels -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
 
 <script type="importmap">
 {"imports":{
@@ -62,6 +64,9 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
 .row2{display:flex;gap:6px}
 .row2 input[type="range"]{flex:1}
 .row2 input[type="number"]{width:60px;flex:none}
+/* min / max end labels under a slider (aligned to the slider, not the number box) */
+.rng-lim{display:flex;justify-content:space-between;margin:1px 66px 0 2px;
+  font-family:'Courier New',monospace;font-size:11px;color:#5a5a5a;}
 .readout{font-size:13px;color:var(--hi-blue);margin-top:3px;line-height:1.5}
 .readout b{color:var(--hi-blue);font-family:'Courier New',monospace;font-weight:600}
 .readout i{color:var(--hi-blue);font-style:normal}
@@ -82,20 +87,26 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
 .tab:hover{background:var(--bg-panel-3)}
 .tab.active{background:rgba(61,191,255,.12);border-color:var(--hi-blue);color:var(--hi-blue-soft)}
 .tab small{display:block;font-size:10px;font-weight:400;opacity:.8;margin-top:2px}
-.btn-run{background:rgba(61,191,255,.12);border:1px solid var(--hi-blue);border-radius:5px;color:var(--hi-blue-soft);
-  cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:9px;width:100%;
-  font-family:'Barlow',sans-serif;transition:background .15s;}
-.btn-run:hover{background:rgba(61,191,255,.2)}
 #otable{width:100%;border-collapse:collapse;font-size:13px}
-#otable td{padding:5px 5px;font-family:'Courier New',monospace;text-align:right;color:var(--hi-blue);
+#otable td{padding:7px 2px;font-family:'Courier New',monospace;text-align:right;
+  color:var(--text-heading);font-weight:700;font-size:16px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#otable td:first-child{text-align:left;color:#545454;font-family:'Barlow',sans-serif;font-size:11.5px;
-  line-height:1.35;white-space:normal;padding-right:8px;}
+#otable td:first-child{text-align:left;color:#545454;font-family:'Barlow',sans-serif;font-size:12px;
+  font-weight:400;line-height:1.3;white-space:normal;padding-right:8px;}
 #otable tr+tr td{border-top:1px solid #141414}
-#status-row td{color:#ffb74d;font-weight:700}
+/* optimum-isp style output row (label left, bold monospace value right) */
+.orow{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.olbl{font-size:12px;color:#545454;}
+.orow .oval{font-family:'Courier New',monospace;font-size:16px;font-weight:700;color:var(--text-heading);}
+/* optimum-isp style highlighted status indicator (colored box, not monospace) */
+.cf-info-box{margin-top:8px;padding:7px 10px;border-radius:6px;font-size:13px;font-weight:600;line-height:1.45;
+  background:rgba(61,191,255,0.06);border:1px solid rgba(61,191,255,0.22);color:var(--hi-blue-soft);}
+.cf-info-box.good{background:rgba(102,187,106,0.08);border-color:rgba(102,187,106,0.30);color:#a3d9a5;}
+.cf-info-box.warn{background:rgba(255,107,107,0.08);border-color:rgba(255,107,107,0.30);color:#ff8e8e;}
+.cf-info-box.neutral{background:rgba(160,160,160,0.06);border-color:rgba(160,160,160,0.22);color:#bcbcbc;}
 #error-msg{background:rgba(74,0,0,.85);border:1px solid #c62828;border-radius:4px;
   color:#ef9a9a;font-size:14px;padding:7px 9px;display:none;}
-#legend{margin-top:auto;background:var(--bg-panel-1);border:1px solid var(--border);
+#legend{background:var(--bg-panel-1);border:1px solid var(--border);
   border-radius:5px;padding:10px 12px;font-size:14px;line-height:2.05;}
 #legend .row{display:flex;align-items:center;gap:8px;color:#9a9a9a}
 #legend span.sw{display:inline-block;width:9px;height:9px;border-radius:50%;flex-shrink:0;vertical-align:middle;}
@@ -107,7 +118,22 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
 #livebox b{color:var(--hi-blue);font-family:'Courier New',monospace;font-weight:600}
 #livebox .lp{color:#66bb6a}
 #livebox .lq{color:#29b6f6}
+#drag-hint{position:absolute;bottom:16px;right:16px;display:flex;align-items:center;gap:11px;
+  background:rgba(8,8,8,.82);border:1px solid var(--border);border-radius:8px;padding:11px 16px;
+  font-size:16px;color:var(--text-muted);pointer-events:none;user-select:none;}
+#drag-hint svg{width:26px;height:26px;color:var(--text-secondary);flex-shrink:0;}
 .hide{display:none}
+/* ── loss-cone hover explanation ── */
+.losscone-term{cursor:help;text-decoration:underline dotted;text-underline-offset:2px;}
+.losscone-explain{display:none;font-size:12px;color:var(--text-secondary);line-height:1.45;
+  margin-top:6px;padding:7px 9px;background:var(--bg-panel-2);border:1px solid var(--border);border-radius:4px;}
+.losscone-explain.show{display:block}
+/* ── Demo Outputs collapsible dropdown ── */
+summary.sec{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;margin-bottom:0;}
+summary.sec::-webkit-details-marker{display:none}
+summary.sec::before{content:'\25B8';font-size:10px;color:#545454;transition:transform .15s;}
+details[open] summary.sec::before{transform:rotate(90deg)}
+details[open] summary.sec{margin-bottom:8px}
 /* ── quiz gate overlay ── */
 #quiz-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;
   background:rgba(9,9,9,.78);backdrop-filter:blur(6px) saturate(.6);-webkit-backdrop-filter:blur(6px) saturate(.6);
@@ -171,15 +197,18 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
         <option value="-">Negative (&#x2212;e)</option>
       </select>
     </div>
-    <div class="readout">B circulates around the velocity axis (Biot&#8211;Savart).
-      Flip the charge sign to reverse it.</div>
   </div>
 
   <!-- ══ Mode 2 (moment) fields ══ -->
   <div id="grp-moment" class="hide">
     <div class="field">
       <label>Flux density |<i>B</i>| = <b id="mom-B-disp">0.50</b> T</label>
-      <input type="range" id="mom-B" min="0.05" max="5" value="0.5" step="0.05">
+      <div class="row2">
+        <input type="range" id="mom-B" min="0.05" max="5" value="0.5" step="0.05">
+        <input type="number" id="mom-B-n" min="0.05" max="5" value="0.50" step="0.05"
+               style="width:60px;flex:none">
+      </div>
+      <div class="rng-lim"><span>0.05</span><span>5</span></div>
     </div>
     <div class="field" style="margin-top:8px">
       <label>Field direction <i>B</i></label>
@@ -187,32 +216,46 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
         <option value="+">+x (right-hand axis)</option>
         <option value="-">&#x2212;x (reversed)</option>
       </select>
-      <div class="readout">Reversing <i>B</i> flips the gyration sense; &#956; stays
-        antiparallel to <i>B</i>.</div>
     </div>
   </div>
 
   <!-- ══ Mode 3 (mirror) fields ══ -->
   <div id="grp-mirror" class="hide">
     <div class="field">
-      <label>Pitch angle &#952;<sub>0</sub> [&#xB0;]
-             <span style="float:right;color:#607d8b">0&#x2013;90</span></label>
+      <label>Pitch angle &#952;<sub>0</sub> [&#xB0;]</label>
       <div class="row2">
         <input type="range" id="theta-r" min="0" max="90" value="45" step="1">
         <input type="number" id="theta-n" min="0" max="90" value="45" step="1"
                style="width:60px;flex:none">
       </div>
+      <div class="rng-lim"><span>0</span><span>90</span></div>
     </div>
     <div class="field" style="margin-top:8px">
       <label>Initial flux density <i>B</i><sub>0</sub> = <b id="mir-B0-disp">0.50</b> T</label>
-      <input type="range" id="mir-B0" min="0.05" max="5" value="0.5" step="0.05">
+      <div class="row2">
+        <input type="range" id="mir-B0" min="0.05" max="5" value="0.5" step="0.05">
+        <input type="number" id="mir-B0-n" min="0.05" max="5" value="0.50" step="0.05"
+               style="width:60px;flex:none">
+      </div>
+      <div class="rng-lim"><span>0.05</span><span>5</span></div>
     </div>
     <div class="field" style="margin-top:8px">
       <label>Mirror ratio <i>R</i> = <i>B</i><sub>max</sub>/<i>B</i><sub>0</sub> =
              <b id="R-disp">6.0</b></label>
-      <input type="range" id="R-r" min="1.2" max="20" value="6" step="0.1">
-      <div class="readout">Loss cone: <b id="b-loss">24.1&#xB0;</b> &nbsp; |
+      <div class="row2">
+        <input type="range" id="R-r" min="1.2" max="20" value="6" step="0.1">
+        <input type="number" id="R-n" min="1.2" max="20" value="6.0" step="0.1"
+               style="width:60px;flex:none">
+      </div>
+      <div class="rng-lim"><span>1.2</span><span>20</span></div>
+      <div class="readout" style="font-size:15px"><span class="losscone-term" id="losscone-term">Loss cone</span>:
+                           <b id="b-loss">24.1&#xB0;</b> &nbsp; |
                            <i>B</i><sub>max</sub> = <b id="b-bmax">3.000 T</b></div>
+      <div class="losscone-explain" id="losscone-explain">Particles that enter the magnetic
+        mirror with an angle less than the loss cone angle will escape. Otherwise, they are trapped.</div>
+    </div>
+    <div class="pblock" id="mir-result-panel" style="margin-top:16px">
+      <div class="cf-info-box neutral" id="o-mir-status" style="margin-top:0">&#x2014;</div>
     </div>
     <div class="field" style="margin-top:8px">
       <label>Field direction <i>B</i></label>
@@ -220,15 +263,13 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
         <option value="+">+x (right-hand axis)</option>
         <option value="-">&#x2212;x (reversed)</option>
       </select>
-      <div class="readout">Reversing <i>B</i> flips the gyration sense; &#956; stays
-        antiparallel to <i>B</i> (the bounce along the axis is unchanged).</div>
     </div>
   </div>
 
   <!-- ── overlay toggles ── -->
   <label class="chk" for="chk-labels">
     <input type="checkbox" id="chk-labels" checked>
-    Show field &amp; labels
+    Show labels
   </label>
   <label class="chk" for="chk-vel">
     <input type="checkbox" id="chk-vel" checked>
@@ -243,40 +284,40 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
     Show magnetic moment <b style="color:#ec407a">&#956;</b>
   </label>
 
-  <button id="btn-run" class="btn-run">&#9654;&#xFE0E;&nbsp; Run / Update</button>
+  <details id="legend-details">
+    <summary class="sec">Legend</summary>
+    <div id="legend">
+      <div class="row"><span class="sw" style="background:#ff7043"></span><b>Particle</b></div>
+      <div class="row"><span class="sw" style="background:#ffd54f"></span>v velocity</div>
+      <div class="row m-comp hide"><span class="sw" style="background:#66bb6a"></span>v&#x2225; parallel</div>
+      <div class="row m-comp hide"><span class="sw" style="background:#29b6f6"></span>v&#x22A5; perpendicular</div>
+      <div class="row m-mu hide"><span class="sw" style="background:#ec407a"></span>&#956; magnetic moment</div>
+      <div class="row m-field"><span class="sw" style="background:#5c6bc0"></span><b style="color:#5c6bc0">B</b> field</div>
+      <div class="row m-mirror hide"><span class="sw" style="background:#ffb300"></span>B<sub>mirror</sub> point</div>
+      <div class="row m-mirror hide"><span class="sw" style="background:#ef5350"></span>Throat (B<sub>max</sub>)</div>
+    </div>
+  </details>
+
   <div id="error-msg"></div>
 
   <div id="out-wrap">
-    <div class="sec">Demo Outputs</div>
+    <details id="out-details">
+    <summary class="sec">Key Parameters</summary>
     <table id="otable">
-      <!-- induced -->
-      <tr class="r-induced"><td>Charge</td>              <td id="o-ind-q">&#x2014;</td></tr>
-      <tr class="r-induced"><td>B circulation</td>       <td id="o-ind-c" style="font-size:9px">&#x2014;</td></tr>
       <!-- moment -->
-      <tr class="r-moment hide"><td>r<sub>L</sub> [m]</td>            <td id="o-mom-rL">&#x2014;</td></tr>
-      <tr class="r-moment hide"><td>&#969;<sub>c</sub> [rad/s]</td>   <td id="o-mom-wc">&#x2014;</td></tr>
-      <tr class="r-moment hide"><td>&#956; [J/T]</td>                 <td id="o-mom-mu">&#x2014;</td></tr>
-      <tr class="r-moment hide"><td>T<sub>c</sub> [s]</td>            <td id="o-mom-Tc">&#x2014;</td></tr>
+      <tr class="r-moment hide"><td>Larmor Radius (<i>r</i><sub>L</sub>)</td>       <td id="o-mom-rL">&#x2014;</td></tr>
+      <tr class="r-moment hide"><td>Cyclotron Frequency (&#969;<sub>c</sub>)</td>  <td id="o-mom-wc">&#x2014;</td></tr>
+      <tr class="r-moment hide"><td>Magnetic Moment (&#956;)</td>                   <td id="o-mom-mu">&#x2014;</td></tr>
+      <tr class="r-moment hide"><td>Cyclotron Period (T<sub>c</sub>)</td>          <td id="o-mom-Tc">&#x2014;</td></tr>
       <!-- mirror -->
-      <tr class="r-mirror hide"><td>&#956; [J/T]</td>                   <td id="o-mir-mu">&#x2014;</td></tr>
-      <tr class="r-mirror hide"><td>v&#x22A5;<sub>0</sub> [m/s]</td>    <td id="o-mir-vperp">&#x2014;</td></tr>
-      <tr class="r-mirror hide"><td>v&#x2225;<sub>0</sub> [m/s]</td>    <td id="o-mir-vpar">&#x2014;</td></tr>
-      <tr class="r-mirror hide"><td>B<sub>B</sub> stop [T]</td>         <td id="o-mir-bstop">&#x2014;</td></tr>
-      <tr class="r-mirror hide"><td>B<sub>max</sub> [T]</td>            <td id="o-mir-bmax">&#x2014;</td></tr>
-      <tr class="r-mirror hide"><td>&#952;<sub>loss</sub> [&#xB0;]</td> <td id="o-mir-loss">&#x2014;</td></tr>
-      <tr class="r-mirror hide" id="status-row"><td>Result</td>         <td id="o-mir-status">&#x2014;</td></tr>
+      <tr class="r-mirror hide"><td>Magnetic Moment (&#956;)</td>                    <td id="o-mir-mu">&#x2014;</td></tr>
+      <tr class="r-mirror hide"><td>Perpendicular Velocity (<i>v</i><sub>&#x22A5;0</sub>)</td> <td id="o-mir-vperp">&#x2014;</td></tr>
+      <tr class="r-mirror hide"><td>Parallel Velocity (<i>v</i><sub>&#x2225;0</sub>)</td>      <td id="o-mir-vpar">&#x2014;</td></tr>
+      <tr class="r-mirror hide"><td>Turning-Point Field (B<sub>stop</sub>)</td>    <td id="o-mir-bstop">&#x2014;</td></tr>
+      <tr class="r-mirror hide"><td>Maximum Field (B<sub>max</sub>)</td>           <td id="o-mir-bmax">&#x2014;</td></tr>
+      <tr class="r-mirror hide"><td>Loss Cone Angle (&#952;<sub>loss</sub>)</td>   <td id="o-mir-loss">&#x2014;</td></tr>
     </table>
-  </div>
-
-  <div id="legend">
-    <div class="row"><span class="sw" style="background:#ff7043"></span><b>Particle</b></div>
-    <div class="row"><span class="sw" style="background:#ffd54f"></span>v velocity</div>
-    <div class="row m-comp hide"><span class="sw" style="background:#66bb6a"></span>v&#x2225; parallel</div>
-    <div class="row m-comp hide"><span class="sw" style="background:#29b6f6"></span>v&#x22A5; perpendicular</div>
-    <div class="row m-mu hide"><span class="sw" style="background:#ec407a"></span>&#956; magnetic moment</div>
-    <div class="row m-field"><span class="sw" style="background:#5c6bc0"></span><b style="color:#5c6bc0">B</b> field</div>
-    <div class="row m-mirror hide"><span class="sw" style="background:#ffb300"></span>B<sub>mirror</sub> point</div>
-    <div class="row m-mirror hide"><span class="sw" style="background:#ef5350"></span>Throat (B<sub>max</sub>)</div>
+    </details>
   </div>
 </div>
 
@@ -286,6 +327,17 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
     <div>B = <b id="live-B">&#x2014;</b></div>
     <div class="lp">v&#x2225; = <b id="live-vpar" class="lp">&#x2014;</b></div>
     <div class="lq">v&#x22A5; = <b id="live-vperp" class="lq">&#x2014;</b></div>
+  </div>
+  <div id="drag-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 2v20M2 12h20"/>
+      <path d="M12 2l-2.4 2.4M12 2l2.4 2.4"/>
+      <path d="M12 22l-2.4-2.4M12 22l2.4-2.4"/>
+      <path d="M2 12l2.4-2.4M2 12l2.4 2.4"/>
+      <path d="M22 12l-2.4-2.4M22 12l-2.4 2.4"/>
+    </svg>
+    <span>Drag to orbit &middot; scroll to zoom</span>
   </div>
 </div>
 
@@ -429,6 +481,10 @@ const MOM_RREF    = 5.0e-3;             // reference r_L → mid-scale display
 const MOM_WREF    = 4.8e7;             // reference ω_c → mid animation speed
 
 const clamp = (x,a,b) => Math.min(b, Math.max(a, x));
+// smooth-step easing (3t² − 2t³) for gentler start/stop of the playback
+const smoothstep = t => { t = clamp(t,0,1); return t*t*(3 - 2*t); };
+// true while a slider is actively being dragged — the particle is hidden until release
+let draggingSlider = false;
 
 const PRESETS = {
   custom:   null,
@@ -455,22 +511,36 @@ const COL = {
 let mode = 'induced';
 let showField = true, showVel = true, showComp = false, showMu = true;
 
-// ── generic rounded-rect text sprite ──────────────────────────────────────────
-function makeTextSprite(text, color, height = SCENE_R * 0.26) {
+// ── LaTeX-style math text sprite ───────────────────────────────────────────────
+// Renders labels in the KaTeX Computer-Modern math font (serif fallbacks), with
+// an italic base symbol and an optional roman subscript — e.g. {base:'B',
+// sub:'induced,current'} draws  B_induced,current  in proper LaTeX styling.
+const MATH_BASE_FONT = '"KaTeX_Math","Cambria Math","Times New Roman",serif';
+const MATH_SUB_FONT  = '"KaTeX_Main","Times New Roman","Segoe UI Symbol",serif';
+
+function makeTextSprite(spec, color, height = SCENE_R * 0.26) {
+  const base = (typeof spec === 'string') ? spec : (spec.base || '');
+  const sub  = (typeof spec === 'object' && spec.sub) ? spec.sub : null;
+
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
-  const fs = 72, px = 24, py = 16;
+  const fs = 72, subFs = Math.round(fs * 0.56), px = 24, py = 16, gap = 5;
+  const baseFont = `italic ${fs}px ${MATH_BASE_FONT}`;
+  const subFont  = `${subFs}px ${MATH_SUB_FONT}`;
 
-  ctx.font = `700 ${fs}px Segoe UI,Arial,sans-serif`;
-  const tw = ctx.measureText(text).width;
-  canvas.width  = Math.ceil(tw + px*2);
+  ctx.font = baseFont;
+  const bw = ctx.measureText(base).width;
+  let sw = 0;
+  if (sub) { ctx.font = subFont; sw = ctx.measureText(sub).width; }
+  const textW = bw + (sub ? gap + sw : 0);
+
+  canvas.width  = Math.ceil(textW + px*2);
   canvas.height = Math.ceil(fs*1.25 + py*2);
 
-  ctx.font = `700 ${fs}px Segoe UI,Arial,sans-serif`;
-  ctx.fillStyle = 'rgba(11,14,20,0.72)';
+  // rounded-rect background
+  ctx.fillStyle   = 'rgba(11,14,20,0.72)';
   ctx.strokeStyle = 'rgba(207,216,220,0.25)';
-  ctx.lineWidth = 4;
-
+  ctx.lineWidth   = 4;
   const r = 18, [x,y,w,h] = [2,2,canvas.width-4,canvas.height-4];
   ctx.beginPath();
   ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
@@ -480,10 +550,18 @@ function makeTextSprite(text, color, height = SCENE_R * 0.26) {
   ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
   ctx.fill(); ctx.stroke();
 
+  // base symbol (italic math) + roman subscript
   ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, canvas.width/2, canvas.height/2);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const baseY  = canvas.height/2 + fs*0.34;
+  const startX = (canvas.width - textW)/2;
+  ctx.font = baseFont;
+  ctx.fillText(base, startX, baseY);
+  if (sub) {
+    ctx.font = subFont;
+    ctx.fillText(sub, startX + bw + gap, baseY + fs*0.20);
+  }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -552,8 +630,8 @@ function makeParticle() {
     const s = makeTextSprite(txt, hex, SCENE_R*0.22); s.visible = false; scene.add(s); return s;
   };
   p.velLabel   = mkLabel('v',  '#ffd54f');
-  p.vparLabel  = mkLabel('v∥', '#66bb6a');
-  p.vperpLabel = mkLabel('v⊥', '#29b6f6');
+  p.vparLabel  = mkLabel({base:'v', sub:'∥'}, '#66bb6a');
+  p.vperpLabel = mkLabel({base:'v', sub:'⊥'}, '#29b6f6');
   p.muLabel    = mkLabel('μ', '#ec407a');
   return p;
 }
@@ -739,7 +817,7 @@ function animateInduced(d) {
   const moving = d.moving;
   const speedN = clamp((Math.abs(d.v) / V_REF_IND), 0.25, 3.0);
   const dur    = IND_SEC / speedN;
-  const u      = moving ? clamp(cycleT / dur, 0, 1) : 0.5;
+  const u      = moving ? smoothstep(cycleT / dur) : 0.5;
   const x      = -IND_L + 2*IND_L*u;             // travel −L → +L (sign of v is +x)
   const pos    = new THREE.Vector3(x, 0, 0);
 
@@ -817,7 +895,7 @@ function buildMoment(d) {
     guideGroup.add(bl);
     // label the induced field of the gyration current (the poloidal loops wrapping the wire)
     if (d.sign !== 0) {
-      const il = makeTextSprite('B from I', '#9fa8da', SCENE_R*0.2);
+      const il = makeTextSprite({base:'B', sub:'induced,current'}, '#9fa8da', SCENE_R*0.2);
       il.position.set(0, rDisp*1.26 + SCENE_R*0.34, 0);
       guideGroup.add(il);
     }
@@ -918,10 +996,10 @@ function buildMirrorField(d) {
   if (showField) {
     const bL = makeTextSprite('B', '#9fa8da', SCENE_R*0.3);
     bL.position.set(0, R_FL_MAX + SCENE_R*0.55, 0); guideGroup.add(bL);
-    const throat = makeTextSprite('B_max', '#ef5350', SCENE_R*0.24);
+    const throat = makeTextSprite({base:'B', sub:'max'}, '#ef5350', SCENE_R*0.24);
     throat.position.set(L, rFL(1) + SCENE_R*0.45, 0); guideGroup.add(throat);
     if (d.trapped && d.turn_frac > 0.01) {
-      const mp = makeTextSprite('B_mirror', '#ffb300', SCENE_R*0.22);
+      const mp = makeTextSprite({base:'B', sub:'mirror'}, '#ffb300', SCENE_R*0.22);
       mp.position.set(d.turn_frac*L, rFL(d.turn_frac) + SCENE_R*0.4, 0); guideGroup.add(mp);
     }
   }
@@ -1003,7 +1081,7 @@ function tangentAt(i) {
 
 function animateMirror(d) {
   const N = path.pos.length;
-  const u = clamp(cycleT / Math.max(path.dur, 1e-9), 0, 1);
+  const u = smoothstep(cycleT / Math.max(path.dur, 1e-9));
   const idx = clamp(Math.round(u*(N-1)), 0, N-1);
   const pos = path.pos[idx];
   const off = new THREE.Vector3(SCENE_R*0.13, SCENE_R*0.16, SCENE_R*0.13);
@@ -1072,6 +1150,13 @@ function animate() {
     else if (curData.mode === 'mirror')  dur = animateMirror(curData);
   }
 
+  // while a slider is being dragged, keep the moving particle (and its glyph/arrows) hidden
+  if (draggingSlider) {
+    particle.mesh.visible = false;
+    if (particle.chargeSprite) particle.chargeSprite.visible = false;
+    hideAllVectors();
+  }
+
   renderer.render(scene, camera);
 
   // reference-frame gizmo: lower-left inset, orientation locked to the main camera
@@ -1118,23 +1203,29 @@ function fmtT(x) {
 function showError(msg){ $('error-msg').textContent=msg; $('error-msg').style.display='block'; }
 function clearError(){ $('error-msg').style.display='none'; }
 
+// value + unit, joined by a thin space (matches the Larmor applet convention)
+function fv(x, unit) {
+  const v = fmt(x);
+  return v === '—' ? '—' : v + ' ' + unit;
+}
+
 function writeOutputs(d) {
-  if (d.mode === 'induced') {
-    $('o-ind-q').textContent = d.sign>0 ? '+ (positive)' : (d.sign<0 ? '− (negative)' : '0 (neutral)');
-    $('o-ind-c').textContent = d.circ;
-  } else if (d.mode === 'moment') {
-    $('o-mom-rL').textContent = (d.r_L===null)?'—':fmt(d.r_L);
-    $('o-mom-wc').textContent = (d.omega_c===null)?'—':fmt(d.omega_c);
-    $('o-mom-mu').textContent = fmt(d.mu);
-    $('o-mom-Tc').textContent = (d.T_c===null)?'—':fmt(d.T_c);
-  } else {
-    $('o-mir-mu').textContent    = fmt(d.mu);
-    $('o-mir-vperp').textContent = fmt(d.v_perp0);
-    $('o-mir-vpar').textContent  = fmt(d.v_par0);
-    $('o-mir-bstop').textContent = (d.B_stop===null) ? '∞' : fmt(d.B_stop);
-    $('o-mir-bmax').textContent  = fmt(d.B_max);
-    $('o-mir-loss').textContent  = fmt(d.loss_cone_deg);
-    $('o-mir-status').textContent= d.status;
+  if (d.mode === 'moment') {
+    $('o-mom-rL').textContent = (d.r_L===null)?'—':fv(d.r_L, 'm');
+    $('o-mom-wc').textContent = (d.omega_c===null)?'—':fv(d.omega_c, 'rad/s');
+    $('o-mom-mu').textContent = fv(d.mu, 'J/T');
+    $('o-mom-Tc').textContent = (d.T_c===null)?'—':fv(d.T_c, 's');
+  } else if (d.mode === 'mirror') {
+    $('o-mir-mu').textContent    = fv(d.mu, 'J/T');
+    $('o-mir-vperp').textContent = fv(d.v_perp0, 'm/s');
+    $('o-mir-vpar').textContent  = fv(d.v_par0, 'm/s');
+    $('o-mir-bstop').textContent = (d.B_stop===null) ? '∞' : fv(d.B_stop, 'T');
+    $('o-mir-bmax').textContent  = fv(d.B_max, 'T');
+    $('o-mir-loss').textContent  = fv(d.loss_cone_deg, '°');
+    const st = $('o-mir-status');
+    st.textContent = d.trapped ? 'Particle is trapped in the mirror.'
+                   : (d.escapes ? 'Particle escapes the mirror.' : d.status);
+    st.className = 'cf-info-box ' + (d.trapped ? 'good' : (d.escapes ? 'warn' : 'neutral'));
   }
 }
 
@@ -1222,15 +1313,23 @@ function setMode(m) {
   // so hide the whole Particle block (mass / charge / preset) in that mode.
   $('block-P').classList.toggle('hide', isInd);
 
-  // output rows
-  document.querySelectorAll('.r-induced').forEach(el => el.classList.toggle('hide', !isInd));
-  document.querySelectorAll('.r-moment').forEach(el => el.classList.toggle('hide',  !isMom));
-  document.querySelectorAll('.r-mirror').forEach(el => el.classList.toggle('hide',  !isMir));
+  // Key Parameters output: hidden entirely in Mode 1 (induced); shown (collapsed
+  // by default) in Modes 2 (moment) and 3 (mirror).
+  $('out-wrap').classList.toggle('hide', isInd);
+  document.querySelectorAll('.r-moment').forEach(el => el.classList.toggle('hide', !isMom));
+  document.querySelectorAll('.r-mirror').forEach(el => el.classList.toggle('hide', !isMir));
 
   // toggles relevant per mode
   document.querySelectorAll('.m-comp').forEach(el => el.classList.toggle('hide', !isMir));
   document.querySelectorAll('.m-mu').forEach(el => el.classList.toggle('hide', isInd));
   document.querySelectorAll('#legend .m-mirror').forEach(el => el.classList.toggle('hide', !isMir));
+
+  // Mode 3 default: show v∥/v⊥ components, hide the total velocity v.
+  // Other modes: show the total velocity v (no components).
+  $('chk-vel').checked  = !isMir;
+  $('chk-comp').checked = isMir;
+  showVel  = $('chk-vel').checked;
+  showComp = $('chk-comp').checked;
 
   // live box only meaningful for the mirror
   $('livebox').classList.toggle('hide', !isMir);
@@ -1263,19 +1362,67 @@ function updateMomReadout() {
   $('mom-B-disp').textContent = (+$('mom-B').value).toFixed(2);
 }
 
+// Clamp a typed number field to its paired slider's [min,max] (snapping to step),
+// keeping the two in sync. Returns the resulting value.
+function clampToRange(nId, rId, decimals) {
+  const n = $(nId), r = $(rId);
+  let v = parseFloat(n.value);
+  if (!Number.isFinite(v)) v = +r.value;
+  v = clamp(v, +r.min, +r.max);
+  r.value = v;            // slider snaps to nearest step
+  v = +r.value;           // read back the snapped value
+  n.value = v.toFixed(decimals);
+  return v;
+}
+
 $('ind-charge').addEventListener('change', debounced);
-$('mom-B').addEventListener('input', () => { updateMomReadout(); debounced(); });
+
+// Flux density |B| (Mode 2) — slider + typeable field
+$('mom-B').addEventListener('input', () => {
+  $('mom-B-n').value = (+$('mom-B').value).toFixed(2);
+  updateMomReadout(); draggingSlider = true; debounced();
+});
+$('mom-B').addEventListener('change', () => { draggingSlider = false; runUpdate(); });
+$('mom-B-n').addEventListener('change', () => {
+  clampToRange('mom-B-n','mom-B',2); updateMomReadout(); runUpdate();
+});
 $('mom-Bdir').addEventListener('change', debounced);
-$('mir-B0').addEventListener('input', () => { updateGeomReadout(); debounced(); });
-$('theta-r').addEventListener('input', () => { $('theta-n').value = $('theta-r').value; debounced(); });
-$('theta-n').addEventListener('input', () => {
-  $('theta-r').value = clamp(Math.round(+$('theta-n').value || 0), 0, 90); debounced();
+
+// Initial flux density B0 (Mode 3)
+$('mir-B0').addEventListener('input', () => {
+  $('mir-B0-n').value = (+$('mir-B0').value).toFixed(2);
+  updateGeomReadout(); draggingSlider = true; debounced();
 });
+$('mir-B0').addEventListener('change', () => { draggingSlider = false; runUpdate(); });
+$('mir-B0-n').addEventListener('change', () => {
+  clampToRange('mir-B0-n','mir-B0',2); updateGeomReadout(); runUpdate();
+});
+
+// Pitch angle θ₀ (Mode 3)
+$('theta-r').addEventListener('input', () => {
+  $('theta-n').value = $('theta-r').value; draggingSlider = true; debounced();
+});
+$('theta-r').addEventListener('change', () => { draggingSlider = false; runUpdate(); });
 $('theta-n').addEventListener('change', () => {
-  $('theta-n').value = clamp(Math.round(+$('theta-n').value || 0), 0, 90);
+  const v = clamp(Math.round(+$('theta-n').value || 0), 0, 90);
+  $('theta-n').value = v; $('theta-r').value = v; runUpdate();
 });
-$('R-r').addEventListener('input', () => { updateGeomReadout(); debounced(); });
+
+// Mirror ratio R (Mode 3)
+$('R-r').addEventListener('input', () => {
+  $('R-n').value = (+$('R-r').value).toFixed(1);
+  updateGeomReadout(); draggingSlider = true; debounced();
+});
+$('R-r').addEventListener('change', () => { draggingSlider = false; runUpdate(); });
+$('R-n').addEventListener('change', () => {
+  clampToRange('R-n','R-r',1); updateGeomReadout(); runUpdate();
+});
+
 $('mir-Bdir').addEventListener('change', debounced);
+
+// Loss-cone hover explanation
+$('losscone-term').addEventListener('mouseenter', () => $('losscone-explain').classList.add('show'));
+$('losscone-term').addEventListener('mouseleave', () => $('losscone-explain').classList.remove('show'));
 
 $('chk-labels').addEventListener('change', () => {
   showField = $('chk-labels').checked;
@@ -1288,13 +1435,8 @@ $('chk-labels').addEventListener('change', () => {
 $('chk-vel').addEventListener('change',  () => { showVel  = $('chk-vel').checked; });
 $('chk-comp').addEventListener('change', () => { showComp = $('chk-comp').checked; });
 $('chk-mu').addEventListener('change',   () => { showMu   = $('chk-mu').checked; });
-$('btn-run').addEventListener('click', runUpdate);
 
 // ── boot ───────────────────────────────────────────────────────────────────────
-initViz(document.getElementById('viewport'));
-applyPreset();
-updateGeomReadout();
-updateMomReadout();
 // When embedded in the lesson page, ?mode=induced|moment|mirror (aliases 1|2|3)
 // boots straight into that single demo and hides the tab bar so each iframe is
 // locked to one mode. Standalone (no param) keeps all three tabs and defaults to Mode 1.
@@ -1303,8 +1445,26 @@ const _modeAlias  = { '1':'induced', '2':'moment', '3':'mirror',
                       induced:'induced', moment:'moment', mirror:'mirror' };
 const _modeParam  = _bootParams.get('mode');
 const _bootMode   = _modeAlias[_modeParam] || 'induced';
-if (_modeParam && _modeAlias[_modeParam]) document.getElementById('tabs').classList.add('hide');
-setMode(_bootMode);
+
+function boot() {
+  initViz(document.getElementById('viewport'));
+  applyPreset();
+  updateGeomReadout();
+  updateMomReadout();
+  if (_modeParam && _modeAlias[_modeParam]) document.getElementById('tabs').classList.add('hide');
+  setMode(_bootMode);
+}
+
+// Wait for the KaTeX math fonts before the first render so every label sprite is
+// rasterized in the LaTeX font (fall back to serif if the fonts fail to load).
+if (document.fonts && document.fonts.load) {
+  Promise.all([
+    document.fonts.load('italic 72px "KaTeX_Math"'),
+    document.fonts.load('normal 40px "KaTeX_Main"')
+  ]).then(boot).catch(boot);
+} else {
+  boot();
+}
 </script>
 </body>
 </html>
