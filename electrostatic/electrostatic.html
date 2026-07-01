@@ -1,1 +1,1930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electrostatic Acceleration Applet</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!-- KaTeX stylesheet: provides the Computer-Modern math fonts used for the 3-D LaTeX labels -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+
+<script type="importmap">
+{"imports":{
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<style>
+:root {
+  --bg-page:    #090909;
+  --bg-panel-1: #0e0e0e;
+  --bg-panel-2: #121212;
+  --bg-panel-3: #171717;
+  --bg-panel-4: #1d1d1d;
+  --border:     #282828;
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+  --hi-blue:        #3DBFFF;
+  --hi-blue-soft:   #9FE6FF;
+  --c-accent:       #a0a0a0;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  display: flex;
+  height: 100vh;
+  background: var(--bg-page);
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+#viewport {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-page);
+}
+#viewport canvas { display: block; }
+
+/* ── drag / zoom hint ─────────────────────────────── */
+#drag-hint {
+  position: absolute; bottom: 16px; right: 16px; z-index: 5;
+  display: flex; align-items: center; gap: 11px;
+  background: rgba(8,8,8,.82); border: 1px solid #282828; border-radius: 8px;
+  padding: 11px 16px; font-size: 16px; color: #bcbcbc;
+  pointer-events: none; user-select: none;
+}
+#drag-hint svg { width: 26px; height: 26px; color: #d9d9d9; flex-shrink: 0; }
+
+#panel {
+  width: 400px;
+  min-width: 400px;
+  display: flex;
+  flex-direction: column;
+  background: rgba(8,8,8,.97);
+  border-left: 1px solid #252525;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 24px;
+}
+
+.cf-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 20px 11px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.cf-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+
+.panel-inner {
+  padding: 12px 18px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cf-sect {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #545454;
+  margin-bottom: 10px;
+}
+
+.cf-panel-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 11px 0;
+}
+
+/* ── mode tabs ─────────────────────────────────────── */
+#tabs { display: flex; gap: 6px; }
+.tab {
+  flex: 1;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  padding: 8px 4px;
+  text-align: center;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.tab:hover { background: var(--bg-panel-3); }
+.tab.active {
+  background: rgba(61,191,255,.12);
+  border-color: var(--hi-blue);
+  color: var(--hi-blue-soft);
+}
+.tab small { display: block; font-size: 10px; font-weight: 400; opacity: .8; margin-top: 2px; }
+
+/* ── particle blocks ───────────────────────────────── */
+.pblock {
+  background: var(--bg-panel-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin-bottom: 9px;
+}
+.phead {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.dot {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+/* ── fields (slider + typable value) ───────────────── */
+.field { display: flex; flex-direction: column; gap: 3px; }
+.field label {
+  display: block;
+  font-size: 15px;
+  color: #9a9a9a;
+  line-height: 1.3;
+}
+.field label i { color: var(--text-secondary); font-style: italic; }
+
+.valnum {
+  float: right;
+  width: 96px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--c-accent);
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: right;
+  padding: 3px 7px;
+  outline: none;
+  -moz-appearance: textfield;
+  transition: border-color .15s, background .15s;
+}
+.valnum:focus { border-color: #484848; background: #202020; }
+.valnum::-webkit-outer-spin-button,
+.valnum::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+select {
+  width: 100%;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--c-accent);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  padding: 5px 8px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+select:focus { border-color: #484848; background: #202020; }
+input:disabled, select:disabled { opacity: .4; cursor: not-allowed; }
+
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; border-radius: 3px;
+  background: #1c1c1c; outline: none;
+  margin: 6px 0 2px; cursor: pointer;
+  accent-color: var(--hi-blue);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--hi-blue); border: 2px solid #0d0d0d; cursor: pointer;
+  transition: background .15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { background: var(--hi-blue-soft); }
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--hi-blue); border: 2px solid #0d0d0d; cursor: pointer;
+}
+
+.readout { font-size: 15px; color: var(--hi-blue); margin-top: 2px; }
+.readout b, .readout i { color: var(--hi-blue); font-style: normal; font-weight: 600; }
+
+/* ── exhaust-velocity / Isp results (Mode 1) ─────────── */
+.accel-results { margin-top: 10px; }
+.ar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+.ar-lbl { font-size: 16.5px; color: #9a9a9a; }
+.ar-lbl i { color: var(--text-secondary); font-style: italic; }
+.ar-val {
+  font-family: 'Courier New', monospace;
+  font-size: 17.5px;
+  font-weight: 600;
+  color: var(--hi-blue);
+}
+.cf-info-box {
+  margin-top: 10px;
+  padding: 8px 11px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  background: rgba(160,160,160,0.06);
+  border: 1px solid rgba(160,160,160,0.22);
+  color: #bcbcbc;
+}
+.cf-info-box.good { background: rgba(102,187,106,0.10); border-color: rgba(102,187,106,0.35); color: #a3d9a5; }
+.cf-info-box.warn { background: rgba(255,107,107,0.10); border-color: rgba(255,107,107,0.30); color: #ff8e8e; }
+
+/* ── checkboxes ────────────────────────────────────── */
+.chk {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  transition: background .15s, border-color .15s;
+}
+.chk:hover { background: var(--bg-panel-3); border-color: #333; }
+.chk input { accent-color: var(--hi-blue); width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+
+/* ── outputs (dropdown) ────────────────────────────── */
+details.cf-outputs { margin-bottom: 2px; }
+details.cf-outputs > summary {
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+details.cf-outputs[open] > summary { margin-bottom: 10px; }
+details.cf-outputs > summary::-webkit-details-marker { display: none; }
+details.cf-outputs > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  color: #545454;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.cf-outputs[open] > summary::before { transform: rotate(90deg); }
+details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
+
+#otable { width: 100%; border-collapse: collapse; table-layout: fixed; }
+#otable th {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #545454;
+  padding: 3px 5px 5px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+}
+#otable th:first-child { text-align: left; }
+#otable td {
+  padding: 5px 5px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  text-align: right;
+  color: var(--hi-blue);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#otable td:first-child {
+  text-align: left;
+  color: #545454;
+  font-family: 'Barlow', sans-serif;
+  font-size: 11.5px;
+  line-height: 1.35;
+  white-space: normal;
+  padding-right: 8px;
+}
+#otable tr + tr td { border-top: 1px solid #141414; }
+
+#error-msg {
+  background: rgba(74,0,0,.85);
+  border: 1px solid #c62828;
+  border-radius: 4px;
+  color: #ef9a9a;
+  font-size: 14px;
+  padding: 7px 9px;
+  display: none;
+  margin-top: 8px;
+}
+
+/* ── legend ────────────────────────────────────────── */
+#legend {
+  background: var(--bg-panel-1);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: 2.05;
+}
+#legend .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9a9a9a;
+}
+#legend .sw {
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.hide { display: none; }
+.col-B.hide, .m-only.hide { display: none; }
+#legend .row.hide { display: none; }
+#tabs.hide { display: none; }   /* ID selector above needs matching specificity to actually hide */
+
+/* ═══════════════════════════════════════════════
+   QUIZ GATE OVERLAY
+   ═══════════════════════════════════════════════ */
+#quiz-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(9, 9, 9, 0.78);
+  backdrop-filter: blur(6px) saturate(0.6);
+  -webkit-backdrop-filter: blur(6px) saturate(0.6);
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+#quiz-overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+#quiz-overlay-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 48px 36px;
+  background: rgba(18, 18, 18, 0.92);
+  border: 1px solid #2e2e2e;
+  border-radius: 14px;
+  box-shadow: 0 8px 48px rgba(0,0,0,0.7);
+  max-width: 460px;
+  width: calc(100% - 48px);
+  text-align: center;
+}
+#quiz-overlay-title {
+  font-family: 'Barlow', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #f0f0f0;
+  line-height: 1.3;
+}
+#quiz-overlay-subtitle {
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.05px;
+  color: #aaaaaa;
+  line-height: 1.4;
+}
+#quiz-skip-btn {
+  background: none;
+  border: none;
+  color: #666;
+  font-family: 'Barlow', sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.18s;
+  letter-spacing: 0.05px;
+  margin-top: 6px;
+}
+#quiz-skip-btn:hover { color: #999; }
+#quiz-skip-btn:active { color: #bbb; }
+</style>
+</head>
+<body>
+
+<div id="viewport">
+  <div id="drag-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 2v20M2 12h20"/>
+      <path d="M12 2l-2.4 2.4M12 2l2.4 2.4"/>
+      <path d="M12 22l-2.4-2.4M12 22l2.4-2.4"/>
+      <path d="M2 12l2.4-2.4M2 12l2.4 2.4"/>
+      <path d="M22 12l-2.4-2.4M22 12l-2.4 2.4"/>
+    </svg>
+    <span>Drag to orbit &middot; scroll to zoom</span>
+  </div>
+</div>
+
+<div id="panel">
+  <div class="cf-header">
+    <span class="cf-title">Electrostatic Acceleration</span>
+  </div>
+
+  <div class="panel-inner">
+
+    <!-- ── mode tabs ── -->
+    <div id="tabs">
+      <div class="tab active" data-mode="accel">Mode 1<small>E field</small></div>
+      <div class="tab" data-mode="drift">Mode 2<small>E &amp; B</small></div>
+      <div class="tab" data-mode="pair">Mode 3<small>ion + e&#8315;</small></div>
+    </div>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ══ single-particle block (Modes 1 & 2) ══ -->
+    <div class="pblock" id="block-S">
+      <div class="phead"><span class="dot" style="background:#ff7043"></span><span id="S-head">Particle</span></div>
+      <div class="field">
+        <label>Preset</label>
+        <select id="S-preset">
+          <option value="custom">Custom</option>
+          <option value="xenon" selected>Xenon&#8314; (131.29 amu)</option>
+          <option value="krypton">Krypton&#8314; (83.80 amu)</option>
+          <option value="argon">Argon&#8314; (39.95 amu)</option>
+          <option value="iodine">Iodine&#8314; (126.90 amu)</option>
+          <option value="electron" id="S-opt-electron">Electron (e&#8315;)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Mass <i>m</i> [amu] <input type="number" class="valnum" id="S-mass-v" min="0" step="0.1" value="131.3"></label>
+        <input type="range" id="S-mass" min="-4" max="2.5" step="0.01" value="2.1184">
+      </div>
+      <div class="field">
+        <label>Charge <i>q</i> [e] <input type="number" class="valnum" id="S-q-v" min="-3" max="3" step="1" value="1"></label>
+        <input type="range" id="S-q" min="-3" max="3" step="1" value="1">
+      </div>
+    </div>
+
+    <!-- ══ ion block (Mode 3) ══ -->
+    <div class="pblock hide" id="block-A">
+      <div class="phead"><span class="dot" style="background:#ff7043"></span><span>Ion</span></div>
+      <div class="field">
+        <label>Preset</label>
+        <select id="A-preset">
+          <option value="custom">Custom</option>
+          <option value="xenon" selected>Xenon&#8314; (131.29 amu)</option>
+          <option value="krypton">Krypton&#8314; (83.80 amu)</option>
+          <option value="argon">Argon&#8314; (39.95 amu)</option>
+          <option value="iodine">Iodine&#8314; (126.90 amu)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Mass <i>m</i> [amu] <input type="number" class="valnum" id="A-mass-v" min="0" step="0.1" value="131.3"></label>
+        <input type="range" id="A-mass" min="-4" max="2.5" step="0.01" value="2.1184">
+      </div>
+      <div class="field">
+        <label>Charge <i>q</i> [e] <input type="number" class="valnum" id="A-q-v" min="-3" max="3" step="1" value="1"></label>
+        <input type="range" id="A-q" min="-3" max="3" step="1" value="1">
+      </div>
+    </div>
+
+    <!-- ══ electron block (Mode 3) ══ -->
+    <div class="pblock hide" id="block-B">
+      <div class="phead"><span class="dot" style="background:#4fc3f7"></span><span>Electron</span></div>
+      <div class="field">
+        <label>Mass <i>m</i> [amu] <input type="number" class="valnum" id="B-mass-v" min="0" step="0.0001" value="5.49e-4"></label>
+        <input type="range" id="B-mass" min="-4" max="2.5" step="0.01" value="-3.2609">
+      </div>
+      <div class="field">
+        <label>Charge <i>q</i> [e] <input type="number" class="valnum" id="B-q-v" min="-3" max="3" step="1" value="-1"></label>
+        <input type="range" id="B-q" min="-3" max="3" step="1" value="-1">
+      </div>
+    </div>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ══ Mode 1 fields ══ -->
+    <div id="grp-accel">
+      <div class="field">
+        <label>Accelerator length <i>d</i> [m] <input type="number" class="valnum" id="d-v" min="0.001" step="0.005" value="0.050"></label>
+        <input type="range" id="inp-d" value="0.35" min="0.005" max="0.5" step="0.005">
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label>Field strength |<b style="color:#ef5350">E</b>| [V/m] <input type="number" class="valnum" id="E1-v" min="0" step="500" value="20000"></label>
+        <input type="range" id="inp-E1" value="20000" min="0" max="50000" step="500">
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label>Potential &#916;V [V] <input type="number" class="valnum" id="dV-v" min="0" step="100" value="1000"></label>
+        <input type="range" id="inp-dV" value="1000" min="0" max="25000" step="100">
+      </div>
+
+      <!-- ── exhaust velocity + equivalent Isp readout ── -->
+      <div class="accel-results">
+        <div class="ar-row">
+          <span class="ar-lbl">Exhaust velocity <i>v<sub>e</sub></i></span>
+          <span class="ar-val" id="o-ve">&#x2014; m/s</span>
+        </div>
+        <div class="ar-row">
+          <span class="ar-lbl">Equivalent <i>I<sub>sp</sub></i></span>
+          <span class="ar-val" id="o-isp">&#x2014; s</span>
+        </div>
+        <div class="cf-info-box neutral" id="o-isp-status">&#x2014;</div>
+      </div>
+    </div>
+
+    <!-- ══ Mode 2/3 fields ══ -->
+    <div id="grp-drift" class="hide">
+      <div class="field">
+        <label>Field strength |<b style="color:#ef5350">E</b>| [V/m] <input type="number" class="valnum" id="E2-v" min="0" step="500" value="10000"></label>
+        <input type="range" id="inp-E2" value="10000" min="0" max="50000" step="500">
+      </div>
+      <div class="field" style="margin-top:8px">
+        <label>Flux density |<b style="color:#5c6bc0">B</b>| [G] <input type="number" class="valnum" id="B-v" min="0" max="5000" step="50" value="1000"></label>
+        <input type="range" id="inp-B" value="1000" min="0" max="5000" step="50">
+        <div class="readout">Equivalent: <b id="b-tesla">0.1000 T</b></div>
+      </div>
+    </div>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ── overlay toggles ── -->
+    <label class="chk" for="chk-labels">
+      <input type="checkbox" id="chk-labels" checked>
+      Show charge labels
+    </label>
+    <label class="chk" for="chk-vel">
+      <input type="checkbox" id="chk-vel" checked>
+      Show velocity <b style="color:#ffd54f">v</b>
+    </label>
+    <label class="chk m-only drift hide" for="chk-drift">
+      <input type="checkbox" id="chk-drift" checked>
+      Show drift <b style="color:#66bb6a">v<sub>d</sub></b>
+    </label>
+    <label class="chk" for="chk-fe">
+      <input type="checkbox" id="chk-fe">
+      Show electric force <b style="color:#ef5350">F<sub>E</sub></b>
+    </label>
+    <label class="chk m-only drift hide" for="chk-fb">
+      <input type="checkbox" id="chk-fb">
+      Show magnetic force <b style="color:#5c6bc0">F<sub>B</sub></b>
+    </label>
+    <label class="chk m-only drift hide" for="chk-fnet">
+      <input type="checkbox" id="chk-fnet">
+      Show net force <b style="color:#ffffff">F<sub>net</sub></b>
+    </label>
+
+    <div id="error-msg"></div>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ── Outputs (dropdown) ── -->
+    <details class="cf-outputs">
+      <summary><span class="cf-sect">Key Parameters</span></summary>
+      <table id="otable">
+        <tr>
+          <th></th>
+          <th id="th-A" style="color:#ff7043">Particle</th>
+          <th id="th-B" class="col-B hide" style="color:#4fc3f7">Electron</th>
+        </tr>
+        <!-- accel rows -->
+        <tr class="r-accel"><td>v<sub>e</sub> [m/s]</td><td id="A-ve">&#x2014;</td><td class="col-B hide">&#x2014;</td></tr>
+        <tr class="r-accel"><td>&#916;V [V]</td>        <td id="A-dV">&#x2014;</td><td class="col-B hide">&#x2014;</td></tr>
+        <tr class="r-accel"><td>a [m/s&#178;]</td>      <td id="A-acc">&#x2014;</td><td class="col-B hide">&#x2014;</td></tr>
+        <!-- drift rows -->
+        <tr class="r-drift hide"><td>v<sub>drift</sub> [m/s]</td><td id="A-vd">&#x2014;</td><td id="B-vd" class="col-B hide">&#x2014;</td></tr>
+        <tr class="r-drift hide"><td>&#969;<sub>c</sub> [rad/s]</td><td id="A-wc">&#x2014;</td><td id="B-wc" class="col-B hide">&#x2014;</td></tr>
+        <tr class="r-drift hide"><td>r<sub>L</sub> [m]</td>        <td id="A-rL">&#x2014;</td><td id="B-rL" class="col-B hide">&#x2014;</td></tr>
+        <tr class="r-drift hide"><td>T<sub>c</sub> [s]</td>        <td id="A-Tc">&#x2014;</td><td id="B-Tc" class="col-B hide">&#x2014;</td></tr>
+      </table>
+    </details>
+
+    <div class="cf-panel-divider"></div>
+
+    <!-- ── Legend ── -->
+    <details class="cf-outputs">
+      <summary><span class="cf-sect">Legend</span></summary>
+    <div id="legend">
+      <div class="row"><span class="sw" style="background:#ff7043"></span><b id="leg-A">Particle</b></div>
+      <div class="row col-B hide"><span class="sw" style="background:#4fc3f7"></span>Electron</div>
+      <div class="row"><span class="sw" style="background:#ffd54f"></span>v velocity</div>
+      <div class="row drift hide"><span class="sw" style="background:#66bb6a"></span>v<sub>d</sub> E&#215;B drift</div>
+      <div class="row"><span class="sw" style="background:#ef5350"></span><b style="color:#ef5350">E</b> field</div>
+      <div class="row drift hide"><span class="sw" style="background:#5c6bc0"></span><b style="color:#5c6bc0">B</b> field (out of screen)</div>
+    </div>
+    </details>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUIZ GATE OVERLAY
+     ════════════════════════════════════════════ -->
+<div id="quiz-overlay">
+  <div id="quiz-overlay-card">
+    <div id="quiz-overlay-title">Try the questions first!</div>
+    <div id="quiz-overlay-subtitle">They might help guide your use<br>of the interactive demo...</div>
+    <button id="quiz-skip-btn">Skip the questions, I want to see the demo</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     QUIZ GATE LOGIC
+     Set QUIZ_COMPLETED = true to always unlock,
+     or call markQuizComplete() from your quiz code.
+     ════════════════════════════════════════════ -->
+<script>
+  // Gate bypass: true during dev, or when embedded with ?gate=0 (e.g. an
+  // ungated demo whose lesson section has no associated quiz).
+  const QUIZ_COMPLETED = new URLSearchParams(location.search).get('gate') === '0';
+
+  const _overlay = document.getElementById('quiz-overlay');
+  const _skipBtn = document.getElementById('quiz-skip-btn');
+
+  function dismissOverlay() { _overlay.classList.add('hidden'); }
+
+  // Called by the parent page's quiz code when the student finishes:
+  //   window.markQuizComplete();
+  window.markQuizComplete = dismissOverlay;
+
+  _skipBtn.addEventListener('click', dismissOverlay);
+
+  if (QUIZ_COMPLETED) dismissOverlay();
+</script>
+
+<!-- ════════════════ THREE.JS ════════════════ -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ── physical constants ────────────────────────────────────────────────────────
+const AMU = 1.66053906660e-27;
+const E_C = 1.602176634e-19;
+
+// ════════════════════════════════════════════════════════════════════════════
+//  PHYSICS  (ported from ECrossB.py — runs entirely in the browser)
+// ════════════════════════════════════════════════════════════════════════════
+function _finite(name, val) {
+  if (!Number.isFinite(val)) throw new Error(`'${name}' must be a finite number.`);
+}
+
+// ── Mode 1 — electrostatic acceleration ────────────────────────────────────────
+function computeAccel(m_amu, q_e, d, E) {
+  for (const [n, v] of [['m_amu', m_amu], ['q_e', q_e], ['d', d], ['E', E]]) _finite(n, v);
+  if (m_amu <= 0) throw new Error('Mass must be positive.');
+  if (d <= 0)     throw new Error('Accelerator length d must be positive.');
+  if (E < 0)      throw new Error('|E| must be non-negative.');
+
+  const m    = m_amu * AMU;
+  const q    = q_e * E_C;
+  const absq = Math.abs(q);
+  const Ef   = E, df = d;
+
+  const dV  = Ef * df;                              // ΔV = |E| d
+  const a   = q * Ef / m;                           // signed acceleration along +x
+  const ve  = Math.sqrt(2.0 * absq * Ef * df / m);  // exhaust speed magnitude
+  const t_d = a !== 0 ? Math.sqrt(2.0 * df / Math.abs(a)) : null;
+
+  return { mode: 'accel', ve, dV, a, t_d,
+           stationary: (a === 0),                   // q=0 or E=0 → no acceleration
+           sign: q > 0 ? 1 : (q < 0 ? -1 : 0) };
+}
+
+// ── Mode 2 / 3 — E × B drift ────────────────────────────────────────────────────
+function computeDrift(m_amu, q_e, E, B) {
+  for (const [n, v] of [['m_amu', m_amu], ['q_e', q_e], ['E', E], ['B', B]]) _finite(n, v);
+  if (m_amu <= 0) throw new Error('Mass must be positive.');
+  if (B < 0)      throw new Error('|B| must be non-negative.');
+  if (E < 0)      throw new Error('|E| must be non-negative.');
+
+  const m    = m_amu * AMU;
+  const q    = q_e * E_C;
+  const absq = Math.abs(q);
+  const Bf   = B, Ef = E;
+  const sign = q > 0 ? 1 : (q < 0 ? -1 : 0);
+
+  // No charge → no force → the particle stays put.
+  if (q === 0) {
+    return { mode: 'drift', stationary: true, B_zero: false,
+             omega_c: 0.0, v_drift: 0.0, r_L: 0.0, T_c: null,
+             v_gyro: 0.0, a: 0.0, sign: 0 };
+  }
+
+  // No magnetic field → straight-line acceleration along the E direction (±ĵ).
+  if (Bf === 0) {
+    const a = q * Ef / m;                            // signed acceleration along +ĵ
+    return { mode: 'drift', B_zero: true, stationary: (Ef === 0),
+             omega_c: 0.0, v_drift: 0.0, r_L: null, T_c: null,
+             v_gyro: 0.0, a, sign };
+  }
+
+  const omega   = q * Bf / m;          // signed cyclotron frequency (sign = rotation sense)
+  const v_drift = Ef / Bf;             // |E|/|B|, charge-independent, along +x
+  const v_gyro  = Ef / Bf;             // gyro speed for a particle released from rest (cycloid)
+  const r_L     = m * v_gyro / (absq * Bf);   // = m|E| / (|q| B²)
+  const T_c     = omega !== 0 ? 2.0 * Math.PI / Math.abs(omega) : null;
+
+  return { mode: 'drift', omega_c: omega, v_drift, r_L, T_c, v_gyro,
+           B_zero: false, stationary: (Ef === 0), a: 0.0, sign };
+}
+
+function compute(payload) {
+  if (payload.mode === 'accel')
+    return computeAccel(payload.m_amu, payload.q_e, payload.d, payload.E);
+  if (payload.mode === 'drift')
+    return computeDrift(payload.m_amu, payload.q_e, payload.E, payload.B);
+  throw new Error(`Unknown mode '${payload.mode}'.`);
+}
+
+// ── scene constants ─────────────────────────────────────────────────────────
+const SCENE_R        = 5.0;
+const GAUSS_TO_TESLA = 1e-4;
+const END_PAUSE      = 0.6;
+
+// accelerator (Mode 1)
+const ACCEL_D     = SCENE_R * 1.55;   // scene length of the accelerator gap (reference)
+const ACCEL_SEC   = 4.0;              // wall-clock time to cross the gap (reference)
+const D_REF1      = 0.05;             // reference accelerator length [m]
+// reference crossing time & exhaust speed (default xenon+, E=20000 V/m, d=0.05 m)
+const T_D_REF     = Math.sqrt(2*D_REF1 / (E_C*20000/(131.293*AMU)));
+const VE_REF      = Math.sqrt(2*E_C*20000*D_REF1/(131.293*AMU));
+const E_REF1      = 20000;            // reference |E| for force-arrow scaling [V/m]
+
+// drift (Mode 2/3)
+const DRIFT_W     = SCENE_R * 3.0;    // scene width swept by the drift
+const DRIFT_SEC   = 9.0;              // wall-clock time to sweep across
+// Fraction of a drift/straight run spent fading in at the start extremity and
+// out at the end extremity, so the particle appears and disappears smoothly
+// (and the reset back to the left edge is hidden) instead of snapping.
+const DRIFT_FADE_FRAC = 0.12;
+const ARCH_BASE   = 1.0;              // arches a reference ion shows (fewer → larger humps)
+const ARCH_MIN    = 1;
+// Ion arches are capped LOW so ion loops always stay large — they never shrink into the
+// electron's range. Worst case (ion at ARCH_MAX, electron at ARCH_E_MIN) the electron still
+// has 3× more arches, so the ion loop is always clearly the bigger of the two.
+const ARCH_MAX    = 4;                // hard floor on ion loop size (large, never tiny)
+const E_REF2      = 10000;            // reference |E| for drift force-arrow scaling [V/m]
+// reference Larmor radius (xenon+, E=10000 V/m, B=0.1 T): sets the arch count
+const R_L_REF     = (131.293*AMU)*E_REF2 / (E_C*0.1*0.1);
+// The electron's true r_L is ~5 orders of magnitude smaller than the ion's, so feeding it
+// through archesFor() always pins it at ARCH_MAX — its loops never respond to E or B. Give
+// it its OWN reference r_L (electron, E=10000 V/m, B=0.1 T) and a compressed mapping so the
+// loop count lands in a readable band and still grows with B (and shrinks with E).
+const R_L_REF_E   = (5.48579909e-4*AMU)*E_REF2 / (E_C*0.1*0.1);
+// Electron arches live in a band that starts ABOVE the ion's max (ARCH_MAX=4) so electron
+// loops are always smaller than ion loops, and run very high so the loops get very, very
+// tight at maximum B. base·(factor)^exp with factor=(E_REF2/E)·(B/0.1)² ⇒ ≈16 at the
+// reference field, ≈80 (tiny) at full B.
+const ARCH_E_BASE = 16;               // electron arches at the reference field (more → smaller loops)
+const ARCH_E_EXP  = 0.5;              // map the wide r_L range across the legible band
+const ARCH_E_MIN  = 12;               // always > ARCH_MAX ⇒ electron loop always < ion loop
+const ARCH_E_MAX  = 80;               // very high cap ⇒ very, very small loops at max B
+// reference E×B drift speed (E_REF2, B=0.1 T) = 1e5 m/s; sets the drift-arrow length
+const V_DRIFT_REF = E_REF2 / 0.1;
+// smoothstep duration for cycloid path resizing (demos 2 & 3) when a slider drags
+const R_TWEEN_SEC = 0.45;
+
+const clamp = (x,a,b) => Math.min(b, Math.max(a, x));
+
+const PRESETS = {
+  custom:   null,
+  xenon:    { m: 131.293,        q: +1 },
+  krypton:  { m: 83.798,         q: +1 },
+  argon:    { m: 39.948,         q: +1 },
+  iodine:   { m: 126.90447,      q: +1 },
+  electron: { m: 5.48579909e-4,  q: -1 },
+};
+
+const COL = {
+  ion:   0xff7043,
+  elec:  0x4fc3f7,
+  vel:   0xffd54f,
+  drift: 0x66bb6a,
+  E:     0xef5350,
+  B:     0x5c6bc0,
+  Fres:  0xffffff,
+};
+
+let mode = 'accel';          // 'accel' | 'drift' | 'pair'
+let dragging = false;        // true while a drift/pair slider is held (particle hidden)
+let showLabels = true, showVel = true, showDrift = true;
+let showFE = false, showFB = false, showFnet = false;
+let accelGrid = null, accelGridX = 0;   // Mode-1 exit grid (fades as particle passes)
+
+// ── LaTeX-style math text sprite ───────────────────────────────────────────────
+// Renders labels in the KaTeX Computer-Modern math font (serif fallbacks), with an
+// italic base symbol and an optional roman subscript — e.g. {base:'F', sub:'net'}
+// draws  F_net  in proper LaTeX styling. Pass {base:'…', roman:true} for word labels.
+const MATH_BASE_FONT = '"KaTeX_Math","Cambria Math","Times New Roman",serif';
+const MATH_SUB_FONT  = '"KaTeX_Main","Times New Roman","Segoe UI Symbol",serif';
+
+function makeTextSprite(spec, color, height = SCENE_R * 0.28) {
+  const base  = (typeof spec === 'string') ? spec : (spec.base || '');
+  const sub   = (typeof spec === 'object' && spec.sub)   ? spec.sub : null;
+  const roman = (typeof spec === 'object' && spec.roman) ? true : false;
+  const vec   = (typeof spec === 'object' && spec.vec)   ? true : false;
+
+  const canvas = document.createElement('canvas');
+  const ctx    = canvas.getContext('2d');
+  const fs = 72, subFs = Math.round(fs * 0.56), px = 24, py = 16, gap = 5;
+  // reserve vertical room above the glyph for the vector arrow when requested
+  const arrowH   = vec ? Math.round(fs * 0.30) : 0;
+  const baseFont = roman ? `${fs}px ${MATH_SUB_FONT}` : `italic ${fs}px ${MATH_BASE_FONT}`;
+  const subFont  = `${subFs}px ${MATH_SUB_FONT}`;
+
+  ctx.font = baseFont;
+  const bw = ctx.measureText(base).width;
+  let sw = 0;
+  if (sub) { ctx.font = subFont; sw = ctx.measureText(sub).width; }
+  const textW = bw + (sub ? gap + sw : 0);
+
+  canvas.width  = Math.ceil(textW + px*2);
+  canvas.height = Math.ceil(fs*1.25 + py*2 + arrowH);
+
+  // rounded-rect background
+  ctx.fillStyle   = 'rgba(9,9,9,0.78)';
+  ctx.strokeStyle = 'rgba(207,216,220,0.22)';
+  ctx.lineWidth   = 4;
+  const r = 18, [x,y,w,h] = [2,2,canvas.width-4,canvas.height-4];
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // base symbol (italic math) + roman subscript
+  ctx.fillStyle = color;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const baseY  = canvas.height/2 + fs*0.34 + arrowH*0.5;
+  const startX = (canvas.width - textW)/2;
+  ctx.font = baseFont;
+  ctx.fillText(base, startX, baseY);
+  if (sub) {
+    ctx.font = subFont;
+    ctx.fillText(sub, startX + bw + gap, baseY + fs*0.20);
+  }
+
+  // vector arrow drawn over the base symbol only (→), leaving subscripts bare
+  if (vec) {
+    const ay  = baseY - fs*0.86;
+    const ax0 = startX - fs*0.04;
+    const ax1 = startX + bw + fs*0.10;
+    const hd  = fs*0.16;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = Math.max(4, fs*0.06);
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ax0, ay); ctx.lineTo(ax1, ay);
+    ctx.moveTo(ax1 - hd, ay - hd*0.7); ctx.lineTo(ax1, ay); ctx.lineTo(ax1 - hd, ay + hd*0.7);
+    ctx.stroke();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:tex, transparent:true, depthTest:false, depthWrite:false
+  }));
+  sp.scale.set(height*(canvas.width/canvas.height), height, 1);
+  sp.renderOrder = 999;
+  return sp;
+}
+
+// ── scene globals ─────────────────────────────────────────────────────────────
+let renderer, scene, camera, controls, clock;
+let fieldGroup, guideGroup;
+let axisScene, axisCamera;
+let parts = [];
+
+let cycleT = 0, cyclePauseT = 0;
+function resetCycle() { cycleT = 0; cyclePauseT = 0; }
+
+const GIZMO_SIZE = 150;   // on-screen size of the reference-frame widget (px)
+const GIZMO_PAD  = 14;    // distance from the viewport corner (px)
+
+// ── charge sprite ─────────────────────────────────────────────────────────────
+function setChargeSprite(p, sign) {
+  if (p.chargeSprite && p.curSign === sign) return;
+  if (p.chargeSprite) {
+    scene.remove(p.chargeSprite);
+    if (p.chargeSprite.material.map) p.chargeSprite.material.map.dispose();
+    p.chargeSprite.material.dispose();
+  }
+  const hexC  = '#'+p.color.toString(16).padStart(6,'0');
+  const glyph = sign < 0 ? '−' : (sign > 0 ? '+' : '0');
+  p.chargeSprite = makeTextSprite(glyph, hexC, SCENE_R*0.40);
+  scene.add(p.chargeSprite);
+  p.curSign = sign;
+}
+
+// ── build one particle ────────────────────────────────────────────────────────
+function makeParticle(color, sphereScale) {
+  const p = { color, data:null, cur:null, chargeSprite:null, curSign:null };
+
+  p.mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(SCENE_R*sphereScale, 24, 24),
+    new THREE.MeshStandardMaterial({ color, emissive:color, emissiveIntensity:0.45,
+                                     roughness:0.3, transparent:true })
+  );
+  scene.add(p.mesh);
+
+  // vibrant particle path
+  p.trail = new THREE.Line(
+    new THREE.BufferGeometry(),
+    new THREE.LineBasicMaterial({ color, transparent:true, opacity:0.92 })
+  );
+  scene.add(p.trail);
+
+  const mkArrow = (c, len) => {
+    const a = new THREE.ArrowHelper(new THREE.Vector3(1,0,0), new THREE.Vector3(),
+                                    len, c, len*0.28, len*0.16);
+    a.visible = false; scene.add(a); return a;
+  };
+  p.velArrow   = mkArrow(COL.vel,   SCENE_R*0.85);
+  p.driftArrow = mkArrow(COL.drift, SCENE_R*0.9);
+  p.feArrow    = mkArrow(COL.E,     SCENE_R*0.7);
+  p.fbArrow    = mkArrow(COL.B,     SCENE_R*0.7);
+  p.fnetArrow  = mkArrow(COL.Fres,  SCENE_R*0.7);
+
+  const mkLabel = (txt, hex) => {
+    const s = makeTextSprite(txt, hex, SCENE_R*0.24); s.visible = false; scene.add(s); return s;
+  };
+  p.velLabel   = mkLabel({base:'v', vec:true},            '#ffd54f');
+  p.driftLabel = mkLabel({base:'v', sub:'d', vec:true},   '#66bb6a');
+  p.feLabel    = mkLabel({base:'F', sub:'E', vec:true},   '#ef5350');
+  p.fbLabel    = mkLabel({base:'F', sub:'B', vec:true},   '#5c6bc0');
+  p.fnetLabel  = mkLabel({base:'F', sub:'net', vec:true}, '#ffffff');
+  return p;
+}
+
+// ── init ──────────────────────────────────────────────────────────────────────
+function initViz(container) {
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x090909);
+
+  const w = container.clientWidth, h = container.clientHeight;
+  renderer = new THREE.WebGLRenderer({ antialias:true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(w,h);
+  container.appendChild(renderer.domElement);
+
+  camera = new THREE.PerspectiveCamera(50, w/h, 0.01, 5000);
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.07;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const dl = new THREE.DirectionalLight(0xffffff, 0.8);
+  dl.position.set(1,2,3); scene.add(dl);
+
+  fieldGroup = new THREE.Group();
+  guideGroup = new THREE.Group();
+  scene.add(fieldGroup, guideGroup);
+
+  buildAxisGizmo();
+  clock = new THREE.Clock();
+
+  window.addEventListener('resize', () => {
+    const w2 = container.clientWidth, h2 = container.clientHeight;
+    camera.aspect = w2/h2; camera.updateProjectionMatrix();
+    renderer.setSize(w2,h2);
+  });
+
+  animate();
+}
+
+// ── camera-locked î ĵ k̂ reference-frame gizmo (drawn in the viewport corner) ────
+// î → +x (drift direction), ĵ → +y (E field), k̂ → +z (B field, out of screen).
+function buildAxisGizmo() {
+  axisScene  = new THREE.Scene();
+  axisCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  axisScene.add(new THREE.AmbientLight(0xffffff, 0.95));
+
+  const AX = 1.0, HEAD = 0.30, HEADW = 0.17, O = new THREE.Vector3();
+  const axes = [
+    { dir: new THREE.Vector3(1, 0, 0), color: 0xff6b6b, label: 'î'  },
+    { dir: new THREE.Vector3(0, 1, 0), color: 0x69db7c, label: 'ĵ'  },
+    { dir: new THREE.Vector3(0, 0, 1), color: 0x4fa8ff, label: 'k̂' },
+  ];
+  for (const a of axes) {
+    axisScene.add(new THREE.ArrowHelper(a.dir, O, AX, a.color, HEAD, HEADW));
+    const hex = '#' + a.color.toString(16).padStart(6, '0');
+    const lab = makeTextSprite(a.label, hex, 0.46);
+    lab.position.copy(a.dir).multiplyScalar(AX + 0.34);
+    axisScene.add(lab);
+  }
+}
+
+function renderAxisGizmo() {
+  if (!axisScene) return;
+  // Mirror the main camera's orientation onto the gizmo camera.
+  const dir = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+  axisCamera.position.copy(dir).multiplyScalar(4.6);
+  axisCamera.up.copy(camera.up);
+  axisCamera.lookAt(0, 0, 0);
+
+  const size = new THREE.Vector2();
+  renderer.getSize(size);
+  const s = GIZMO_SIZE;
+  renderer.setScissorTest(true);
+  renderer.setViewport(GIZMO_PAD, GIZMO_PAD, s, s);
+  renderer.setScissor(GIZMO_PAD, GIZMO_PAD, s, s);
+  renderer.setClearColor(0x0d0d0d, 1);
+  renderer.clear(true, true, false);
+  renderer.render(axisScene, axisCamera);
+  renderer.setScissorTest(false);
+  renderer.setViewport(0, 0, size.x, size.y);
+  renderer.setClearColor(0x090909, 1);
+}
+
+// ── field arrow with adjustable opacity (transparent field lattices) ───────────
+function mkFieldArrow(dir, pos, len, color, opacity, head, headW) {
+  const a = new THREE.ArrowHelper(dir, pos, len, color, head, headW);
+  a.line.material.transparent = true; a.line.material.opacity = opacity;
+  a.cone.material.transparent = true; a.cone.material.opacity = opacity;
+  return a;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  FIELD VISUALS
+// ════════════════════════════════════════════════════════════════════════════
+function buildField() {
+  fieldGroup.clear();
+  guideGroup.clear();
+  accelGrid = null;
+
+  if (mode === 'accel') buildFieldAccel();
+  else                  buildFieldDrift();
+}
+
+// scene length of the Mode-1 gap, scaled by the user's d input.
+// sqrt mapping compresses the dynamic range so short chambers don't snap to a
+// floor (no "massive jump" at small d) while long chambers stay readable.
+function sceneAccelD() {
+  const d = (window._lastAccel && window._lastAccel.d) ? window._lastAccel.d : D_REF1;
+  // Map the full d-slider span [0.005, 0.5] m monotonically onto the visual gap
+  // length: every increase in d now lengthens the gap (no plateau past 0.225 m).
+  // Endpoints are pinned so the shortest gap (slider min) and longest gap (slider
+  // max) keep the same visual length as before — the max simply now lands at d=0.5.
+  const dLo = 0.005, dHi = 0.5;
+  const fMin = Math.sqrt(dLo   / D_REF1);   // visual factor at the slider minimum
+  const fMax = Math.sqrt(0.225 / D_REF1);   // visual factor at the slider maximum
+  const t = clamp((Math.sqrt(d)   - Math.sqrt(dLo)) /
+                  (Math.sqrt(dHi) - Math.sqrt(dLo)), 0, 1);
+  return ACCEL_D * (fMin + (fMax - fMin) * t);
+}
+
+function buildFieldAccel() {
+  // E field arrows along +î across the gap; an entry source and an exit grid at +d.
+  const sign  = (parts[0] && parts[0].data) ? parts[0].data.sign : 1;
+  const sD    = sceneAccelD();
+  const halfY = SCENE_R*0.95, halfZ = SCENE_R*0.95;
+  const rows  = [-1,0,1];
+
+  // E lattice fills the gap from the source (x=0) to the grid (x=sign*sD),
+  // oriented along the acceleration direction (sign).
+  const baseX = -sign*SCENE_R*0.1;          // base sits just behind the source
+  const len   = sD + SCENE_R*0.2;
+  for (const iy of rows) for (const iz of rows) {
+    const y = iy*halfY*0.85, z = iz*halfZ*0.85;
+    fieldGroup.add(mkFieldArrow(
+      new THREE.Vector3(sign,0,0), new THREE.Vector3(baseX, y, z),
+      len, COL.E, 0.5, SCENE_R*0.2, SCENE_R*0.09
+    ));
+  }
+
+  // accelerating charged plate at the origin (x=0): a stubby disk the ions launch from.
+  // Cylinder axis is along +y by default; rotate onto +x so the flat face fronts the gap.
+  const plateGrp = new THREE.Group();
+  const disk = new THREE.Mesh(
+    new THREE.CylinderGeometry(SCENE_R*0.62, SCENE_R*0.62, SCENE_R*0.14, 40),
+    new THREE.MeshStandardMaterial({ color:0xb0623a, emissive:0x3a1c0e,
+                                     emissiveIntensity:0.5, metalness:0.6, roughness:0.45 })
+  );
+  disk.rotation.z = Math.PI/2;
+  // sit just behind the source so ions emerge from its downstream face
+  disk.position.x = -sign*SCENE_R*0.07;
+  plateGrp.add(disk);
+  // a faint "+" on the plate face to read it as the positive accelerating electrode
+  const plus = makeTextSprite('+', '#ffd0b0', SCENE_R*0.3);
+  plus.position.set(-sign*SCENE_R*0.16, 0, 0);
+  plateGrp.add(plus);
+  guideGroup.add(plateGrp);
+
+  // exit grid plate a distance d from the source; faded live as the particle passes
+  const gx = sign*sD;
+  const plate = new THREE.GridHelper(SCENE_R*1.8, 9, 0x607d8b, 0x37474f);
+  plate.rotation.z = Math.PI/2;          // make it lie in the j-k plane
+  plate.position.x = gx;
+  plate.material.transparent = true; plate.material.opacity = 0.55;
+  guideGroup.add(plate);
+  accelGrid = plate; accelGridX = gx;
+
+  // d dimension label
+  const dTxt = (window._lastAccel && window._lastAccel.d != null)
+             ? ('d = ' + window._lastAccel.d + ' m') : 'd';
+  // bare symbol → italic math; the "d = … m" form carries numbers/units → roman
+  const dl = makeTextSprite(dTxt.includes('=') ? {base:dTxt, roman:true} : dTxt,
+                            '#90a4ae', SCENE_R*0.24);
+  dl.position.set(gx*0.5, -SCENE_R*0.55, 0);
+  guideGroup.add(dl);
+
+  const eLbl = makeTextSprite({base:'E', vec:true}, '#ef5350', SCENE_R*0.34);
+  eLbl.position.set(gx*0.55, SCENE_R*0.95, 0);
+  guideGroup.add(eLbl);
+}
+
+function buildFieldDrift() {
+  // 3D, semi-transparent lattices: E along +ĵ; B out of screen (+k̂), both as arrows.
+  // Each field is only drawn when present, so the physics reads from the picture:
+  //   E=0,B≠0 → stationary;  E≠0,B=0 → straight-line acceleration along ±ĵ.
+  const N = 6, step = DRIFT_W/(2*N);
+  const H = SCENE_R;                       // half-extent of the field cube
+  const LEN = 2*H;                          // E and B arrows share this length
+  const zLayers = [-H, 0, H];              // E lives on these depth (k̂) planes
+  const yRows   = [-H, -H/3, H/3, H];      // B threads through these heights
+  const Eon = +$('E2-v').value > 0;
+  const Bon = +$('inp-B').value > 0;
+
+  // E field: vertical arrows along +ĵ spanning y∈[-H,H] on each depth plane.
+  // Their tips/tails sit exactly where the B arrows' ends pass, so the two lattices touch.
+  if (Eon) {
+    for (let i=-N; i<=N; i++) for (const z of zLayers) {
+      const op = z === 0 ? 0.26 : 0.14;
+      fieldGroup.add(mkFieldArrow(
+        new THREE.Vector3(0,1,0), new THREE.Vector3(i*step, -H, z),
+        LEN, COL.E, op, SCENE_R*0.16, SCENE_R*0.08
+      ));
+    }
+    const eLbl = makeTextSprite({base:'E', vec:true}, '#ef5350', SCENE_R*0.32);
+    eLbl.position.set(DRIFT_W*0.5+SCENE_R*0.2, SCENE_R*0.9, 0);
+    guideGroup.add(eLbl);
+  }
+
+  // B field: arrows along +k̂ (out of screen) spanning z∈[-H,H] — same length as E.
+  // The tip lands on the front E-plane (z=+H) and the tail on the back E-plane (z=-H),
+  // so each B arrow stretches from one set of E lines to the other.
+  if (Bon) {
+    for (let i=-N; i<=N; i+=2) for (const yf of yRows) {
+      const op = yf === 0 ? 0.30 : 0.22;
+      fieldGroup.add(mkFieldArrow(
+        new THREE.Vector3(0,0,1), new THREE.Vector3(i*step, yf, -H),
+        LEN, COL.B, op, SCENE_R*0.16, SCENE_R*0.08
+      ));
+    }
+    const bLbl = makeTextSprite({base:'B', vec:true}, '#5c6bc0', SCENE_R*0.30);
+    bLbl.position.set(-DRIFT_W*0.5-SCENE_R*0.1, SCENE_R*1.5, 0);
+    guideGroup.add(bLbl);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  TRAJECTORIES
+// ════════════════════════════════════════════════════════════════════════════
+// arch count ∝ 1/r_L  (so BOTH |E| and |B| change the trajectory shape)
+function archesFor(r_L) {
+  if (!r_L || !Number.isFinite(r_L)) return ARCH_BASE;
+  return Math.round(clamp(ARCH_BASE * R_L_REF / r_L, ARCH_MIN, ARCH_MAX));
+}
+
+// electron-scale loops: normalize to the electron's own reference r_L and compress, so the
+// hump count sits in a readable band [ARCH_E_MIN, ARCH_E_MAX] and visibly tracks B (r_L ∝ 1/B²).
+function archesForElectron(r_L) {
+  if (!r_L || !Number.isFinite(r_L)) return ARCH_E_BASE;
+  return Math.round(clamp(
+    ARCH_E_BASE * Math.pow(R_L_REF_E / r_L, ARCH_E_EXP), ARCH_E_MIN, ARCH_E_MAX));
+}
+
+function setStationaryTrail(p) {
+  p.trail.geometry.setFromPoints(
+    [new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
+}
+
+function buildTrajectory(p, data) {
+  p.rTweening = false;                            // only the cycloid branch re-arms this
+  if (mode === 'accel') {
+    if (data.stationary) {                       // q=0 or E=0 → nothing happens
+      p.cur = { kind:'stationary', duration: 3.0 };
+      p.veN = 0;
+      setStationaryTrail(p);
+    } else {
+      const dir = data.sign;                       // +1 -> +î, -1 -> -î
+      const sD  = sceneAccelD();
+      // travel well past the exit grid so the particle stays visible for longer
+      const x1  = dir*sD*1.9;
+      // wall-clock duration tracks the real crossing time, exaggerated (^1.5) and given a
+      // wide range so raising the potential is clearly visible as a faster launch.
+      const ratio = Math.pow((data.t_d || T_D_REF)/T_D_REF, 1.5);
+      const dur = ACCEL_SEC * clamp(ratio, 0.12, 3.2);
+      p.cur = { kind:'accel', x1, dir, duration: dur };
+      p.veN = clamp((data.ve || VE_REF)/VE_REF, 0.35, 3.0);
+      // path line
+      const pts = [];
+      for (let i=0;i<=24;i++){ const u=i/24; pts.push(new THREE.Vector3(x1*u*u,0,0)); }
+      p.trail.geometry.setFromPoints(pts);
+    }
+  } else if (data.stationary) {                  // E=0 with B>0 (or q=0) → at rest
+    p.cur = { kind:'stationary', duration: 3.0 };
+    setStationaryTrail(p);
+  } else if (data.B_zero) {                       // E≠0, B=0 → straight-line acceleration ±ĵ
+    const range = SCENE_R*1.6;
+    // higher |E| → shorter traversal so the acceleration reads as faster
+    const Eval = +$('E2-v').value || E_REF2;
+    const dur  = DRIFT_SEC*0.7 * clamp(Math.sqrt(E_REF2/Math.max(Eval,1)), 0.35, 2.5);
+    p.cur = { kind:'vaccel', sign:data.sign, range, duration: dur };
+    const pts = [];
+    for (let i=0;i<=48;i++){ const u=i/48; pts.push(new THREE.Vector3(0, data.sign*range*u*u, 0)); }
+    p.trail.geometry.setFromPoints(pts);
+  } else {
+    // smooth-stepping cycloid: ease the hump radius from its current drawn size to the
+    // new one so dragging E/B grows/shrinks the path instead of snapping (demos 2 & 3).
+    // negative charge ⇒ the electron (ion charge is locked positive in pair mode): its tiny
+    // r_L would otherwise saturate archesFor(), so use the compressed electron mapping.
+    const archesTarget = (data.sign < 0)
+      ? archesForElectron(data.r_L)
+      : archesFor(data.r_L);
+    const rTo   = DRIFT_W/(archesTarget*2*Math.PI);
+    const fromR = (p.cycInit && p.dispR != null) ? p.dispR : rTo;
+    p.cycSignQ  = data.sign;
+    p.rFrom = fromR; p.rTo = rTo; p.rTweenT = 0;
+    p.rTweening = Math.abs(fromR - rTo) > 1e-9;
+    p.dispR = fromR; p.cycInit = true;
+    setCycloidCur(p, fromR);
+    return;                                        // trail/bounding handled in setCycloidCur
+  }
+  p.cycInit = false;                               // non-cycloid: next cycloid snaps fresh
+  p.trail.geometry.computeBoundingSphere();
+}
+
+function cycloidPoint(cur, phi) {
+  const x = cur.x0 + cur.r*(phi - Math.sin(phi));
+  const y = cur.signQ * cur.r*(1 - Math.cos(phi));
+  return new THREE.Vector3(x, y, 0);
+}
+
+// rebuild a particle's cycloid trail at the given hump radius. arches = DRIFT_W/(r·2π)
+// keeps the path spanning the full width, so only the hump height/count morphs.
+function buildCycloidTrail(p, cur) {
+  const steps = Math.max(64, Math.ceil(cur.arches)*48);
+  const pts = [];
+  for (let i=0;i<=steps;i++){
+    const phi = (i/steps)*cur.arches*2*Math.PI;
+    pts.push(cycloidPoint(cur, phi));
+  }
+  p.trail.geometry.setFromPoints(pts);
+  p.trail.geometry.computeBoundingSphere();
+}
+
+// set the live cycloid (p.cur) + trail at hump radius r; arches derived to keep full width
+function setCycloidCur(p, r) {
+  const arches = DRIFT_W/(r*2*Math.PI);
+  p.cur = { kind:'cycloid', r, arches, signQ:p.cycSignQ,
+            x0:-DRIFT_W/2, duration: DRIFT_SEC };
+  buildCycloidTrail(p, p.cur);
+}
+
+// position + velocity (unit) at linear-time fraction u in [0,1]
+function stateAt(cur, u) {
+  u = clamp(u,0,1);
+  if (cur.kind === 'stationary') {
+    return { pos:new THREE.Vector3(0,0,0), vel:new THREE.Vector3(1,0,0), speed:0 };
+  }
+  if (cur.kind === 'accel') {
+    const x = cur.x1*u*u;
+    return { pos:new THREE.Vector3(x,0,0), vel:new THREE.Vector3(cur.dir,0,0), speed:u };
+  }
+  if (cur.kind === 'vaccel') {
+    const y = cur.sign*cur.range*u*u;            // released from rest at the origin
+    return { pos:new THREE.Vector3(0,y,0), vel:new THREE.Vector3(0,cur.sign,0), speed:u };
+  }
+  const phi = u*cur.arches*2*Math.PI;
+  const pos = cycloidPoint(cur, phi);
+  // d/dphi
+  const dx = cur.r*(1 - Math.cos(phi));
+  const dy = cur.signQ*cur.r*Math.sin(phi);
+  const v  = new THREE.Vector3(dx, dy, 0);
+  const speed = v.length()/(2*cur.r);          // 0 at cusps, 1 at top
+  const vel = v.lengthSq() > 1e-12 ? v.normalize() : new THREE.Vector3(1,0,0);
+  return { pos, vel, speed };
+}
+
+// ── camera framing per mode ───────────────────────────────────────────────────
+function frameCamera() {
+  if (mode === 'accel') {
+    // panned farther downstream (right) so the plate sits a small margin from the left edge
+    controls.target.set(SCENE_R*1.8, -SCENE_R*0.3, 0);
+    camera.position.set(SCENE_R*3.5, SCENE_R*0.85, SCENE_R*3.0);
+  } else {
+    controls.target.set(0, 0, 0);
+    camera.position.set(SCENE_R*0.15, SCENE_R*0.35, SCENE_R*4.6);
+  }
+  controls.update();
+}
+
+// Fade one ArrowHelper (shaft + head) to alpha, so vectors dim in step with the
+// particle at the extremities of its path.
+function setArrowAlpha(arrow, a) {
+  if (!arrow) return;
+  arrow.line.material.transparent = true;
+  arrow.line.material.opacity     = a;
+  arrow.cone.material.transparent = true;
+  arrow.cone.material.opacity     = a;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ANIMATION
+// ════════════════════════════════════════════════════════════════════════════
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  const dt  = Math.min(clock.getDelta(), 0.05);
+  const off = new THREE.Vector3(SCENE_R*0.14, SCENE_R*0.18, SCENE_R*0.14);
+
+  for (const p of parts) {
+    if (!p.cur) continue;
+
+    // ease the cycloid path size toward its new value (smoothstep), rebuilding the
+    // geometry at the interpolated radius each frame while the tween is active.
+    if (p.rTweening && p.cur.kind === 'cycloid') {
+      p.rTweenT += dt;
+      const tu = clamp(p.rTweenT / R_TWEEN_SEC, 0, 1);
+      const te = tu*tu*(3 - 2*tu);
+      p.dispR = p.rFrom + (p.rTo - p.rFrom)*te;
+      setCycloidCur(p, p.dispR);
+      if (tu >= 1) { p.dispR = p.rTo; p.rTweening = false; }
+    }
+
+    // while a drift/pair slider is held, hide the particle + vectors; the path stays
+    // visible and keeps resizing. On release the cycle resets, respawning it at the start.
+    if (dragging) {
+      p.mesh.visible = false;
+      p.chargeSprite.visible = false;
+      p.velArrow.visible   = p.velLabel.visible   = false;
+      p.driftArrow.visible = p.driftLabel.visible = false;
+      p.feArrow.visible    = p.feLabel.visible    = false;
+      p.fbArrow.visible    = p.fbLabel.visible    = false;
+      p.fnetArrow.visible  = p.fnetLabel.visible  = false;
+      continue;
+    }
+    p.mesh.visible = true;
+
+    const u  = Math.min(cycleT / Math.max(p.cur.duration,1e-9), 1.0);
+    const st = stateAt(p.cur, u);
+    const pos = st.pos;
+    p.mesh.position.copy(pos);
+
+    // Fade envelope so the particle appears and disappears smoothly at the
+    // extremities of its path instead of snapping:
+    //   accel      — fade out near the end only (it launches from the plate)
+    //   drift/pair — cycloid & straight-line runs fade IN at the start extremity
+    //                and OUT at the end extremity, masking the reset to the start
+    let alpha = 1.0;
+    if (p.cur.kind === 'accel') {
+      if (u > 0.92) alpha = clamp((1.0 - u)/0.08, 0, 1);
+    } else if (p.cur.kind === 'cycloid' || p.cur.kind === 'vaccel') {
+      const f = DRIFT_FADE_FRAC;
+      if (u < f)          alpha = clamp(u / f, 0, 1);
+      else if (u > 1 - f) alpha = clamp((1 - u) / f, 0, 1);
+    }
+    p.mesh.material.opacity = alpha;
+
+    // charge label
+    p.chargeSprite.position.copy(pos).add(off);
+    p.chargeSprite.visible = showLabels;
+    p.chargeSprite.material.opacity = alpha;
+
+    // Fade the vectors together with the particle so nothing pops at the extremities.
+    setArrowAlpha(p.velArrow,  alpha); setArrowAlpha(p.driftArrow, alpha);
+    setArrowAlpha(p.feArrow,   alpha); setArrowAlpha(p.fbArrow,    alpha);
+    setArrowAlpha(p.fnetArrow, alpha);
+    p.velLabel.material.opacity  = alpha; p.driftLabel.material.opacity = alpha;
+    p.feLabel.material.opacity   = alpha; p.fbLabel.material.opacity    = alpha;
+    p.fnetLabel.material.opacity = alpha;
+
+    // per-particle vector gate: in Mode 3 only the ion shows v/F arrows (electron stays bare)
+    const sV     = showVel   && !p.noVectors;
+    const sDrift = showDrift && !p.noVectors;
+    const sFE    = showFE    && !p.noVectors;
+    const sFB    = showFB    && !p.noVectors;
+    const sFnet  = showFnet  && !p.noVectors;
+
+    const setForce = (arrow, label, vec, show) => {
+      const L = vec.length();
+      if (show && L > 1e-4) {
+        arrow.position.copy(pos);
+        arrow.setDirection(vec.clone().normalize());
+        arrow.setLength(L, L*0.3, L*0.17);
+        arrow.visible = true;
+        label.position.copy(pos).addScaledVector(vec.clone().normalize(), L+SCENE_R*0.14);
+        label.visible = true;
+      } else { arrow.visible = false; label.visible = false; }
+    };
+
+    // stationary (no field / no charge): particle sits still, every vector disabled
+    if (p.cur.kind === 'stationary') {
+      p.velArrow.visible = p.velLabel.visible = false;
+      p.driftArrow.visible = p.driftLabel.visible = false;
+      p.feArrow.visible = p.feLabel.visible = false;
+      p.fbArrow.visible = p.fbLabel.visible = false;
+      p.fnetArrow.visible = p.fnetLabel.visible = false;
+      continue;
+    }
+
+    // velocity arrow — for accel, peak length tracks the exhaust speed v_e(E,d,m)
+    const veN  = (p.cur.kind === 'accel') ? (p.veN || 1) : 1;
+    const vlen = SCENE_R*(0.3 + 0.62*clamp(st.speed,0,1)*veN);
+    p.velArrow.position.copy(pos);
+    p.velArrow.setDirection(st.vel);
+    p.velArrow.setLength(vlen, vlen*0.3, vlen*0.17);
+    p.velArrow.visible = sV;
+    p.velLabel.position.copy(pos).addScaledVector(st.vel, vlen+SCENE_R*0.12);
+    p.velLabel.visible = sV;
+
+    if (p.cur.kind === 'accel') {
+      // Mode 1: electric force F_E = qE along the field; length scales with |E|
+      const Emag = +$('E1-v').value;
+      const fLen = SCENE_R*(0.35 + 0.85*clamp(Emag/E_REF1, 0, 1.8));
+      const fE   = new THREE.Vector3(p.cur.dir, 0, 0).multiplyScalar(fLen);
+      setForce(p.feArrow, p.feLabel, fE, sFE);
+      p.driftArrow.visible = p.driftLabel.visible = false;
+      p.fbArrow.visible = p.fbLabel.visible = false;
+      p.fnetArrow.visible = p.fnetLabel.visible = false;
+    } else if (p.cur.kind === 'vaccel') {
+      // Mode 2/3 with B=0: pure electric force F_E = qE along ±ĵ; no B, so F_net = F_E
+      const Emag = +$('E2-v').value;
+      const fLen = SCENE_R*(0.35 + 0.85*clamp(Emag/E_REF2, 0, 1.8));
+      const fE   = new THREE.Vector3(0, p.cur.sign, 0).multiplyScalar(fLen);
+      setForce(p.feArrow,   p.feLabel,   fE, sFE);
+      setForce(p.fnetArrow, p.fnetLabel, fE, sFnet);
+      p.driftArrow.visible = p.driftLabel.visible = false;
+      p.fbArrow.visible = p.fbLabel.visible = false;
+    } else if (p.cur.kind === 'cycloid') {
+      // drift arrow length tracks v_drift = E/B, so changing either field visibly resizes it
+      const vd   = (p.data && Number.isFinite(p.data.v_drift)) ? p.data.v_drift : 0;
+      const dLen = SCENE_R*0.9 * clamp(vd / V_DRIFT_REF, 0.2, 2.4);
+      p.driftArrow.position.copy(pos);
+      p.driftArrow.setDirection(new THREE.Vector3(1,0,0));
+      p.driftArrow.setLength(dLen, dLen*0.3, dLen*0.17);
+      p.driftArrow.visible = sDrift;
+      p.driftLabel.position.copy(pos).add(new THREE.Vector3(dLen+SCENE_R*0.14, 0, 0));
+      p.driftLabel.visible = sDrift;
+
+      // consistent scale: a base length represents |qE|, scaled by the |E| slider
+      const Emag  = +$('E2-v').value;
+      const baseL = SCENE_R*0.55 * clamp(Emag/E_REF2, 0.25, 1.7);
+      const sq    = p.cur.signQ;
+
+      // F_E = qE  ->  +ĵ for +q, -ĵ for -q
+      const fE = new THREE.Vector3(0, sq, 0).multiplyScalar(baseL);
+      // F_B = q v×B,  B = +k̂.  |F_B|/|F_E| = v/v_drift = 2·speed (cycloid from rest)
+      const fB = new THREE.Vector3(st.vel.y, -st.vel.x, 0)
+                   .multiplyScalar(sq * baseL * 2 * st.speed);
+      const fNet = fE.clone().add(fB);
+
+      setForce(p.feArrow,   p.feLabel,   fE,   sFE);
+      setForce(p.fbArrow,   p.fbLabel,   fB,   sFB);
+      setForce(p.fnetArrow, p.fnetLabel, fNet, sFnet);
+    }
+  }
+
+  // Mode 1: keep the exit grid fully visible (no fade as the particle passes through)
+  if (mode === 'accel' && accelGrid) {
+    accelGrid.material.opacity = 0.55;
+  }
+
+  renderer.render(scene, camera);
+  renderer.autoClear = false;
+  renderAxisGizmo();
+  renderer.autoClear = true;
+
+  // advance / loop
+  const active = parts.filter(p => p.cur);
+  if (active.length) {
+    const maxDur = Math.max(...active.map(p => p.cur.duration));
+    if (cycleT >= maxDur) {
+      cyclePauseT += dt;
+      if (cyclePauseT >= END_PAUSE) resetCycle();
+    } else {
+      cycleT = Math.min(cycleT + dt, maxDur);
+      cyclePauseT = 0;
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  OUTPUTS
+// ════════════════════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+
+function fmt(x) {
+  if (x===null||x===undefined||isNaN(x)) return '—';
+  if (x===0) return '0';
+  const a = Math.abs(x);
+  return (a>=1e4||a<1e-2) ? x.toExponential(3) : x.toPrecision(4);
+}
+function fmtTesla(x){
+  if(!Number.isFinite(x)) return '— T';
+  if(x===0) return '0 T';
+  const a=Math.abs(x);
+  return ((a>=1e3||a<1e-3)?x.toExponential(3):x.toPrecision(4))+' T';
+}
+function updateBReadout(){ $('b-tesla').textContent = fmtTesla(+$('inp-B').value*GAUSS_TO_TESLA); }
+
+function showError(msg){ $('error-msg').textContent=msg; $('error-msg').style.display='block'; }
+function clearError(){ $('error-msg').style.display='none'; }
+
+function writeAccel(key, d){
+  $(key+'-ve').textContent  = fmt(d.ve);
+  $(key+'-dV').textContent  = fmt(d.dV);
+  $(key+'-acc').textContent = fmt(d.a);
+}
+
+// ── exhaust velocity → equivalent Isp, compared to a chemical rocket ────────────
+const G0           = 9.80665;   // standard gravity [m/s²]
+const CHEM_ISP_MAX = 500;       // s — theoretical max chemical rocket Isp (≈4905 m/s)
+// like fmt(), but stays in plain decimal up to 6 significant figures and only
+// switches to scientific notation beyond that (|x| ≥ 1e6 or < 1e-4)
+function fmt6(x){
+  if (x===null||x===undefined||!Number.isFinite(x)) return '—';
+  if (x===0) return '0';
+  const a = Math.abs(x);
+  return (a>=1e6||a<1e-4) ? x.toExponential(5) : (+x.toPrecision(6)).toString();
+}
+function updateExhaustReadout(d){
+  const ve  = Number.isFinite(d.ve) ? d.ve : 0;
+  const isp = ve / G0;
+  $('o-ve').textContent  = fmt6(ve)  + ' m/s';
+  $('o-isp').textContent = fmt6(isp) + ' s';
+  const box = $('o-isp-status');
+  if (isp > CHEM_ISP_MAX) {
+    box.textContent = 'Exceeds chemical rocket Isp';
+    box.className   = 'cf-info-box good';
+  } else {
+    box.textContent = 'Does not exceed chemical rocket Isp';
+    box.className   = 'cf-info-box warn';
+  }
+}
+function writeDrift(key, d){
+  $(key+'-vd').textContent = fmt(d.v_drift);
+  $(key+'-wc').textContent = fmt(d.omega_c);
+  $(key+'-rL').textContent = fmt(d.r_L);
+  $(key+'-Tc').textContent = fmt(d.T_c);
+}
+
+// ── preset fill (mass slider is log10(amu); charge slider is signed e) ──────────
+function applyPreset(key){
+  const pr = PRESETS[$(key+'-preset').value];
+  if (!pr) return;
+  $(key+'-mass').value = Math.log10(pr.m);
+  $(key+'-q').value    = pr.q;
+  updateParticleDisplay(key);
+}
+
+// ── read a particle's inputs (typable fields are authoritative; clamp mass/charge
+//    to the active slider range so each mode's physical bounds are respected) ────
+function readParticle(key){
+  const amu  = +$(key+'-mass-v').value;
+  const logm = clamp(Math.log10(amu > 0 ? amu : 1),
+                     +$(key+'-mass').min, +$(key+'-mass').max);
+  const m = Math.pow(10, logm);
+  const q = clamp(Math.round(+$(key+'-q-v').value),
+                  +$(key+'-q').min, +$(key+'-q').max);
+  return { m_amu:m, q_e:q };
+}
+
+// ── slider <-> typable-field displays ─────────────────────────────────────────
+function fmtMass(m){
+  return (m>=1e3||m<1e-2) ? m.toExponential(2) : (+m.toPrecision(4)).toString();
+}
+// sliders -> fields (programmatic .value assignments don't fire 'input', no loops)
+function updateParticleDisplay(key){
+  const m = Math.pow(10, +$(key+'-mass').value);
+  const q = Math.round(+$(key+'-q').value);
+  $(key+'-mass-v').value = fmtMass(m);
+  $(key+'-q-v').value    = q;
+}
+function updateFieldDisplays(){
+  $('d-v').value  = +(+$('inp-d').value).toFixed(3);
+  $('E1-v').value = Math.round(+$('inp-E1').value);
+  $('dV-v').value = Math.round(+$('inp-dV').value);
+  $('E2-v').value = Math.round(+$('inp-E2').value);
+  $('B-v').value  = Math.round(+$('inp-B').value);
+}
+
+// Mode-1 coupling ΔV = E·d.  E1/ΔV fields are authoritative and may exceed their
+// slider range (the slider thumb just pins), so a small d no longer freezes E.
+function syncMode1FromED(){            // d and/or E changed -> recompute ΔV
+  const d = +$('inp-d').value, E = +$('E1-v').value;
+  const dV = E * d;
+  $('dV-v').value   = +dV.toFixed(2);
+  $('inp-dV').value = clamp(dV, +$('inp-dV').min, +$('inp-dV').max);
+}
+function syncMode1FromDV(){            // ΔV changed -> recompute E
+  const d = +$('inp-d').value, dV = +$('dV-v').value;
+  if (d > 0){
+    const E = dV / d;
+    $('E1-v').value   = +E.toFixed(2);
+    $('inp-E1').value = clamp(E, +$('inp-E1').min, +$('inp-E1').max);
+  }
+}
+
+// ── main update (physics runs locally; no server round-trip) ───────────────────
+function runUpdate(){
+  clearError();
+  updateBReadout();
+
+  try {
+    if (mode === 'accel') {
+      const pin = readParticle('S');
+      const data = compute({ mode:'accel', ...pin,
+                             d:+$('inp-d').value, E:+$('E1-v').value });
+      window._lastAccel = { d:+$('inp-d').value };
+      parts[0].data = data;
+      setChargeSprite(parts[0], data.sign);
+      writeAccel('A', data);
+      updateExhaustReadout(data);
+
+    } else if (mode === 'drift') {
+      const pin = readParticle('S');
+      const data = compute({ mode:'drift', ...pin,
+                             E:+$('E2-v').value, B:+$('inp-B').value*GAUSS_TO_TESLA });
+      parts[0].data = data;
+      setChargeSprite(parts[0], data.sign);
+      writeDrift('A', data);
+
+    } else { // pair
+      const E = +$('E2-v').value, B = +$('inp-B').value*GAUSS_TO_TESLA;
+      let dA, dB;
+      try { dA = compute({ mode:'drift', ...readParticle('A'), E, B }); }
+      catch(e){ showError('Ion: '+e.message); return; }
+      try { dB = compute({ mode:'drift', ...readParticle('B'), E, B }); }
+      catch(e){ showError('Electron: '+e.message); return; }
+      parts[0].data = dA; parts[1].data = dB;
+      setChargeSprite(parts[0], dA.sign);
+      setChargeSprite(parts[1], dB.sign);
+      writeDrift('A', dA); writeDrift('B', dB);
+    }
+  } catch(e){ showError(e.message); return; }
+
+  parts.forEach(p => { if (p.data) buildTrajectory(p, p.data); });
+  buildField();
+  resetCycle();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+//  MODE SWITCHING
+// ════════════════════════════════════════════════════════════════════════════
+function clearParticles(){
+  for (const p of parts){
+    scene.remove(p.mesh, p.trail, p.velArrow, p.driftArrow,
+                 p.feArrow, p.fbArrow, p.fnetArrow,
+                 p.velLabel, p.driftLabel, p.feLabel, p.fbLabel, p.fnetLabel);
+    if (p.chargeSprite) scene.remove(p.chargeSprite);
+    p.mesh.geometry.dispose(); p.trail.geometry.dispose();
+  }
+  parts = [];
+}
+
+function setMode(m){
+  mode = m;
+  clearParticles();
+
+  if (m === 'pair') {
+    parts = [ makeParticle(COL.ion, 0.085), makeParticle(COL.elec, 0.05) ];
+    parts[1].noVectors = true;   // electron: keep its "−" label, hide v/F vectors
+  } else {
+    parts = [ makeParticle(COL.ion, 0.08) ];
+  }
+
+  // tabs
+  document.querySelectorAll('.tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.mode === m));
+
+  // input groups
+  const isAccel = (m === 'accel');
+  const isPair  = (m === 'pair');
+  $('grp-accel').classList.toggle('hide', !isAccel);
+  $('grp-drift').classList.toggle('hide',  isAccel);
+  $('block-S').classList.toggle('hide', isPair);
+  $('block-A').classList.toggle('hide', !isPair);
+  $('block-B').classList.toggle('hide', !isPair);
+
+  // single-particle head text
+  $('S-head').textContent = 'Particle';
+
+  // overlay toggles that only apply to drift
+  document.querySelectorAll('.m-only.drift').forEach(el => el.classList.toggle('hide', isAccel));
+
+  // output rows
+  document.querySelectorAll('.r-accel').forEach(el => el.classList.toggle('hide', !isAccel));
+  document.querySelectorAll('.r-drift').forEach(el => el.classList.toggle('hide',  isAccel));
+
+  // electron column (Mode 3 only)
+  document.querySelectorAll('.col-B').forEach(el => el.classList.toggle('hide', !isPair));
+  document.querySelectorAll('#legend .drift').forEach(el => el.classList.toggle('hide', isAccel));
+  $('leg-A').textContent = isPair ? 'Ion' : 'Particle';
+  $('th-A').textContent  = isPair ? 'Ion' : 'Particle';
+
+  // Mode 1 (electrostatic accelerator): positive ions only, 5–200 amu.
+  if (isAccel) {
+    $('S-mass').min = Math.log10(5);     // ≈0.699
+    $('S-mass').max = Math.log10(200);   // ≈2.301
+    $('S-mass').value = clamp(+$('S-mass').value, Math.log10(5), Math.log10(200));
+    $('S-q').min = '1';                   // no neutral or negative ions here
+    if (+$('S-q').value < 1) $('S-q').value = 1;
+    $('S-opt-electron').disabled = true; $('S-opt-electron').hidden = true;
+    if ($('S-preset').value === 'electron') { $('S-preset').value = 'xenon'; applyPreset('S'); }
+  } else {
+    $('S-mass').min = '-4'; $('S-mass').max = '2.5';
+    $('S-q').min = '-3';
+    $('S-opt-electron').disabled = false; $('S-opt-electron').hidden = false;
+  }
+  updateParticleDisplay('S');
+
+  // Mode 3: the electron is a fixed physical species — lock its mass & charge to the
+  // preset; the ion may vary in mass/charge magnitude but its charge stays positive.
+  if (isPair) {
+    const e = PRESETS.electron;
+    $('B-mass-v').value = fmtMass(e.m);
+    $('B-mass').value   = Math.log10(e.m);
+    $('B-q-v').value    = e.q;
+    $('B-q').value      = e.q;
+    ['B-mass','B-mass-v','B-q','B-q-v'].forEach(id => $(id).disabled = true);
+
+    $('A-q').min = '1'; $('A-q-v').min = '1';   // ion charge locked positive
+    if (+$('A-q').value   < 1) $('A-q').value   = 1;
+    if (+$('A-q-v').value < 1) $('A-q-v').value = 1;
+    updateParticleDisplay('A');
+  } else {
+    ['B-mass','B-mass-v','B-q','B-q-v'].forEach(id => $(id).disabled = false);
+    $('A-q').min = '-3'; $('A-q-v').min = '-3';
+  }
+
+  frameCamera();
+  runUpdate();
+}
+
+// ── event wiring ──────────────────────────────────────────────────────────────
+let _deb = null;
+const debounced = () => { clearTimeout(_deb); _deb = setTimeout(runUpdate,150); };
+
+document.querySelectorAll('.tab').forEach(t =>
+  t.addEventListener('click', () => setMode(t.dataset.mode)));
+
+// presets
+$('S-preset').addEventListener('change', () => { applyPreset('S'); debounced(); });
+$('A-preset').addEventListener('change', () => { applyPreset('A'); debounced(); });
+
+// particle mass/charge: slider <-> typable field (field snaps to range on blur)
+[['S',true],['A',true],['B',false]].forEach(([key,hasPreset]) => {
+  const setCustom = () => { if (hasPreset) $(key+'-preset').value = 'custom'; };
+  ['-mass','-q'].forEach(suf =>
+    $(key+suf).addEventListener('input', () => { setCustom(); updateParticleDisplay(key); debounced(); }));
+
+  $(key+'-mass-v').addEventListener('input', () => {
+    const amu = +$(key+'-mass-v').value;
+    if (amu > 0) $(key+'-mass').value = clamp(Math.log10(amu), +$(key+'-mass').min, +$(key+'-mass').max);
+    setCustom(); debounced();
+  });
+  $(key+'-mass-v').addEventListener('change', () => updateParticleDisplay(key));
+
+  $(key+'-q-v').addEventListener('input', () => {
+    $(key+'-q').value = clamp(Math.round(+$(key+'-q-v').value), +$(key+'-q').min, +$(key+'-q').max);
+    setCustom(); debounced();
+  });
+  $(key+'-q-v').addEventListener('change', () => updateParticleDisplay(key));
+});
+
+// Mode 1: d / |E| / ΔV — each has a slider and a typable field, coupled by ΔV=E·d.
+$('inp-d').addEventListener('input',  () => { $('d-v').value = +(+$('inp-d').value).toFixed(3); syncMode1FromED(); debounced(); });
+$('d-v').addEventListener('input',    () => { const v=+$('d-v').value; if (isFinite(v)) $('inp-d').value = clamp(v, +$('inp-d').min, +$('inp-d').max); syncMode1FromED(); debounced(); });
+$('d-v').addEventListener('change',   () => { $('d-v').value = +(+$('inp-d').value).toFixed(3); syncMode1FromED(); });
+
+$('inp-E1').addEventListener('input', () => { $('E1-v').value = Math.round(+$('inp-E1').value); syncMode1FromED(); debounced(); });
+$('E1-v').addEventListener('input',   () => { const v=+$('E1-v').value; if (isFinite(v)) $('inp-E1').value = clamp(v, +$('inp-E1').min, +$('inp-E1').max); syncMode1FromED(); debounced(); });
+
+$('inp-dV').addEventListener('input', () => { $('dV-v').value = Math.round(+$('inp-dV').value); syncMode1FromDV(); debounced(); });
+$('dV-v').addEventListener('input',   () => { const v=+$('dV-v').value; if (isFinite(v)) $('inp-dV').value = clamp(v, +$('inp-dV').min, +$('inp-dV').max); syncMode1FromDV(); debounced(); });
+
+// Mode 2/3: |E| (may exceed its slider) / |B|
+$('inp-E2').addEventListener('input', () => { $('E2-v').value = Math.round(+$('inp-E2').value); debounced(); });
+$('E2-v').addEventListener('input',   () => { const v=+$('E2-v').value; if (isFinite(v)) $('inp-E2').value = clamp(v, +$('inp-E2').min, +$('inp-E2').max); debounced(); });
+$('inp-B').addEventListener('input',  () => { $('B-v').value = Math.round(+$('inp-B').value); updateBReadout(); debounced(); });
+$('B-v').addEventListener('input',    () => { const v=+$('B-v').value; if (isFinite(v)) $('inp-B').value = clamp(v, +$('inp-B').min, +$('inp-B').max); updateBReadout(); debounced(); });
+$('B-v').addEventListener('change',   () => { $('B-v').value = Math.round(+$('inp-B').value); updateBReadout(); });
+
+$('chk-labels').addEventListener('change', () => { showLabels = $('chk-labels').checked; });
+$('chk-vel').addEventListener('change',    () => { showVel    = $('chk-vel').checked; });
+$('chk-drift').addEventListener('change',  () => { showDrift  = $('chk-drift').checked; });
+$('chk-fe').addEventListener('change',     () => { showFE     = $('chk-fe').checked; });
+$('chk-fb').addEventListener('change',     () => { showFB     = $('chk-fb').checked; });
+$('chk-fnet').addEventListener('change',   () => { showFnet   = $('chk-fnet').checked; });
+
+// Demos 2 & 3: hide the particle while a slider is dragged, then respawn it at the
+// start of the path once released. (Mode 1 is left untouched — gated on mode.)
+['inp-E2','inp-B','S-mass','S-q','A-mass','A-q','B-mass','B-q'].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener('pointerdown', () => { if (mode !== 'accel') dragging = true; });
+});
+window.addEventListener('pointerup', () => {
+  if (!dragging) return;
+  dragging = false;
+  resetCycle();          // particle reappears at the spawn point
+});
+
+// ── boot ──────────────────────────────────────────────────────────────────────
+// When embedded in the lesson page, ?mode=accel|drift|pair (aliases 1|2|3) boots
+// straight into that single demo and hides the tab bar so each iframe is locked
+// to one mode. Standalone (no param) keeps all three tabs and defaults to Mode 1.
+const _bootParams = new URLSearchParams(location.search);
+const _MODE_ALIAS = { accel:'accel', drift:'drift', pair:'pair',
+                      '1':'accel', '2':'drift', '3':'pair' };
+const _modeParam  = _bootParams.get('mode');
+const _bootMode   = _MODE_ALIAS[_modeParam] || 'accel';
+// The mode switcher is only meant to appear in the standalone ECrossB.html page.
+// Hide it whenever the demo is embedded (the lesson applet always loads it inside
+// an iframe) or locked to a single mode via ?mode=.
+const _embedded   = (() => { try { return window.self !== window.top; } catch(e) { return true; } })();
+if (_modeParam || _embedded) {
+  const tabsEl = document.getElementById('tabs');
+  if (tabsEl) {
+    tabsEl.classList.add('hide');
+    const div = tabsEl.nextElementSibling;   // collapse the divider that follows the tabs
+    if (div && div.classList.contains('cf-panel-divider')) div.classList.add('hide');
+  }
+}
+
+function boot() {
+  initViz(document.getElementById('viewport'));
+  updateBReadout();
+  updateFieldDisplays();
+  ['S','A','B'].forEach(updateParticleDisplay);
+  setMode(_bootMode);
+}
+
+// Wait for the KaTeX math fonts before the first render so every label sprite is
+// rasterized in the LaTeX font (fall back to serif if the fonts fail to load).
+if (document.fonts && document.fonts.load) {
+  Promise.all([
+    document.fonts.load('italic 72px "KaTeX_Math"'),
+    document.fonts.load('normal 40px "KaTeX_Main"')
+  ]).then(boot).catch(boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>

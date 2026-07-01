@@ -540,57 +540,16 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  To give a <span class="key hl-q">charged particle</span> speed, we must apply an
-  <span class="key hl-E">electric field</span> over a distance, applying a
-  <span class="key hl-E">voltage</span> to the <span class="key hl-q">charged particle</span>. Recall the common
-  phrase &ldquo;opposites attract, likes repel.&rdquo; In doing so, we repel a positively
-  <span class="key hl-q">charged particle</span> away from our positively charged surface, creating
-  <span class="key hl-thrust">thrust</span>! Using the first demo, experiment with different
-  <span class="key hl-E">voltages</span> or <span class="key hl-E">electric field</span> setups with different
-  <span class="key hl-q">charged particles</span> to see what exhaust speeds are possible!
+  <span class="key hl-B">Magnetic fields</span> do not speed up nor slow down
+  <span class="key hl-q">charged particles</span>, but instead change their direction of travel. If we apply an
+  <span class="key hl-E">electric field</span> perpendicular to the <span class="key hl-B">magnetic field</span>,
+  <span class="key hl-q">charged particles</span> begin to drift in a direction perpendicular to both fields!
+  Using the demos below, experiment with different field strengths with different
+  <span class="key hl-q">charged particles</span> to become more familiar with this
+  &ldquo;<span class="key">E cross B</span>&rdquo; drift.
 </p>
 
 <!-- ════════════════════ Q1 ════════════════════ -->
-<div class="quiz-section">
-  <div class="quiz-hdr">Conceptual Question</div>
-  <div class="quiz-block" data-unlocks="demo1-frame">
-    <p class="quiz-q">Is it possible to exceed the specific impulse of a chemical rocket by accelerating a
-    <span class="hl-q">charged particle</span> with an <span class="hl-E">electric field</span>?</p>
-    <div class="quiz-options">
-      <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>True
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>False
-      </button>
-    </div>
-    <div class="quiz-feedback"></div>
-  </div>
-</div>
-
-<!-- ════════════════════ DEMO 1 — E field only ════════════════════ -->
-<div class="theory-block applet-host">
-  <div class="th-hdr">Electric Field Only</div>
-  <iframe id="demo1-frame" class="applet-frame" src="ECrossB.html?mode=accel"
-          title="Demo 1 — linear acceleration of a charged particle through an electric field"
-          loading="lazy"></iframe>
-</div>
-
-<!-- ════════════════════ E PERP B DRIFT ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Crossed Fields &amp; Drift</div>
-  <p class="th-body">
-    <span class="key hl-B">Magnetic fields</span> do not speed up nor slow down
-    <span class="key hl-q">charged particles</span>, but instead change their direction of travel. If we apply an
-    <span class="key hl-E">electric field</span> perpendicular to the <span class="key hl-B">magnetic field</span>,
-    <span class="key hl-q">charged particles</span> begin to drift in a direction perpendicular to both fields!
-    Using the second and third demos, experiment with different field strengths with different
-    <span class="key hl-q">charged particles</span> to become more familiar with this
-    &ldquo;<span class="key">E cross B</span>&rdquo; drift.
-  </p>
-</div>
-
-<!-- ════════════════════ Q2 ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Conceptual Question</div>
   <div class="quiz-block" data-unlocks="demo2-frame">
@@ -627,7 +586,7 @@ footer {
     Let&rsquo;s compare the behavior of <span class="key hl-q">ions</span> and
     <span class="key hl-power">electrons</span>. <span class="key hl-q">Ions</span> are far more
     <span class="key hl-mass">massive</span> than <span class="key hl-power">electrons</span> (by three to five
-    orders of magnitude)! How might this affect their <span class="key">E cross B</span> behavior? Assume that the
+    orders of magnitude)! How might this affect their <span class="key">E cross B</span> Drift? Assume that the
     <span class="key hl-power">electron</span> and <span class="key hl-q">ion</span> are in isolation of each
     other. They are shown together for visual purposes only.
   </p>
@@ -641,183 +600,25 @@ footer {
           loading="lazy"></iframe>
 </div>
 
-<!-- ════════════════════ EXHAUST VELOCITY ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Exhaust Velocity</div>
+<!-- ════════════════════ CONCEPTUAL QUESTION ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Question</div>
 
-  <p class="th-body">
-    The <span class="key hl-ve">exhaust velocity</span> of a <span class="key hl-q">charged particle</span> with
-    <span class="key hl-q">charge $q$</span> and <span class="key hl-mass">mass $m$</span> after having an
-    <span class="key hl-E">electric field</span> of magnitude $E$ over a distance $d$, or equivalently a
-    <span class="key hl-E">voltage</span> difference $\Delta V$ or $\phi$ applied is:
-  </p>
-
-  $$
-  \boxed{\;
-  \textcolor{#3DBFFF}{v_e}
-  =
-  \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,\Delta \textcolor{#F5C518}{V}}
-  \;}
-  \qquad
-  \boxed{\;
-  \textcolor{#3DBFFF}{v_e}
-  =
-  \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,d}
-  \;}
-  $$
-
-  <div class="eq-panel">
-    <details class="deriv-detail">
-      <summary>Show derivation</summary>
-      <div class="deriv-inner">
-        <div class="deriv-cols">
-
-          <!-- ── Via the electric field ── -->
-          <div class="deriv-col">
-            <div class="deriv-col-hdr">Via the Electric Field</div>
-
-            <span class="eq-note">
-              Apply the <span class="hl-E">Lorentz force</span> to a stationary particle with
-              <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>.
-            </span>
-
-            <span class="eq-step-label">Lorentz Force &amp; Newton's Second Law</span>
-            $$
-            \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
-            \quad
-            \vec{\textcolor{#FF4400}{F}} = \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt}
-            $$
-
-            <span class="eq-step-label">For $\textcolor{#00DDB5}{\vec{B}} = 0$</span>
-            $$
-            \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\vec{E}}
-            \;\Longrightarrow\;
-            \frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,\textcolor{#F5C518}{\vec{E}}
-            $$
-
-            <span class="eq-step-label">For uniform, constant $\textcolor{#F5C518}{\vec{E}}$</span>
-            $$
-            \textcolor{#3DBFFF}{v} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t
-            \qquad
-            x = \tfrac{1}{2}\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t^2
-            $$
-
-            <span class="eq-step-label">Use variables at desired $v_e$ &amp; distance $d$</span>
-            $$
-            \textcolor{#3DBFFF}{v_e} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t_e
-            $$
-            $$
-            d = \tfrac{1}{2}\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t_e^2
-            \;\Longrightarrow\;
-            t_e = \sqrt{2\,\frac{\textcolor{#FF4400}{m}\,d}{\textcolor{#C060FF}{q}\,|\textcolor{#F5C518}{E}|}}
-            $$
-
-            <span class="eq-step-label">Substitute $t_e$</span>
-            $$
-            \textcolor{#3DBFFF}{v_e}
-            = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\sqrt{2\,\frac{\textcolor{#FF4400}{m}\,d}{\textcolor{#C060FF}{q}\,|\textcolor{#F5C518}{E}|}}
-            = \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,d}
-            $$
-          </div>
-
-          <!-- ── Via the voltage ── -->
-          <div class="deriv-col">
-            <div class="deriv-col-hdr">Via the Voltage</div>
-
-            <span class="eq-note">
-              Apply a <span class="hl-E">potential difference</span> (or voltage) to a stationary particle with
-              <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>. The
-              <span class="hl-ve">exhaust velocity</span> is measured when $V_f = 0$.
-            </span>
-
-            <span class="eq-step-label">Energy Balance</span>
-            $$
-            KE_i + \text{PE}_i = KE_f + \text{PE}_f
-            $$
-            $$
-            \underbrace{\tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_i}^{2}}_{=\,0}
-            + \textcolor{#C060FF}{q}\,\Delta \textcolor{#F5C518}{V}
-            = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_e}^{2}
-            + \underbrace{\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi_f}}_{=\,0}
-            $$
-
-            <span class="eq-step-label">Solve for $v_e$</span>
-            $$
-            \textcolor{#C060FF}{q}\,\Delta \textcolor{#F5C518}{V} = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_e}^{2}
-            $$
-            $$
-            \boxed{\;
-            \textcolor{#3DBFFF}{v_e} = \sqrt{2\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,\Delta \textcolor{#F5C518}{V}}
-            \;}
-            $$
-
-            <div class="eq-callout highlight-blue">
-              The two forms are equivalent: the field and voltage are related by
-              $\Delta \textcolor{#F5C518}{V} = |\textcolor{#F5C518}{E}|\,d$, so
-              $|\textcolor{#F5C518}{E}| = \dfrac{\Delta \textcolor{#F5C518}{V}}{d}$.
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </details>
-  </div>
-</div>
-
-<!-- ════════════════════ ELECTRIC FIELD & POTENTIAL ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Electric Field &amp; Potential</div>
-
-  <p class="th-body">
-    The <span class="key hl-E">electric field</span> and <span class="key hl-E">potential</span> are related by a
-    work-energy relation. For a given <span class="key hl-E">electric potential difference</span> applied over a
-    greater distance, there is a weaker <span class="key hl-E">electric field</span>. Likewise, for a given
-    <span class="key hl-E">electric potential difference</span> applied over a smaller distance, there is a stronger
-    <span class="key hl-E">electric field</span>. Notice that the <span class="key hl-E">electric field</span> lines
-    point in the direction of decreasing <span class="key hl-E">electric potential</span>. This is very similar to
-    gravitational potential energy (think of a ball on a slope!). We will return to these potential gradients when
-    examining magnetic mirrors.
-  </p>
-
-  $$
-  \boxed{\;
-  \textcolor{#F5C518}{\vec{E}} = -\nabla\textcolor{#F5C518}{\phi} = -\frac{d\textcolor{#F5C518}{\phi}}{dx}\ \text{(in 1D)}
-  \;}
-  $$
-
-  <div class="eq-panel">
-    <details class="deriv-detail">
-      <summary>Show derivation</summary>
-      <div class="deriv-inner">
-
-        <span class="eq-note">
-          Connect the <span class="hl-E">electric field $\vec{E}$</span> and
-          <span class="hl-E">electric potential $\phi$ or $V$</span> by energy balance.
-        </span>
-
-        <span class="eq-step-label">Work done on charge = Change in electric potential energy</span>
-        $$
-        -\!\int \textcolor{#FF4400}{F_e}\,dx = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
-        $$
-        $$
-        -\!\int \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E}\,dx = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
-        $$
-
-        <span class="eq-step-label">Use the Fundamental Theorem of Calculus</span>
-        $$
-        -\cancel{\textcolor{#C060FF}{q}}\,\textcolor{#F5C518}{E} = \cancel{\textcolor{#C060FF}{q}}\,\frac{d\textcolor{#F5C518}{V}}{dx}
-        $$
-
-        <span class="eq-step-label">Solve for $E$</span>
-        $$
-        \boxed{\;
-        \textcolor{#F5C518}{E} = -\frac{d\textcolor{#F5C518}{V}}{dx} = -\frac{d\textcolor{#F5C518}{\phi}}{dx}
-        \;}
-        $$
-
-      </div>
-    </details>
-  </div>
+  <details class="clarify-detail">
+    <summary>What might happen if the initial vertical velocity ($+\hat{\jmath}$) of the
+    <span class="hl-q">charged particle</span> in the demos is larger? Will the
+    <span class="key">E cross B</span> drift trajectory still be half circles, or something different?</summary>
+    <div class="clarify-body">
+      If the initial vertical velocity is larger, then the <span class="key hl-B">magnetic force</span> will grow in
+      strength. Thus, the <span class="key">cyclotron motion</span> &ldquo;occurs faster&rdquo; than the
+      <span class="key hl-ve">drift velocity</span>. At the halfway point of the
+      <span class="key">cyclotron motion</span>, the particle begins heading backwards to complete the circle. If the
+      <span class="key hl-ve">drift velocity</span> is equal to or greater than the initial vertical velocity, then
+      the particle will stop or continue moving forward. However, with sufficiently large vertical velocity, the
+      <span class="key">cyclotron motion</span> plus the <span class="key">drift motion</span> results in some
+      backwards loop behavior. The path of the particle will then look a lot like a coil or strand of curly hair!
+    </div>
+  </details>
 </div>
 
 <!-- ════════════════════ E CROSS B DRIFT ════════════════════ -->
@@ -825,7 +626,7 @@ footer {
   <div class="th-hdr">E &#215; B Drift</div>
 
   <p class="th-body">
-    The <span class="key">E Cross B Drift</span> behavior occurs due to the nature of acceleration of the
+    The <span class="key">E Cross B Drift</span> occurs due to the nature of acceleration of the
     <span class="key hl-E">electric field</span>. At the halfway point of the
     <span class="key">cyclotron motion</span>, the <span class="key hl-E">electric field</span> prevents the
     trajectory from making a full circle, instead forcing the particle into starting the next circle. The greater the
@@ -933,52 +734,6 @@ footer {
       </div>
     </details>
   </div>
-</div>
-
-<!-- ════════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════════ -->
-<div class="clarify-section">
-  <div class="clarify-hdr">Conceptual Questions</div>
-
-  <details class="clarify-detail">
-    <summary>Why are we exploring both <span class="hl-E">electric</span> and
-    <span class="hl-B">magnetic fields</span>? If an <span class="hl-E">electric field</span> is all that is needed
-    to accelerate a particle to very high velocities, why are
-    <span class="hl-thrust">electric propulsion devices</span> complex?</summary>
-    <div class="clarify-body">
-      <span class="key hl-E">Electric</span> and <span class="key hl-B">magnetic fields</span> allow us to
-      manipulate the trajectories of <span class="key hl-q">charged particles</span> in more ways than simply
-      &ldquo;forward&rdquo; or &ldquo;backward.&rdquo; Recall that the inert gas propellant of
-      <span class="key hl-thrust">electric propulsion devices</span> is not itself
-      <span class="key">ionized</span>. It must be <span class="key">ionized</span> by other means, requiring
-      radio-frequency (RF) devices or emitters, before it can be accelerated by a plate.
-      <br><br>
-      Additionally, the positively <span class="key hl-q">charged</span> exhaust jet must be
-      <span class="key">neutralized</span>! Why? Recall that <span class="key">charge</span>, like mass and energy,
-      must be <span class="key">conserved</span>. If a lot of positive <span class="key hl-q">charge</span> leaves the
-      spacecraft, the spacecraft is left charged highly <span class="key hl-power">negative</span>, which can disrupt
-      electronics and be catastrophic. Moreover, if the positive <span class="key hl-q">charge</span> is not
-      <span class="key">neutralized</span>, it will eventually accelerate back to the negatively
-      <span class="key hl-power">charged</span> spacecraft, canceling the <span class="key hl-thrust">thrust</span>!
-      These factors introduce engineering requirements of <span class="key hl-thrust">electric propulsion
-      devices</span> beyond an accelerating <span class="key hl-E">electric field</span>.
-    </div>
-  </details>
-
-  <details class="clarify-detail">
-    <summary>What might happen if the initial vertical velocity ($+\hat{\jmath}$) of the
-    <span class="hl-q">charged particle</span> in the demos is larger? Will the
-    <span class="key">E cross B</span> drift trajectory still be half circles, or something different?</summary>
-    <div class="clarify-body">
-      If the initial vertical velocity is larger, then the <span class="key hl-B">magnetic force</span> will grow in
-      strength. Thus, the <span class="key">cyclotron motion</span> &ldquo;occurs faster&rdquo; than the
-      <span class="key hl-ve">drift velocity</span>. At the halfway point of the
-      <span class="key">cyclotron motion</span>, the particle begins heading backwards to complete the circle. If the
-      <span class="key hl-ve">drift velocity</span> is equal to or greater than the initial vertical velocity, then
-      the particle will stop or continue moving forward. However, with sufficiently large vertical velocity, the
-      <span class="key">cyclotron motion</span> plus the <span class="key">drift motion</span> results in some
-      backwards loop behavior. The path of the particle will then look a lot like a coil or strand of curly hair!
-    </div>
-  </details>
 </div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
