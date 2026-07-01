@@ -552,7 +552,7 @@ footer {
 
 <!-- ════════════════════ Q1 ════════════════════ -->
 <div class="quiz-section">
-  <div class="quiz-hdr">Conceptual Question</div>
+  <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-unlocks="demo1-frame">
     <p class="quiz-q">Is it possible to exceed the specific impulse of a chemical rocket by accelerating a
     <span class="hl-q">charged particle</span> with an <span class="hl-E">electric field</span>? Recall that the
@@ -575,6 +575,122 @@ footer {
   <iframe id="demo1-frame" class="applet-frame" src="electrostatic.html?mode=accel"
           title="Linear acceleration of a charged particle through an electric field"
           loading="lazy"></iframe>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTION (DROPDOWN) ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Question</div>
+
+  <details class="clarify-detail">
+    <summary>Why are we exploring both <span class="hl-E">electric</span> and
+    <span class="hl-B">magnetic fields</span>? If an <span class="hl-E">electric field</span> is all that is needed
+    to accelerate a particle to very high velocities, why are
+    <span class="hl-thrust">electric propulsion devices</span> complex?</summary>
+    <div class="clarify-body">
+      <span class="key hl-E">Electric</span> and <span class="key hl-B">magnetic fields</span> allow us to
+      manipulate the trajectories of <span class="key hl-q">charged particles</span> in more ways than simply
+      &ldquo;forward&rdquo; or &ldquo;backward.&rdquo; Recall that the inert gas propellant of
+      <span class="key hl-thrust">electric propulsion devices</span> is not itself
+      <span class="key">ionized</span>. It must be <span class="key">ionized</span> by other means, requiring
+      radio-frequency (RF) devices or electron emitters, before it can be accelerated by a plate.
+      <br><br>
+      Additionally, the positively <span class="key hl-q">charged</span> exhaust jet must be
+      <span class="key">neutralized</span>! Why? Recall that <span class="key">charge</span>, like mass and energy,
+      must be <span class="key">conserved</span>. If a lot of positive <span class="key hl-q">charge</span> leaves the
+      spacecraft, the spacecraft is left charged highly <span class="key hl-power">negative</span>, which can disrupt
+      electronics and be catastrophic. Moreover, if the positive <span class="key hl-q">charge</span> is not
+      <span class="key">neutralized</span>, it will eventually accelerate back to the negatively
+      <span class="key hl-power">charged</span> spacecraft, canceling the <span class="key hl-thrust">thrust</span>!
+      These factors introduce engineering requirements of <span class="key hl-thrust">electric propulsion
+      devices</span> beyond an accelerating <span class="key hl-E">electric field</span>.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════════ MOTIVATION FOR ELECTRIC PROPULSION ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Motivation for Electric Propulsion</div>
+
+  <p class="th-body">
+    Increasing <span class="key hl-ve">effective exhaust velocity</span> <strong class="hl-ve">$c$</strong>, or <span class="key hl-ve">specific impulse</span> <strong class="hl-ve">$I_{sp}$</strong>,
+    is clearly the greatest driver for achieving high
+    <strong class="hl-ve">$\Delta V$</strong> or meeting a
+    <strong class="hl-ve">$\Delta V$</strong> specification using less <span class="key hl-mass">propellant</span>.
+
+    Assume we have a <span class="key hl-thrust">chemical engine</span> that uses <span class="key hl-mass">liquid hydrogen and liquid oxygen</span> as propellants, one of the most energetic
+    reactions available to us. Assume that combustion is 100% efficient and that the engine nozzle is perfectly expanded such that
+    exit pressure is 0 Pascals. These assumptions are intentionally optimistic. In making them, we derive the upper limit of the
+    <span class="key hl-ve">specific impulse</span> for chemical engines, which is around 500 seconds.
+
+    If we want to increase <span class="key hl-ve">specific impulse</span> further, we must decouple the <span class="key hl-power">energy source</span> of the propulsion system from the <span class="key hl-mass">propellant</span>.
+    If we instead apply a <span class="key hl-power">voltage</span> to a charged <span class="key hl-mass">propellant</span>, we can clearly achieve much higher <span class="key hl-ve">specific impulses</span>, limited only by our
+    choice of mass flow rate and <span class="key hl-power">power</span>. <span class="key hl-power">Electric propulsion</span> aims to achieve much higher <span class="key hl-ve">specific impulses</span> than available by traditional chemical engines.
+  </p>
+
+  <details class="deriv-detail">
+    <summary>Show derivation</summary>
+    <div class="deriv-inner">
+
+      <span class="eq-step-label">Energy per unit mass</span>
+      $$
+      \textcolor{#C060FF}{E}=\frac{1}{2}\textcolor{#3DBFFF}{c}^2
+      \qquad\Rightarrow\qquad
+      \boxed{
+      \textcolor{#3DBFFF}{c}=\sqrt{2\textcolor{#C060FF}{E}}
+      }
+      $$
+
+      <span class="eq-step-label">For chemical rockets, the power is coupled to the propellant</span>
+      <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
+        Suppose we use <span class="key hl-thrust">LH$_2$ &amp; LOX combustion</span>
+      </p>
+
+      $$
+      2H_2 + O_2 \rightarrow 2H_2O
+      $$
+
+      <span class="eq-step-label">The reaction has energy per unit mass</span>
+      $$
+      \textcolor{#C060FF}{E} = 1.34\times10^7\ \mathrm{J/kg}
+      $$
+
+      $$
+      \Rightarrow\quad
+      \textcolor{#3DBFFF}{c} = 4927\ \mathrm{m/s}
+      \qquad\text{or}\qquad
+      \textcolor{#3DBFFF}{I_{sp}} = 502\ \mathrm{s}
+      $$
+
+      <span class="eq-step-label">For electric rockets, however, power and propellant are decoupled from each other</span>
+      <p class="th-body" style="margin-top:8px; margin-bottom:0;">
+        <strong class="hl-ve">$c$</strong> can be made higher by applying a large amount of <span class="key hl-power">voltage</span> to a small amount of <span class="key hl-mass">gas</span>.
+      </p>
+
+      <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
+        Suppose we hae a small amount of ionized particles:
+      </p>
+
+      <p class="th-body" style="margin-top:0; margin-bottom:8px;">
+        Voltage potential $\textcolor{#C060FF}{\phi_0}$ applied to ion of mass $\textcolor{#FF4400}{m_i}$:
+      </p>
+
+      $$
+      \textcolor{#C060FF}{q}\,\textcolor{#C060FF}{\phi_0}
+      =
+      \frac{1}{2}\textcolor{#FF4400}{m_i}\,\textcolor{#3DBFFF}{c}^2
+      $$
+
+      $$
+      \Rightarrow\quad
+      \boxed{
+      \textcolor{#3DBFFF}{c}
+      =
+      \sqrt{\frac{2\,\textcolor{#C060FF}{\phi_0}\,\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m_i}}}
+      }
+      $$
+
+    </div>
+  </details>
 </div>
 
 <!-- ════════════════════ EXHAUST VELOCITY ════════════════════ -->
@@ -754,36 +870,6 @@ footer {
       </div>
     </details>
   </div>
-</div>
-
-<!-- ════════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════════ -->
-<div class="clarify-section">
-  <div class="clarify-hdr">Conceptual Questions</div>
-
-  <details class="clarify-detail">
-    <summary>Why are we exploring both <span class="hl-E">electric</span> and
-    <span class="hl-B">magnetic fields</span>? If an <span class="hl-E">electric field</span> is all that is needed
-    to accelerate a particle to very high velocities, why are
-    <span class="hl-thrust">electric propulsion devices</span> complex?</summary>
-    <div class="clarify-body">
-      <span class="key hl-E">Electric</span> and <span class="key hl-B">magnetic fields</span> allow us to
-      manipulate the trajectories of <span class="key hl-q">charged particles</span> in more ways than simply
-      &ldquo;forward&rdquo; or &ldquo;backward.&rdquo; Recall that the inert gas propellant of
-      <span class="key hl-thrust">electric propulsion devices</span> is not itself
-      <span class="key">ionized</span>. It must be <span class="key">ionized</span> by other means, requiring
-      radio-frequency (RF) devices or electron emitters, before it can be accelerated by a plate.
-      <br><br>
-      Additionally, the positively <span class="key hl-q">charged</span> exhaust jet must be
-      <span class="key">neutralized</span>! Why? Recall that <span class="key">charge</span>, like mass and energy,
-      must be <span class="key">conserved</span>. If a lot of positive <span class="key hl-q">charge</span> leaves the
-      spacecraft, the spacecraft is left charged highly <span class="key hl-power">negative</span>, which can disrupt
-      electronics and be catastrophic. Moreover, if the positive <span class="key hl-q">charge</span> is not
-      <span class="key">neutralized</span>, it will eventually accelerate back to the negatively
-      <span class="key hl-power">charged</span> spacecraft, canceling the <span class="key hl-thrust">thrust</span>!
-      These factors introduce engineering requirements of <span class="key hl-thrust">electric propulsion
-      devices</span> beyond an accelerating <span class="key hl-E">electric field</span>.
-    </div>
-  </details>
 </div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>

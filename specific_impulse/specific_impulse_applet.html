@@ -228,10 +228,22 @@ details.clarify-detail > summary:focus-visible {
 
 #cv-wrap {
   flex: 0 0 auto;
+  position: relative;
   background: var(--bg-canvas);
   border-right: 1px solid var(--border);
   line-height: 0; /* collapse gap under canvas */
 }
+
+.cv-label {
+  position: absolute;
+  line-height: 1;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+#thrust-label { color: #CC0000; }
+#ve-label     { color: #3DBFFF; }
+.cv-label .katex { font-size: 1.35em !important; }
 
 canvas {
   display: block;
@@ -585,6 +597,8 @@ footer {
   <div id="top-row">
     <div id="cv-wrap">
       <canvas id="cnv" width="820" height="440"></canvas>
+      <div id="thrust-label" class="cv-label">$\textcolor{#CC0000}{F_N}$</div>
+      <div id="ve-label"     class="cv-label">$\textcolor{#3DBFFF}{v_e}$</div>
     </div>
 
     <div id="rp">
@@ -692,56 +706,79 @@ footer {
     </p>
 
     <div class="cv-diagram">
-      <svg viewBox="0 0 820 170" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;">
+      <svg viewBox="0 0 820 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;"
+           font-family="KaTeX_Main, 'Times New Roman', serif">
         <defs>
-          <marker id="arr-ex" markerWidth="10" markerHeight="7"
-                  refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,10 3.5,0 7" fill="#3DBFFF"/>
+          <marker id="arr-ex" markerWidth="9" markerHeight="7"
+                  refX="8.5" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
+            <polygon points="0 0,9 3.5,0 7" fill="#3DBFFF"/>
           </marker>
-          <marker id="arr-fn" markerWidth="10" markerHeight="7"
-                  refX="9" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,10 3.5,0 7" fill="#FF4400"/>
-          </marker>
-          <marker id="arr-md" markerWidth="8" markerHeight="5.6"
-                  refX="7" refY="2.8" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,8 2.8,0 5.6" fill="#FF4400"/>
+          <marker id="arr-ax" markerWidth="8" markerHeight="6"
+                  refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+            <polygon points="0 0,8 3,0 6" fill="#9aa4b2"/>
           </marker>
         </defs>
-        <rect width="820" height="170" fill="#0e0e0e"/>
-        <path d="M46 36 L46 134 L170 134 L170 126 L206 126 L206 99 L170 99 L170 71 L206 71 L206 44 L170 44 L170 36 Z"
-              fill="none" stroke="#404040" stroke-width="1.8" stroke-dasharray="7 4"/>
-        <text x="52" y="30" fill="#404040" font-size="12.5"
-              font-family="'Segoe UI',sans-serif" font-weight="700" letter-spacing="1.5">C.V.</text>
-        <rect x="52" y="40" width="115" height="90" fill="#d6deed" rx="1"/>
-        <rect x="52" y="40" width="115" height="7"  fill="#c2ccde" rx="1"/>
-        <rect x="167" y="48"  width="36" height="23" fill="#d6deed"/>
-        <rect x="167" y="99"  width="36" height="23" fill="#d6deed"/>
-        <rect x="203" y="71"  width="267" height="28" fill="rgba(0,180,220,0.09)" rx="1"/>
-        <line x1="203" y1="71" x2="203" y2="99"
-              stroke="#FF4400" stroke-width="1.4" stroke-dasharray="4 3" opacity="0.72"/>
-        <text x="207" y="68" fill="#FF4400" font-size="11.5"
-              font-family="'Segoe UI',sans-serif" opacity="0.65" letter-spacing="0.3">exit plane</text>
-        <line x1="203" y1="75" x2="470" y2="75" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="80" x2="470" y2="80" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="85" x2="470" y2="85" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="90" x2="470" y2="90" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="203" y1="95" x2="470" y2="95" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <text x="283" y="61" fill="#FF4400" font-size="16" font-family="'Courier New',monospace">ṁ</text>
-        <line x1="298" y1="57" x2="328" y2="57" stroke="#FF4400" stroke-width="1.2" opacity="0.60" marker-end="url(#arr-md)"/>
-        <text x="488" y="74"  fill="#3DBFFF" font-size="15" font-family="'Courier New',monospace" font-style="italic">v</text>
-        <text x="497" y="77"  fill="#3DBFFF" font-size="12"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="88"  fill="#b8c4d8" font-size="15" font-family="'Courier New',monospace" font-style="italic">A</text>
-        <text x="497" y="91"  fill="#b8c4d8" font-size="12"  font-family="'Courier New',monospace">e</text>
-        <text x="488" y="102" fill="#00DDB5" font-size="15" font-family="'Courier New',monospace" font-style="italic">P</text>
-        <text x="497" y="105" fill="#00DDB5" font-size="12"  font-family="'Courier New',monospace">e</text>
-        <text x="230" y="126" fill="#00DDB5" font-size="14" font-family="'Courier New',monospace" font-style="italic" opacity="0.38">P</text>
-        <text x="241" y="129" fill="#00DDB5" font-size="11"  font-family="'Courier New',monospace" opacity="0.38">amb</text>
-        <line x1="52" y1="85" x2="18" y2="85" stroke="#FF4400" stroke-width="2.5" marker-end="url(#arr-fn)"/>
-        <text x="18" y="78" fill="#FF4400" font-size="15" font-family="'Courier New',monospace" font-style="italic">F</text>
-        <text x="27" y="81" fill="#FF4400" font-size="12"  font-family="'Courier New',monospace">N</text>
-        <text x="196" y="162" fill="#404040" font-size="12"
-              font-family="'Segoe UI',sans-serif" letter-spacing="0.3">
-          Steady state · Uniform exit stream · No viscous forces · Propellant initially at rest on vehicle
+        <rect width="820" height="240" fill="#0e0e0e"/>
+
+        <!-- Coordinate axes: ĵ up, î right -->
+        <line x1="600" y1="50" x2="600" y2="20" stroke="#9aa4b2" stroke-width="1.8" marker-end="url(#arr-ax)"/>
+        <line x1="600" y1="50" x2="650" y2="50" stroke="#9aa4b2" stroke-width="1.8" marker-end="url(#arr-ax)"/>
+        <text x="586" y="24" fill="#9aa4b2" font-size="16" font-family="KaTeX_Math, serif" font-style="italic">ĵ</text>
+        <text x="656" y="55" fill="#9aa4b2" font-size="16" font-family="KaTeX_Math, serif" font-style="italic">î</text>
+
+        <!-- Gravity -->
+        <line x1="538" y1="22" x2="538" y2="52" stroke="#9aa4b2" stroke-width="1.8" marker-end="url(#arr-ax)"/>
+        <text x="544" y="36" fill="#9aa4b2" font-size="15" font-family="KaTeX_Math, serif" font-style="italic">g</text>
+
+        <!-- Control surface S (dashed) -->
+        <rect x="104" y="60" width="204" height="122" fill="none"
+              stroke="#4a5261" stroke-width="1.6" stroke-dasharray="7 4"/>
+        <text x="290" y="55" fill="#6b7480" font-size="15" font-family="KaTeX_Math, serif" font-style="italic">S</text>
+
+        <!-- Control volume / engine -->
+        <rect x="110" y="70" width="190" height="102" fill="#d6deed" rx="2"/>
+        <text x="120" y="89" fill="#5a636f" font-size="13" letter-spacing="0.5">C.V.</text>
+
+        <!-- Thrust stand mount -->
+        <polygon points="193,172 217,172 210,194 200,194" fill="#8a94a4"/>
+        <line x1="164" y1="194" x2="246" y2="194" stroke="#8a94a4" stroke-width="2"/>
+        <line x1="176" y1="194" x2="168" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
+        <line x1="188" y1="194" x2="180" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
+        <line x1="200" y1="194" x2="192" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
+        <line x1="212" y1="194" x2="204" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
+        <line x1="224" y1="194" x2="216" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
+        <line x1="236" y1="194" x2="228" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
+        <text x="252" y="197" fill="#6b7480" font-size="13">thrust stand</text>
+
+        <!-- Exit plane -->
+        <line x1="300" y1="98" x2="300" y2="148" stroke="#FF4400" stroke-width="2.8"
+              stroke-dasharray="5 3" opacity="0.9"/>
+        <text x="320" y="93" fill="#FF4400" font-size="12" opacity="0.65">exit plane</text>
+
+        <!-- Exhaust stream -->
+        <line x1="300" y1="106" x2="470" y2="106" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="300" y1="114" x2="470" y2="114" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="300" y1="122" x2="470" y2="122" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="300" y1="130" x2="470" y2="130" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <line x1="300" y1="138" x2="470" y2="138" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+
+        <!-- Exhaust quantities (ĵ row): vₑ  ṁ  Pₑ  Aₑ  ρ -->
+        <text x="486" y="128" fill="#3DBFFF"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">v</text>
+        <text x="496" y="132" fill="#3DBFFF"  font-size="12" font-family="KaTeX_Math, serif" font-style="italic">e</text>
+        <text x="512" y="128" fill="#FF4400"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">ṁ</text>
+        <text x="536" y="128" fill="#00DDB5"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">P</text>
+        <text x="546" y="132" fill="#00DDB5"  font-size="12" font-family="KaTeX_Math, serif" font-style="italic">e</text>
+        <text x="566" y="128" fill="#b8c4d8"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">A</text>
+        <text x="577" y="132" fill="#b8c4d8"  font-size="12" font-family="KaTeX_Math, serif" font-style="italic">e</text>
+        <text x="598" y="128" fill="#b8c4d8"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">ρ</text>
+
+        <!-- Ambient pressure -->
+        <text x="330" y="166" fill="#00DDB5" font-size="15" font-family="KaTeX_Math, serif" font-style="italic" opacity="0.5">P</text>
+        <text x="341" y="169" fill="#00DDB5" font-size="11" font-family="KaTeX_Math, serif" font-style="italic" opacity="0.5">amb</text>
+
+        <!-- Assumptions -->
+        <text x="110" y="228" fill="#5a6472" font-size="13" letter-spacing="0.2">
+          Steady state · No viscous forces · Uniform exit stream in +î direction · Propellant initially at rest on vehicle
         </text>
       </svg>
     </div>
@@ -1002,9 +1039,11 @@ const ORB_R = {
   'Lithium':   1.8
 };
 
-const MAX_THRUST_VIS = 2000;
 const MAX_VE_VIS     = 50000;
-const MAX_ORBS       = 2000;
+const MAX_ORBS       = 9000;
+
+// Max thrust ≈ sqrt(2·η·P·ṁ) with η=1, P=5000 kW, ṁ=1 kg/s ≈ 3162 N.
+const THRUST_MAX_VIS = 3200;     // N
 
 // ═══════════════════════════════════════════════════════
 // Physics
@@ -1039,20 +1078,52 @@ const ctx    = canvas.getContext('2d');
 const CW = canvas.width;
 const CH = canvas.height;
 
-const BX = 175, BY = 82, BW = 205, BH = 198;
-const BX2 = BX + BW;
-const CY  = BY + BH / 2;
+// Spaceship sprite geometry (Spaceship.png is 1037 x 376)
+const SHIP_ASPECT = 1037 / 376;
+const SHIP_H = 150;
+const SHIP_W = SHIP_H * SHIP_ASPECT;
+const EX     = 470;               // exhaust exit plane (right edge of ship)
+const SHIP_X = EX - SHIP_W;       // nose (left edge)
+const CY     = 220;               // vertical centre of ship / exhaust
+const SHIP_Y = CY - SHIP_H / 2;
 
-const SHELF_W = 50;
-const SHELF_H = 26;
-const GAP_H   = 22;
+// Thrust arrow — geometry matched to the arrow baked into the original sprite
+// (PNG 1037×376: tail x=438, tip x=242, centre y=198, shaft 47 px, head 45×92 px).
+// Thickness and head size stay constant; only the shaft length tracks thrust.
+const PNG_SCALE     = SHIP_W / 1037;
 
-const EX = BX2 + SHELF_W;
+// Exhaust jet vertical band — matched to the sprite's dashed exit-plane lines (PNG y: 42 → 357)
+const JET_TOP  = SHIP_Y + 42  * PNG_SCALE;
+const JET_BOT  = SHIP_Y + 357 * PNG_SCALE;
+const JET_CY   = (JET_TOP + JET_BOT) / 2;
+const JET_HALF = (JET_BOT - JET_TOP) / 2;
+// Exhaust spawns at the sprite's exit plane (dashed line, PNG x≈1001),
+// not the image edge (PNG x=1037) — the padding beyond leaves a visible gap.
+const EXIT_X   = SHIP_X + 1001 * PNG_SCALE;
+const ARROW_TAIL_X  = SHIP_X + 438 * PNG_SCALE;   // fixed tail
+const ARROW_Y       = SHIP_Y + 198 * PNG_SCALE;   // vertical centre of the ship
+const ARROW_THICK   = 47  * PNG_SCALE;            // shaft thickness (constant)
+const ARROW_HEAD_L  = 45  * PNG_SCALE;            // arrowhead length (constant)
+const ARROW_HEAD_HW = 46  * PNG_SCALE;            // arrowhead half-width (constant)
+const ARROW_LEN_MAX = 196 * 2.3 * PNG_SCALE;      // slightly over twice the sprite length at max thrust
+const ARROW_LEN_MIN = ARROW_HEAD_L + 6;           // smallest visible length
+const ARROW_COLOR   = '#CC0000';
 
-const US_TOP = CY - GAP_H / 2 - SHELF_H;
-const LS_TOP = CY + GAP_H / 2;
+// Exhaust velocity arrow — points +î (right), length scales with exhaust velocity
+const VE_ARROW_TAIL_X  = EX + 10;
+const VE_ARROW_Y       = JET_BOT + 62;            // well beneath the exhaust jet
+const VE_ARROW_LEN_MIN = 34;
+const VE_ARROW_LEN_MAX = 330;
+const VE_ARROW_THICK   = 8;
+const VE_HEAD_L        = 16;
+const VE_HEAD_HW       = 10;
+const VE_COLOR         = '#3DBFFF';
 
-const ARR_TAIL_X = BX - 6;
+// ── Spaceship sprite ──
+const shipImg = new Image();
+let shipReady = false;
+shipImg.onload = () => { shipReady = true; };
+shipImg.src = 'Spaceship.png';
 
 // ═══════════════════════════════════════════════════════
 // Stars
@@ -1087,6 +1158,15 @@ const oThrust = document.getElementById('o-thrust');
 const oMdot   = document.getElementById('o-mdot');
 const oIsp    = document.getElementById('o-isp');
 const oVe     = document.getElementById('o-ve');
+
+// Position labels as percentages so they track the canvas when it is scaled.
+const thrustLabel = document.getElementById('thrust-label');
+thrustLabel.style.left = ((ARROW_TAIL_X - 6)                / CW * 100) + '%';
+thrustLabel.style.top  = ((ARROW_Y - ARROW_THICK / 2 - 34)  / CH * 100) + '%';
+
+const veLabel = document.getElementById('ve-label');
+veLabel.style.left = ((VE_ARROW_TAIL_X + 22) / CW * 100) + '%';
+veLabel.style.top  = ((VE_ARROW_Y - 36)      / CH * 100) + '%';
 
 // ═══════════════════════════════════════════════════════
 // Build radio buttons
@@ -1170,39 +1250,71 @@ function drawBackground() {
   }
 }
 
-function drawSpacecraft(thrust) {
-  ctx.fillStyle = '#d6deed';
-  ctx.fillRect(BX,  BY,     BW,      BH);
-  ctx.fillRect(BX2, US_TOP, SHELF_W, SHELF_H);
-  ctx.fillRect(BX2, LS_TOP, SHELF_W, SHELF_H);
-
-  if (thrust > 1e-12) {
-    const frac = Math.min(thrust / MAX_THRUST_VIS, 1.0);
-    const len  = Math.min(50 + 150 * frac, ARR_TAIL_X - 8);
-    const tipX = ARR_TAIL_X - len;
-    const hLen = Math.min(40, len * 0.36);
-    const hW   = hLen * 0.90;
-
-    ctx.save();
-    ctx.strokeStyle = '#FF4400';
-    ctx.fillStyle   = '#FF4400';
-    ctx.lineWidth   = 10;
-    ctx.lineCap     = 'butt';
-
-    ctx.beginPath();
-    ctx.moveTo(ARR_TAIL_X, CY);
-    ctx.lineTo(tipX + hLen, CY);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.moveTo(tipX, CY);
-    ctx.lineTo(tipX + hLen, CY - hW);
-    ctx.lineTo(tipX + hLen, CY + hW);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.restore();
+function drawSpacecraft() {
+  if (shipReady) {
+    ctx.drawImage(shipImg, SHIP_X, SHIP_Y, SHIP_W, SHIP_H);
   }
+}
+
+// Thrust arrow: matches the sprite's arrow exactly; only the length varies.
+function drawThrustArrow(T) {
+  if (T <= 1e-9) { thrustLabel.style.display = 'none'; return; }
+
+  const f   = Math.sqrt(Math.min(T / THRUST_MAX_VIS, 1.0));   // 0..1
+  const len = ARROW_LEN_MIN + (ARROW_LEN_MAX - ARROW_LEN_MIN) * f;
+
+  const x0   = ARROW_TAIL_X;         // tail (fixed)
+  const xTip = ARROW_TAIL_X - len;   // tip (forward / thrust direction, -î)
+  const xBase = xTip + ARROW_HEAD_L; // base of the arrowhead
+  const y    = ARROW_Y;
+  const half = ARROW_THICK / 2;
+
+  ctx.save();
+  ctx.fillStyle = ARROW_COLOR;
+
+  // shaft (flat-ended rectangle, like the sprite)
+  ctx.fillRect(xBase, y - half, x0 - xBase, ARROW_THICK);
+
+  // arrowhead
+  ctx.beginPath();
+  ctx.moveTo(xTip, y);
+  ctx.lineTo(xBase, y - ARROW_HEAD_HW);
+  ctx.lineTo(xBase, y + ARROW_HEAD_HW);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  thrustLabel.style.display = 'block';
+}
+
+// Exhaust velocity arrow: points +î (right), length scales with exhaust velocity.
+function drawVeArrow(veNorm) {
+  if (veNorm <= 1e-6) { veLabel.style.display = 'none'; return; }
+
+  const len = VE_ARROW_LEN_MIN + (VE_ARROW_LEN_MAX - VE_ARROW_LEN_MIN) * veNorm;
+
+  const x0   = VE_ARROW_TAIL_X;      // tail (fixed)
+  const xTip = x0 + len;             // tip (right)
+  const xBase = xTip - VE_HEAD_L;    // base of the arrowhead
+  const y    = VE_ARROW_Y;
+  const half = VE_ARROW_THICK / 2;
+
+  ctx.save();
+  ctx.fillStyle = VE_COLOR;
+
+  // shaft
+  ctx.fillRect(x0, y - half, xBase - x0, VE_ARROW_THICK);
+
+  // arrowhead
+  ctx.beginPath();
+  ctx.moveTo(xTip, y);
+  ctx.lineTo(xBase, y - VE_HEAD_HW);
+  ctx.lineTo(xBase, y + VE_HEAD_HW);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  veLabel.style.display = 'block';
 }
 
 function drawParticles() {
@@ -1257,15 +1369,14 @@ function animate(ts) {
   if (res.T > 1e-12) {
     spawnTimer += dt;
     const molarFlow = mdot / M_MOLAR[selectedProp];
-    const spawnRate = Math.max(Math.min(molarFlow * 30.0, 250.0), 0.5);
+    const spawnRate = Math.max(Math.min(molarFlow * 240.0, 1600.0), 3.0);
     const interval  = 1.0 / spawnRate;
 
     while (spawnTimer >= interval) {
       spawnTimer -= interval;
       if (particles.length < MAX_ORBS) {
-        const halfGap = (GAP_H / 2) * 0.80;
-        const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
-        particles.push({ x: EX + vPxS * spawnTimer, y: CY + yOff, vx: vPxS, prop: selectedProp });
+        const yOff    = (Math.random() * 2.0 - 1.0) * JET_HALF;
+        particles.push({ x: EXIT_X + vPxS * spawnTimer, y: JET_CY + yOff, vx: vPxS, prop: selectedProp });
       }
     }
   } else {
@@ -1278,8 +1389,10 @@ function animate(ts) {
   }
 
   drawBackground();
-  drawSpacecraft(res.T);
+  drawSpacecraft();
+  drawThrustArrow(res.T);
   drawParticles();
+  drawVeArrow(veNorm);
   requestAnimationFrame(animate);
 }
 
