@@ -161,10 +161,8 @@ details.clarify-detail:first-of-type { border-top: none; }
 details.clarify-detail > summary {
   cursor: pointer;
   list-style: none;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 14px;
+  display: block;
+  padding: 10px 14px 10px 34px;
   font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
@@ -176,9 +174,11 @@ details.clarify-detail > summary::before {
   content: '\25B6';
   font-size: 10px;
   color: var(--c-accent);
-  flex-shrink: 0;
-  margin-top: 4px;
   display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
   transition: transform 0.15s ease;
   transform-origin: 50% 50%;
 }
@@ -375,8 +375,9 @@ details.deriv-detail > summary:focus-visible {
   display: block;
   width: 100%;
   height: 680px;
-  border: none;
+  border: 0;
   border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -516,7 +517,7 @@ footer {
         <span class="quiz-opt-label">b</span>Circular path
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Spiral path
+        <span class="quiz-opt-label">c</span>Helical path
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -525,12 +526,13 @@ footer {
 
 <!-- ════════════════════ DEMO 1 — circle ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 1 &#x2014; Perpendicular Motion</div>
+  <div class="th-hdr">Perpendicular Motion</div>
   <iframe
     id="demo1-frame"
     class="demo-frame"
     src="larmor_circle.html"
     title="Demo 1 – Perpendicular (Circular) Larmor Motion"
+    loading="lazy"
   ></iframe>
 </div>
 
@@ -561,7 +563,7 @@ footer {
         <span class="quiz-opt-label">b</span>Circular path
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Spiral path
+        <span class="quiz-opt-label">c</span>Helical path
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -579,7 +581,7 @@ footer {
         <span class="quiz-opt-label">b</span>Circular path
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">c</span>Spiral path
+        <span class="quiz-opt-label">c</span>Helical path
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -588,12 +590,13 @@ footer {
 
 <!-- ════════════════════ DEMO 2 — single ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 2 &#x2014; Helical Motion</div>
+  <div class="th-hdr">Helical Motion</div>
   <iframe
     id="demo2-frame"
     class="demo-frame"
     src="larmor_single.html"
     title="Demo 2 – Helical Larmor Motion"
+    loading="lazy"
   ></iframe>
 </div>
 
@@ -612,12 +615,13 @@ footer {
 
 <!-- ════════════════════ DEMO 3 — double (quiz disabled) ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 3 &#x2014; Ion vs. Electron Comparison</div>
+  <div class="th-hdr">Ion vs. Electron Comparison</div>
   <iframe
     id="demo3-frame"
     class="demo-frame"
     src="larmor_double.html"
     title="Demo 3 – Ion vs. Electron Larmor Motion Comparison"
+    loading="lazy"
   ></iframe>
 </div>
 
@@ -661,7 +665,7 @@ footer {
       <span class="key hl-q">charged ions</span> and negatively
       <span class="key hl-power">charged electrons</span> are both magnetized by
       <span class="key hl-B">magnetic field lines</span> and travel in a
-      <span class="key">spiral-shaped trajectory</span>. They will spiral in
+      <span class="key">helical trajectory</span>. They will wind in
       <span class="key">opposite directions</span>, given that they are oppositely
       <span class="key hl-q">charged</span>. More interestingly, the
       <span class="key hl-mass">mass</span> of the

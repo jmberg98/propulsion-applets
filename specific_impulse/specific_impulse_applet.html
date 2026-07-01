@@ -149,10 +149,8 @@ details.clarify-detail:first-of-type {
 details.clarify-detail > summary {
   cursor: pointer;
   list-style: none;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 14px;
+  display: block;
+  padding: 10px 14px 10px 34px;
   font-size: 19.5px;
   font-weight: 600;
   color: var(--text-heading);
@@ -164,9 +162,11 @@ details.clarify-detail > summary::before {
   content: '▶';
   font-size: 13px;
   color: var(--c-accent);
-  flex-shrink: 0;
-  margin-top: 4px;
   display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
   transition: transform 0.15s ease;
   transform-origin: 50% 50%;
 }

@@ -165,10 +165,8 @@ details.clarify-detail:first-of-type { border-top: none; }
 details.clarify-detail > summary {
   cursor: pointer;
   list-style: none;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 14px;
+  display: block;
+  padding: 10px 14px 10px 34px;
   font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
@@ -180,9 +178,11 @@ details.clarify-detail > summary::before {
   content: '\25B6';
   font-size: 10px;
   color: var(--c-accent);
-  flex-shrink: 0;
-  margin-top: 4px;
   display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
   transition: transform 0.15s ease;
   transform-origin: 50% 50%;
 }
@@ -570,10 +570,10 @@ footer {
 
 <!-- ════════════════════ FIRST DEMO ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">First Demo</div>
-  <div class="demo-placeholder" id="demo1-host">
-    <span class="demo-placeholder-tag">Insert First Demo Here</span>
-  </div>
+  <div class="th-hdr">Induced Magnetic Field</div>
+  <iframe id="demo1-host" class="applet-frame" src="magnetic_mirror.html?mode=induced"
+          title="Induced magnetic field of a moving charged particle"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ CYCLOTRON / LARMOR RECALL ════════════════════ -->
@@ -609,10 +609,10 @@ footer {
 
 <!-- ════════════════════ SECOND DEMO ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Second Demo</div>
-  <div class="demo-placeholder" id="demo2-host">
-    <span class="demo-placeholder-tag">Insert Second Demo Here</span>
-  </div>
+  <div class="th-hdr">Net Magnetic Moment</div>
+  <iframe id="demo2-host" class="applet-frame" src="magnetic_mirror.html?mode=moment"
+          title="Net magnetic moment of a charged particle in cyclotron motion"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ NO WORK / CONSTANT MOMENT ════════════════════ -->
@@ -654,10 +654,10 @@ footer {
 
 <!-- ════════════════════ THIRD DEMO ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Third Demo</div>
-  <div class="demo-placeholder" id="demo3-host">
-    <span class="demo-placeholder-tag">Insert Third Demo Here</span>
-  </div>
+  <div class="th-hdr">Magnetic Mirror</div>
+  <iframe id="demo3-host" class="applet-frame" src="magnetic_mirror.html?mode=mirror"
+          title="A charged particle reflected by a magnetic mirror"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ MAGNETIC MOMENT ════════════════════ -->
