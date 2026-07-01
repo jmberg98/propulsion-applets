@@ -337,15 +337,18 @@ details.deriv-detail > summary:focus-visible {
 /* ── callout box ─────────────────────────────────────── */
 .eq-callout {
   margin: 12px 0 4px;
-  padding: 8px 14px;
+  padding: 10px 14px;
   background: rgba(160,160,160,0.05);
   border: 1px solid #2e2e2e;
   border-left: 3px solid #404040;
   border-radius: 4px;
   font-size: 18.5px;
   color: var(--text-secondary);
-  line-height: 1.55;
+  line-height: 2.1;
 }
+/* inline relations such as ΔV = |E| d / |E| = ΔV/d carry tall display fractions —
+   trim their size a touch so the extra line-height gives them clear breathing room */
+.eq-callout .katex { font-size: 1.1em !important; }
 .eq-callout.highlight-blue {
   background: rgba(61,191,255,0.05);
   border-color: rgba(61,191,255,0.18);

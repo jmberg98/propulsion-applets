@@ -58,6 +58,16 @@ body {
 }
 #viewport canvas { display: block; }
 
+/* ── drag / zoom hint ─────────────────────────────── */
+#drag-hint {
+  position: absolute; bottom: 16px; right: 16px; z-index: 5;
+  display: flex; align-items: center; gap: 11px;
+  background: rgba(8,8,8,.82); border: 1px solid #282828; border-radius: 8px;
+  padding: 11px 16px; font-size: 16px; color: #bcbcbc;
+  pointer-events: none; user-select: none;
+}
+#drag-hint svg { width: 26px; height: 26px; color: #d9d9d9; flex-shrink: 0; }
+
 #panel {
   width: 400px;
   min-width: 400px;
@@ -417,7 +427,19 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 </head>
 <body>
 
-<div id="viewport"></div>
+<div id="viewport">
+  <div id="drag-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 2v20M2 12h20"/>
+      <path d="M12 2l-2.4 2.4M12 2l2.4 2.4"/>
+      <path d="M12 22l-2.4-2.4M12 22l2.4-2.4"/>
+      <path d="M2 12l2.4-2.4M2 12l2.4 2.4"/>
+      <path d="M22 12l-2.4-2.4M22 12l-2.4 2.4"/>
+    </svg>
+    <span>Drag to orbit &middot; scroll to zoom</span>
+  </div>
+</div>
 
 <div id="panel">
   <div class="cf-header">
@@ -560,7 +582,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
     <div class="cf-panel-divider"></div>
 
     <!-- ── Outputs (dropdown) ── -->
-    <details class="cf-outputs" open>
+    <details class="cf-outputs">
       <summary><span class="cf-sect">Key Parameters</span></summary>
       <table id="otable">
         <tr>
@@ -583,6 +605,8 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
     <div class="cf-panel-divider"></div>
 
     <!-- ── Legend ── -->
+    <details class="cf-outputs">
+      <summary><span class="cf-sect">Legend</span></summary>
     <div id="legend">
       <div class="row"><span class="sw" style="background:#ff7043"></span><b id="leg-A">Particle</b></div>
       <div class="row col-B hide"><span class="sw" style="background:#4fc3f7"></span>Electron</div>
@@ -591,6 +615,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
       <div class="row"><span class="sw" style="background:#ef5350"></span><b style="color:#ef5350">E</b> field</div>
       <div class="row drift hide"><span class="sw" style="background:#5c6bc0"></span><b style="color:#5c6bc0">B</b> field (out of screen)</div>
     </div>
+    </details>
 
   </div>
 </div>
