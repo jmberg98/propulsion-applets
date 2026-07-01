@@ -163,10 +163,8 @@ details.clarify-detail:first-of-type { border-top: none; }
 details.clarify-detail > summary {
   cursor: pointer;
   list-style: none;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 14px;
+  display: block;
+  padding: 10px 14px 10px 34px;
   font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
@@ -178,9 +176,11 @@ details.clarify-detail > summary::before {
   content: '\25B6';
   font-size: 10px;
   color: var(--c-accent);
-  flex-shrink: 0;
-  margin-top: 4px;
   display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
   transition: transform 0.15s ease;
   transform-origin: 50% 50%;
 }
@@ -570,7 +570,7 @@ footer {
 
 <!-- ════════════════════ DEMO 1 — E field only ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 1 &#x2014; Electric Field Only</div>
+  <div class="th-hdr">Electric Field Only</div>
   <iframe id="demo1-frame" class="applet-frame" src="ECrossB.html?mode=accel"
           title="Demo 1 — linear acceleration of a charged particle through an electric field"
           loading="lazy"></iframe>
@@ -614,7 +614,7 @@ footer {
 
 <!-- ════════════════════ DEMO 2 — E & B fields ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 2 &#x2014; E &amp; B Fields</div>
+  <div class="th-hdr">E &amp; B Fields</div>
   <iframe id="demo2-frame" class="applet-frame" src="ECrossB.html?mode=drift"
           title="Demo 2 — a charged particle in crossed electric and magnetic fields"
           loading="lazy"></iframe>
@@ -635,7 +635,7 @@ footer {
 
 <!-- ════════════════════ DEMO 3 — ion & electron ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 3 &#x2014; Ion vs. Electron in E &amp; B Fields</div>
+  <div class="th-hdr">Ion vs. Electron in E &amp; B Fields</div>
   <iframe id="demo3-frame" class="applet-frame" src="ECrossB.html?mode=pair&amp;gate=0"
           title="Demo 3 — ion vs. electron in crossed electric and magnetic fields"
           loading="lazy"></iframe>

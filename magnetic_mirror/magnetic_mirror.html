@@ -123,6 +123,7 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
   font-size:16px;color:var(--text-muted);pointer-events:none;user-select:none;}
 #drag-hint svg{width:26px;height:26px;color:var(--text-secondary);flex-shrink:0;}
 .hide{display:none}
+#tabs.hide{display:none}   /* ID selector #tabs{display:flex} needs matching specificity to actually hide */
 /* ── loss-cone hover explanation ── */
 .losscone-term{cursor:help;text-decoration:underline dotted;text-underline-offset:2px;}
 .losscone-explain{display:none;font-size:12px;color:var(--text-secondary);line-height:1.45;
@@ -509,7 +510,9 @@ const COL = {
 };
 
 let mode = 'induced';
-let showField = true, showVel = true, showComp = false, showMu = true;
+// showLabels gates only the text label sprites (B/v/µ names + charge glyphs);
+// the field geometry (field lines & arrows) is always drawn.
+let showLabels = true, showVel = true, showComp = false, showMu = true;
 
 // ── LaTeX-style math text sprite ───────────────────────────────────────────────
 // Renders labels in the KaTeX Computer-Modern math font (serif fallbacks), with
@@ -521,10 +524,13 @@ const MATH_SUB_FONT  = '"KaTeX_Main","Times New Roman","Segoe UI Symbol",serif';
 function makeTextSprite(spec, color, height = SCENE_R * 0.26) {
   const base = (typeof spec === 'string') ? spec : (spec.base || '');
   const sub  = (typeof spec === 'object' && spec.sub) ? spec.sub : null;
+  const vec  = (typeof spec === 'object' && spec.vec) ? true : false;
 
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
   const fs = 72, subFs = Math.round(fs * 0.56), px = 24, py = 16, gap = 5;
+  // reserve vertical room above the glyph for the vector arrow when requested
+  const arrowH   = vec ? Math.round(fs * 0.30) : 0;
   const baseFont = `italic ${fs}px ${MATH_BASE_FONT}`;
   const subFont  = `${subFs}px ${MATH_SUB_FONT}`;
 
@@ -535,11 +541,11 @@ function makeTextSprite(spec, color, height = SCENE_R * 0.26) {
   const textW = bw + (sub ? gap + sw : 0);
 
   canvas.width  = Math.ceil(textW + px*2);
-  canvas.height = Math.ceil(fs*1.25 + py*2);
+  canvas.height = Math.ceil(fs*1.25 + py*2 + arrowH);
 
   // rounded-rect background
-  ctx.fillStyle   = 'rgba(11,14,20,0.72)';
-  ctx.strokeStyle = 'rgba(207,216,220,0.25)';
+  ctx.fillStyle   = 'rgba(9,9,9,0.78)';
+  ctx.strokeStyle = 'rgba(207,216,220,0.22)';
   ctx.lineWidth   = 4;
   const r = 18, [x,y,w,h] = [2,2,canvas.width-4,canvas.height-4];
   ctx.beginPath();
@@ -554,13 +560,29 @@ function makeTextSprite(spec, color, height = SCENE_R * 0.26) {
   ctx.fillStyle = color;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
-  const baseY  = canvas.height/2 + fs*0.34;
+  const baseY  = canvas.height/2 + fs*0.34 + arrowH*0.5;
   const startX = (canvas.width - textW)/2;
   ctx.font = baseFont;
   ctx.fillText(base, startX, baseY);
   if (sub) {
     ctx.font = subFont;
     ctx.fillText(sub, startX + bw + gap, baseY + fs*0.20);
+  }
+
+  // vector arrow drawn over the base symbol only (→), leaving subscripts bare
+  if (vec) {
+    const ay  = baseY - fs*0.86;
+    const ax0 = startX - fs*0.04;
+    const ax1 = startX + bw + fs*0.10;
+    const hd  = fs*0.16;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = Math.max(4, fs*0.06);
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ax0, ay); ctx.lineTo(ax1, ay);
+    ctx.moveTo(ax1 - hd, ay - hd*0.7); ctx.lineTo(ax1, ay); ctx.lineTo(ax1 - hd, ay + hd*0.7);
+    ctx.stroke();
   }
 
   const tex = new THREE.CanvasTexture(canvas);
@@ -629,10 +651,10 @@ function makeParticle() {
   const mkLabel = (txt, hex) => {
     const s = makeTextSprite(txt, hex, SCENE_R*0.22); s.visible = false; scene.add(s); return s;
   };
-  p.velLabel   = mkLabel('v',  '#ffd54f');
+  p.velLabel   = mkLabel({base:'v', vec:true},  '#ffd54f');
   p.vparLabel  = mkLabel({base:'v', sub:'∥'}, '#66bb6a');
   p.vperpLabel = mkLabel({base:'v', sub:'⊥'}, '#29b6f6');
-  p.muLabel    = mkLabel('μ', '#ec407a');
+  p.muLabel    = mkLabel({base:'μ', vec:true}, '#ec407a');
   return p;
 }
 
@@ -674,7 +696,7 @@ function buildAxisGizmo() {
 // ── init ──────────────────────────────────────────────────────────────────────
 function initViz(container) {
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0b0e14);
+  scene.background = new THREE.Color(0x090909);
 
   const w = container.clientWidth, h = container.clientHeight;
   renderer = new THREE.WebGLRenderer({ antialias:true });
@@ -802,12 +824,12 @@ function buildInduced(d) {
     for (const rg of rings)
       makeCircArrows(extraGroup, rg.dx*SCENE_R*0.6, radius*rg.r, sense, COL.field, rg.op, rg.n);
 
-  if (showField && sense !== 0) {
-    const bl = makeTextSprite('B', '#9fa8da', SCENE_R*0.28);
+  if (showLabels && sense !== 0) {
+    const bl = makeTextSprite({base:'B', vec:true}, '#9fa8da', SCENE_R*0.28);
     bl.position.set(0, radius + SCENE_R*0.42, 0);
     extraGroup.add(bl);
   }
-  extraGroup.visible = showField;
+  extraGroup.visible = true;
   setChargeSprite(particle, d.sign);
   setParticleOpacity(1);
   resetCycle();
@@ -817,14 +839,22 @@ function animateInduced(d) {
   const moving = d.moving;
   const speedN = clamp((Math.abs(d.v) / V_REF_IND), 0.25, 3.0);
   const dur    = IND_SEC / speedN;
-  const u      = moving ? smoothstep(cycleT / dur) : 0.5;
+  // Linear time → constant velocity across the screen (no smoothstep ease-in/out,
+  // so the charge no longer visibly speeds up in the middle and slows at the ends).
+  const u      = moving ? clamp(cycleT / dur, 0, 1) : 0.5;
   const x      = -IND_L + 2*IND_L*u;             // travel −L → +L (sign of v is +x)
   const pos    = new THREE.Vector3(x, 0, 0);
+
+  // Fade in at the start extremity and out at the end so the charge appears and
+  // disappears smoothly rather than snapping in/out at the edges of the run.
+  const f  = 0.14;
+  const op = moving ? Math.min(clamp(u / f, 0, 1), clamp((1 - u) / f, 0, 1)) : 1;
+  setParticleOpacity(op);
 
   particle.mesh.position.copy(pos);
   particle.mesh.visible = true;
   particle.chargeSprite.position.copy(pos).add(new THREE.Vector3(0, SCENE_R*0.32, 0));
-  particle.chargeSprite.visible = showField;
+  particle.chargeSprite.visible = showLabels;
 
   // the induced-field cluster rides along with the charge
   extraGroup.position.x = moving ? x : 0;
@@ -874,7 +904,7 @@ function buildMoment(d) {
   // induced field OF the loop: poloidal circles wrapping the wire. They thread along μ
   // (antiparallel to B, i.e. −bdir·x̂) through the ring centre and add up to μ.
   if (d.sign !== 0) makePoloidalLoops(fieldGroup, rDisp, COL.field, 0.5, 8, bdir);
-  fieldGroup.visible = showField;
+  fieldGroup.visible = true;
 
   // the gyration orbit in the y-z plane
   const orbit = new THREE.Line(
@@ -886,16 +916,16 @@ function buildMoment(d) {
   // (an ion and an electron gyrate in opposite senses). Yellow = velocity sense.
   if (d.sign !== 0) makeCircArrows(extraGroup, 0, rDisp, momView.rotSign, COL.vel, 0.95, 6);
 
-  if (showField) {
-    const vl = makeTextSprite('v', '#ffd54f', SCENE_R*0.22);
+  if (showLabels) {
+    const vl = makeTextSprite({base:'v', vec:true}, '#ffd54f', SCENE_R*0.22);
     vl.position.set(0, rDisp - SCENE_R*0.3, 0);
     guideGroup.add(vl);
-    const bl = makeTextSprite('B', '#9fa8da', SCENE_R*0.26);
+    const bl = makeTextSprite({base:'B', vec:true}, '#9fa8da', SCENE_R*0.26);
     bl.position.set(bdir*H*0.92, SCENE_R*0.2, 0);
     guideGroup.add(bl);
     // label the induced field of the gyration current (the poloidal loops wrapping the wire)
     if (d.sign !== 0) {
-      const il = makeTextSprite({base:'B', sub:'induced,current'}, '#9fa8da', SCENE_R*0.2);
+      const il = makeTextSprite({base:'B', sub:'induced,current', vec:true}, '#9fa8da', SCENE_R*0.2);
       il.position.set(0, rDisp*1.26 + SCENE_R*0.34, 0);
       guideGroup.add(il);
     }
@@ -914,7 +944,7 @@ function animateMoment(d) {
   particle.mesh.visible = true;
   particle.chargeSprite.position.copy(pos)
     .add(new THREE.Vector3(SCENE_R*0.13, SCENE_R*0.16, SCENE_R*0.13));
-  particle.chargeSprite.visible = showField;
+  particle.chargeSprite.visible = showLabels;
 
   hideAllVectors();
   // velocity tangent
@@ -993,17 +1023,17 @@ function buildMirrorField(d) {
     }
   }
 
-  if (showField) {
-    const bL = makeTextSprite('B', '#9fa8da', SCENE_R*0.3);
+  if (showLabels) {
+    const bL = makeTextSprite({base:'B', vec:true}, '#9fa8da', SCENE_R*0.3);
     bL.position.set(0, R_FL_MAX + SCENE_R*0.55, 0); guideGroup.add(bL);
-    const throat = makeTextSprite({base:'B', sub:'max'}, '#ef5350', SCENE_R*0.24);
+    const throat = makeTextSprite({base:'B', sub:'max', vec:true}, '#ef5350', SCENE_R*0.24);
     throat.position.set(L, rFL(1) + SCENE_R*0.45, 0); guideGroup.add(throat);
     if (d.trapped && d.turn_frac > 0.01) {
-      const mp = makeTextSprite({base:'B', sub:'mirror'}, '#ffb300', SCENE_R*0.22);
+      const mp = makeTextSprite({base:'B', sub:'mirror', vec:true}, '#ffb300', SCENE_R*0.22);
       mp.position.set(d.turn_frac*L, rFL(d.turn_frac) + SCENE_R*0.4, 0); guideGroup.add(mp);
     }
   }
-  fieldGroup.visible = showField;
+  fieldGroup.visible = true;
 }
 
 function buildMirrorTrajectory(d) {
@@ -1081,18 +1111,31 @@ function tangentAt(i) {
 
 function animateMirror(d) {
   const N = path.pos.length;
-  const u = smoothstep(cycleT / Math.max(path.dur, 1e-9));
+  // Linear time → constant playback velocity (no smoothstep ease-in/out).
+  const u = clamp(cycleT / Math.max(path.dur, 1e-9), 0, 1);
   const idx = clamp(Math.round(u*(N-1)), 0, N-1);
   const pos = path.pos[idx];
   const off = new THREE.Vector3(SCENE_R*0.13, SCENE_R*0.16, SCENE_R*0.13);
 
-  // escaping particles fade out as they leave the bottle through the throat
-  setParticleOpacity(d.escapes ? (1.0 - clamp((u - 0.55) / 0.40, 0, 1)) : 1.0);
+  // A trapped particle bounces on a closed, seamless loop → keep it solid and let it
+  // run forever (the advance/loop block wraps it without a pause). A finite run fades
+  // IN at the start extremity so it appears smoothly (previously it popped in at full
+  // opacity — most visible at pitch angle 0); an escaping particle also fades OUT as
+  // it leaves the bottle through the throat.
+  if (path.periodic) {
+    setParticleOpacity(1.0);
+  } else if (d.at_rest) {
+    setParticleOpacity(1.0);
+  } else {
+    const fin  = clamp(u / 0.12, 0, 1);
+    const fout = d.escapes ? (1.0 - clamp((u - 0.55) / 0.40, 0, 1)) : 1.0;
+    setParticleOpacity(Math.min(fin, fout));
+  }
 
   particle.mesh.position.copy(pos);
   particle.mesh.visible = true;
   particle.chargeSprite.position.copy(pos).add(off);
-  particle.chargeSprite.visible = showField;
+  particle.chargeSprite.visible = showLabels;
 
   hideAllVectors();
   if (d.at_rest) { if ((liveTick++ % 4) === 0) updateLive(idx); return path.dur; }
@@ -1173,7 +1216,14 @@ function animate() {
 
   // advance / loop (modes that report a finite duration; moment free-runs on tAccum)
   if (dur !== null) {
-    if (cycleT >= dur) {
+    // A trapped mirror bounce is a closed, seamless loop (start ≡ end) → wrap the
+    // clock with no end-pause so the particle bounces back and forth indefinitely.
+    const seamless = (curData && curData.mode === 'mirror' && path && path.periodic);
+    if (seamless) {
+      cycleT += dt;
+      if (cycleT >= dur) cycleT -= dur;
+      cyclePauseT = 0;
+    } else if (cycleT >= dur) {
       cyclePauseT += dt;
       if (cyclePauseT >= END_PAUSE) resetCycle();
     } else {
@@ -1425,7 +1475,7 @@ $('losscone-term').addEventListener('mouseenter', () => $('losscone-explain').cl
 $('losscone-term').addEventListener('mouseleave', () => $('losscone-explain').classList.remove('show'));
 
 $('chk-labels').addEventListener('change', () => {
-  showField = $('chk-labels').checked;
+  showLabels = $('chk-labels').checked;
   if (curData) {
     if (mode==='induced') buildInduced(curData);
     else if (mode==='moment') buildMoment(curData);

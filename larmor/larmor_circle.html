@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!-- KaTeX stylesheet: provides the Computer-Modern math fonts used for the 3-D LaTeX labels -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
 
 <script type="importmap">
 {"imports":{
@@ -555,11 +557,11 @@ details.cf-outputs > summary:focus-visible {
         <span class="cf-sym">B</span>
         <span class="cf-desc">Flux density</span>
         <input type="number" id="inp-BG" class="cf-inp" value="300" min="0" step="1">
-        <span class="cf-unit">G</span>
+        <span class="cf-unit">Gauss</span>
       </div>
       <input type="range" id="sl-BG" class="cf-slider" min="0" max="3000" value="300" step="1">
       <div class="cf-out-hint" style="padding-left:30px;">
-        ≡ <span id="b-tesla">0.03000 T</span>
+        ≡ <span id="b-tesla">0.03000 Tesla</span>
       </div>
     </div>
 
@@ -810,6 +812,11 @@ const SCENE_R        = 5.0;
 const SEG_PER_TURN   = 48;
 const TRAVEL_SEC     = 13.0;
 const END_PAUSE      = 0.6;
+// Seconds over which the moving particle fades in at the start of a finite
+// helical / straight run and fades out at the end (and through the end-pause),
+// so it appears and disappears smoothly at the extremities of the trajectory
+// instead of snapping. Closed circular orbits ignore this and loop forever.
+const FADE_SEC       = 1.5;
 const GAUSS_TO_TESLA = 1e-4;
 const TRAVEL_MULT    = 3;
 const AXIAL_BASE     = SCENE_R * 1.7;
@@ -879,15 +886,37 @@ let showVPerp  = false;
 let showForces = false;
 let dragging   = false;   // true while a slider is held down (particle hidden)
 
-function makeTextSprite(text, color, height = SCENE_R * 0.28) {
+// ── LaTeX-style math text sprite ───────────────────────────────────────────────
+// Renders labels in the KaTeX Computer-Modern math font (serif fallbacks), with an
+// italic base symbol and an optional roman subscript — e.g. {base:'F', sub:'b'}
+// draws  F_b  in proper LaTeX styling. Pass {base:'…', roman:true} for word labels.
+const MATH_BASE_FONT = '"KaTeX_Math","Cambria Math","Times New Roman",serif';
+const MATH_SUB_FONT  = '"KaTeX_Main","Times New Roman","Segoe UI Symbol",serif';
+
+function makeTextSprite(spec, color, height = SCENE_R * 0.28) {
+  const base  = (typeof spec === 'string') ? spec : (spec.base || '');
+  const sub   = (typeof spec === 'object' && spec.sub)   ? spec.sub : null;
+  const roman = (typeof spec === 'object' && spec.roman) ? true : false;
+  const vec   = (typeof spec === 'object' && spec.vec)   ? true : false;
+
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
-  const fs = 72, px = 24, py = 16;
-  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
-  const tw = ctx.measureText(text).width;
-  canvas.width  = Math.ceil(tw + px * 2);
-  canvas.height = Math.ceil(fs * 1.25 + py * 2);
-  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
+  const fs = 72, subFs = Math.round(fs * 0.56), px = 24, py = 16, gap = 5;
+  // reserve vertical room above the glyph for the vector arrow when requested
+  const arrowH   = vec ? Math.round(fs * 0.30) : 0;
+  const baseFont = roman ? `${fs}px ${MATH_SUB_FONT}` : `italic ${fs}px ${MATH_BASE_FONT}`;
+  const subFont  = `${subFs}px ${MATH_SUB_FONT}`;
+
+  ctx.font = baseFont;
+  const bw = ctx.measureText(base).width;
+  let sw = 0;
+  if (sub) { ctx.font = subFont; sw = ctx.measureText(sub).width; }
+  const textW = bw + (sub ? gap + sw : 0);
+
+  canvas.width  = Math.ceil(textW + px * 2);
+  canvas.height = Math.ceil(fs * 1.25 + py * 2 + arrowH);
+
+  // rounded-rect background
   ctx.fillStyle   = 'rgba(9,9,9,0.78)';
   ctx.strokeStyle = 'rgba(207,216,220,0.22)';
   ctx.lineWidth = 4;
@@ -899,10 +928,36 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   ctx.quadraticCurveTo(x, y+h,   x, y+h-r);    ctx.lineTo(x, y+r);
   ctx.quadraticCurveTo(x, y,     x+r, y);
   ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // base symbol (italic math) + roman subscript
   ctx.fillStyle    = color;
-  ctx.textAlign    = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  ctx.textAlign    = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const baseY  = canvas.height / 2 + fs * 0.34 + arrowH * 0.5;
+  const startX = (canvas.width - textW) / 2;
+  ctx.font = baseFont;
+  ctx.fillText(base, startX, baseY);
+  if (sub) {
+    ctx.font = subFont;
+    ctx.fillText(sub, startX + bw + gap, baseY + fs * 0.20);
+  }
+
+  // vector arrow drawn over the base symbol only (→), leaving subscripts bare
+  if (vec) {
+    const ay  = baseY - fs * 0.86;
+    const ax0 = startX - fs * 0.04;
+    const ax1 = startX + bw + fs * 0.10;
+    const hd  = fs * 0.16;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = Math.max(4, fs * 0.06);
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ax0, ay); ctx.lineTo(ax1, ay);
+    ctx.moveTo(ax1 - hd, ay - hd * 0.7); ctx.lineTo(ax1, ay); ctx.lineTo(ax1 - hd, ay + hd * 0.7);
+    ctx.stroke();
+  }
+
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   const sp = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -919,7 +974,7 @@ function makeBLabelSprite(height = SCENE_R * 0.38) {
   const ctx     = canvas.getContext('2d');
   const fs = 72, px = 26, py = 14;
   const arrowH = 24, gap = 8, headW = 22, headH = 18;
-  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
+  ctx.font = `italic ${fs}px ${MATH_BASE_FONT}`;
   const tw = ctx.measureText('B').width;
   const cw = Math.ceil(tw + px * 2);
   const ch = Math.ceil(fs * 1.2 + arrowH + gap + py * 2);
@@ -951,7 +1006,7 @@ function makeBLabelSprite(height = SCENE_R * 0.38) {
   ctx.lineTo(shaftR - headW, arrowY - headH / 2);
   ctx.lineTo(shaftR - headW, arrowY + headH / 2);
   ctx.closePath(); ctx.fill();
-  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
+  ctx.font = `italic ${fs}px ${MATH_BASE_FONT}`;
   ctx.fillStyle = B_COLOR; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
   ctx.fillText('B', midX, py + arrowH + gap);
   const tex = new THREE.CanvasTexture(canvas);
@@ -1054,7 +1109,7 @@ function makeParticle(conf) {
     SCENE_R * 0.85, 0xffd54f, SCENE_R * 0.22, SCENE_R * 0.1
   );
   scene.add(p.velArrow);
-  p.velLabel = makeTextSprite('V', '#ffd54f', SCENE_R * 0.27);
+  p.velLabel = makeTextSprite({base:'V', vec:true}, '#ffd54f', SCENE_R * 0.27);
   scene.add(p.velLabel);
 
   p.forceArrow = new THREE.ArrowHelper(
@@ -1063,7 +1118,7 @@ function makeParticle(conf) {
   );
   p.forceArrow.visible = false;
   scene.add(p.forceArrow);
-  p.forceLabel = makeTextSprite('F_b', '#ef5350', SCENE_R * 0.27);
+  p.forceLabel = makeTextSprite({base:'F', sub:'b', vec:true}, '#ef5350', SCENE_R * 0.27);
   p.forceLabel.visible = false;
   scene.add(p.forceLabel);
 
@@ -1073,7 +1128,7 @@ function makeParticle(conf) {
   );
   p.vParArrow.visible = false;
   scene.add(p.vParArrow);
-  p.vParLabel = makeTextSprite('V\u2225', '#66bb6a', SCENE_R * 0.26);
+  p.vParLabel = makeTextSprite({base:'V', sub:'\u2225'}, '#66bb6a', SCENE_R * 0.26);
   p.vParLabel.visible = false;
   scene.add(p.vParLabel);
 
@@ -1083,7 +1138,7 @@ function makeParticle(conf) {
   );
   p.vPerpArrow.visible = false;
   scene.add(p.vPerpArrow);
-  p.vPerpLabel = makeTextSprite('V\u22A5', '#ab47bc', SCENE_R * 0.26);
+  p.vPerpLabel = makeTextSprite({base:'V', sub:'\u22A5'}, '#ab47bc', SCENE_R * 0.26);
   p.vPerpLabel.visible = false;
   scene.add(p.vPerpLabel);
 
@@ -1141,7 +1196,7 @@ function buildReferenceCircle() {
   );
   ring.renderOrder = 1;
   scene.add(ring);
-  refLabel = makeTextSprite('Reference', '#ffee00', SCENE_R * 0.24);
+  refLabel = makeTextSprite({base:'Reference', roman:true}, '#ffee00', SCENE_R * 0.24);
   refLabel.position.set(r * 0.707, r * 0.707, 0);
   refLabel.visible = showLabels;
   scene.add(refLabel);
@@ -1151,7 +1206,7 @@ function buildFieldLines() {
   fieldGroup.clear();
   guideGroup.clear();
   const zHalf = FIELD_HALF, N = 3, step = SCENE_R * 0.9;
-  const lm = new THREE.LineBasicMaterial({ color: 0x1a5272, transparent: true, opacity: 0.92 });
+  const lm = new THREE.LineBasicMaterial({ color: 0x5c6bc0, transparent: true, opacity: 0.30 });
   for (let i = -N; i <= N; i++) {
     for (let j = -N; j <= N; j++) {
       if (Math.abs(i) + Math.abs(j) > N + 1) continue;
@@ -1161,11 +1216,14 @@ function buildFieldLines() {
           new THREE.Vector3(x, y, -zHalf), new THREE.Vector3(x, y, zHalf)
         ]), lm
       ));
-      fieldGroup.add(new THREE.ArrowHelper(
+      const fArrow = new THREE.ArrowHelper(
         new THREE.Vector3(0, 0, 1),
         new THREE.Vector3(x, y, zHalf * 0.5),
-        zHalf * 0.28, 0x3a9bd5, zHalf * 0.09, SCENE_R * 0.05
-      ));
+        zHalf * 0.28, 0x5c6bc0, zHalf * 0.09, SCENE_R * 0.05
+      );
+      fArrow.line.material.transparent = true; fArrow.line.material.opacity = 0.45;
+      fArrow.cone.material.transparent = true; fArrow.cone.material.opacity = 0.45;
+      fieldGroup.add(fArrow);
     }
   }
   const dashed = new THREE.Line(
@@ -1253,7 +1311,9 @@ function arrowLengthsFor(data) {
 }
 
 function helixPoint(rS, sign, turns, z0, commonZ, s) {
-  s = clamp(s, 0, 1);
+  // s is NOT clamped: a closed circular orbit advances s past 1 so the sine /
+  // cosine wrap the particle around the ring forever. Finite helical runs pass
+  // s in [0,1] already, so leaving s unclamped changes nothing for them.
   const phase = sign * 2 * Math.PI * turns * s;
   return new THREE.Vector3(rS * Math.cos(phase), rS * Math.sin(phase), z0 + commonZ * s);
 }
@@ -1395,7 +1455,7 @@ function positionAt(cur, s) {
 function tangentAt(cur, s) {
   if (cur.atRest) return new THREE.Vector3(0, 0, 1);
   const eps = 0.001;
-  const d = positionAt(cur, clamp(s + eps, 0, 1)).sub(positionAt(cur, clamp(s - eps, 0, 1)));
+  const d = positionAt(cur, s + eps).sub(positionAt(cur, s - eps));
   const L = d.length();
   return L < 1e-12 ? new THREE.Vector3(0, 0, 1) : d.normalize();
 }
@@ -1410,6 +1470,43 @@ function updateComponentArrow(arrow, label, pos, dir, len, baseHead, baseWidth) 
   label.visible = true;
 }
 
+// A closed circular orbit (perpendicular motion, no axial drift) loops forever;
+// anything with axial extent is a finite helical / straight run that fades in
+// and out at its two extremities.
+function isLoopCur(cur) {
+  return !!cur && !cur.straight && !cur.atRest &&
+         cur.rS > 0 && Math.abs(cur.commonZ || 0) < 1e-6;
+}
+
+// Fade envelope for a finite run: ramp 0→1 over the first FADE_SEC and 1→0 over
+// the last FADE_SEC (and through the end-pause), so the particle appears and
+// disappears smoothly at the extremities of its helical trajectory.
+function fadeAlpha(t, dur) {
+  const f = Math.min(FADE_SEC, dur * 0.5);
+  if (f <= 0)      return 1;
+  if (t < f)       return clamp(t / f, 0, 1);
+  if (t > dur - f) return clamp((dur - t) / f, 0, 1);
+  return 1;
+}
+
+function setArrowOpacity(arrow, a) {
+  if (!arrow) return;
+  arrow.line.material.transparent = true;
+  arrow.line.material.opacity     = a;
+  arrow.cone.material.transparent = true;
+  arrow.cone.material.opacity     = a;
+}
+
+// Apply a single fade alpha to the moving particle and everything pinned to it
+// (charge glyph, velocity / component / force arrows and their labels).
+function setParticleAlpha(p, a) {
+  p.mesh.material.transparent = a < 1;
+  p.mesh.material.opacity     = a;
+  if (p.chargeSprite) p.chargeSprite.material.opacity = a;
+  [p.velArrow, p.forceArrow, p.vParArrow, p.vPerpArrow].forEach(ar => setArrowOpacity(ar, a));
+  [p.velLabel, p.forceLabel, p.vParLabel, p.vPerpLabel].forEach(l => { if (l) l.material.opacity = a; });
+}
+
 function animate() {
   requestAnimationFrame(animate);
   controls.update();
@@ -1417,6 +1514,21 @@ function animate() {
   const off = new THREE.Vector3(SCENE_R * 0.16, SCENE_R * 0.16, SCENE_R * 0.16);
 
   if (refLabel) refLabel.visible = showLabels;
+
+  // Decide how the whole scene animates this frame:
+  //   rest   — particle(s) sitting still (v = 0), shown steadily
+  //   loop   — closed circular orbit(s): advance forever, no fade, no reset
+  //   travel — helical / straight run(s): play once, fade in/out, then respawn
+  const activeParts = parts.filter(p => p.cur);
+  let sceneMode = 'travel';
+  if (activeParts.length) {
+    if (activeParts.every(p => p.cur.atRest))          sceneMode = 'rest';
+    else if (activeParts.every(p => isLoopCur(p.cur))) sceneMode = 'loop';
+  }
+  const cycleDur = activeParts.length
+    ? Math.max(...activeParts.map(p => p.cur.duration || TRAVEL_SEC))
+    : TRAVEL_SEC;
+  const alpha = sceneMode === 'travel' ? fadeAlpha(cycleT, cycleDur) : 1;
 
   for (const p of parts) {
     // Ease the drawn orbit toward its new size (smoothstep) so the trajectory
@@ -1460,6 +1572,7 @@ function animate() {
     }
 
     p.mesh.visible = true;
+    setParticleAlpha(p, alpha);
 
     if (p.cur.atRest) {
       p.mesh.position.copy(p.cur.pos);
@@ -1472,7 +1585,9 @@ function animate() {
       continue;
     }
 
-    const s   = Math.min(cycleT / Math.max(p.cur.duration || 1, 1e-9), 1.0);
+    const dur = Math.max(p.cur.duration || 1, 1e-9);
+    // Looping orbits let s run past 1 (the ring wraps); finite runs stop at 1.
+    const s   = sceneMode === 'loop' ? cycleT / dur : Math.min(cycleT / dur, 1.0);
     const pos = positionAt(p.cur, s);
 
     p.mesh.position.copy(pos);
@@ -1547,14 +1662,18 @@ function animate() {
   renderAxisGizmo();
   renderer.autoClear = true;
 
-  const active = parts.filter(p => p.cur);
-  if (active.length) {
-    const maxDur = Math.max(...active.map(p => p.cur.duration || 0));
-    if (cycleT >= maxDur) {
+  // Advance the cycle clock. A looping (closed circular) scene runs the clock
+  // forever so the particle keeps gliding around the ring indefinitely; a finite
+  // run plays once, pauses while invisible, then resets so the fade-in repeats.
+  if (activeParts.length) {
+    if (sceneMode === 'loop') {
+      cycleT += dt;
+      cyclePauseT = 0;
+    } else if (cycleT >= cycleDur) {
       cyclePauseT += dt;
       if (cyclePauseT >= END_PAUSE) resetCycle();
     } else {
-      cycleT = Math.min(cycleT + dt, maxDur);
+      cycleT = Math.min(cycleT + dt, cycleDur);
       cyclePauseT = 0;
     }
   }
@@ -1570,11 +1689,11 @@ function fmt(x) {
 }
 
 function fmtTesla(x) {
-  if (!Number.isFinite(x)) return '(—) T';
-  if (x === 0) return '(0) T';
+  if (!Number.isFinite(x)) return '(—) Tesla';
+  if (x === 0) return '(0) Tesla';
   const a = Math.abs(x);
   const val = (a >= 1e3 || a < 1e-3) ? x.toExponential(3) : x.toPrecision(4);
-  return `(${val}) T`;
+  return `(${val}) Tesla`;
 }
 
 function updateSpeedFrac() {
@@ -1785,15 +1904,28 @@ window.addEventListener('pointerup', () => {
   resetCycle();          // particle reappears at the spawn point
 });
 
-initViz(document.getElementById('viewport'));
-setupMode();
-applyPreset('A');
-updateBReadout();
-updateSpeedFrac();
-$('sl-BG').value    = Math.min(+$('inp-BG').value, 3000);
-$('sl-speed').value = Math.min(+$('inp-speed').value, V_MAX);
-$('theta-num').value = $('theta-r').value;
-runUpdate();
+function boot() {
+  initViz(document.getElementById('viewport'));
+  setupMode();
+  applyPreset('A');
+  updateBReadout();
+  updateSpeedFrac();
+  $('sl-BG').value    = Math.min(+$('inp-BG').value, 3000);
+  $('sl-speed').value = Math.min(+$('inp-speed').value, V_MAX);
+  $('theta-num').value = $('theta-r').value;
+  runUpdate();
+}
+
+// Wait for the KaTeX math fonts before the first render so every label sprite is
+// rasterized in the LaTeX font (fall back to serif if the fonts fail to load).
+if (document.fonts && document.fonts.load) {
+  Promise.all([
+    document.fonts.load('italic 72px "KaTeX_Math"'),
+    document.fonts.load('normal 40px "KaTeX_Main"')
+  ]).then(boot).catch(boot);
+} else {
+  boot();
+}
 </script>
 </body>
 </html>

@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!-- KaTeX stylesheet: provides the Computer-Modern math fonts used for the 3-D LaTeX labels -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
 
 <script type="importmap">
 {"imports":{
@@ -355,6 +357,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 .hide { display: none; }
 .col-B.hide, .m-only.hide { display: none; }
 #legend .row.hide { display: none; }
+#tabs.hide { display: none; }   /* ID selector above needs matching specificity to actually hide */
 
 /* ═══════════════════════════════════════════════
    QUIZ GATE OVERLAY
@@ -483,7 +486,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 
     <!-- ══ ion block (Mode 3) ══ -->
     <div class="pblock hide" id="block-A">
-      <div class="phead"><span class="dot" style="background:#ff7043"></span><span>Ion (clockwise)</span></div>
+      <div class="phead"><span class="dot" style="background:#ff7043"></span><span>Ion</span></div>
       <div class="field">
         <label>Preset</label>
         <select id="A-preset">
@@ -506,7 +509,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 
     <!-- ══ electron block (Mode 3) ══ -->
     <div class="pblock hide" id="block-B">
-      <div class="phead"><span class="dot" style="background:#4fc3f7"></span><span>Electron (counter-cw)</span></div>
+      <div class="phead"><span class="dot" style="background:#4fc3f7"></span><span>Electron</span></div>
       <div class="field">
         <label>Mass <i>m</i> [amu] <input type="number" class="valnum" id="B-mass-v" min="0" step="0.0001" value="5.49e-4"></label>
         <input type="range" id="B-mass" min="-4" max="2.5" step="0.01" value="-3.2609">
@@ -756,6 +759,10 @@ const E_REF1      = 20000;            // reference |E| for force-arrow scaling [
 // drift (Mode 2/3)
 const DRIFT_W     = SCENE_R * 3.0;    // scene width swept by the drift
 const DRIFT_SEC   = 9.0;              // wall-clock time to sweep across
+// Fraction of a drift/straight run spent fading in at the start extremity and
+// out at the end extremity, so the particle appears and disappears smoothly
+// (and the reset back to the left edge is hidden) instead of snapping.
+const DRIFT_FADE_FRAC = 0.12;
 const ARCH_BASE   = 1.0;              // arches a reference ion shows (fewer → larger humps)
 const ARCH_MIN    = 1;
 // Ion arches are capped LOW so ion loops always stay large — they never shrink into the
@@ -810,22 +817,40 @@ let showLabels = true, showVel = true, showDrift = true;
 let showFE = false, showFB = false, showFnet = false;
 let accelGrid = null, accelGridX = 0;   // Mode-1 exit grid (fades as particle passes)
 
-// ── generic rounded-rect text sprite ──────────────────────────────────────────
-function makeTextSprite(text, color, height = SCENE_R * 0.28) {
+// ── LaTeX-style math text sprite ───────────────────────────────────────────────
+// Renders labels in the KaTeX Computer-Modern math font (serif fallbacks), with an
+// italic base symbol and an optional roman subscript — e.g. {base:'F', sub:'net'}
+// draws  F_net  in proper LaTeX styling. Pass {base:'…', roman:true} for word labels.
+const MATH_BASE_FONT = '"KaTeX_Math","Cambria Math","Times New Roman",serif';
+const MATH_SUB_FONT  = '"KaTeX_Main","Times New Roman","Segoe UI Symbol",serif';
+
+function makeTextSprite(spec, color, height = SCENE_R * 0.28) {
+  const base  = (typeof spec === 'string') ? spec : (spec.base || '');
+  const sub   = (typeof spec === 'object' && spec.sub)   ? spec.sub : null;
+  const roman = (typeof spec === 'object' && spec.roman) ? true : false;
+  const vec   = (typeof spec === 'object' && spec.vec)   ? true : false;
+
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
-  const fs = 72, px = 24, py = 16;
+  const fs = 72, subFs = Math.round(fs * 0.56), px = 24, py = 16, gap = 5;
+  // reserve vertical room above the glyph for the vector arrow when requested
+  const arrowH   = vec ? Math.round(fs * 0.30) : 0;
+  const baseFont = roman ? `${fs}px ${MATH_SUB_FONT}` : `italic ${fs}px ${MATH_BASE_FONT}`;
+  const subFont  = `${subFs}px ${MATH_SUB_FONT}`;
 
-  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
-  const tw = ctx.measureText(text).width;
-  canvas.width  = Math.ceil(tw + px*2);
-  canvas.height = Math.ceil(fs*1.25 + py*2);
+  ctx.font = baseFont;
+  const bw = ctx.measureText(base).width;
+  let sw = 0;
+  if (sub) { ctx.font = subFont; sw = ctx.measureText(sub).width; }
+  const textW = bw + (sub ? gap + sw : 0);
 
-  ctx.font = `700 ${fs}px Barlow,Segoe UI,Arial,sans-serif`;
-  ctx.fillStyle = 'rgba(9,9,9,0.78)';
+  canvas.width  = Math.ceil(textW + px*2);
+  canvas.height = Math.ceil(fs*1.25 + py*2 + arrowH);
+
+  // rounded-rect background
+  ctx.fillStyle   = 'rgba(9,9,9,0.78)';
   ctx.strokeStyle = 'rgba(207,216,220,0.22)';
-  ctx.lineWidth = 4;
-
+  ctx.lineWidth   = 4;
   const r = 18, [x,y,w,h] = [2,2,canvas.width-4,canvas.height-4];
   ctx.beginPath();
   ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
@@ -835,10 +860,34 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
   ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
   ctx.fill(); ctx.stroke();
 
+  // base symbol (italic math) + roman subscript
   ctx.fillStyle = color;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(text, canvas.width/2, canvas.height/2);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const baseY  = canvas.height/2 + fs*0.34 + arrowH*0.5;
+  const startX = (canvas.width - textW)/2;
+  ctx.font = baseFont;
+  ctx.fillText(base, startX, baseY);
+  if (sub) {
+    ctx.font = subFont;
+    ctx.fillText(sub, startX + bw + gap, baseY + fs*0.20);
+  }
+
+  // vector arrow drawn over the base symbol only (→), leaving subscripts bare
+  if (vec) {
+    const ay  = baseY - fs*0.86;
+    const ax0 = startX - fs*0.04;
+    const ax1 = startX + bw + fs*0.10;
+    const hd  = fs*0.16;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = Math.max(4, fs*0.06);
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    ctx.moveTo(ax0, ay); ctx.lineTo(ax1, ay);
+    ctx.moveTo(ax1 - hd, ay - hd*0.7); ctx.lineTo(ax1, ay); ctx.lineTo(ax1 - hd, ay + hd*0.7);
+    ctx.stroke();
+  }
 
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -909,11 +958,11 @@ function makeParticle(color, sphereScale) {
   const mkLabel = (txt, hex) => {
     const s = makeTextSprite(txt, hex, SCENE_R*0.24); s.visible = false; scene.add(s); return s;
   };
-  p.velLabel   = mkLabel('v',     '#ffd54f');
-  p.driftLabel = mkLabel('v_d',   '#66bb6a');
-  p.feLabel    = mkLabel('F_E',   '#ef5350');
-  p.fbLabel    = mkLabel('F_B',   '#5c6bc0');
-  p.fnetLabel  = mkLabel('F_net', '#ffffff');
+  p.velLabel   = mkLabel({base:'v', vec:true},            '#ffd54f');
+  p.driftLabel = mkLabel({base:'v', sub:'d', vec:true},   '#66bb6a');
+  p.feLabel    = mkLabel({base:'F', sub:'E', vec:true},   '#ef5350');
+  p.fbLabel    = mkLabel({base:'F', sub:'B', vec:true},   '#5c6bc0');
+  p.fnetLabel  = mkLabel({base:'F', sub:'net', vec:true}, '#ffffff');
   return p;
 }
 
@@ -1083,11 +1132,13 @@ function buildFieldAccel() {
   // d dimension label
   const dTxt = (window._lastAccel && window._lastAccel.d != null)
              ? ('d = ' + window._lastAccel.d + ' m') : 'd';
-  const dl = makeTextSprite(dTxt, '#90a4ae', SCENE_R*0.24);
+  // bare symbol → italic math; the "d = … m" form carries numbers/units → roman
+  const dl = makeTextSprite(dTxt.includes('=') ? {base:dTxt, roman:true} : dTxt,
+                            '#90a4ae', SCENE_R*0.24);
   dl.position.set(gx*0.5, -SCENE_R*0.55, 0);
   guideGroup.add(dl);
 
-  const eLbl = makeTextSprite('E', '#ef5350', SCENE_R*0.34);
+  const eLbl = makeTextSprite({base:'E', vec:true}, '#ef5350', SCENE_R*0.34);
   eLbl.position.set(gx*0.55, SCENE_R*0.95, 0);
   guideGroup.add(eLbl);
 }
@@ -1114,7 +1165,7 @@ function buildFieldDrift() {
         LEN, COL.E, op, SCENE_R*0.16, SCENE_R*0.08
       ));
     }
-    const eLbl = makeTextSprite('E', '#ef5350', SCENE_R*0.32);
+    const eLbl = makeTextSprite({base:'E', vec:true}, '#ef5350', SCENE_R*0.32);
     eLbl.position.set(DRIFT_W*0.5+SCENE_R*0.2, SCENE_R*0.9, 0);
     guideGroup.add(eLbl);
   }
@@ -1130,7 +1181,7 @@ function buildFieldDrift() {
         LEN, COL.B, op, SCENE_R*0.16, SCENE_R*0.08
       ));
     }
-    const bLbl = makeTextSprite('B', '#5c6bc0', SCENE_R*0.30);
+    const bLbl = makeTextSprite({base:'B', vec:true}, '#5c6bc0', SCENE_R*0.30);
     bLbl.position.set(-DRIFT_W*0.5-SCENE_R*0.1, SCENE_R*1.5, 0);
     guideGroup.add(bLbl);
   }
@@ -1279,6 +1330,16 @@ function frameCamera() {
   controls.update();
 }
 
+// Fade one ArrowHelper (shaft + head) to alpha, so vectors dim in step with the
+// particle at the extremities of its path.
+function setArrowAlpha(arrow, a) {
+  if (!arrow) return;
+  arrow.line.material.transparent = true;
+  arrow.line.material.opacity     = a;
+  arrow.cone.material.transparent = true;
+  arrow.cone.material.opacity     = a;
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  ANIMATION
 // ════════════════════════════════════════════════════════════════════════════
@@ -1321,15 +1382,33 @@ function animate() {
     const pos = st.pos;
     p.mesh.position.copy(pos);
 
-    // fade out near the very end of an acceleration run
+    // Fade envelope so the particle appears and disappears smoothly at the
+    // extremities of its path instead of snapping:
+    //   accel      — fade out near the end only (it launches from the plate)
+    //   drift/pair — cycloid & straight-line runs fade IN at the start extremity
+    //                and OUT at the end extremity, masking the reset to the start
     let alpha = 1.0;
-    if (p.cur.kind === 'accel' && u > 0.92) alpha = clamp((1.0-u)/0.08, 0, 1);
+    if (p.cur.kind === 'accel') {
+      if (u > 0.92) alpha = clamp((1.0 - u)/0.08, 0, 1);
+    } else if (p.cur.kind === 'cycloid' || p.cur.kind === 'vaccel') {
+      const f = DRIFT_FADE_FRAC;
+      if (u < f)          alpha = clamp(u / f, 0, 1);
+      else if (u > 1 - f) alpha = clamp((1 - u) / f, 0, 1);
+    }
     p.mesh.material.opacity = alpha;
 
     // charge label
     p.chargeSprite.position.copy(pos).add(off);
     p.chargeSprite.visible = showLabels;
     p.chargeSprite.material.opacity = alpha;
+
+    // Fade the vectors together with the particle so nothing pops at the extremities.
+    setArrowAlpha(p.velArrow,  alpha); setArrowAlpha(p.driftArrow, alpha);
+    setArrowAlpha(p.feArrow,   alpha); setArrowAlpha(p.fbArrow,    alpha);
+    setArrowAlpha(p.fnetArrow, alpha);
+    p.velLabel.material.opacity  = alpha; p.driftLabel.material.opacity = alpha;
+    p.feLabel.material.opacity   = alpha; p.fbLabel.material.opacity    = alpha;
+    p.fnetLabel.material.opacity = alpha;
 
     // per-particle vector gate: in Mode 3 only the ion shows v/F arrows (electron stays bare)
     const sV     = showVel   && !p.noVectors;
@@ -1366,16 +1445,16 @@ function animate() {
     p.velArrow.position.copy(pos);
     p.velArrow.setDirection(st.vel);
     p.velArrow.setLength(vlen, vlen*0.3, vlen*0.17);
-    p.velArrow.visible = sV && alpha > 0.2;
+    p.velArrow.visible = sV;
     p.velLabel.position.copy(pos).addScaledVector(st.vel, vlen+SCENE_R*0.12);
-    p.velLabel.visible = sV && alpha > 0.2;
+    p.velLabel.visible = sV;
 
     if (p.cur.kind === 'accel') {
       // Mode 1: electric force F_E = qE along the field; length scales with |E|
       const Emag = +$('E1-v').value;
       const fLen = SCENE_R*(0.35 + 0.85*clamp(Emag/E_REF1, 0, 1.8));
       const fE   = new THREE.Vector3(p.cur.dir, 0, 0).multiplyScalar(fLen);
-      setForce(p.feArrow, p.feLabel, fE, sFE && alpha > 0.2);
+      setForce(p.feArrow, p.feLabel, fE, sFE);
       p.driftArrow.visible = p.driftLabel.visible = false;
       p.fbArrow.visible = p.fbLabel.visible = false;
       p.fnetArrow.visible = p.fnetLabel.visible = false;
@@ -1744,7 +1823,11 @@ const _MODE_ALIAS = { accel:'accel', drift:'drift', pair:'pair',
                       '1':'accel', '2':'drift', '3':'pair' };
 const _modeParam  = _bootParams.get('mode');
 const _bootMode   = _MODE_ALIAS[_modeParam] || 'accel';
-if (_modeParam) {
+// The mode switcher is only meant to appear in the standalone ECrossB.html page.
+// Hide it whenever the demo is embedded (the lesson applet always loads it inside
+// an iframe) or locked to a single mode via ?mode=.
+const _embedded   = (() => { try { return window.self !== window.top; } catch(e) { return true; } })();
+if (_modeParam || _embedded) {
   const tabsEl = document.getElementById('tabs');
   if (tabsEl) {
     tabsEl.classList.add('hide');
@@ -1753,11 +1836,24 @@ if (_modeParam) {
   }
 }
 
-initViz(document.getElementById('viewport'));
-updateBReadout();
-updateFieldDisplays();
-['S','A','B'].forEach(updateParticleDisplay);
-setMode(_bootMode);
+function boot() {
+  initViz(document.getElementById('viewport'));
+  updateBReadout();
+  updateFieldDisplays();
+  ['S','A','B'].forEach(updateParticleDisplay);
+  setMode(_bootMode);
+}
+
+// Wait for the KaTeX math fonts before the first render so every label sprite is
+// rasterized in the LaTeX font (fall back to serif if the fonts fail to load).
+if (document.fonts && document.fonts.load) {
+  Promise.all([
+    document.fonts.load('italic 72px "KaTeX_Math"'),
+    document.fonts.load('normal 40px "KaTeX_Main"')
+  ]).then(boot).catch(boot);
+} else {
+  boot();
+}
 </script>
 </body>
 </html>
