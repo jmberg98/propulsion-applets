@@ -354,7 +354,9 @@ const ROLE_MAT = {
    rings sit between. The hollow cathodes / neutralizer are a yellower gold. */
 const STRUCTURE_GRAY = '#d5d8e4';           // unified outer-structure tone
 const COLOR_OVERRIDE = {
-  Anode_Discharge_Chamber    : '#f4f6fb',   // inside of the ionization chamber — whitest
+  // The whole discharge-chamber wall + housing share ONE light gray so the wall
+  // reads as a solid piece in section (not a hollow, two-tone double wall).
+  Anode_Discharge_Chamber    : STRUCTURE_GRAY,
   Outer_Shell_Housing        : STRUCTURE_GRAY,
   Propellant_Injector        : STRUCTURE_GRAY,  // same as the shell / neutralizer attaching piece
   Screen_Grid_Positive       : '#4c515a',   // grids: dark, clearly visible against the white body
@@ -374,14 +376,14 @@ const DIAGRAM_MAT = { metalness: 0.0, roughness: 1.0 };
    the label position as a fraction of the viewport, laid out around the figure
    like the reference schematic. */
 const CALLOUTS = [
-  { text:'Propellant injector',         anchor:[-138,  22], chip:[0.055, 0.28] },
-  { text:'Anode',                       anchor:[ -68,  54], chip:[0.235, 0.18] },
-  { text:'Magnet ring',                 anchor:[  -2, 100], chip:[0.360, 0.085] },
-  { text:'Hollow cathode (neutralizer)',anchor:[ 150, 120], chip:[0.640, 0.055] },
-  { text:'Hollow cathode',              anchor:[-150,  -9], chip:[0.055, 0.72] },
-  { text:'Magnetic field lines',        anchor:[ -30, -76], chip:[0.180, 0.90] },
-  { text:'Positive / screen grid',      anchor:[ 111, -72], chip:[0.520, 0.93] },
-  { text:'Negative / accelerator grid', anchor:[ 118, -96], chip:[0.800, 0.93] },
+  { text:'Propellant injector',         anchor:[-138,  22], chip:[0.090, 0.30] },
+  { text:'Anode',                       anchor:[ -68,  54], chip:[0.245, 0.205] },
+  { text:'Magnet ring',                 anchor:[  -2, 100], chip:[0.380, 0.120] },
+  { text:'Hollow cathode (neutralizer)',anchor:[ 150, 120], chip:[0.615, 0.105] },
+  { text:'Hollow cathode',              anchor:[-150,  -9], chip:[0.090, 0.695] },
+  { text:'Magnetic field lines',        anchor:[ -30, -76], chip:[0.215, 0.855] },
+  { text:'Positive / screen grid',      anchor:[ 111, -72], chip:[0.520, 0.880] },
+  { text:'Negative / accelerator grid', anchor:[ 118, -96], chip:[0.775, 0.880] },
 ];
 
 /* Magnetic field lines — control points in centered section space (cut plane
@@ -392,14 +394,17 @@ const CALLOUTS = [
    toward the axis in the gaps between them. Wall is at |Y| ≈ 92 (top) / 108
    (bottom); the lower line mirrors the upper about the chamber axis (Y = −8). */
 const FIELD_LINES = [
-  // upper line: cone → cusp at mid ring → inward bow → cusp at front ring
-  [[-90, 20],[-54, 34],[-14, 78],[-2, 88],[34, 46],[62, 44],[88, 78],[98, 88],[104, 74]],
+  // upper line: rear cathode ring → sharp, STEEP cusp at the mid ring (injector side)
+  // → valley biased toward the injector → long, GENTLE rise to the front-ring cusp
+  // (accelerator-grid side). Injector-side curvature is steeper than the grid side.
+  [[-90, 8],[-48, 48],[-18, 86],[-2, 94],[20, 40],[34, 32],[66, 56],[98, 88],[106, 78]],
   // lower line: mirror of the upper about the chamber axis (Y = −8)
-  [[-90,-36],[-54,-50],[-14,-94],[-2,-104],[34,-62],[62,-60],[88,-94],[98,-104],[104,-90]],
+  [[-90,-24],[-48,-64],[-18,-102],[-2,-110],[20,-56],[34,-48],[66,-72],[98,-104],[106,-94]],
 ];
 
 /* ── Globals ───────────────────────────────────────────────── */
 let scene, camera, renderer, controls;
+let ambLight, hemiLight, keyLight, fillLight, rimLight;   // toggled flat in section
 let orthoCam;                  // orthographic camera for the axial section (parallel projection)
 let clipPlane;                 // section plane (world z = cutOffset, keeps z<offset)
 let cutOffset = 0;
@@ -417,6 +422,7 @@ const dirSolid = new THREE.Vector3(1.0, 0.52, 1.35).normalize();
 let tween  = null;             // perspective fly (3D view)
 let oTween = null;             // ortho zoom-in (section entry) — unused since the flatten pass
 let fTween = null;             // in-place FOV → parallel flatten; grids straighten before the ortho swap
+let sTween = null;             // section ENTRY: rotate-to-head-on + flatten, in one motion
 let frameHalf = 200;           // target ortho half-height the section frames to (set on entry)
 
 /* section annotation overlay */
@@ -588,7 +594,7 @@ function setSectionMode(on){
     // section (and its labelled overlay) only take over once we're head-on.
     orthoActive = false;
     showAnnotations(false);
-    tween = null; oTween = null; fTween = null;
+    tween = null; oTween = null; fTween = null; sTween = null;
     controls.enabled = false;
     controls.object = camera;
     $('hint').textContent = 'Rotating to cross-section…';
@@ -596,7 +602,7 @@ function setSectionMode(on){
   } else {
     const wasOrtho = orthoActive;       // false if still mid-swing into the section
     orthoActive = false;
-    oTween = null; fTween = null;
+    oTween = null; fTween = null; sTween = null;
     showAnnotations(false);
     controls.object = camera;           // hand orbit back to the perspective camera
     controls.enableRotate = true;
@@ -623,6 +629,29 @@ function setSectionMode(on){
   }
 }
 
+/* Static jump straight into the settled ortho cross-section — no fly/flatten
+   animation. Mirrors the "on" setup of setSectionMode() but hands directly to
+   settleOrtho() instead of beginSectionEntry(). Used by the #section deep-link
+   so the schematic renders deterministically on load (one frame, no timing) and
+   can be screenshotted without scripting the transition. */
+function jumpToSection(){
+  sectionMode = true;
+  for (const c of comps){
+    c.mesh.material.clippingPlanes = [clipPlane];
+    c.mesh.material.needsUpdate = true;
+    c.stencil.visible = c.visible;
+    c.cap.visible     = c.visible;
+  }
+  document.querySelectorAll('#view-seg button').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === 'section');
+  });
+  setDiagramShading(true);
+  positionCapPlanes();
+  frameOrtho();
+  frameHalf = orthoCam.top;
+  settleOrtho();
+}
+
 /* Flatten materials for the 2-D section: matte, near-shadowless — a clean
    schematic look. Restored to their (already matte) 3-D tuning otherwise. */
 function setDiagramShading(on){
@@ -637,31 +666,54 @@ function setDiagramShading(on){
     }
     m.needsUpdate = true; cm.needsUpdate = true;
   }
+  // Near-shadowless, flat lighting for the 2-D schematic: crank ambient and drop
+  // the directionals so nested walls read as one flat light-gray fill (no
+  // self-shadowed recess that looks hollow). Restore the 3-D key/fill/rim otherwise.
+  if (ambLight){
+    ambLight.intensity  = on ? 1.06 : 0.52;
+    hemiLight.intensity = on ? 0.14 : 0.32;
+    keyLight.intensity  = on ? 0.10 : 0.80;
+    fillLight.intensity = on ? 0.06 : 0.30;
+    rimLight.intensity  = on ? 0.05 : 0.20;
+  }
 }
 
-/* Entry, phase 1 — swing the perspective camera round to a head-on view of the
-   cut plane (looking down −Z), landing at the distance that frames the silhouette
-   at FOV_SOLID (so there is no later zoom). Clipping + caps are already live, so
-   the section forms and the near half falls away as it turns. beginFlatten() then
-   takes over, still head-on. */
+/* Shortest-arc interpolation between two unit direction vectors (great-circle). */
+function slerpDir(a, b, t){
+  const d = Math.max(-1, Math.min(1, a.dot(b)));
+  const om = Math.acos(d);
+  if (om < 1e-4) return a.clone().lerp(b, t).normalize();
+  const s = Math.sin(om);
+  return a.clone().multiplyScalar(Math.sin((1 - t) * om) / s)
+          .add(b.clone().multiplyScalar(Math.sin(t * om) / s));
+}
+
+/* Section ENTRY — ONE continuous move straight to the desired cross-section: the
+   camera rotates along the shortest arc to head-on (looking down −Z) while the FOV
+   flattens toward parallel, with the framing tracked the whole way so there is no
+   zoom pop and no separate "settle" rotation. Because the rotation and the
+   perspective-flatten happen together, the view goes directly to the flat section
+   instead of landing on a tilted cross-section and then straightening a second time.
+   settleOrtho() swaps to the true ortho camera at the end (seamless: same framing,
+   already near-parallel). */
 function beginSectionEntry(){
   frameOrtho();                                   // size the ortho frustum for the current aspect
   frameHalf = orthoCam.top;                        // half-height the section frames to
-  fTween = null;
-  const D1 = frameHalf / Math.tan(FOV_SOLID * Math.PI / 360);
-  flyTo(new THREE.Vector3(0, 0, D1), new THREE.Vector3(0, 0, 0), FOV_SOLID, beginFlatten);
-}
-
-/* Entry, phase 2 — head-on already, so narrow the FOV toward parallel *in place*.
-   The distance tracks the FOV (frameHalf / tan(fov/2)) so the silhouette stays
-   framed the whole time: the projection flattens continuously — the grid apertures
-   un-splay smoothly instead of snapping from curved to straight — and by the end
-   the perspective is near-parallel, so settleOrtho()'s swap to the true ortho
-   camera (zoom = 1) is imperceptible. */
-function beginFlatten(){
+  tween = fTween = oTween = null;
+  const startDist = camera.position.length();
+  sTween = {
+    t: 0, dur: ANIM_SEC,
+    startDir: camera.position.clone().normalize(),
+    endDir:   new THREE.Vector3(0, 0, 1),
+    fromFov:  camera.fov,
+    toFov:    FOV_ORTHO_MATCH,
+    // framing half-height: start = what the 3-D camera currently frames (so the
+    // first frame doesn't jump), end = the section silhouette half-height.
+    H0: startDist * Math.tan(camera.fov * Math.PI / 360),
+    H1: frameHalf,
+    onDone: settleOrtho,
+  };
   controls.enabled = false;
-  fTween = { t:0, dur: ANIM_SEC * 0.7, fromFov: FOV_SOLID, toFov: FOV_ORTHO_MATCH,
-             onDone: settleOrtho };
 }
 
 /* Swap to the orthographic projection — parallel rays are what make the flat
@@ -782,7 +834,7 @@ function updateAnnotations(){
     fieldPolys[i].setAttribute('points', s);
   }
 
-  const PAD = 24;   // keep chips this far off the viewport edges (breathing room)
+  const PAD = 44;   // keep chips this far off the viewport edges (breathing room)
   for (const e of calloutEls){
     const a  = toScreen(e.c.anchor[0], e.c.anchor[1]);
     const cw = e.chip.offsetWidth, ch = e.chip.offsetHeight;
@@ -815,6 +867,27 @@ function flyTo(toPos, toTarget, toFov, onDone){
 function smoothstep(x){ return x*x*(3 - 2*x); }
 
 function updateTween(dt){
+  if (sTween){
+    // Combined rotate-to-head-on + flatten. dir slerps along the shortest arc;
+    // fov narrows toward parallel; distance tracks the (lerped) framing half-height
+    // so the silhouette grows smoothly into frame with no zoom pop. controls.update()
+    // (run after this in animate) points the camera back at the origin each frame.
+    sTween.t += dt / sTween.dur;
+    const s   = smoothstep(Math.min(sTween.t, 1));
+    const fov = sTween.fromFov + (sTween.toFov - sTween.fromFov) * s;
+    const H   = sTween.H0 + (sTween.H1 - sTween.H0) * s;
+    const dir = slerpDir(sTween.startDir, sTween.endDir, s);
+    camera.fov = fov;
+    camera.position.copy(dir.multiplyScalar(H / Math.tan(fov * Math.PI / 360)));
+    controls.target.set(0, 0, 0);
+    camera.updateProjectionMatrix();
+    if (sTween.t >= 1){
+      const done = sTween.onDone;
+      sTween = null;
+      if (done) done();
+    }
+    return;
+  }
   if (fTween){
     // Head-on flatten: narrow the FOV while distance tracks it (frameHalf / tan),
     // so the silhouette stays framed and only the perspective flattens.
@@ -876,17 +949,19 @@ function init(){
 
   // Soft, even, matte lighting — a clean CAD look with no environment
   // reflections and no filmic tone-map, matching the flatter house style.
-  scene.add(new THREE.AmbientLight(0xffffff, 0.52));
-  scene.add(new THREE.HemisphereLight(0xdfe6f2, 0x2a2e35, 0.32));
-  const key = new THREE.DirectionalLight(0xffffff, 0.80);
-  key.position.set(1.4, 1.9, 2.2);
-  scene.add(key);
-  const fill = new THREE.DirectionalLight(0xcdddff, 0.30);
-  fill.position.set(-2.0, 0.5, -1.2);
-  scene.add(fill);
-  const rim = new THREE.DirectionalLight(0xffffff, 0.20);
-  rim.position.set(0.2, -1.6, -1.8);
-  scene.add(rim);
+  ambLight = new THREE.AmbientLight(0xffffff, 0.52);
+  scene.add(ambLight);
+  hemiLight = new THREE.HemisphereLight(0xdfe6f2, 0x2a2e35, 0.32);
+  scene.add(hemiLight);
+  keyLight = new THREE.DirectionalLight(0xffffff, 0.80);
+  keyLight.position.set(1.4, 1.9, 2.2);
+  scene.add(keyLight);
+  fillLight = new THREE.DirectionalLight(0xcdddff, 0.30);
+  fillLight.position.set(-2.0, 0.5, -1.2);
+  scene.add(fillLight);
+  rimLight = new THREE.DirectionalLight(0xffffff, 0.20);
+  rimLight.position.set(0.2, -1.6, -1.8);
+  scene.add(rimLight);
 
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
@@ -949,6 +1024,9 @@ try {
   controls.target.set(0, 0, 0);
   modelReady = true;
   $('loading').classList.add('hidden');
+  // Deep-link: #section boots straight into the flat cross-section schematic,
+  // skipping the entry animation (deterministic single-frame render for review).
+  if (location.hash === '#section') jumpToSection();
 } catch (err) {
   $('loading').innerHTML =
     '<div class="lt" style="color:#ff8e8e; max-width:320px; text-align:center;">' +
