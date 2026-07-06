@@ -129,10 +129,9 @@ inj = Pos(0, INJ_Y, 0) * tube(INJ_R, INJ_R - 2, -72, -5)
 NCY = 140.0
 def zc(r, z0, z1, y=NCY):
     return Pos(0, y, (z0+z1)/2) * Cylinder(radius=r, height=z1-z0)
-neut  = zc(9, 165, 202)                                   # fat cathode body
+neut  = zc(9, 165, 202)                                   # fat cathode body (SOLID — no interior cavity)
 neut += Pos(0, NCY, 206) * Cone(bottom_radius=9, top_radius=5, height=8)  # tapered shoulder
-neut += zc(5, 210, 224) - zc(2.4, 214, 226)               # bored snout / keeper tip
-neut -= zc(6, 196, 202)                                   # hollow only the front of the body (rest is solid)
+neut += zc(5, 210, 224) - zc(2.4, 214, 226)               # bored snout / keeper-orifice tip only
 
 # ---- assemble, colour, export ------------------------------------------
 parts = [
