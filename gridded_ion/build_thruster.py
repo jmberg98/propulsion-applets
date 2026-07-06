@@ -32,8 +32,9 @@ SCREEN_T      = 3.5      # CHANGED (was 2.0)
 ACCEL_T       = 5.0      # CHANGED (was 3.0)
 GRID_GAP      = 8.0      # CHANGED (was 4.0)
 Z_SCREEN0     = L_CHAMBER + 2.0            # 202
-HOLE_R        = 4.5
 HOLE_PITCH    = 16.0
+SCREEN_HOLE_R = 6.0      # screen-grid aperture radius (larger — open extraction optics)
+ACCEL_HOLE_R  = 3.0      # accel-grid apertures are SMALLER (blocks electron backstreaming)
 
 R_CATH        = 10.0     # hollow cathode outer radius
 R_CATH_BORE   = 5.0
@@ -92,7 +93,7 @@ enclosure -= Pos(0, 140, 205) * Cylinder(radius=8, height=10)        # front-pla
 housing   += enclosure
 
 # ---- ion-optics grids (perforated discs) --------------------------------
-def perforate(disc, z0, z1):
+def perforate(disc, z0, z1, hole_r):
     cutters = None
     n = int(R_GRID_ACTIVE // HOLE_PITCH) + 1
     for i in range(-n, n+1):
@@ -100,14 +101,14 @@ def perforate(disc, z0, z1):
             x = i*HOLE_PITCH + (HOLE_PITCH/2 if j % 2 else 0)  # hex-ish stagger
             y = j*HOLE_PITCH*math.sqrt(3)/2
             if math.hypot(x, y) <= R_GRID_ACTIVE:
-                h = Pos(x, y, (z0+z1)/2) * Cylinder(radius=HOLE_R, height=(z1-z0)+2)
+                h = Pos(x, y, (z0+z1)/2) * Cylinder(radius=hole_r, height=(z1-z0)+2)
                 cutters = h if cutters is None else cutters + h
     return disc - cutters
 
 z_s0, z_s1 = Z_SCREEN0, Z_SCREEN0 + SCREEN_T
 z_a0, z_a1 = z_s1 + GRID_GAP, z_s1 + GRID_GAP + ACCEL_T
-screen = perforate(cyl(R_GRID, z_s0, z_s1), z_s0, z_s1)
-accel  = perforate(cyl(R_GRID, z_a0, z_a1), z_a0, z_a1)
+screen = perforate(cyl(R_GRID, z_s0, z_s1), z_s0, z_s1, SCREEN_HOLE_R)
+accel  = perforate(cyl(R_GRID, z_a0, z_a1), z_a0, z_a1, ACCEL_HOLE_R)
 
 # ---- magnet rings (EMBEDDED in the thruster wall, not the plasma cavity) --
 # Ring radius sits between the chamber outer wall (R_CHAMBER_OUT) and the housing

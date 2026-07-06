@@ -1,0 +1,10 @@
+<!doctype html><meta charset=utf-8>
+<style>html,body{margin:0}iframe{width:1400px;height:900px;border:0}</style>
+<iframe id=f src="gridded_ion.html#section"></iframe>
+<script>
+f.onload = () => setTimeout(() => {
+  const d = f.contentDocument;
+  const cb = d.getElementById('chk-labels');
+  cb.checked = false; cb.dispatchEvent(new Event('change'));
+}, 2200);
+</script>
