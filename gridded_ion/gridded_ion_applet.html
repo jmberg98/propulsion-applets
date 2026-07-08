@@ -426,7 +426,7 @@ footer {
 <!-- ════════════════════ 3D VIEWER ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">3D Viewer &amp; Cross Section</div>
-  <iframe id="viewer-frame" class="applet-frame" src="gridded_ion.html"
+  <iframe id="viewer-frame" class="applet-frame" src="gridded_ion.html?mode=overview"
           title="Interactive 3D gridded ion engine — cross-section, fields, and particles"
           loading="lazy"></iframe>
 </div>
@@ -462,10 +462,9 @@ footer {
 <!-- ════════════════════ DEMO 1 ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo &mdash; Ionization</div>
-  <div class="demo-placeholder">
-    <span class="demo-placeholder-tag">Demo 1</span>
-    <span class="demo-placeholder-note">Interactive ionization demo to be inserted here.</span>
-  </div>
+  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=ion"
+          title="Ionization stage — ring-cusp magnetic confinement in the discharge chamber"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ STAGE 2 — ACCELERATING GRIDS ════════════════════ -->
@@ -510,10 +509,9 @@ footer {
 <!-- ════════════════════ DEMO 2 ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo &mdash; Accelerating Grids</div>
-  <div class="demo-placeholder">
-    <span class="demo-placeholder-tag">Demo 2</span>
-    <span class="demo-placeholder-note">Interactive accelerating-grid demo to be inserted here.</span>
-  </div>
+  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=acc"
+          title="Accelerating grids — the potential hill and ion extraction"
+          loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ STAGE 3 — NEUTRALIZATION ════════════════════ -->
@@ -547,10 +545,9 @@ footer {
 <!-- ════════════════════ DEMO 3 ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Demo &mdash; Neutralization</div>
-  <div class="demo-placeholder">
-    <span class="demo-placeholder-tag">Demo 3</span>
-    <span class="demo-placeholder-note">Interactive neutralizer demo to be inserted here.</span>
-  </div>
+  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=neu"
+          title="Neutralization — quasineutral plume and spacecraft charge"
+          loading="lazy"></iframe>
 </div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
