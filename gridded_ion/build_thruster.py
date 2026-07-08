@@ -75,9 +75,14 @@ rear_wall -= Pos(0, INJ_Y, Z_REAR_INNER + 1.5) * Cylinder(radius=INJ_R + 1, heig
 chamber += rear_wall
 
 # ---- outer housing (fills the annular gap: inner wall meets chamber) ----
+# The rear plate is THICKENED (rear face pushed from Z_REAR_INNER-8 out to
+# Z_REAR_BACK) so a back-wall magnet ring can be fully buried inside it, the way
+# a real ring-cusp thruster carries magnets on the back plate as well as the side
+# wall (the buried ring then forms an extra cusp with the rearmost side ring).
+Z_REAR_BACK  = Z_REAR_INNER - 20    # thicker rear plate: back face at -32 (was -20)
 housing  = tube(R_HOUSE, R_CHAMBER_OUT, Z_REAR_INNER, L_CHAMBER)   # solid annulus, no void
 housing += tube(R_HOUSE, R_GRID,        L_CHAMBER, Z_SCREEN0 + SCREEN_T + GRID_GAP + ACCEL_T + 2)  # front ring around grids
-housing += tube(R_HOUSE, R_CATH + 4,    Z_REAR_INNER - 8, Z_REAR_INNER)  # rear plate w/ cathode bore
+housing += tube(R_HOUSE, R_CATH + 4,    Z_REAR_BACK, Z_REAR_INNER)  # THICKER rear plate w/ cathode bore
 # clearance bore through the rear plate so the propellant injector isn't intersected
 housing -= Pos(0, INJ_Y, Z_REAR_INNER - 4) * Cylinder(radius=INJ_CLEAR, height=14)
 # metal mounting block that ties the neutralizer cathode to the thruster body
@@ -115,9 +120,14 @@ accel  = perforate(cyl(R_GRID, z_a0, z_a1), z_a0, z_a1, ACCEL_HOLE_R)
 # OD (R_HOUSE), so each magnet is buried inside the wall material. The chamber
 # wall in front occludes it from the plasma cavity, so in section it reads as a
 # dark box embedded in the wall rather than a ring protruding into the chamber.
-def ring(zc, h=14):
-    return tube(R_HOUSE-10, R_CHAMBER_OUT+2, zc-h/2, zc+h/2)   # r = 102 .. 116
-magnets = ring(18) + ring(98) + ring(183)
+def ring(zc, h=14, ro=R_HOUSE-10, ri=R_CHAMBER_OUT+2):
+    return tube(ro, ri, zc-h/2, zc+h/2)   # default r = 102 .. 116 (side wall)
+# Side-wall rings at z = 18, 98, 183, PLUS a new back-wall ring buried in the
+# thickened rear plate (z = -21, i.e. inside Z_REAR_BACK..Z_REAR_INNER). Sits at
+# r 44..58 on the back plate: inboard, encircling the cathode/injector, but held
+# OFF the injector (r<=32) so there is a clear radial gap. It pairs with the z=18
+# side ring to close a new ring cusp.
+magnets = ring(-21, ro=58, ri=44) + ring(18) + ring(98) + ring(183)
 
 # ---- hollow cathode (central) — shifted further out of the chamber ------
 cathode = tube(R_CATH, R_CATH_BORE, -70 + FEED_SHIFT, 45 + FEED_SHIFT)
