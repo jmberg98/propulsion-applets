@@ -33,8 +33,8 @@ ACCEL_T       = 5.0      # CHANGED (was 3.0)
 GRID_GAP      = 8.0      # CHANGED (was 4.0)
 Z_SCREEN0     = L_CHAMBER + 2.0            # 202
 HOLE_PITCH    = 16.0
-SCREEN_HOLE_R = 6.0      # screen-grid aperture radius (larger — open extraction optics)
-ACCEL_HOLE_R  = 3.0      # accel-grid apertures are SMALLER (blocks electron backstreaming)
+SCREEN_HOLE_R = 7.5      # screen-grid aperture radius (large — open extraction optics)
+ACCEL_HOLE_R  = 4.5      # accel-grid apertures are SMALLER (blocks electron backstreaming)
 
 R_CATH        = 10.0     # hollow cathode outer radius
 R_CATH_BORE   = 5.0
