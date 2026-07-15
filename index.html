@@ -129,8 +129,11 @@
       margin-bottom  : 7px;
     }
 
+    /* second and later section headers get breathing room above */
+    .applet-grid + .sect-hdr { margin-top: 14px; }
+
     /* ── Applet grid ───────────────────────────────────────────── */
-    #applet-grid {
+    .applet-grid {
       width                : var(--page-w);
       display              : grid;
       grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
@@ -239,11 +242,10 @@
     working through earlier material makes later applets more intuitive. Aimed toward undergraduate students with a background in elementary physics and calculus, but learners of all backgrounds are welcome!
   </p>
 
-  <!-- ── Applets section label ───────────────────────────────── -->
-  <div class="sect-hdr">Applets</div>
+  <!-- ═══ Mission Analysis ════════════════════════════════════ -->
+  <div class="sect-hdr">Mission Analysis</div>
 
-  <!-- ── Applet cards ────────────────────────────────────────── -->
-  <div id="applet-grid">
+  <div class="applet-grid">
 
     <a class="applet-card card-ve" href="specific_impulse/specific_impulse_applet.html">
       <div class="card-thumb">
@@ -278,9 +280,16 @@
       <h2>Stuhlinger &amp; Optimum Exhaust Velocity</h2>
       <p>
         Plan a mission by specifying mission parameters and selecting an on-board power source for an space propulsion
-        system. What propulsive device should we use if we seek to maximize the spacecraft's payload mass? 
+        system. What propulsive device should we use if we seek to maximize the spacecraft's payload mass?
       </p>
     </a>
+
+  </div>
+
+  <!-- ═══ Plasma Physics ══════════════════════════════════════ -->
+  <div class="sect-hdr">Plasma Physics</div>
+
+  <div class="applet-grid">
 
     <a class="applet-card card-power" href="electrostatic/electrostatic_applet.html">
       <div class="card-thumb">
@@ -330,6 +339,13 @@
         trap charged particles, and what determines whether a particle is or isn't trapped?
       </p>
     </a>
+
+  </div>
+
+  <!-- ═══ Electric Propulsion ═════════════════════════════════ -->
+  <div class="sect-hdr">Electric Propulsion</div>
+
+  <div class="applet-grid">
 
     <a class="applet-card card-thrust" href="gridded_ion/gridded_ion_applet.html">
       <div class="card-thumb">

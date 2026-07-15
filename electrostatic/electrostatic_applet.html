@@ -528,9 +528,48 @@ footer {
   font-size: 18.5px;
   color: var(--text-muted);
 }
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.applet-nav a,
+.applet-nav .nav-disabled {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: var(--bg-panel-1);
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover {
+  border-color: var(--c-accent);
+  background: var(--bg-panel-3);
+  color: var(--text-heading);
+}
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
 </style>
 </head>
 <body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <a class="nav-prev" href="../optimum_isp/optimum_isp_applet.html">&larr; Prev</a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="../larmor/larmor_applet.html">Next &rarr;</a>
+</nav>
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
