@@ -82,9 +82,12 @@ chamber += rear_wall
 Z_REAR_BACK  = Z_REAR_INNER - 20    # thicker rear plate: back face at -32 (was -20)
 housing  = tube(R_HOUSE, R_CHAMBER_OUT, Z_REAR_INNER, L_CHAMBER)   # solid annulus, no void
 housing += tube(R_HOUSE, R_GRID,        L_CHAMBER, Z_SCREEN0 + SCREEN_T + GRID_GAP + ACCEL_T + 2)  # front ring around grids
-housing += tube(R_HOUSE, R_CATH + 4,    Z_REAR_BACK, Z_REAR_INNER)  # THICKER rear plate w/ cathode bore
-# clearance bore through the rear plate so the propellant injector isn't intersected
-housing -= Pos(0, INJ_Y, Z_REAR_INNER - 4) * Cylinder(radius=INJ_CLEAR, height=14)
+housing += tube(R_HOUSE, R_CATH + 4,    Z_REAR_BACK, Z_REAR_INNER)  # THICKER rear plate w/ cathode bore (r=14, snug clearance)
+# clearance bore through the rear plate so the propellant injector isn't intersected —
+# spans the FULL plate depth (Z_REAR_BACK..Z_REAR_INNER) so the injector bore is open all
+# the way through the rear body face (was centred at -16/height 14, which stopped short of
+# the -32 back face and left the injector capped by solid plate).
+housing -= Pos(0, INJ_Y, (Z_REAR_BACK + Z_REAR_INNER) / 2) * Cylinder(radius=INJ_CLEAR, height=(Z_REAR_INNER - Z_REAR_BACK) + 6)
 # metal mounting block that ties the neutralizer cathode to the thruster body
 housing += Pos(0, 128.5, 183) * Box(18, 10, 30)
 # neutralizer enclosure (keeper housing): a box wrapping the neutralizer cathode
