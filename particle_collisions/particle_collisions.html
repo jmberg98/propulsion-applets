@@ -72,10 +72,6 @@
 
   /* ── KaTeX overlay laid over the canvas ──────────────────── */
   #collision-ui { position:absolute; inset:0; pointer-events:none; z-index:2; }
-  #col-title {
-    position:absolute; top:26px; left:28px;
-    font-size:21px; font-weight:700; color:var(--text-heading); letter-spacing:0.2px;
-  }
   #col-reaction {
     position:absolute; left:50%; top:74%; transform:translate(-50%,0);
     font-size:25px; color:var(--text-heading); white-space:nowrap;
@@ -125,8 +121,6 @@
   .ix-panel { display:none; flex-direction:column; }
   .ix-panel.active { display:flex; }
   .ix-title { font-size:15px; font-weight:700; color:var(--text-heading); letter-spacing:0.2px; margin-bottom:8px; }
-  .ix-note  { font-size:12.5px; line-height:1.55; color:var(--text-secondary); margin-bottom:16px; }
-  .ix-note b { color:var(--text-heading); font-weight:700; }
 
   .ix-slider { display:block; font-size:13px; color:var(--text-secondary); margin-bottom:16px; }
   .ix-slider input[type=range] { width:100%; accent-color:var(--c-ve); cursor:pointer; margin:8px 0 2px; }
@@ -140,15 +134,6 @@
     background:var(--bg-panel-2); border:1px solid var(--border); border-radius:6px; cursor:pointer;
   }
   .ix-select:hover { border-color:var(--c-accent); }
-
-  .ix-eq {
-    font-size:14px; text-align:center; color:var(--text-heading);
-    background:var(--bg-panel-2); border:1px solid var(--border); border-radius:6px;
-    padding:12px 8px; margin:4px 0 12px;
-  }
-  .ix-status { font-size:12.5px; font-weight:700; padding:8px 10px; border-radius:6px; text-align:center; }
-  .ix-status.ok   { color:#7fe0a0; background:rgba(80,200,120,0.10); border:1px solid rgba(80,200,120,0.3); }
-  .ix-status.warn { color:#ff9a8e; background:rgba(255,90,70,0.10);  border:1px solid rgba(255,90,70,0.35); }
 
   .ix-mu { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
   .ix-mu-lbl { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--c-accent); margin-bottom:6px; }
@@ -172,9 +157,8 @@
   <!-- ── Scene ─────────────────────────────────────────────── -->
   <div id="viewport">
     <canvas id="scene-canvas"></canvas>
-    <!-- KaTeX overlay: title, scene call-outs, reaction, caption -->
+    <!-- KaTeX overlay: scene call-outs + collision equation and result -->
     <div id="collision-ui" aria-hidden="true">
-      <div id="col-title">Ionizing Collision</div>
       <div class="col-slbl" id="col-lbl-in"></div>
       <div class="col-slbl" id="col-lbl-atom"></div>
       <div class="col-slbl" id="col-lbl-out"></div>
@@ -185,9 +169,6 @@
 
   <!-- ── Controls ──────────────────────────────────────────── -->
   <aside id="panel">
-    <h1>Particle Collisions</h1>
-    <div class="sub">The two processes that create and destroy the ions inside a plasma thruster:
-      <b>ionization</b> makes an ion; <b>recombination</b> unmakes it.</div>
 
     <div class="mode-tabs">
       <div class="mode-tab active" data-mode="ionization">Ionization<small>e⁻ knocks one loose</small></div>
@@ -196,11 +177,7 @@
 
     <!-- Ionizing collision: e⁻ + M → M⁺ + 2e⁻ -->
     <div id="ix-ionization" class="ix-panel active">
-      <div class="ix-title">Ionizing Collision</div>
-      <p class="ix-note">A single ionizing event: a fast electron strikes a neutral propellant
-        atom. If it carries more than that atom's <b>ionization energy</b> E<sub>i</sub>, it
-        knocks a second electron loose — leaving a positive ion and <b>two electrons</b>. Below
-        E<sub>i</sub> it just bounces off and the atom stays neutral.</p>
+      <div class="ix-title">Ionization</div>
       <label class="ix-sel-lbl">Propellant
         <select id="ion-prop" class="ix-select">
           <option value="Xe">Xenon (Xe) — 12.13 eV</option>
@@ -214,19 +191,11 @@
         <input type="range" id="ion-e" min="2" max="40" step="0.5" value="30">
         <span class="ix-val" id="ion-e-val">30&nbsp;eV</span>
       </label>
-      <div class="ix-eq" id="ion-reaction-panel"></div>
-      <div id="ion-status" class="ix-status" style="margin-top:6px"></div>
-      <button class="ix-btn" id="ion-replay">↺ Replay collision</button>
     </div>
 
     <!-- Radiative recombination: M⁺ + e⁻ → M + hν -->
     <div id="ix-recombination" class="ix-panel">
-      <div class="ix-title">Radiative Recombination</div>
-      <p class="ix-note">The reverse of ionization: a free electron is <b>captured</b> by a
-        positive ion, dropping into a bound orbit and rebuilding a neutral atom. The binding
-        energy it gives up leaves as a <b>photon</b> hν. Recombination strongly favors <b>slow</b>
-        electrons — a fast electron sails past the ion without being caught, scattering off its
-        field instead.</p>
+      <div class="ix-title">Recombination</div>
       <label class="ix-sel-lbl">Propellant
         <select id="rec-prop" class="ix-select">
           <option value="Xe">Xenon (Xe) — 12.13 eV</option>
@@ -240,13 +209,10 @@
         <input type="range" id="rec-e" min="0.5" max="40" step="0.5" value="3">
         <span class="ix-val" id="rec-e-val">3.0&nbsp;eV</span>
       </label>
-      <div class="ix-eq" id="rec-reaction-panel"></div>
-      <div id="rec-status" class="ix-status" style="margin-top:6px"></div>
       <div class="ix-mu">
         <div class="ix-mu-lbl">Emitted photon</div>
         <div class="ix-mu-val" id="rec-photon">—</div>
       </div>
-      <button class="ix-btn" id="rec-replay">↺ Replay capture</button>
     </div>
   </aside>
 </div>
@@ -259,13 +225,21 @@ const SUP_PLUS = '⁺';   // unicode superscript + for canvas element symbols
 
 /* Propellants: symbol + first ionization energy E_i (eV). E_i doubles as the photon
    binding energy released when an electron recombines onto the ion. */
+/* color: neon hue for the emitted photon, matching the "Choice of Propellant" cards
+   in particle_collisions_applet.html (Mercury has no card, so it gets a fitting teal). */
 const PROPELLANTS = {
-  Xe: { name:'Xenon',   sym:'Xe', Ei:12.13 },
-  Kr: { name:'Krypton', sym:'Kr', Ei:14.00 },
-  Ar: { name:'Argon',   sym:'Ar', Ei:15.76 },
-  Hg: { name:'Mercury', sym:'Hg', Ei:10.44 },
-  I:  { name:'Iodine',  sym:'I',  Ei:10.45 },
+  Xe: { name:'Xenon',   sym:'Xe', Ei:12.13, color:'#3DBFFF' },
+  Kr: { name:'Krypton', sym:'Kr', Ei:14.00, color:'#7B78FF' },
+  Ar: { name:'Argon',   sym:'Ar', Ei:15.76, color:'#B455FF' },
+  Hg: { name:'Mercury', sym:'Hg', Ei:10.44, color:'#46E8B0' },
+  I:  { name:'Iodine',  sym:'I',  Ei:10.45, color:'#FF4FD8' },
 };
+
+/* '#RRGGBB' → 'r,g,b' for building rgba() strings. */
+function rgbTriplet(hex){
+  const n = parseInt(hex.slice(1), 16);
+  return ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255);
+}
 /* Illustrative capture cutoff: above this the electron is too fast to be caught and
    scatters instead. Radiative recombination really does fall off with electron energy;
    the sharp threshold here is a teaching simplification of that trend. */
@@ -325,7 +299,8 @@ function drawPhoton(ctx, x0, y0, x1, y1, k){
   const dx = x1-x0, dy = y1-y0, len = Math.hypot(dx,dy) || 1;
   const nx = -dy/len, ny = dx/len;                // unit normal for the wave
   const fade = Math.max(0, 1 - k*0.35);
-  ctx.strokeStyle = 'rgba(206,184,255,' + (0.9*fade) + ')'; ctx.lineWidth = 2.6;
+  const rgb = rgbTriplet(recProp().color);        // photon takes the propellant's hue
+  ctx.strokeStyle = 'rgba(' + rgb + ',' + (0.9*fade) + ')'; ctx.lineWidth = 2.6;
   ctx.beginPath();
   const N = 34, waves = 5, amp = Math.min(11, len*0.09);
   for (let i=0;i<=N;i++){
@@ -335,11 +310,11 @@ function drawPhoton(ctx, x0, y0, x1, y1, k){
     if (i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
   }
   ctx.stroke();
-  // bright head
+  // bright head — white core fading out to the propellant hue
   const g = ctx.createRadialGradient(x1,y1,0, x1,y1,16);
   g.addColorStop(0,'rgba(255,255,255,'+fade+')');
-  g.addColorStop(0.4,'rgba(200,170,255,'+(0.8*fade)+')');
-  g.addColorStop(1,'rgba(160,120,255,0)');
+  g.addColorStop(0.4,'rgba(' + rgb + ',' + (0.85*fade) + ')');
+  g.addColorStop(1,'rgba(' + rgb + ',0)');
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x1,y1,16,0,6.283); ctx.fill();
 }
 
@@ -352,26 +327,15 @@ function colLabel(id, on, x, y){
 
 /* ── Info / readout refresh ──────────────────────────────────────── */
 function updateIonInfo(){
-  const p = ionProp(), ionizes = ION.energy >= p.Ei;
-  const rxn = 'e^- + \\mathrm{' + p.sym + '} \\;\\rightarrow\\; \\mathrm{' + p.sym + '}^{+} + 2\\,e^-';
-  kx($('ion-reaction-panel'), rxn, 'e⁻ + ' + p.sym + ' → ' + p.sym + '⁺ + 2e⁻');
-  const st = $('ion-status');
-  st.className = 'ix-status ' + (ionizes ? 'ok' : 'warn');
-  st.textContent = ionizes ? 'Ionizing Collision' : 'Elastic Collision — no ionization';
   if (S.mode === 'ionization') refreshSceneChrome();
 }
 function updateRecInfo(){
   const p = recProp(), captures = REC.energy <= E_CAP;
   const hv = p.Ei + REC.energy;                 // photon energy = binding + electron KE
   const lam = 1239.84 / hv;                      // nm
-  const rxn = '\\mathrm{' + p.sym + '}^{+} + e^- \\;\\rightarrow\\; \\mathrm{' + p.sym + '} + h\\nu';
-  kx($('rec-reaction-panel'), rxn, p.sym + '⁺ + e⁻ → ' + p.sym + ' + hν');
-  const st = $('rec-status');
-  st.className = 'ix-status ' + (captures ? 'ok' : 'warn');
-  st.textContent = captures ? 'Radiative Recombination' : 'Too fast — scatters, no capture';
   const ph = $('rec-photon');
   if (captures){
-    ph.innerHTML = '<b>h&nu; = ' + hv.toFixed(1) + '&nbsp;eV</b> &nbsp;·&nbsp; &lambda; = ' +
+    ph.innerHTML = '<b style="color:' + p.color + '">h&nu; = ' + hv.toFixed(1) + '&nbsp;eV</b> &nbsp;·&nbsp; &lambda; = ' +
                    lam.toFixed(0) + '&nbsp;nm <span style="color:var(--text-muted)">(UV)</span>';
   } else {
     ph.innerHTML = '<span style="color:var(--text-muted)">no photon — electron not captured</span>';
@@ -379,12 +343,11 @@ function updateRecInfo(){
   if (S.mode === 'recombination') refreshSceneChrome();
 }
 
-/* Overlay title + reaction/caption that sit over the canvas (per mode). */
+/* Collision equation + result caption that sit over the canvas (per mode). */
 function refreshSceneChrome(){
   S._lbl = '';   // force scene call-outs to re-render next frame
   if (S.mode === 'ionization'){
     const p = ionProp(), ionizes = ION.energy >= p.Ei;
-    $('col-title').textContent = 'Ionizing Collision';
     const rxn = 'e^- + \\mathrm{' + p.sym + '} \\;\\rightarrow\\; \\mathrm{' + p.sym + '}^{+} + 2\\,e^-';
     kx($('col-reaction'), rxn, 'e⁻ + ' + p.sym + ' → ' + p.sym + '⁺ + 2e⁻');
     const cap = $('col-cap');
@@ -393,7 +356,6 @@ function refreshSceneChrome(){
        ionizes ? 'Ionizing Collision' : 'Elastic Collision');
   } else {
     const p = recProp(), captures = REC.energy <= E_CAP;
-    $('col-title').textContent = 'Radiative Recombination';
     const rxn = '\\mathrm{' + p.sym + '}^{+} + e^- \\;\\rightarrow\\; \\mathrm{' + p.sym + '} + h\\nu';
     kx($('col-reaction'), rxn, p.sym + '⁺ + e⁻ → ' + p.sym + ' + hν');
     const cap = $('col-cap');
@@ -477,8 +439,8 @@ function drawRecombination(dt){
     if (captures){
       phase = 'rec';
       drawAtom(ctx, cx, cy, R, eR, p.sym, false, S.t);   // now neutral
-      // recombination flash + outgoing photon
-      if (k < 0.5){ ctx.fillStyle = 'rgba(206,184,255,' + (0.5-k) + ')';
+      // recombination flash + outgoing photon (both in the propellant's hue)
+      if (k < 0.5){ ctx.fillStyle = 'rgba(' + rgbTriplet(p.color) + ',' + (0.5-k) + ')';
         ctx.beginPath(); ctx.arc(cx, cy, R*(1+k*1.6), 0, 6.283); ctx.fill(); }
       const px = cx + k*W*0.30, py = cy - k*H*0.24;
       drawPhoton(ctx, cx + (R+eR)*0.3, cy - (R+eR)*0.3, px, py, k);
@@ -546,7 +508,6 @@ function init(){
     ION.energy = +e.target.value; $('ion-e-val').innerHTML = ION.energy.toFixed(1) + '&nbsp;eV';
     S.t = 0; updateIonInfo();
   });
-  $('ion-replay').addEventListener('click', () => { S.t = 0; });
 
   // Recombination controls
   $('rec-prop').addEventListener('change', e => { REC.prop = e.target.value; S.t = 0; updateRecInfo(); });
@@ -554,15 +515,21 @@ function init(){
     REC.energy = +e.target.value; $('rec-e-val').innerHTML = REC.energy.toFixed(1) + '&nbsp;eV';
     S.t = 0; updateRecInfo();
   });
-  $('rec-replay').addEventListener('click', () => { S.t = 0; });
 
   // Mode tabs
   document.querySelectorAll('.mode-tab').forEach(tb =>
     tb.addEventListener('click', () => setMode(tb.dataset.mode)));
 
   // Deep-link: ?mode=recombination|recombine|rec  or  ionization|ionize|ion
-  const q = (new URLSearchParams(location.search).get('mode') || '').toLowerCase();
+  // When a mode is pinned via the URL (e.g. the applet embeds), lock to it and
+  // hide the tabs — mode switching is only offered in the standalone page.
+  const params = new URLSearchParams(location.search);
+  const q = (params.get('mode') || '').toLowerCase();
   const startMode = /^rec/.test(q) ? 'recombination' : 'ionization';
+  if (params.has('mode')) {
+    const tabs = document.querySelector('.mode-tabs');
+    if (tabs) tabs.style.display = 'none';
+  }
 
   updateIonInfo(); updateRecInfo();
   setMode(startMode);

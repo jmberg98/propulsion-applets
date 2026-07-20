@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Particle Collisions — Ionization &amp; Recombination</title>
+<title>Ionization &amp; Recombination</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,6 +25,7 @@
 <style>
 :root {
   --c-ve:     #3DBFFF;
+  --c-thrust: #FF6A2A;
   --c-power:  #C060FF;
 
   --c-accent:      #a0a0a0;
@@ -72,6 +73,7 @@ body {
 
 #hdr,
 .page-intro,
+.clarify-section,
 .theory-block,
 .quiz-section,
 .transition-line,
@@ -82,6 +84,7 @@ footer { width: var(--page-w); }
 /* ── Highlight classes ───────────────────────────────── */
 .hl-ve       { color: var(--c-ve); }
 .hl-ion      { color: var(--c-ve); }
+.hl-thrust   { color: var(--c-thrust); }
 .hl-electron { color: var(--c-power); }
 .hl-neutral  { color: var(--text-secondary); }
 .hl-photon   { color: #cbb2ff; }
@@ -100,6 +103,10 @@ footer { width: var(--page-w); }
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro { font-size: 20.5px; line-height: 1.72; color: var(--text-main); margin-bottom: 18px; }
 .page-intro + .page-intro { margin-top: -4px; }
+.page-intro.section-lead {
+  border-top: 1px solid var(--border);
+  padding-top: 20px; margin-top: 4px;
+}
 
 /* ── Transition line ─────────────────────────────────── */
 .transition-line {
@@ -134,6 +141,36 @@ footer { width: var(--page-w); }
   border-top: 1px solid var(--border); background: var(--bg-canvas);
 }
 
+/* ══════════ PROPELLANT CARDS ══════════ */
+.propellant-grid { display: flex; flex-direction: column; gap: 12px; }
+.prop-card {
+  display: flex; align-items: stretch; gap: 20px;
+  padding: 16px; border: 1px solid var(--border); border-left: 3px solid var(--c-el);
+  border-radius: 6px; background: var(--bg-panel-2);
+}
+.el-box {
+  flex-shrink: 0; width: 122px;
+  border: 2px solid var(--c-el); border-radius: 6px; padding: 10px 8px 8px;
+  background: var(--bg-panel-3);
+  background: color-mix(in srgb, var(--c-el) 9%, var(--bg-panel-3));
+  box-shadow: 0 0 20px -6px var(--c-el);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+}
+.el-num  { align-self: flex-start; font-size: 15px; font-weight: 600; color: var(--c-el); line-height: 1; }
+.el-sym  {
+  font-size: 46px; font-weight: 700; color: var(--c-el); line-height: 1.05; margin-top: 2px;
+  text-shadow: 0 0 16px color-mix(in srgb, var(--c-el) 55%, transparent);
+}
+.el-name { font-size: 16px; font-weight: 500; color: var(--text-heading); margin-top: 3px; }
+.el-mass { font-size: 15px; color: var(--text-secondary); margin-top: 1px; }
+
+.prop-info { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.prop-name-lg { font-size: 18px; font-weight: 700; color: var(--c-el); letter-spacing: .3px; margin-bottom: 2px; }
+.prop-line { font-size: 18.5px; line-height: 1.4; display: flex; gap: 11px; align-items: baseline; color: var(--text-main); }
+.prop-line .pm { flex-shrink: 0; font-weight: 700; width: 14px; text-align: center; font-size: 20px; }
+.prop-pro .pm { color: #51cf66; }
+.prop-con .pm { color: #ff6b6b; }
+
 /* ══════════ QUIZ ══════════ */
 .quiz-section {
   border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
@@ -163,6 +200,35 @@ footer { width: var(--page-w); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
 .quiz-feedback { font-size: 18px; color: var(--text-muted); min-height: 22px; font-style: italic; margin-top: 8px; }
+
+/* ══════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ══════════ */
+.clarify-section {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--bg-panel-1); margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border);
+}
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer; list-style: none; display: block;
+  padding: 12px 14px 12px 34px; font-size: 20.5px; font-weight: 600;
+  color: var(--text-heading); background: var(--bg-panel-2); user-select: none; line-height: 1.5;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6'; font-size: 10px; color: var(--c-accent); display: inline-block;
+  width: 12px; margin-left: -20px; margin-right: 8px; text-align: center;
+  transition: transform 0.15s ease; transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-accent); outline-offset: -2px; }
+.clarify-body {
+  padding: 12px 18px 15px; border-top: 1px solid var(--border);
+  font-size: 20.5px; line-height: 1.70; color: var(--text-main); background: var(--bg-panel-1);
+}
 
 /* ── KaTeX font sizing ──────────────────────────────── */
 .katex { font-size: 1.15em !important; }
@@ -197,36 +263,42 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Particle Collisions &mdash; Ionization &amp; Recombination</h1>
+  <h1>Ionization &amp; Recombination</h1>
   <span class="badge">Plasma Physics</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  A plasma is held in balance by two opposing single-particle events. In
-  <span class="key">ionization</span>, a fast <span class="key hl-electron">electron</span> slams into a
-  <span class="key hl-neutral">neutral atom</span> and knocks one of its electrons loose, creating an
-  <span class="key hl-ion">ion</span>. In <span class="key">recombination</span>, a free
-  <span class="hl-electron">electron</span> is recaptured by an <span class="hl-ion">ion</span>, rebuilding a
-  neutral atom and releasing the energy as a <span class="key hl-photon">photon</span>. Together these set how
-  ionized a gas becomes.
+  The clearest difference between <span class="key">chemical rockets</span> (think Space Shuttle main engines) and
+  <span class="key">electric rockets</span> (think Starlink Hall thrusters) is the link in propellant and energy.
+  Chemical rocket propellant, such as liquid hydrogen and liquid oxygen, has stored energy, released by forming
+  chemical bonds through combustion. Electric rocket propellant, such as Xenon gas, doesn&rsquo;t have any stored
+  energy. This permits us to use external sources of energy to accelerate the propellant using electric and magnetic
+  fields.
+</p>
+
+<p class="page-intro">
+  Particles are only accelerated by electric and magnetic fields if they are charged. Thus, we must separate our
+  propellant particles into positively and negatively charged particles, also called
+  <span class="key">ionization</span>. The two primary methods of ionization used in electric thrusters are
+  <span class="key">electron bombardment</span> and <span class="key">radio-frequency (RF) excitation</span>. Both use
+  energy to cause a <span class="hl-neutral">neutral atom</span> to break into a positively charged
+  <span class="hl-ion">ion</span> and a negatively charged <span class="hl-electron">electron</span>. Electron
+  bombardment uses the kinetic energy of <span class="hl-electron">electrons</span> to provide the required energy for
+  a neutral atom to be ionized, also known as the <span class="key">ionization energy</span>.
 </p>
 
 <!-- ════════════════════ IONIZATION QUIZ ════════════════════ -->
 <div class="quiz-section">
-  <div class="quiz-hdr">Ionization</div>
+  <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">An electron must carry at least a certain amount of energy to ionize an atom. What sets
-    that threshold?</p>
+    <p class="quiz-q">Does ionization require or release energy?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>The atom&rsquo;s <em>ionization energy</em> E<sub>i</sub> — the binding energy of its most loosely held electron.
+        <span class="quiz-opt-label">a</span>Ionization requires energy.
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>The temperature of the discharge chamber walls.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>The mass of the atom&rsquo;s nucleus.
+        <span class="quiz-opt-label">b</span>Ionization releases energy.
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -235,43 +307,32 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
 
 <!-- ════════════════════ IONIZATION DEMO ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Ionizing Collision &mdash; e&#8315; + M &rarr; M&#8314; + 2e&#8315;</div>
+  <div class="th-hdr">Ionization</div>
   <iframe class="applet-frame" src="particle_collisions.html?mode=ionization"
           title="Ionizing collision — a fast electron knocks an electron loose from a neutral atom"
           loading="lazy"></iframe>
 </div>
 
-<p class="transition-line">
-  Slide the electron energy below E<sub>i</sub> and the collision turns <em>elastic</em> — the electron simply
-  bounces off and the atom stays neutral. Above E<sub>i</sub>, one electron becomes two and an ion is born.
+<!-- ════════════════════ RECOMBINATION ════════════════════ -->
+<p class="page-intro section-lead">
+  Sometimes, when a positively charged <span class="hl-ion">ion</span> and a negatively charged
+  <span class="hl-electron">electron</span> come in contact, they <span class="key">recombine</span> into a
+  <span class="hl-neutral">neutral atom</span>, releasing energy in the form of <span class="hl-photon">light</span>.
+  This causes the characteristic glow of plasmas in fusion reactors and electric thrusters. This is also a loss
+  mechanism, as we seek to maximize the number of <span class="hl-ion">ions</span> in the ionization chamber, which can
+  be used to produce useful <span class="hl-thrust">thrust</span> for our engine.
 </p>
 
-<!-- ════════════════════ RECOMBINATION QUIZ ════════════════════ -->
 <div class="quiz-section">
-  <div class="quiz-hdr">Recombination</div>
+  <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">When a free electron recombines with an ion, where does the released binding energy go?</p>
+    <p class="quiz-q">Does recombination require or release energy?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>It is absorbed by the nucleus, making the atom heavier.
+        <span class="quiz-opt-label">a</span>Recombination requires energy.
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>It is radiated away as a <em>photon</em> hν, whose energy equals the binding energy plus the electron&rsquo;s kinetic energy.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>It disappears — energy is not conserved in recombination.
-      </button>
-    </div>
-    <div class="quiz-feedback"></div>
-  </div>
-  <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">Recombination is far more likely for which electrons?</p>
-    <div class="quiz-options">
-      <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span><em>Slow</em> electrons — they linger near the ion long enough to be captured.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span><em>Fast</em> electrons — more energy means a stronger pull into the ion.
+        <span class="quiz-opt-label">b</span>Recombination releases energy.
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -280,17 +341,168 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
 
 <!-- ════════════════════ RECOMBINATION DEMO ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Radiative Recombination &mdash; M&#8314; + e&#8315; &rarr; M + h&nu;</div>
+  <div class="th-hdr">Recombination</div>
   <iframe class="applet-frame" src="particle_collisions.html?mode=recombination"
           title="Radiative recombination — a slow electron is captured by an ion, emitting a photon"
           loading="lazy"></iframe>
 </div>
 
-<p class="transition-line">
-  Recombination is the reverse of ionization: it converts an <span class="hl-ion">ion</span> back into a
-  <span class="hl-neutral">neutral atom</span>. In a thruster it is a loss channel — every recombination on a
-  wall or in the beam is a propellant atom that never produced thrust.
+<!-- ════════════════════ PROPELLANT SELECTION ════════════════════ -->
+<p class="page-intro section-lead">
+  Now that we are more familiar with these particle processes, we can explore choices of propellant for our electric
+  thrusters. Recall that atoms can be ionized multiple times, achieving charges +1, +2, or +3. We seek a
+  <span class="key">low first ionization energy</span>, the energy required to remove the first electron from the
+  neutral atom. This minimizes the amount of energy to ionize our propellant so it can be accelerated. However, we seek
+  a <span class="key">high second ionization energy</span>, the energy required to remove another electron from the
+  positively charged ion. That energy could have been used to ionize another neutral atom, rather than increasing the
+  charge of the ion.
 </p>
+
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">What type of propellant offers a low first ionization energy and a high second ionization
+    energy?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>Halogens
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>Noble gases
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>Alkaline Earth Metals
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ PROPELLANT CARDS ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Choice of Propellant</div>
+  <p class="th-body">
+    Let&rsquo;s explore the pros/cons of the most commonly used propellants in electric propulsion devices.
+  </p>
+
+  <div class="propellant-grid">
+
+    <!-- Xenon -->
+    <div class="prop-card" style="--c-el:#3DBFFF">
+      <div class="el-box">
+        <span class="el-num">54</span>
+        <span class="el-sym">Xe</span>
+        <span class="el-name">Xenon</span>
+        <span class="el-mass">131.29</span>
+      </div>
+      <div class="prop-info">
+        <span class="prop-name-lg">Xenon</span>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Low 1st ionization energy (12.13&nbsp;eV)</div>
+        <div class="prop-line prop-pro"><span class="pm">+</span>High atomic mass</div>
+        <div class="prop-line prop-con"><span class="pm">&minus;</span>Rare and expensive</div>
+      </div>
+    </div>
+
+    <!-- Argon -->
+    <div class="prop-card" style="--c-el:#B455FF">
+      <div class="el-box">
+        <span class="el-num">18</span>
+        <span class="el-sym">Ar</span>
+        <span class="el-name">Argon</span>
+        <span class="el-mass">39.95</span>
+      </div>
+      <div class="prop-info">
+        <span class="prop-name-lg">Argon</span>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Cheap and abundant</div>
+        <div class="prop-line prop-con"><span class="pm">&minus;</span>High 1st ionization energy (15.76&nbsp;eV)</div>
+        <div class="prop-line prop-con"><span class="pm">&minus;</span>Low atomic mass</div>
+      </div>
+    </div>
+
+    <!-- Iodine -->
+    <div class="prop-card" style="--c-el:#FF4FD8">
+      <div class="el-box">
+        <span class="el-num">53</span>
+        <span class="el-sym">I</span>
+        <span class="el-name">Iodine</span>
+        <span class="el-mass">126.90</span>
+      </div>
+      <div class="prop-info">
+        <span class="prop-name-lg">Iodine</span>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Low 1st ionization energy (10.45&nbsp;eV)</div>
+        <div class="prop-line prop-pro"><span class="pm">+</span>High atomic mass</div>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Stores as a dense solid</div>
+        <div class="prop-line prop-con"><span class="pm">&minus;</span>Corrosive to thruster hardware</div>
+      </div>
+    </div>
+
+    <!-- Krypton -->
+    <div class="prop-card" style="--c-el:#7B78FF">
+      <div class="el-box">
+        <span class="el-num">36</span>
+        <span class="el-sym">Kr</span>
+        <span class="el-name">Krypton</span>
+        <span class="el-mass">83.80</span>
+      </div>
+      <div class="prop-info">
+        <span class="prop-name-lg">Krypton</span>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Moderate 1st ionization energy (14.00&nbsp;eV)</div>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Cheaper than xenon</div>
+        <div class="prop-line prop-con"><span class="pm">&minus;</span>Low atomic mass</div>
+      </div>
+    </div>
+
+    <!-- Lithium -->
+    <div class="prop-card" style="--c-el:#FF5064">
+      <div class="el-box">
+        <span class="el-num">3</span>
+        <span class="el-sym">Li</span>
+        <span class="el-name">Lithium</span>
+        <span class="el-mass">6.94</span>
+      </div>
+      <div class="prop-info">
+        <span class="prop-name-lg">Lithium</span>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Very low 1st ionization energy (5.39&nbsp;eV)</div>
+        <div class="prop-line prop-pro"><span class="pm">+</span>Stores as a dense solid</div>
+        <div class="prop-line prop-con"><span class="pm">&minus;</span>Very low atomic mass</div>
+        <div class="prop-line prop-con"><span class="pm">&minus;</span>Condenses on and contaminates surfaces</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>Why do many conventional electric propulsion propellants have a high atomic mass? Wouldn&rsquo;t this lead
+    to a lower <span class="key hl-ve">specific impulse</span>, since the particle&rsquo;s exhaust speed leaving the
+    thruster would be lower?</summary>
+    <div class="clarify-body">
+      This is true! However, consider that electric propulsion devices already achieve very high
+      <span class="key hl-ve">specific impulses</span> (1000s of seconds, or 10s of km/s). The
+      <span class="key hl-thrust">thrust</span> of these devices is commonly measured in millinewtons, similar to the
+      weight of a mosquito. An easy way to increase the <span class="key hl-thrust">thrust</span>, without increasing
+      the power, is to use a propellant with a higher atomic mass, like Xenon or Krypton.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>Electromagnetic fields provide greater acceleration to particles with more charge, so why don&rsquo;t we
+    want particles with charge greater than 1?</summary>
+    <div class="clarify-body">
+      While a particle with greater charge will be accelerated more by electromagnetic fields, the highly excited
+      particle can cause greater erosion damage to the accelerating grids on contact, limiting the overall lifetime of
+      the thruster. Additionally, the increase to exhaust velocity or <span class="key hl-ve">specific impulse</span> is
+      not very large (see <a class="hl-ve" style="text-decoration:none"
+      href="../electrostatic/electrostatic_applet.html">Electrostatic Acceleration</a> applet). The energy is thus
+      better used to ionize another neutral atom, raising the <span class="key hl-thrust">thrust</span> and
+      <span class="key hl-ve">specific impulse</span> of the device.
+    </div>
+  </details>
+</div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
 
