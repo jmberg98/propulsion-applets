@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gridded Ion Engine — Overview</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  --c-thrust: #FF4400;
+  --c-ve:     #3DBFFF;
+  --c-mass:   #FF4400;
+  --c-power:  #C060FF;
+  --c-press:  #00DDB5;
+  --c-bfield: #5c6bc0;
+  --c-efield: #ef5350;
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+.transition-line,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ───────────────────────────────── */
+.hl-thrust               { color: var(--c-thrust); }
+.hl-ve                   { color: var(--c-ve); }
+.hl-mass                 { color: var(--c-mass); }
+.hl-power                { color: var(--c-power); }
+.hl-press                { color: var(--c-press); }
+.hl-B                    { color: var(--c-bfield); }
+.hl-q                    { color: var(--c-power); }
+.hl-ion                  { color: var(--c-ve); }
+.hl-electron             { color: var(--c-power); }
+.hl-E                    { color: var(--c-efield); }
+.hl-neutral              { color: var(--text-secondary); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 18px;
+}
+.page-intro + .page-intro { margin-top: -4px; }
+
+/* ── Transition line ─────────────────────────────────── */
+.transition-line {
+  font-size: 20.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 6px 0 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Embedded viewer / applet iframe ────────────────── */
+.applet-frame {
+  display: block;
+  width: 100%;
+  height: 720px;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
+}
+.applet-frame.demo-frame { height: 560px; }
+
+/* ── Demo placeholder ───────────────────────────────── */
+.demo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 460px;
+  border-top: 1px solid var(--border);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.012) 0,
+      rgba(255,255,255,0.012) 12px,
+      transparent 12px,
+      transparent 24px
+    ),
+    var(--bg-canvas);
+  text-align: center;
+  padding: 24px;
+}
+.demo-placeholder-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.demo-placeholder-note {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 6px;
+  line-height: 1.55;
+}
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled):not(.selected) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
+}
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 8px;
+}
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.15em !important; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  margin-top: 10px;
+  font-size: 18.5px;
+  color: var(--text-muted);
+}
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.applet-nav a,
+.applet-nav .nav-disabled {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: var(--bg-panel-1);
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover {
+  border-color: var(--c-accent);
+  background: var(--bg-panel-3);
+  color: var(--text-heading);
+}
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <a class="nav-prev" href="../magnetic_mirror/magnetic_mirror_applet.html">&larr; Prev</a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="GIE_Ionization_applet.html">Next &rarr;</a>
+</nav>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Gridded Ion Engine</h1>
+  <span class="badge">Electric Propulsion</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  Before we look into the physics, it is important to acknowledge the history under which
+  <span class="key">electrostatic thrusters</span> were developed. Nearly all electric propulsion devices used
+  today are <span class="key">electrostatic devices</span>, meaning they use solely
+  <span class="key hl-E">electric fields</span> to accelerate <span class="key hl-q">charged particles</span> for
+  thrust. During the Cold War, the United States and Soviet Union began research on two such electrostatic
+  thrusters: the <span class="key">gridded ion engine</span> and the <span class="key">Hall-Effect thruster</span>.
+  While the United States began early theoretical research on the Hall-Effect thruster, it had plasma
+  instabilities that dissuaded further development efforts. The United States would go on to focus on the
+  development of the gridded ion engine, while the Soviet Union would continue to research the Hall-Effect
+  thruster.
+</p>
+
+<p class="page-intro">
+  <span class="key">Gridded ion engines</span> are highly efficient electric propulsion devices used on modern
+  satellite platforms and several high profile missions. These ion engines have three characteristic features: an
+  <span class="key">ionization chamber</span>, <span class="key">accelerator grids</span>, and a
+  <span class="key">neutralizer</span>. While each of these features varies from thruster to thruster, each
+  variation serves the same purpose.
+</p>
+
+<p class="page-intro">
+  Use this 3D model to familiarize yourself with the gridded ion engine. The cross section feature allows you to
+  see the inner components and workings of the thruster. You can also toggle the visibility of
+  <span class="key hl-E">electromagnetic fields</span> and <span class="key hl-q">particles</span> for greater
+  detail.
+</p>
+
+<!-- ════════════════════ 3D VIEWER ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">3D Viewer &amp; Cross Section</div>
+  <iframe id="viewer-frame" class="applet-frame" src="gridded_ion.html?mode=overview&v=16"
+          title="Interactive 3D gridded ion engine — cross-section, fields, and particles"
+          loading="lazy"></iframe>
+</div>
+
+<!-- ════════════════════ TRANSITION ════════════════════ -->
+<p class="transition-line">
+  Let&rsquo;s examine the gridded ion engine component by component to get a better understanding of how it works.
+  We begin with the first stage &mdash; <a class="hl-ve" style="text-decoration:none" href="GIE_Ionization_applet.html">ionization</a>.
+</p>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+</body>
+</html>

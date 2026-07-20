@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Particle Collisions — Ionization &amp; Recombination</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  --c-ve:     #3DBFFF;
+  --c-power:  #C060FF;
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-canvas:   #090909;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.theory-block,
+.quiz-section,
+.transition-line,
+footer { width: var(--page-w); }
+
+.theory-block.applet-host { width: var(--page-w); margin-left: 0; }
+
+/* ── Highlight classes ───────────────────────────────── */
+.hl-ve       { color: var(--c-ve); }
+.hl-ion      { color: var(--c-ve); }
+.hl-electron { color: var(--c-power); }
+.hl-neutral  { color: var(--text-secondary); }
+.hl-photon   { color: #cbb2ff; }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+#hdr h1 { font-size: 25px; font-weight: 700; color: var(--text-heading); letter-spacing: .3px; }
+
+.badge {
+  font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 2px 8px; border: 1px solid var(--c-accent); border-radius: 3px;
+  color: var(--c-accent); background: var(--c-accent-bg); white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro { font-size: 20.5px; line-height: 1.72; color: var(--text-main); margin-bottom: 18px; }
+.page-intro + .page-intro { margin-top: -4px; }
+
+/* ── Transition line ─────────────────────────────────── */
+.transition-line {
+  font-size: 20.5px; line-height: 1.6; color: var(--text-secondary); font-style: italic;
+  margin: 6px 0 20px; padding-top: 18px; border-top: 1px solid var(--border);
+}
+
+/* ══════════ THEORY / APPLET BLOCKS ══════════ */
+.theory-block {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--bg-panel-1); padding: 16px 18px; margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
+  text-transform: uppercase; padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+}
+.th-body { font-size: 20.5px; line-height: 1.70; color: var(--text-main); margin-bottom: 14px; }
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr { margin: 0 18px 12px; }
+
+.applet-frame {
+  display: block; width: 100%; height: 620px; border: 0;
+  border-top: 1px solid var(--border); background: var(--bg-canvas);
+}
+
+/* ══════════ QUIZ ══════════ */
+.quiz-section {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--bg-panel-1); margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border); background: var(--bg-panel-1);
+}
+.quiz-block { padding: 14px 18px 16px; background: var(--bg-panel-1); }
+.quiz-block + .quiz-block { border-top: 1px solid var(--border); background: var(--bg-panel-2); }
+.quiz-q { font-size: 20.5px; font-weight: 600; color: var(--text-heading); margin-bottom: 6px; line-height: 1.55; }
+.quiz-options { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+.quiz-opt {
+  display: flex; align-items: center; gap: 12px; padding: 9px 14px;
+  background: var(--bg-panel-4); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-main); font-family: 'Barlow', sans-serif; font-size: 19px; font-weight: 500;
+  cursor: pointer; text-align: left; transition: background 0.15s, border-color 0.15s, color 0.15s; width: 100%;
+}
+.quiz-opt:hover:not(:disabled):not(.selected) { background: #222222; border-color: #3a3a3a; }
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.correct { background: rgba(81,207,102,0.09); border-color: rgba(81,207,102,0.38); color: #51cf66; }
+.quiz-opt.wrong   { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.28); color: #ff8e8e; }
+.quiz-opt-label {
+  font-size: 17px; font-weight: 700; color: #444; flex-shrink: 0; width: 20px; text-align: center; transition: color 0.15s;
+}
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-feedback { font-size: 18px; color: var(--text-muted); min-height: 22px; font-style: italic; margin-top: 8px; }
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.15em !important; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w); display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; margin-bottom: 18px;
+}
+.applet-nav a, .applet-nav .nav-disabled {
+  font-family: inherit; font-size: 16px; font-weight: 600; letter-spacing: 0.3px; text-decoration: none;
+  padding: 8px 14px; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-secondary); background: var(--bg-panel-1); white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover { border-color: var(--c-accent); background: var(--bg-panel-3); color: var(--text-heading); }
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <span class="nav-disabled">&larr; Prev</span>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="../gridded_ion/GIE_Ionization_applet.html">Next &rarr;</a>
+</nav>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Particle Collisions &mdash; Ionization &amp; Recombination</h1>
+  <span class="badge">Plasma Physics</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  A plasma is held in balance by two opposing single-particle events. In
+  <span class="key">ionization</span>, a fast <span class="key hl-electron">electron</span> slams into a
+  <span class="key hl-neutral">neutral atom</span> and knocks one of its electrons loose, creating an
+  <span class="key hl-ion">ion</span>. In <span class="key">recombination</span>, a free
+  <span class="hl-electron">electron</span> is recaptured by an <span class="hl-ion">ion</span>, rebuilding a
+  neutral atom and releasing the energy as a <span class="key hl-photon">photon</span>. Together these set how
+  ionized a gas becomes.
+</p>
+
+<!-- ════════════════════ IONIZATION QUIZ ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Ionization</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">An electron must carry at least a certain amount of energy to ionize an atom. What sets
+    that threshold?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>The atom&rsquo;s <em>ionization energy</em> E<sub>i</sub> — the binding energy of its most loosely held electron.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>The temperature of the discharge chamber walls.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>The mass of the atom&rsquo;s nucleus.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ IONIZATION DEMO ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Ionizing Collision &mdash; e&#8315; + M &rarr; M&#8314; + 2e&#8315;</div>
+  <iframe class="applet-frame" src="particle_collisions.html?mode=ionization"
+          title="Ionizing collision — a fast electron knocks an electron loose from a neutral atom"
+          loading="lazy"></iframe>
+</div>
+
+<p class="transition-line">
+  Slide the electron energy below E<sub>i</sub> and the collision turns <em>elastic</em> — the electron simply
+  bounces off and the atom stays neutral. Above E<sub>i</sub>, one electron becomes two and an ion is born.
+</p>
+
+<!-- ════════════════════ RECOMBINATION QUIZ ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Recombination</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">When a free electron recombines with an ion, where does the released binding energy go?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>It is absorbed by the nucleus, making the atom heavier.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>It is radiated away as a <em>photon</em> hν, whose energy equals the binding energy plus the electron&rsquo;s kinetic energy.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>It disappears — energy is not conserved in recombination.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">Recombination is far more likely for which electrons?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span><em>Slow</em> electrons — they linger near the ion long enough to be captured.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span><em>Fast</em> electrons — more energy means a stronger pull into the ion.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ RECOMBINATION DEMO ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Radiative Recombination &mdash; M&#8314; + e&#8315; &rarr; M + h&nu;</div>
+  <iframe class="applet-frame" src="particle_collisions.html?mode=recombination"
+          title="Radiative recombination — a slow electron is captured by an ion, emitting a photon"
+          loading="lazy"></iframe>
+</div>
+
+<p class="transition-line">
+  Recombination is the reverse of ionization: it converts an <span class="hl-ion">ion</span> back into a
+  <span class="hl-neutral">neutral atom</span>. In a thruster it is a loss channel — every recombination on a
+  wall or in the beam is a propellant atom that never produced thrust.
+</p>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

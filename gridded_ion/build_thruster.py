@@ -133,6 +133,16 @@ def ring(zc, h=14, ro=R_HOUSE-10, ri=R_CHAMBER_OUT+2):
 magnets = ring(-21, ro=58, ri=44) + ring(18) + ring(98) + ring(183)
 
 # ---- hollow cathode (central) — shifted further out of the chamber ------
+# Both feed-throughs pass through CLEAR bores in the rear plate (cathode r14, injector r7 —
+# verified: no body triangle touches either tube surface). The recurring "the body intersects
+# the tube" report is NOT a real intersection: in the applet's cutaway/transparent view the
+# discharge-chamber mesh depth-writes and used to occlude each tube's in-chamber length, so the
+# rod appeared to stop (be "capped") right at the ionization chamber. The applet fixes that in
+# gridded_ion.html buildModel/animate — it (a) draws both feed tubes OVER the ghosted/cut body
+# (depthTest off) so they read as one continuous rod, and (b) extends each tube's chamber end a
+# little deeper into the discharge chamber so a clear free length reads inside it. Those are
+# render/readability patches on the (frozen) tessellated JSON; the parametric lengths below are
+# left matching the STEP. If the model is ever re-tessellated, fold the extra reach in here.
 cathode = tube(R_CATH, R_CATH_BORE, -70 + FEED_SHIFT, 45 + FEED_SHIFT)
 
 # ---- propellant injector (offset feed tube) — mostly outside, tip ~5mm in -
