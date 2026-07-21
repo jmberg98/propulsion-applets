@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Gridded Ion Engine — Ionization</title>
+<title>Gridded Ion Engine I: Ionization</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,6 +87,18 @@ footer {
   width: var(--page-w);
 }
 
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--hi-blue);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(61,191,255,0.35);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover {
+  color: var(--hi-blue-soft);
+  border-bottom-color: var(--hi-blue);
+}
+
 .theory-block.applet-host {
   width: var(--page-w);
   margin-left: 0;
@@ -153,6 +165,66 @@ footer {
   margin: 6px 0 20px;
   padding-top: 18px;
   border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS (conceptual dropdown)
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
 }
 
 /* ══════════════════════════════════════════════════════
@@ -429,34 +501,47 @@ footer {
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Gridded Ion Engine &mdash; Ionization</h1>
-  <span class="badge">Stage 1</span>
+  <h1>Gridded Ion Engine I: Ionization</h1>
+  <span class="badge">Electric Propulsion</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The first stage of the gridded ion engine is separating <span class="key hl-electron">electrons</span> from
-  <span class="key hl-neutral">neutral inert gas</span> particles to create <span class="key hl-ion">ions</span>,
-  known as <span class="key">ionization</span>. Inside the <span class="key">discharge chamber</span>, a
-  <span class="key hl-B">magnetic field</span> confines energetic electrons long enough to knock electrons loose
-  from the propellant atoms, building up a dense plasma of <span class="hl-ion">ions</span> and
-  <span class="hl-electron">electrons</span>.
+  In order for the ion engine to actually accelerate propellant to generate <span class="key hl-thrust">thrust</span>,
+  the propellant must be separated into positively and negatively charged particles, or
+  <span class="key">ionized</span>, in the <span class="key">ionization chamber</span>.
+  <span class="hl-neutral">Neutral propellant particles</span> are typically ionized by
+  <span class="key hl-electron">electron</span> bombardment or radio-frequency (RF) wave emitters. Both deliver the
+  required energy to separate an <span class="key hl-electron">electron</span> from a
+  <span class="hl-neutral">neutral particle</span>, producing a positively charged <span class="key hl-ion">ion</span>
+  that we can use for thrust!
 </p>
 
-<!-- ════════════════════ STAGE 1 — IONIZATION ════════════════════ -->
+<p class="page-intro">
+  Recall from the
+  <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">Ionization &amp; Recombination
+  Applet</a> that <span class="hl-electron">electrons</span> must have a certain amount of energy in order for a
+  collision with a <span class="hl-neutral">neutral particle</span> to ionize it. Because of this, we want to maximize
+  the time that the <span class="hl-electron">electron</span> is in the <span class="key">ionization chamber</span>.
+  This way, an <span class="hl-electron">electron</span> has more chances to ionize a
+  <span class="hl-neutral">neutral atom</span>. Consider a <span class="key">utilization fraction</span> $\mu_u$: the
+  fraction of propellant injected into the <span class="key">ionization chamber</span> that actually gets ionized. The
+  greater this <span class="key">utilization fraction</span> is, the more efficient the engine!
+</p>
+
+<!-- ════════════════════ Q1 — UTILIZATION FRACTION ════════════════════ -->
 <div class="quiz-section">
-  <div class="quiz-hdr">Stage 1 &mdash; Ionization</div>
+  <div class="quiz-hdr">Utilization Fraction</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">The first stage of the gridded ion engine is separating
-    <span class="hl-electron">electrons</span> from <span class="hl-neutral">neutral inert gas</span> particles to
-    create <span class="hl-ion">ions</span>, known as <span class="key">ionization</span>. Why do we want our inert
-    gas to separate into <span class="hl-ion">ions</span> and <span class="hl-electron">electrons</span>?</p>
+    <p class="quiz-q">The efficiency of the first stage is often characterized by its
+    <span class="key">utilization fraction</span>. Why do we want to maximize the amount of
+    <span class="hl-ion">ions</span> produced from our <span class="key">ionization chamber</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
         <span class="quiz-opt-label">a</span>Ionizing inert gas releases energy, accelerating the ions and electrons toward the exit and producing thrust.
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Neutrals, such as inert gas, don&rsquo;t respond to electromagnetic fields, but charged particles, such as ions and electrons, do.
+        <span class="quiz-opt-label">b</span>Neutrals, such as inert gas, aren&rsquo;t accelerated by electromagnetic fields, but charged particles, such as ions and electrons, are.
       </button>
       <button class="quiz-opt" data-correct="false">
         <span class="quiz-opt-label">c</span>Ions and electrons are more easily able to pass through the accelerating grids than inert gas.
@@ -466,19 +551,58 @@ footer {
   </div>
 </div>
 
-<!-- ════════════════════ DEMO 1 ════════════════════ -->
+<!-- ════════════════════ Q2 — MAGNETIC CONFINEMENT ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Magnetic Confinement</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">The walls of the ion engine collect charge from incoming
+    <span class="hl-electron">electrons</span> and <span class="hl-ion">ions</span>. Knowing what you know about
+    <span class="hl-q">charged particles</span> and how they respond to electromagnetic fields, how might we prevent
+    <span class="hl-electron">electrons</span> from hitting the walls too early?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>Apply a radial electric field directed toward the walls, which attracts ions and repels electrons, keeping them in the chamber longer.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>Apply a magnetic field along the walls of the thruster. Incoming particles will orbit them and reflect back away from the wall rather than pass through.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ MAGNETIC CONFINEMENT DEMO ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Ionization</div>
-  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=ion&v=16"
-          title="Ionization stage — ring-cusp magnetic confinement in the discharge chamber"
+  <div class="th-hdr">Magnetic Confinement</div>
+  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=ion&v=17"
+          title="Magnetic confinement — ring-cusp fields reflect electrons off the discharge chamber walls"
           loading="lazy"></iframe>
 </div>
 
-<!-- ════════════════════ TRANSITION ════════════════════ -->
-<p class="transition-line">
-  With a chamber full of <span class="hl-ion">ions</span>, the next stage extracts and accelerates them through the
-  <a class="hl-ve" style="text-decoration:none" href="GIE_Acceleration_applet.html">accelerating grids</a>.
-</p>
+<!-- ════════════════════ CONCEPTUAL QUESTION ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Question</div>
+
+  <details class="clarify-detail">
+    <summary>Only about 4&ndash;5% of the particles in the <span class="hl-neutral">ionization chamber</span> are
+    ionized at any given time. Why are there relatively few <span class="hl-ion">ions</span> in the ionization
+    chamber compared to <span class="hl-neutral">neutrals</span>? How are high
+    <span class="key">utilization fractions</span> achieved in spite of this?</summary>
+    <div class="clarify-body">
+      Most <span class="hl-electron">electron</span>&ndash;<span class="hl-neutral">neutral</span> collisions
+      don&rsquo;t result in ionization, but rather an <span class="key">elastic collision</span>. The
+      <span class="hl-electron">electron</span> keeps its energy and continues to travel about the chamber. As it does
+      so, it can transfer energy with other <span class="hl-electron">electrons</span>, which can then ionize the
+      <span class="hl-neutral">neutral propellant atoms</span>. The <span class="key hl-B">magnetic field</span> lines
+      along the chamber walls help retain <span class="hl-electron">electrons</span>, promoting ionization further.
+      <span class="hl-neutral">Neutral particles</span> that drift toward the exit often bounce back into the chamber by
+      colliding into either the screen or accelerating grid. Unlike <span class="hl-ion">ions</span> that drift toward
+      these grids, they aren&rsquo;t guided by the high-strength <span class="hl-E">electric field</span>, and have a
+      significant chance to return to the chamber to be ionized. All of these features help enable high
+      <span class="key">utilization fractions</span>, which tend to be 80% or greater for most gridded ion engines.
+    </div>
+  </details>
+</div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
 

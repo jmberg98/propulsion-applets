@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Gridded Ion Engine — Acceleration</title>
+<title>Gridded Ion Engine II: Acceleration</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,6 +31,7 @@
   --c-press:  #00DDB5;
   --c-bfield: #5c6bc0;
   --c-efield: #ef5350;
+  --c-phi:    #e0a458;
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -92,6 +93,18 @@ footer {
   margin-left: 0;
 }
 
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--hi-blue);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(61,191,255,0.35);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover {
+  color: var(--hi-blue-soft);
+  border-bottom-color: var(--hi-blue);
+}
+
 /* ── Highlight classes ───────────────────────────────── */
 .hl-thrust               { color: var(--c-thrust); }
 .hl-ve                   { color: var(--c-ve); }
@@ -103,6 +116,7 @@ footer {
 .hl-ion                  { color: var(--c-ve); }
 .hl-electron             { color: var(--c-power); }
 .hl-E                    { color: var(--c-efield); }
+.hl-phi                  { color: var(--c-phi); }
 .hl-neutral              { color: var(--text-secondary); }
 .key { font-weight: 700; font-style: italic; }
 
@@ -156,6 +170,66 @@ footer {
 }
 
 /* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS (conceptual dropdown)
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
    THEORY BLOCKS
    ══════════════════════════════════════════════════════ */
 .theory-block {
@@ -184,6 +258,75 @@ footer {
 }
 .theory-block > .th-body:last-child { margin-bottom: 0; }
 
+/* ── Derivation equation panels ─────────────────────── */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+.deriv-inner p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
 /* ── Applet host overrides ──────────────────────────── */
 .theory-block.applet-host {
   padding: 16px 0 0;
@@ -207,46 +350,6 @@ footer {
   background: var(--bg-canvas);
 }
 .applet-frame.demo-frame { height: 560px; }
-
-/* ── Demo placeholder ───────────────────────────────── */
-.demo-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  height: 460px;
-  border-top: 1px solid var(--border);
-  background:
-    repeating-linear-gradient(
-      45deg,
-      rgba(255,255,255,0.012) 0,
-      rgba(255,255,255,0.012) 12px,
-      transparent 12px,
-      transparent 24px
-    ),
-    var(--bg-canvas);
-  text-align: center;
-  padding: 24px;
-}
-.demo-placeholder-tag {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--c-accent);
-  border: 1px dashed #3a3a3a;
-  border-radius: 4px;
-  padding: 5px 12px;
-}
-.demo-placeholder-note {
-  font-size: 18px;
-  color: var(--text-muted);
-  font-style: italic;
-  max-width: 540px;
-  line-height: 1.5;
-}
 
 /* ══════════════════════════════════════════════════════
    QUIZ SECTION
@@ -429,16 +532,20 @@ footer {
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Gridded Ion Engine &mdash; Acceleration</h1>
-  <span class="badge">Stage 2</span>
+  <h1>Gridded Ion Engine II: Acceleration</h1>
+  <span class="badge">Electric Propulsion</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The second stage of the gridded ion engine is applying an <span class="key hl-E">electric field</span> to
-  particles that have drifted past the ionization chamber into the <span class="key">accelerating grids</span>. A
-  voltage difference between the grids creates the field that extracts <span class="hl-ion">ions</span> from the
-  plasma and accelerates them to high exhaust velocity, producing thrust.
+  Now that most of the <span class="hl-neutral">neutral propellant particles</span> have been ionized, they are ready
+  to be accelerated to produce useful <span class="key hl-thrust">thrust</span>! A large
+  <span class="key">voltage difference</span> is applied over the short distance between the
+  <span class="key">screen and accelerator grids</span>, creating a strong <span class="key hl-E">electric field</span>
+  $E = V_T/d$. Much like chemical rockets, only so many particles can be accelerated at a time via the
+  <span class="key">accelerator grid</span>. This means that for a given gridded ion engine size, there is a limit to
+  the amount of the <span class="hl-thrust">thrust</span> that can be generated. Let&rsquo;s explore what the limit
+  seems to be.
 </p>
 
 <!-- ════════════════════ STAGE 2 — ACCELERATING GRIDS ════════════════════ -->
@@ -464,28 +571,184 @@ footer {
   </div>
 
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">Why does the second grid have smaller holes than the first grid?</p>
+    <p class="quiz-q">The more <span class="hl-ion">ions</span> that pass through the accelerator grids, the greater our
+    mass flow rate and thus our <span class="hl-thrust">thrust</span>. What causes the fundamental limit on the amount
+    of <span class="hl-ion">ions</span> that pass through the screen grid into the accelerator grid?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>Smaller second grid holes block neutrals that drift in between the accelerating grids, reflecting them back into the ionization chamber.
+        <span class="quiz-opt-label">a</span>If a sufficient number of ions exists between the screen and accelerator grids, an incoming ion will be repelled by the positive charge of the ions in the gap instead of attracted by the accelerator grid.
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Smaller holes choke the flow, raising the exhaust velocity of the ion beam.
+        <span class="quiz-opt-label">b</span>Because ions accelerated by the grids reach speeds of tens of km/s, the flow between the grids is choked like in chemical engines, preventing any further increase in mass flow of ions.
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>All of the above.
+        <span class="quiz-opt-label">c</span>The grid gap size controls the flow of ions into and out of the set of grids. If the gap size is made small to prevent neutrals from entering/leaving the grids, then there is a limit on how many ions can pass through.
       </button>
     </div>
     <div class="quiz-feedback"></div>
   </div>
 </div>
 
-<!-- ════════════════════ DEMO 2 ════════════════════ -->
+<!-- ════════════════════ CHILD–LANGMUIR DEMO ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Accelerating Grids</div>
-  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=acc&v=16"
-          title="Accelerating grids — the potential hill and ion extraction"
+  <div class="th-hdr">Child&ndash;Langmuir Space Charge</div>
+  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=acc&v=17"
+          title="Child–Langmuir space charge — the potential hill and the space-charge limit"
           loading="lazy"></iframe>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>If we have both positively charged <span class="hl-ion">ions</span> and negatively charged
+    <span class="hl-electron">electrons</span> available to us, why do we always choose to accelerate the
+    <span class="hl-ion">ions</span> and not the <span class="hl-electron">electrons</span>?</summary>
+    <div class="clarify-body">
+      Recall that <span class="hl-electron">electrons</span> have far less mass than
+      <span class="hl-ion">ions</span>, by three to four orders of magnitude. While they can be accelerated extremely
+      fast, their minuscule mass means that the <span class="hl-thrust">thrust</span> an
+      <span class="hl-electron">electron</span> jet produces is near zero.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>The larger $V_T/d$ (the <span class="hl-E">electric field</span> between the screen and accelerating
+    grids) is, the higher <span class="hl-thrust">thrust density</span> we can achieve. Why can&rsquo;t $V_T/d$ be
+    arbitrarily high?</summary>
+    <div class="clarify-body">
+      $V_T$ is determined by the desired mission and thus desired <span class="hl-ve">exhaust velocity</span> or
+      <a class="applet-link" href="../optimum_isp/optimum_isp_applet.html">specific impulse</a>, as related by
+      $v_{ex} = \sqrt{2qV_T/m}$. Thus, to maximize $V_T/d$, we want to minimize $d$, the distance between the screen
+      and accelerator grids. However, if $d$ is too small, then the risk of the screen&ndash;accelerator grid circuit
+      shorting is high. This is especially true after vibrations during launch, as grids might shift, causing a short.
+      Additionally, recall that $V_T/d$ is the <span class="hl-E">electric field</span> strength between the screen and
+      accelerator grids. If <span class="hl-E">$E$-field</span> is too strong, then breakdown can occur: creating
+      electrical arcs between the two grids, damaging them.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════════ DERIVATIONS ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Child&ndash;Langmuir Law</div>
+
+  <p class="th-body">
+    In steady state, the <span class="hl-ion">ions</span> streaming between the grids carry their own positive
+    <span class="hl-phi">space charge</span>, which bends the <span class="hl-phi">potential</span> &phi;(x) set up by
+    the grids. Solving Poisson&rsquo;s equation for this self-consistent field gives the maximum
+    <span class="hl-ion">current density</span> the gap can transmit &mdash; the
+    <span class="key">Child&ndash;Langmuir law</span>.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Space-Charge-Limited Current Density</span>
+    $$ \boxed{\;\textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0 \sqrt{\frac{2q}{m}}\,
+       \frac{\textcolor{#ef5350}{V_T}^{3/2}}{d^{2}}\;} $$
+
+    <details class="deriv-detail">
+      <summary>Show Child&ndash;Langmuir derivation</summary>
+      <div class="deriv-inner">
+        <span class="eq-step-label">Poisson&rsquo;s Equation</span>
+        $$ \nabla^{2}\phi = \frac{d^{2}\phi}{dx^{2}} = -\frac{\rho}{\varepsilon_0} $$
+
+        <span class="eq-step-label">Current Density</span>
+        $$ \textcolor{#3DBFFF}{j} = \rho v \;\;\rightarrow\;\; \rho = \frac{\textcolor{#3DBFFF}{j}}{v} $$
+
+        <span class="eq-step-label">Conservation of Energy</span>
+        $$ \tfrac{1}{2}m v_0^{2} + q\textcolor{#ef5350}{V_T} = \tfrac{1}{2}m v^{2} + q\phi $$
+        $$ \rightarrow\; v = \sqrt{\tfrac{2q}{m}\left(\textcolor{#ef5350}{V_T}-\phi\right)}
+           \;\;\rightarrow\;\; \rho = \frac{\textcolor{#3DBFFF}{j}}{\sqrt{\tfrac{2q}{m}\left(\textcolor{#ef5350}{V_T}-\phi\right)}} $$
+
+        <span class="eq-step-label">Substitute into Poisson&rsquo;s Equation</span>
+        $$ \frac{d^{2}\phi}{dx^{2}} = -\frac{\rho}{\varepsilon_0}
+           = -\frac{\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,\frac{1}{\sqrt{\textcolor{#ef5350}{V_T}-\phi}} $$
+
+        <span class="eq-step-label">Recall Chain + Power Rule</span>
+        $$ \frac{d}{dx}\!\left(\frac{d\phi}{dx}\right)^{2} = 2\,\frac{d\phi}{dx}\,\frac{d^{2}\phi}{dx^{2}} $$
+        $$ \rightarrow\; \frac{d}{dx}\!\left(\frac{d\phi}{dx}\right)^{2}
+           = \frac{-2\textcolor{#3DBFFF}{j}\,\frac{d\phi}{dx}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}\,\sqrt{\textcolor{#ef5350}{V_T}-\phi}} $$
+        $$ \rightarrow\; \int_{0}^{\frac{d\phi}{dx}} d\!\left(\frac{d\phi}{dx}\right)^{2}
+           = \frac{-2\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}
+             \int_{V_T}^{\phi}\frac{d\phi'}{\sqrt{\textcolor{#ef5350}{V_T}-\phi'}} $$
+
+        <p>The field vanishes at the screen grid at space-charge saturation, so
+        $\left.\tfrac{d\phi}{dx}\right|_{0} = 0$ with $\phi(0)=\textcolor{#ef5350}{V_T}$.</p>
+
+        $$ \rightarrow\; \left(\frac{d\phi}{dx}\right)^{2}
+           = \frac{-2\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,(-2)\left(\textcolor{#ef5350}{V_T}-\phi\right)^{1/2} $$
+        $$ \rightarrow\; \frac{d\phi}{dx} = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}
+           \left(\textcolor{#ef5350}{V_T}-\phi\right)^{1/4} $$
+
+        <span class="eq-step-label">Separate &amp; Integrate</span>
+        $$ \int_{V_T}^{\phi}\frac{d\phi'}{\left(\textcolor{#ef5350}{V_T}-\phi'\right)^{1/4}}
+           = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\int_{0}^{x}dx' $$
+        $$ \rightarrow\; -\frac{4}{3}\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/4}\Big|_{V_T}^{\phi}
+           = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\;x $$
+
+        <span class="eq-step-label">Square Both Sides</span>
+        $$ \frac{16}{9}\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/2}
+           = \frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,x^{2} $$
+
+        <span class="eq-step-label">Rearrange for Current</span>
+        $$ \textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0\sqrt{\tfrac{2q}{m}}\,
+           \frac{\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/2}}{x^{2}} $$
+
+        <span class="eq-step-label">Evaluate at $x=d,\;\phi=0$</span>
+        $$ \boxed{\;\textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0\sqrt{\tfrac{2q}{m}}\,
+           \frac{\textcolor{#ef5350}{V_T}^{3/2}}{d^{2}}\;} $$
+      </div>
+    </details>
+  </div>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Thrust Density</div>
+
+  <p class="th-body">
+    The <span class="hl-thrust">thrust</span> the grids can produce per unit area is the
+    <span class="hl-E">electric</span> pressure pulling on the accelerator grid. Evaluating the Maxwell stress tensor at
+    space-charge saturation caps the <span class="hl-thrust">thrust density</span> of a gridded ion engine.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Maximum Thrust Density</span>
+    $$ \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0
+       \left(\frac{\textcolor{#ef5350}{V_T}}{d}\right)^{2}\;} $$
+
+    <details class="deriv-detail">
+      <summary>Show thrust-density derivation</summary>
+      <div class="deriv-inner">
+        <span class="eq-step-label">Maxwell Stress Tensor</span>
+        $$ T_{ij} = \sum \left(\varepsilon_0 E_i E_j - \tfrac{1}{2}\varepsilon_0 \delta_{ij} E_k E_k\right) $$
+
+        <span class="eq-step-label">Isolate $x$-component</span>
+        $$ T_{xx} = \varepsilon_0 E_x^{2} - \tfrac{1}{2}\varepsilon_0\left(E_x^{2}+E_y^{2}+E_z^{2}\right) $$
+
+        <span class="eq-step-label">Electric Pressure</span>
+        $$ T = \tfrac{1}{2}\varepsilon_0 \textcolor{#ef5350}{E}^{2}
+           \;\;\rightarrow\;\; \frac{\textcolor{#FF4400}{F}}{A} = \tfrac{1}{2}\varepsilon_0 \textcolor{#ef5350}{E}^{2} $$
+
+        <span class="eq-step-label">Potential at Space-Charge Saturation</span>
+        $$ \frac{\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/2}}{x^{2}}
+           = \frac{\textcolor{#ef5350}{V_T}^{3/2}}{d^{2}}
+           \;\;\rightarrow\;\; \left(1-\frac{\phi}{\textcolor{#ef5350}{V_T}}\right)^{3/2} = \left(\frac{x}{d}\right)^{2} $$
+        $$ \rightarrow\; 1-\frac{\phi}{\textcolor{#ef5350}{V_T}} = \left(\frac{x}{d}\right)^{4/3}
+           \;\;\rightarrow\;\; \phi = \textcolor{#ef5350}{V_T}\left(1-\left(\frac{x}{d}\right)^{4/3}\right) $$
+
+        <span class="eq-step-label">Recall $E = -\,d\phi/dx$</span>
+        $$ \textcolor{#ef5350}{E} = -\frac{d\phi}{dx}
+           = \frac{4}{3}\left(\frac{x}{d}\right)^{1/3}\frac{\textcolor{#ef5350}{V_T}}{d} $$
+
+        <span class="eq-step-label">Substitute into Electric Pressure (at $x=d$)</span>
+        $$ \frac{\textcolor{#FF4400}{F}}{A} = \tfrac{1}{2}\varepsilon_0 \textcolor{#ef5350}{E}^{2}
+           = \tfrac{1}{2}\varepsilon_0\left(\frac{4}{3}\frac{\textcolor{#ef5350}{V_T}}{d}\right)^{2} $$
+        $$ \rightarrow\; \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0
+           \left(\frac{\textcolor{#ef5350}{V_T}}{d}\right)^{2}\;} $$
+      </div>
+    </details>
+  </div>
 </div>
 
 <!-- ════════════════════ TRANSITION ════════════════════ -->

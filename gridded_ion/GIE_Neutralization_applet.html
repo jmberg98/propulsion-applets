@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Gridded Ion Engine — Neutralization</title>
+<title>Gridded Ion Engine III: Neutralization</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -429,17 +429,24 @@ footer {
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Gridded Ion Engine &mdash; Neutralization</h1>
-  <span class="badge">Stage 3</span>
+  <h1>Gridded Ion Engine III: Neutralization</h1>
+  <span class="badge">Electric Propulsion</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The last stage of the gridded ion engine is neutralizing the <span class="key hl-ion">ion jet</span> by shooting
-  it with a stream of <span class="key hl-electron">electrons</span> from an electron gun, or
-  <span class="key">neutralizer cathode</span>. Injecting electrons back into the beam keeps the spacecraft
-  charge-neutral and the exhaust <span class="key">quasineutral</span>, preventing the plume from being pulled back
-  toward the vehicle.
+  The <span class="key hl-ion">ion jet</span> emitted by the accelerating grids must be neutralized for the device
+  to operate as desired. Like mass and energy, <span class="key">charge is conserved</span> on our spacecraft. If we
+  expel a large amount of positive charge from the spacecraft, the spacecraft will be left with a large
+  <span class="hl-electron">negative charge</span>. Not only does this pose a risk to on-board electronics, but the
+  negatively charged spacecraft attracts the positively charged <span class="key hl-ion">exhaust jet</span>,
+  cancelling <span class="key hl-thrust">thrust</span>.
+</p>
+
+<p class="page-intro">
+  If we instead neutralize the beam by shooting <span class="key hl-electron">electrons</span> at it with a
+  <span class="key">neutralizer cathode</span>, we get a <span class="key">quasineutral</span> plasma jet. The exhaust
+  will then be a beam consisting of positive and negative charges, but is, on average, electrically neutral.
 </p>
 
 <!-- ════════════════════ STAGE 3 — NEUTRALIZATION ════════════════════ -->
@@ -477,15 +484,6 @@ footer {
           title="Neutralization — quasineutral plume and spacecraft charge"
           loading="lazy"></iframe>
 </div>
-
-<!-- ════════════════════ TRANSITION ════════════════════ -->
-<p class="transition-line">
-  That completes the three stages of the gridded ion engine &mdash;
-  <a class="hl-ve" style="text-decoration:none" href="GIE_Ionization_applet.html">ionization</a>,
-  <a class="hl-ve" style="text-decoration:none" href="GIE_Acceleration_applet.html">acceleration</a>, and
-  neutralization. Return <a class="hl-ve" style="text-decoration:none" href="GIE_Overview_applet.html">to the
-  overview</a> to see how they work together.
-</p>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
 
