@@ -213,7 +213,6 @@
   /* Arrow-tip labels anchor to their tip rather than centring on it, so they never sit on the head. */
   .albl.e-anchor-l { transform: translate(0, -50%); }
   .albl.e-anchor-r { transform: translate(-100%, -50%); }
-  .albl.e-dim { opacity: 0.5; }   /* ion still outside the gap — the bundle is pinned, not felt yet */
   .albl.efield     { color: #7fe0a0; font-weight: 700; }   /* |E(0)| readout — matches the green force arrow */
   .albl.efield-rev { color: #ff8a6b; font-weight: 700; }   /* over-saturated: field reversed (red, matches the arrow) */
 
@@ -514,6 +513,15 @@
   .out-val  { font-size: 19px; font-weight: 600; font-family: 'Courier New', monospace; }
   .out-sub  { font-size: 11.5px; font-family: 'Courier New', monospace; margin-top: 2px; color: var(--text-muted); }
   .out-eq   { font-size: 11.5px; font-style: italic; margin-top: 4px; color: var(--text-secondary); line-height: 1.3; }
+  /* Erosion verdict beneath the F/A cell — same badge format and space-charge colours as the
+     .ix-status saturation result (below → yellow, at → green, over → red). */
+  .out-verdict {
+    font-size: 12.5px; font-weight: 700; padding: 8px 10px; border-radius: 6px; text-align: center;
+    line-height: 1.35; margin-top: 8px;
+  }
+  .out-verdict.below { color: #ffd06a; background: rgba(255,200,90,0.10); border: 1px solid rgba(255,200,90,0.35); }
+  .out-verdict.at    { color: #7fe0a0; background: rgba(80,200,120,0.10); border: 1px solid rgba(80,200,120,0.30); }
+  .out-verdict.over  { color: #ff8a6b; background: rgba(255,90,70,0.10);  border: 1px solid rgba(255,90,70,0.35);  }
 
   /* Child–Langmuir formula card. */
   .ix-eq {
@@ -862,6 +870,7 @@
             <div class="out-label">Max Thrust Density&nbsp; F/A</div>
             <div class="out-val" id="acc-fa" style="color:var(--c-thrust)">—</div>
             <div class="out-eq" id="acc-fa-eq"></div>
+            <div class="out-verdict" id="acc-fa-verdict"></div>
           </div>
           <div class="out-cell">
             <div class="out-label">Current Density&nbsp; j</div>
@@ -4484,6 +4493,20 @@ const GAP_U_IN = 0;       // injected AT the screen-grid plane; the gap is the w
 const GAP_POOL = Array.from({ length: 420 }, () => ({ alive:false, u:0, v:0, w:0, refused:false }));
 let gapEmitAcc = 0;       // fractional-ion emission accumulator
 let gapLaneIdx = 0;       // walks the Halton lane sequence
+/* Wall-clock pacing follows the net field. A real ion accelerates at qE/m with E ~ V_T/d, and in
+   the normalized u = x/d frame that coefficient carries another 1/d, so a ∝ V_T/d² and the transit
+   time τ ∝ d/√V_T: a stronger field crosses the gap quicker, a wider gap slower. Rather than
+   rescale the equation of motion (which would drag the injection and barrier speeds along with it),
+   the whole simulation clock is stretched by the matching factor √(a/a_ref) = √(V_T/V_ref)·(d_ref/d).
+   Every relative behaviour — the density pile-up, the barrier split, the u* turnaround — is a pure
+   time-rescaling away from before, so all of it is preserved; only the speed changes. Anchored to 1
+   at the default (V_T = 1450, d = 1.2) so the tuned pacing there is unchanged. The steady-state ion
+   COUNT in the gap stays set by the space-charge slider, not the field: emission rate ∝ scale and
+   transit ∝ 1/scale cancel, so raising V_T speeds the flow up without changing how full the gap looks. */
+const GAP_VT_REF = 1450, GAP_D_REF = 1.2, GAP_DT_MAX = 0.08;
+function gapTimeScale(){
+  return Math.sqrt(ACCEL.vTotal / GAP_VT_REF) * (GAP_D_REF / ACCEL.gap);
+}
 /* Height of the virtual-anode hump above V_T, in units of V_T, and the speed needed to clear it.
    Zero at or below saturation (the profile never rises above the emitter). */
 function gapBarrier(s){
@@ -4495,6 +4518,7 @@ function gapBarrier(s){
   return { uStar, vBar: Math.sqrt(2 * GAP_A * Math.max(0, phiMax - 1)) };
 }
 function updateGapIons(dt, s){
+  dt = Math.min(GAP_DT_MAX, dt * gapTimeScale());       // transit time follows the field (see gapTimeScale)
   const { vBar } = gapBarrier(s);
   const refusedFrac = s > 1 ? 1 - 1 / s : 0;             // surplus over the limit, which cannot be transmitted
   // Inject at a rate ∝ s: turning the slider up draws more current at the emitter, whether or not
@@ -4573,17 +4597,24 @@ function setAccelCharge(pct){
 /* Narrate the emitter-field state as the gap fills with ions: pulling (E>0), saturated (E≈0),
    or over-saturated with the field reversed and excess ions reflected (E<0). */
 function updateAccelStatus(){
-  const st = $('acc-status'); if (!st) return;
   const s = ACCEL.charge;
+  // The erosion verdict beneath the F/A cell shares these exact bands. Below/at saturation the
+  // grids run at or under the space-charge-limited thrust density and stay intact; over saturation
+  // the surplus ions are turned back and bombard the accel grid, sputtering it away.
+  const vd = $('acc-fa-verdict');
+  const st = $('acc-status'); if (!st) return;
   if (s < 0.97){
     st.className = 'ix-status below';
     st.innerHTML = 'Below Space Charge Saturation:&nbsp; J &lt; J<sub>CL</sub>';
+    if (vd){ vd.className = 'out-verdict below'; vd.textContent = 'Grids below max thrust density; No erosion'; }
   } else if (s <= 1.03){
     st.className = 'ix-status at';
     st.innerHTML = 'At Space Charge Saturation:&nbsp; J = J<sub>CL</sub>';
+    if (vd){ vd.className = 'out-verdict at'; vd.textContent = 'Grids at max thrust density: No erosion'; }
   } else {
     st.className = 'ix-status over';
     st.innerHTML = 'Over Space Charge Saturation:&nbsp; J &gt; J<sub>CL</sub>';
+    if (vd){ vd.className = 'out-verdict over'; vd.textContent = 'Grids at max thrust density: Grid Eroding'; }
   }
 }
 /* ── Floating KaTeX labels for the space-charge graph ─────────────────────────
@@ -4614,6 +4645,7 @@ function hideAccelAnnot(){
    falls monotonically) it accelerates straight across into the beam. Always launches from the same
    height; relaunches after exiting right (beam) or being repelled back out the left. */
 function updateAccTestIon(dt, s){
+  dt = Math.min(GAP_DT_MAX, dt * gapTimeScale());       // same field-following pacing as the bulk ions
   const ion = accTestIon;
   if (ion.wait > 0){ ion.wait -= dt; return; }
   let slope = 0;                                                 // d(φ/V_T)/du, 0 outside the gap (flat → no force)
@@ -4652,13 +4684,18 @@ function drawAccelGraph(dt){
   // The real 3-D grids are hidden in this stage (applyStageState); the two electrode combs drawn
   // below at z=0 / z=d ARE the grids, so the gap between them widens and narrows with d.
   const D_MIN = 0.4, D_MAX = 1.6;                    // accel-gap slider range (mm)
-  const xL = Math.round(W * 0.10);                   // z = 0 : screen grid (inset from the left edge)
-  // Gap width maps AFFINELY across the slider range (as a fraction of the viewport width): 2/5 at
-  // d_min → 4/5 at d_max. (Not proportional to d, so the readout always shows the true d in mm.)
+  // The screen grid is inset well to the right of the left edge, and never closer than E_MAX_PX +
+  // a label's width. That margin is not cosmetic: in over-saturation the test ion is pinned AT the
+  // screen grid and its E_ions arrow points LEFT, so without the room it runs off the canvas. Kept
+  // as a floor in px (not just a fraction) so it survives narrow embeds.
+  const xL = Math.max(110, Math.round(W * 0.14));    // z = 0 : screen grid — leaves room for the leftward E_ions arrow
+  // Gap width maps AFFINELY across the slider range (as a fraction of the viewport width). Narrower
+  // than before (the graph now occupies less of the window and sits further right), but still not
+  // proportional to d, so the readout always shows the true d in mm.
   const dFrac = (d - D_MIN) / (D_MAX - D_MIN);       // 0 at min gap … 1 at max gap
-  const xR = Math.round(xL + (0.40 + 0.38 * dFrac) * W);   // z = d : accel grid (moves with the gap)
-  const yBase = Math.round(H * 0.60);                // φ = 0 baseline — zoomed out, leaves the bottom clear for chrome
-  const yTop  = 90;                                  // plot ceiling (clear of the title / tabs)
+  const xR = Math.round(xL + (0.30 + 0.26 * dFrac) * W);   // z = d : accel grid (moves with the gap)
+  const yBase = Math.round(H * 0.58);                // φ = 0 baseline — zoomed out, leaves the bottom clear for chrome
+  const yTop  = 100;                                 // plot ceiling (clear of the title / tabs)
   const PHI_REF = 2300;                              // volts mapped to the full plot height (V_T max 2000 + overshoot headroom)
   const pxPerV = (yBase - yTop) / PHI_REF;
   /* The true Child–Langmuir bow is only 0.105·V_T at saturation — correct, but shallow enough that
@@ -4805,7 +4842,7 @@ function drawAccelGraph(dt){
     const Egrid = slope(accelPhiGrid);
     const Eions = slope(u2 => accelPhiIons(u2, s));
     const Enet  = Egrid + Eions;                                  // ≡ slope(u2 => accelPhi(u2, s))
-    eDecomp = { net:Enet, grid:Egrid, ions:Eions, dim:(uI < 0 || uI > 1) };
+    eDecomp = { net:Enet, grid:Egrid, ions:Eions };
 
     // Every vector is rooted on the ion's STATION LINE — the dotted vertical dropped to its
     // potential on the φ(z) curve — so the arrows, the ion and the point being read off the graph
@@ -4817,11 +4854,13 @@ function drawAccelGraph(dt){
     // field at all, so the station stays at the gap edge (a dotted lead ties it back to the ion)
     // instead of sliding off the canvas.
     const xA = ux(uc);
-    const preEntry = uI < 0 || uI > 1;                             // still on the run-up / already ejected
     const E0 = d_m > 0 ? VT / d_m : 1;
-    const PX_PER_E0 = 46, E_MAX_PX = 118, LBL_W = 62;
+    // E_grid (= E0, the nominal grid field) is the fixed yardstick at PX_PER_E0; every other vector
+    // is read against it, and the length is capped at E_MAX_PX. Both scaled down together so the
+    // whole bundle is shorter without changing what the lengths mean relative to one another.
+    const PX_PER_E0 = 34, E_MAX_PX = 88, LBL_W = 62;
     const eRow = (yRow, val, col, name, tex, cls0) => {
-      const cls = cls0 + (preEntry ? ' e-dim' : '');
+      const cls = cls0;    // arrows are always full-strength — never dimmed on the run-up
       const dir = val >= 0 ? 1 : -1;
       const len = Math.min(E_MAX_PX, (Math.abs(val) / E0) * PX_PER_E0);
       ctx.strokeStyle = col; ctx.fillStyle = col;
@@ -4867,13 +4906,11 @@ function drawAccelGraph(dt){
       ctx.beginPath(); ctx.arc(xA, yPhi, 3, 0, 6.283); ctx.fill();
     }
     ctx.restore();
-    // Outside the gap this 1-D model has no field on the ion at all, so the pinned bundle is what
-    // is WAITING for it at the gap edge, not what it feels yet — draw it back to signal that.
-    ctx.globalAlpha = preEntry ? 0.5 : 1;
+    // The field arrows are drawn at full opacity in every state — including the run-up, where the
+    // bundle is pinned at the gap edge waiting for the ion (the dotted lead already shows that).
     if (showE.net)  eRow(yNet,  Enet,  Enet >= 0 ? E_COL.fwd : E_COL.rev, 'Enet',  '\\vec{E}_{\\text{net}}',  Enet >= 0 ? 'e-fwd' : 'e-rev'); else agHide('Enet');
     if (showE.grid) eRow(yGrid, Egrid, E_COL.grid,                        'Egrid', '\\vec{E}_{\\text{grid}}', 'e-grid');                     else agHide('Egrid');
     if (showE.ions) eRow(yIons, Eions, E_COL.ions,                        'Eions', '\\vec{E}_{\\text{ions}}', 'e-ions');                     else agHide('Eions');
-    ctx.globalAlpha = 1;
 
     // the ion glyph (drawn last so it sits on top of the arrow tails)
     ctx.fillStyle = 'rgba(255,214,120,0.26)';                      // glow
@@ -4928,7 +4965,6 @@ function drawAccelGraph(dt){
     const unitW = 6 + ctx.measureText('MV/m').width;
     const total = widths.reduce((a, b) => a + b, 0) + GAP * (items.length - 1) + unitW;
     let x = Math.round((xL + xR) / 2 - total / 2);
-    ctx.globalAlpha = eDecomp.dim ? 0.5 : 1;                        // matches the dimmed arrows
     items.forEach((it, i) => {
       const w = widths[i], cx = x + w / 2;
       if (it.op){
@@ -4950,7 +4986,6 @@ function drawAccelGraph(dt){
     ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(230,235,245,0.6)';
     ctx.font = Math.round(FSN * 0.92) + 'px Barlow, sans-serif';
     ctx.fillText('MV/m', x - GAP + 6, yN);
-    ctx.globalAlpha = 1;
   }
 
   // ── Saturation flash (Feature 4): pulse the emitter + a flat E(0)=0 tangent when crossing s=1 ──
