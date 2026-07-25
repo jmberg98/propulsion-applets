@@ -4693,9 +4693,9 @@ function drawAccelGraph(dt){
   // than before (the graph now occupies less of the window and sits further right), but still not
   // proportional to d, so the readout always shows the true d in mm.
   const dFrac = (d - D_MIN) / (D_MAX - D_MIN);       // 0 at min gap … 1 at max gap
-  const xR = Math.round(xL + (0.30 + 0.26 * dFrac) * W);   // z = d : accel grid (moves with the gap)
-  const yBase = Math.round(H * 0.58);                // φ = 0 baseline — zoomed out, leaves the bottom clear for chrome
-  const yTop  = 100;                                 // plot ceiling (clear of the title / tabs)
+  const xR = Math.round(xL + (0.35 + 0.30 * dFrac) * W);   // z = d : accel grid (moves with the gap)
+  const yBase = Math.round(H * 0.60);                // φ = 0 baseline — zoomed out, leaves the bottom clear for chrome
+  const yTop  = 80;                                  // plot ceiling (clear of the title / tabs)
   const PHI_REF = 2300;                              // volts mapped to the full plot height (V_T max 2000 + overshoot headroom)
   const pxPerV = (yBase - yTop) / PHI_REF;
   /* The true Child–Langmuir bow is only 0.105·V_T at saturation — correct, but shallow enough that
