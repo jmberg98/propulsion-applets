@@ -32,9 +32,42 @@ SCREEN_T      = 3.5      # CHANGED (was 2.0)
 ACCEL_T       = 5.0      # CHANGED (was 3.0)
 GRID_GAP      = 8.0      # CHANGED (was 4.0)
 Z_SCREEN0     = L_CHAMBER + 2.0            # 202
-HOLE_PITCH    = 16.0
-SCREEN_HOLE_R = 7.5      # screen-grid aperture radius (large — open extraction optics)
-ACCEL_HOLE_R  = 4.5      # accel-grid apertures are SMALLER (blocks electron backstreaming)
+
+# ---- grid transparency (open-area fraction) ------------------------------
+# Each grid must be `phi` open TWICE OVER: by area (the real ion-optics spec) and
+# along the applet's cut plane (CAD x = 0), so the cross-section a reader eyeballs
+# actually shows the transparency the grid has.
+#
+# A staggered HEX array cannot do that. The cut plane only meets every other hex
+# row, so its open run is 2r/(p*sqrt(3)) <= 1/sqrt(3) = 57.7% no matter how open
+# the grid is — a 90.7% open hex grid (holes touching) still sections at 57.7%.
+# That ceiling is what made the old 80%-open screen grid read 54% in section.
+#
+# Fix the row pitch `s` instead and solve for the column period. With holes of
+# radius r on rows of pitch s, and TWO columns per period P offset by (P/2, s/2):
+#     section along x=0 = 2r/s                     (only the x=0 column is cut)
+#     open area         = 2*pi*r^2 / (P*s)         (two holes per P-by-s cell)
+# Setting both equal to phi gives r = phi*s/2 and P = pi*phi*s/2. The neighbouring
+# column sits at P/2 >= r for every phi <= 2/pi, so it never reaches the cut plane
+# and the section stays a clean row of full-diameter bores at pitch s.
+#
+# `s` is free — it sets how MANY holes there are, not how open the grid is. It is
+# pinned to the applet's aperture-row spacing APER_DY = 16*sqrt(3), so the bore
+# centres land exactly on the beamlet channels and HOLE_R_* == APER_R_* there.
+APER_PITCH    = 16.0 * math.sqrt(3)   # 27.7128 mm — aperture ROW pitch (= applet APER_DY)
+SCREEN_OPEN   = 0.80     # screen grid: wide-open extraction optics
+ACCEL_OPEN    = 0.30     # accel grid: far tighter (blocks electron backstreaming)
+
+def hole_r(phi, pitch=APER_PITCH):
+    """Bore radius giving open fraction `phi` both by area and across the cut plane."""
+    return phi * pitch / 2
+
+def hole_period(phi, pitch=APER_PITCH):
+    """Column period P for that array (two columns per period)."""
+    return math.pi * phi * pitch / 2
+
+SCREEN_HOLE_R = hole_r(SCREEN_OPEN)   # 11.0851 mm — fewer, much larger bores
+ACCEL_HOLE_R  = hole_r(ACCEL_OPEN)    #  4.1569 mm — more, smaller bores
 
 R_CATH        = 10.0     # hollow cathode outer radius
 R_CATH_BORE   = 5.0
@@ -101,16 +134,29 @@ enclosure -= Pos(0, 140, 205) * Cylinder(radius=8, height=10)        # front-pla
 housing   += enclosure
 
 # ---- ion-optics grids (perforated discs) --------------------------------
+def hole_centres(hole_r, pitch=APER_PITCH):
+    """Bore centres for the two-column array described above: rows at pitch `pitch`,
+    columns at period P, second column offset half a period in BOTH axes. Centres are
+    kept where the whole bore still clears the grid rim, so no hole breaks the OD."""
+    phi = 2 * hole_r / pitch
+    P   = math.pi * phi * pitch / 2
+    lim = min(R_GRID_ACTIVE, R_GRID - 2 - hole_r)
+    ni  = int(R_GRID_ACTIVE // P) + 2
+    nj  = int(R_GRID_ACTIVE // pitch) + 2
+    out = []
+    for i in range(-ni, ni+1):
+        for j in range(-nj, nj+1):
+            for dx, dy in ((0.0, 0.0), (P/2, pitch/2)):     # the two columns
+                x, y = i*P + dx, j*pitch + dy
+                if math.hypot(x, y) <= lim:
+                    out.append((x, y))
+    return out
+
 def perforate(disc, z0, z1, hole_r):
     cutters = None
-    n = int(R_GRID_ACTIVE // HOLE_PITCH) + 1
-    for i in range(-n, n+1):
-        for j in range(-n, n+1):
-            x = i*HOLE_PITCH + (HOLE_PITCH/2 if j % 2 else 0)  # hex-ish stagger
-            y = j*HOLE_PITCH*math.sqrt(3)/2
-            if math.hypot(x, y) <= R_GRID_ACTIVE:
-                h = Pos(x, y, (z0+z1)/2) * Cylinder(radius=hole_r, height=(z1-z0)+2)
-                cutters = h if cutters is None else cutters + h
+    for x, y in hole_centres(hole_r):
+        h = Pos(x, y, (z0+z1)/2) * Cylinder(radius=hole_r, height=(z1-z0)+2)
+        cutters = h if cutters is None else cutters + h
     return disc - cutters
 
 z_s0, z_s1 = Z_SCREEN0, Z_SCREEN0 + SCREEN_T
