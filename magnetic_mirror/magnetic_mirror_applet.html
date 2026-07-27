@@ -24,13 +24,18 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
-  --c-efield: #F5C518;
-  --c-moment: #F5C518;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -91,17 +96,42 @@ footer {
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v            { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
-.hl-B                    { color: var(--c-press); }
-.hl-q                    { color: var(--c-power); }
-.hl-E                    { color: var(--c-efield); }
-.hl-moment               { color: var(--c-moment); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -578,23 +608,31 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  We may be interested in trapping or guiding <span class="key hl-q">charged particles</span> along paths of
+  We may be interested in trapping or guiding <span class="hl-q">charged particles</span> along paths of
   interest. To do this, we must implement <span class="key">magnetic mirrors</span>, which trap particles that
   approach it at a specific angle. The &ldquo;how&rdquo; of <span class="key">magnetic mirrors</span> lies in how
-  <span class="key hl-q">charged particles</span> exhibiting <span class="key">cyclotron motion</span> generate a
-  <span class="key hl-moment">magnetic moment</span> and act as a <span class="key">magnetic dipole</span> (think of a
-  bar magnet)! Explore the demos below to see how these orbiting <span class="key hl-q">charged particles</span> act
-  as bar magnets. Then explore how they function in non-uniform <span class="key hl-B">magnetic fields</span> to see
+  charged particles exhibiting <span class="key">cyclotron motion</span> generate a
+  <span class="hl-moment">magnetic moment</span> and act as a <span class="key">magnetic dipole</span> (think of a
+  bar magnet)! Explore the demos below to see how these orbiting charged particles act
+  as bar magnets. Then explore how they function in non-uniform <span class="hl-B">magnetic fields</span> to see
   <span class="key">magnetic mirrors</span> in action.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust, mass</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, magnetic moment</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+</div>
 <!-- ════════════════════ Q (intro) ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-unlocks="demo1-host">
     <p class="quiz-q">If a <span class="hl-q">charged particle</span> is in motion, it induces a
     <span class="hl-B">magnetic field</span>. What is the shape of the induced
-    <span class="hl-B">magnetic field</span>?</p>
+    magnetic field?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
         <span class="quiz-opt-label">a</span>A straight line in the same direction as the particle&rsquo;s motion
@@ -619,10 +657,10 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">Cyclotron &amp; Larmor Motion</div>
   <p class="th-body">
-    Recall that when a particle travels perpendicular to a uniform <span class="key hl-B">magnetic field</span>, it
+    Recall that when a particle travels perpendicular to a uniform <span class="hl-B">magnetic field</span>, it
     travels circularly, undergoing <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>. The
-    <span class="key hl-q">charged particle&rsquo;s</span> circular motion induces a
-    <span class="key hl-B">magnetic field</span>.
+    <span class="hl-q">charged particle&rsquo;s</span> circular motion induces a
+    magnetic field.
   </p>
 </div>
 
@@ -631,9 +669,9 @@ footer {
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-unlocks="demo2-host">
     <p class="quiz-q">The induced <span class="hl-B">magnetic field</span> of a particle in circular motion can be
-    summed to form a net <span class="hl-B">magnetic field</span> or <span class="hl-moment">moment</span>. What is the
-    shape of the net <span class="hl-B">magnetic field</span> or <span class="hl-moment">moment</span> from a particle
-    exhibiting <span class="hl-B">cyclotron</span> or <span class="hl-B">Larmor motion</span>?</p>
+    summed to form a net magnetic field or <span class="hl-moment">moment</span>. What is the
+    shape of the net magnetic field or moment from a particle
+    exhibiting <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
         <span class="quiz-opt-label">a</span>A straight line pointing in/out of the circular path.
@@ -658,11 +696,11 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">No Work &amp; Constant Moment</div>
   <p class="th-body">
-    Also recall that the <span class="key hl-B">magnetic force</span> does no work on particles. The net
-    <span class="key">kinetic energy</span> of a <span class="key hl-q">charged particle</span> in a
-    <span class="key hl-B">magnetic field</span> that does not change with time, is constant. Additionally, the
-    <span class="key hl-moment">magnetic moment</span> of the particle is constant. By using a
-    <span class="key hl-B">magnetic field</span> that varies in strength in different regions, we can reduce the speed
+    Also recall that the <span class="hl-thrust">magnetic force</span> does no work on particles. The net
+    <span class="key">kinetic energy</span> of a <span class="hl-q">charged particle</span> in a
+    <span class="hl-B">magnetic field</span> that does not change with time, is constant. Additionally, the
+    <span class="hl-moment">magnetic moment</span> of the particle is constant. By using a
+    magnetic field that varies in strength in different regions, we can reduce the speed
     along the field lines by increasing the rotational speed around them.
   </p>
 </div>
@@ -671,7 +709,7 @@ footer {
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-unlocks="demo3-host">
-    <p class="quiz-q">If a <span class="hl-q">charged particle</span> in <span class="hl-B">cyclotron motion</span>
+    <p class="quiz-q">If a <span class="hl-q">charged particle</span> in <span class="key">cyclotron motion</span>
     travels toward a stronger <span class="hl-B">magnetic field</span>, what happens to its motion?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
@@ -704,16 +742,16 @@ footer {
   <div class="th-hdr">Magnetic Moment</div>
 
   <p class="th-body">
-    The net <span class="key hl-B">magnetic field</span> or <span class="key hl-moment">moment</span> of a particle in
+    The net <span class="hl-B">magnetic field</span> or <span class="hl-moment">moment</span> of a particle in
     <span class="key">cyclotron</span> or <span class="key">Larmor motion</span> is its
-    <span class="key hl-moment">magnetic moment</span>. Its strength is determined by its current and the area of its
-    circular path. It scales with the square of the particle&rsquo;s <span class="key hl-v">perpendicular velocity</span>
-    and inversely scales with the strength of the <span class="key hl-B">magnetic field</span> it is traveling about.
+    <span class="hl-moment">magnetic moment</span>. Its strength is determined by its current and the area of its
+    circular path. It scales with the square of the particle&rsquo;s <span class="hl-v">perpendicular velocity</span>
+    and inversely scales with the strength of the magnetic field it is traveling about.
   </p>
 
   $$
   \boxed{\;
-  \textcolor{#F5C518}{\mu}
+  \textcolor{#C060FF}{\mu}
   =
   \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
   \;}
@@ -741,12 +779,12 @@ footer {
         <span class="eq-note">
           In a loop, the <span class="hl-B">magnetic field</span> induced by the current of the moving
           <span class="hl-q">charged particle</span> creates a net <span class="hl-moment">magnetic moment</span> by
-          vector sum of each induced <span class="hl-B">magnetic field</span>.
+          vector sum of each induced magnetic field.
         </span>
 
         <span class="eq-step-label">For a particle in Larmor motion</span>
         $$
-        \textcolor{#F5C518}{\mu} = \tfrac{1}{2}\int \vec{r}\times\vec{\jmath}\,dV = IA
+        \textcolor{#C060FF}{\mu} = \tfrac{1}{2}\int \vec{r}\times\vec{\jmath}\,dV = IA
         $$
         $$
         I = \frac{\textcolor{#C060FF}{q}\,\omega_c}{2\pi}
@@ -755,7 +793,7 @@ footer {
         $$
         $$
         \rightarrow\;
-        \textcolor{#F5C518}{\mu}
+        \textcolor{#C060FF}{\mu}
         = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
         $$
 
@@ -770,19 +808,19 @@ footer {
 
   <p class="th-body">
     Key to the derivation of <span class="key">magnetic mirrors</span>, but very non-intuitive, is the invariance of
-    the <span class="key hl-moment">magnetic moment</span>. The <span class="key">kinetic energy</span> of the particle
-    can be written as the sum of its <span class="key hl-v">parallel</span> and
-    <span class="key hl-v">perpendicular</span> kinetic energy components. Then, it can be further rearranged to be the
-    sum of a magnetic potential energy and the <span class="key hl-v">parallel</span> component of the
-    particle&rsquo;s kinetic energy. Because the <span class="key hl-moment">magnetic moment</span> is constant, a
-    varying <span class="key hl-B">magnetic field</span> will affect the <span class="key hl-v">parallel velocity</span>
+    the <span class="hl-moment">magnetic moment</span>. The <span class="key">kinetic energy</span> of the particle
+    can be written as the sum of its <span class="hl-v">parallel</span> and
+    <span class="hl-v">perpendicular</span> kinetic energy components. Then, it can be further rearranged to be the
+    sum of a magnetic potential energy and the parallel component of the
+    particle&rsquo;s kinetic energy. Because the magnetic moment is constant, a
+    varying <span class="hl-B">magnetic field</span> will affect the <span class="hl-v">parallel velocity</span>
     of the particle, allowing us to &ldquo;speed up&rdquo; and &ldquo;slow down&rdquo; the particle without adding or
     removing energy.
   </p>
 
   $$
   \boxed{\;
-  \frac{d\textcolor{#F5C518}{\mu}}{dt} = 0
+  \frac{d\textcolor{#C060FF}{\mu}}{dt} = 0
   \;}
   $$
 
@@ -853,7 +891,7 @@ footer {
         \rightarrow\;
         \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{v_\parallel}}{dt}
         = -\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
-        = -\textcolor{#F5C518}{\mu}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
+        = -\textcolor{#C060FF}{\mu}\frac{\partial \textcolor{#00DDB5}{B_z}}{\partial z}
         $$
 
         <span class="eq-step-label">Kinetic Energy</span>
@@ -870,16 +908,16 @@ footer {
         + \frac{d}{dt}\!\left(\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}\,\textcolor{#00DDB5}{B}\right)
         $$
         $$
-        = -\textcolor{#F5C518}{\mu}\frac{\partial \textcolor{#00DDB5}{B}}{\partial z}\frac{dz}{dt}
-        + \frac{d}{dt}\!\left(\textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B}\right)
+        = -\textcolor{#C060FF}{\mu}\frac{\partial \textcolor{#00DDB5}{B}}{\partial z}\frac{dz}{dt}
+        + \frac{d}{dt}\!\left(\textcolor{#C060FF}{\mu}\,\textcolor{#00DDB5}{B}\right)
         $$
         $$
-        0 = -\textcolor{#F5C518}{\mu}\frac{d\textcolor{#00DDB5}{B}}{dt}
-        + \frac{d\textcolor{#F5C518}{\mu}}{dt}\,\textcolor{#00DDB5}{B}
-        + \frac{d\textcolor{#00DDB5}{B}}{dt}\,\textcolor{#F5C518}{\mu}
+        0 = -\textcolor{#C060FF}{\mu}\frac{d\textcolor{#00DDB5}{B}}{dt}
+        + \frac{d\textcolor{#C060FF}{\mu}}{dt}\,\textcolor{#00DDB5}{B}
+        + \frac{d\textcolor{#00DDB5}{B}}{dt}\,\textcolor{#C060FF}{\mu}
         $$
         $$
-        \rightarrow\; \frac{d\textcolor{#F5C518}{\mu}}{dt} = 0
+        \rightarrow\; \frac{d\textcolor{#C060FF}{\mu}}{dt} = 0
         $$
 
       </div>
@@ -926,35 +964,35 @@ footer {
         + \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}
         $$
         $$
-        \textcolor{#F5C518}{\mu} = \tfrac{1}{2}\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{\textcolor{#00DDB5}{B}}
+        \textcolor{#C060FF}{\mu} = \tfrac{1}{2}\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{\textcolor{#00DDB5}{B}}
         $$
         $$
         \rightarrow\;
         \textcolor{#FF4400}{K} = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\parallel}^{2}
-        + \textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B}
+        + \textcolor{#C060FF}{\mu}\,\textcolor{#00DDB5}{B}
         $$
 
         <span class="eq-note">
           Because <span class="hl-m">$K$</span> &amp; <span class="hl-moment">$\mu$</span> are constant, changing
           <span class="hl-B">$B$</span> will change <span class="hl-v">$v_\parallel$</span>. In fact, at a sufficient
           <span class="hl-B">$B_B$</span>, the particle will &ldquo;stop&rdquo; and be reflected backwards by the
-          <span class="hl-B">Lorentz force</span>. Let&rsquo;s see what particle trajectories are reflected by the
-          <span class="hl-B">magnetic mirror</span>.
+          <span class="hl-thrust">Lorentz force</span>. Let&rsquo;s see what particle trajectories are reflected by the
+          <span class="key">magnetic mirror</span>.
         </span>
 
         $$
         \textcolor{#FF4400}{K_0} = \textcolor{#FF4400}{K_f}
         \qquad
-        \textcolor{#F5C518}{\mu} = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\perp 0}}^{2}}{2\,\textcolor{#00DDB5}{B_0}}
+        \textcolor{#C060FF}{\mu} = \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\perp 0}}^{2}}{2\,\textcolor{#00DDB5}{B_0}}
         $$
         $$
-        \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel 0}}^{2} + \textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B_0}
+        \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel 0}}^{2} + \textcolor{#C060FF}{\mu}\,\textcolor{#00DDB5}{B_0}
         = \underbrace{\tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel B}}^{2}}_{=\,0}
-        + \textcolor{#F5C518}{\mu}\,\textcolor{#00DDB5}{B_B}
+        + \textcolor{#C060FF}{\mu}\,\textcolor{#00DDB5}{B_B}
         $$
         $$
         \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel 0}}^{2}
-        = \textcolor{#F5C518}{\mu}\!\left(\textcolor{#00DDB5}{B_B} - \textcolor{#00DDB5}{B_0}\right)
+        = \textcolor{#C060FF}{\mu}\!\left(\textcolor{#00DDB5}{B_B} - \textcolor{#00DDB5}{B_0}\right)
         $$
         $$
         \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{\parallel 0}}^{2}
@@ -1012,9 +1050,9 @@ footer {
     <summary>How does a spatially-varying <span class="hl-B">magnetic field</span> speed up or slow down a
     <span class="hl-q">charged particle</span> if it cannot do work?</summary>
     <div class="clarify-body">
-      The total <span class="key">kinetic energy</span> of the <span class="key hl-q">charged particle</span> remains
-      constant. However, the <span class="key hl-v">parallel velocity</span> component of the particle&rsquo;s kinetic
-      energy can be changed by changing the <span class="key hl-v">perpendicular velocity</span> component of its
+      The total <span class="key">kinetic energy</span> of the <span class="hl-q">charged particle</span> remains
+      constant. However, the <span class="hl-v">parallel velocity</span> component of the particle&rsquo;s kinetic
+      energy can be changed by changing the <span class="hl-v">perpendicular velocity</span> component of its
       kinetic energy. Thus, we are able to &ldquo;speed up&rdquo; or &ldquo;slow down&rdquo; the particle&rsquo;s
       travel without adding or removing kinetic energy.
     </div>
@@ -1022,16 +1060,16 @@ footer {
 
   <details class="clarify-detail">
     <summary>Why do we not allow for a time-varying <span class="hl-B">magnetic field</span> in the derivation of the
-    <span class="hl-B">magnetic mirror</span>?</summary>
+    <span class="key">magnetic mirror</span>?</summary>
     <div class="clarify-body">
-      Though not explored in this applet, a time-varying <span class="key hl-B">magnetic field</span> produces an
-      <span class="key hl-E">electric field</span> by Faraday&rsquo;s Law. <span class="key hl-E">Electric fields</span>
-      do work on electrically <span class="key hl-q">charged particles</span>. Because
+      Though not explored in this applet, a time-varying <span class="hl-B">magnetic field</span> produces an
+      <span class="hl-E">electric field</span> by Faraday&rsquo;s Law. Electric fields
+      do work on electrically <span class="hl-q">charged particles</span>. Because
       <span class="key">magnetic mirrors</span> work without energy input, a time-varying
-      <span class="key hl-B">magnetic field</span> wouldn&rsquo;t effectively represent the physics of how
-      <span class="key">magnetic mirrors</span> modify the motion of <span class="key hl-q">charged particles</span>. It
-      would appear as though changing a particle&rsquo;s <span class="key hl-v">parallel velocity</span> must be the
-      result of removing energy from the <span class="key hl-q">charged particle</span>, which is not necessarily true!
+      magnetic field wouldn&rsquo;t effectively represent the physics of how
+      <span class="key">magnetic mirrors</span> modify the motion of charged particles. It
+      would appear as though changing a particle&rsquo;s <span class="hl-v">parallel velocity</span> must be the
+      result of removing energy from the charged particle, which is not necessarily true!
     </div>
   </details>
 </div>

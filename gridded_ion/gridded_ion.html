@@ -2075,16 +2075,67 @@ const APER_N  = 3;                     // channels at ry = n·APER_DY, |n| ≤ 3
    period offset by half in both axes); the off-plane column sits at P/2 ≥ r so it never
    reaches the cut. Screen went 127 bores of Ø15.0 → 59 of Ø22.2, accel 127 → 161 of Ø8.3.
    A wide-open screen grid over a much tighter accel grid is the real ion-optics arrangement
-   (the accel grid is what blocks electron backstreaming); the two in series are also what set
-   propellant utilisation, since a neutral only escapes by lucking through BOTH. */
+   (the accel grid is what blocks electron backstreaming). These two open fractions govern the
+   NEUTRAL leak only — an atom escapes by lucking through BOTH, and then only if it also clears
+   the accel bore as a channel (accelClausing). They do NOT govern ion extraction: the screen
+   grid's transparency to IONS is set by its sheath, not its open area, and is deliberately
+   larger — see SCREEN_ION_TRANSPARENCY. */
 const GRID_OPEN_SCREEN = 0.80;         // screen (first) grid — 80% open
 const GRID_OPEN_ACCEL  = 0.30;         // accel (second) grid — 30% open
 const APER_R_SCREEN = GRID_OPEN_SCREEN * APER_DY / 2;   // 11.085 mm half-height — the wider holes
 const APER_R_ACCEL  = GRID_OPEN_ACCEL  * APER_DY / 2;   //  4.157 mm half-height — the far smaller holes that filter unfocused neutrals
-/* Neutral escape is purely GEOMETRIC: alignment with an accel aperture is the whole test.
-   A per-encounter channel-transmission factor was tried here and removed by request — it
-   decoupled utilisation from the ionized fraction (μ_u 20%→81% at a fixed 8% ionized), but
-   it is a calibration rather than geometry, and the loss model is meant to be geometry. */
+/* NEUTRAL escape is geometric — but the geometry is a CHANNEL, not a zero-thickness slot.
+   The accel bore has an aspect ratio L/d ≈ 1, so even a perfectly aligned atom entering it is
+   as likely to strike the bore WALL and be scattered back as it is to make it out: free-molecular
+   transmission through a short tube is the Clausing factor, ≈ 0.5 at L/d = 1, not 1. Treating the
+   grid as an infinitely thin sheet (the old model) therefore overstated neutral escape by ~2×.
+   Measured against the instrumented build, escape per grid-plane arrival was 0.317 — the real
+   effective neutral transparency of a two-grid optics assembly is ~0.1. This closes most of it;
+   the rest is the ions' side (SCREEN_ION_TRANSPARENCY below).
+   It is not a free parameter: the applet's own accel grid is 9.0 thick with an 8.31 bore, so
+   L/d = 1.08, and the tabulated Clausing transmissions (0.672 at L/d = 0.5, 0.514 at 1.0, 0.412 at
+   1.5, 0.356 at 2.0) are fitted to within a percent by 1/(1 + 0.95·L/d) — giving 0.49 here.
+   Derived from the live slab because buildModel re-reads both from the meshes. */
+const accelClausing = () =>
+  1 / (1 + 0.95 * (ACCEL_SLAB.x1 - ACCEL_SLAB.x0) / (2 * HOLE_R_ACCEL));
+/* ION escape is NOT geometric, and this is the single biggest physics correction in the model.
+   The screen grid sits ~25 V below plasma potential, so a sheath stands on its plasma face. In a
+   discharge chamber (n_e ≈ 3·10^17 m⁻³, T_e ≈ 4 eV) the Debye length is
+       λ_D = 7430·√(T_e[eV]/n) ≈ 27 µm
+   against an aperture radius of ~1 mm — λ_D/r ≈ 0.03. The sheath is a THIN SKIN that hugs the
+   metal and bulges smoothly across each hole, and that curved sheath is an electrostatic LENS: it
+   collects ions from the full grid area, webbing shadow included, and funnels them into the bore.
+   The plasma itself cannot flow through — electrons are reflected by the potential drop and the
+   quasineutral bulk stops at the sheath edge — so what crosses the grid plane is a beam of ions
+   falling through the sheath, not a leaking fluid.
+   The measured consequence: NSTAR's screen grid has 0.67 geometric open area but ~0.87 ion
+   transparency. The effective ion transparency EXCEEDS the open fraction. It is also why the
+   screen grid barely erodes while the accel grid does — the fact the Acceleration stage teaches.
+   The old model had ions LUCK through the screen hole at the geometric 0.80 and splatter 20% of
+   them onto the webbing, which is this physics exactly backwards. */
+const SCREEN_ION_TRANSPARENCY = 0.92;  // effective ion transparency of the screen grid (sheath lens)
+/* Ion vs. neutral thermal speed. The propellant enters as cold gas (T_n ≈ 500 K ≈ 0.04 eV); ions
+   born in the discharge sit at a few tenths of an eV, so at equal density they cross any plasma
+   boundary √(T_i/T_n) times as often — before the presheath adds its directed pull on top (see
+   PRESHEATH_W). The old model gave ions a LOWER speed clamp than neutrals (110 vs 120) and
+   identical jitter, so measured mean chamber speeds were 32.5 for ions against 54.8 for neutrals:
+   ions arrived at the grid LESS often per particle than neutrals did, the exact opposite of the
+   Bohm-flux picture.
+   This constant scales the ion jitter and clamp, but it is NOT the ratio that comes out. Ions are
+   short-lived — born, then lost to a wall or extracted well before they random-walk up to their
+   clamp the way the long-lived neutrals do — so the EMERGENT mean chamber speeds are 121 for ions
+   against 42 for neutrals, a ratio of 2.9. That is the number to quote, and it is the physical
+   one: 2.9 = √(T_i/T_n) puts T_i ≈ 0.36 eV against a 500 K gas, which sits inside the few-tenths
+   range discharge-chamber ions are measured at. (For scale, Xe at 500 K has v̄ = 284 m/s and at
+   0.36 eV v̄ = 820 m/s.)
+   Note what this factor does and does not buy. Measured, ions reach the grid plane 7.5× as often
+   per particle as neutrals; 2.9 of that is this thermal term and the remaining ~2.6 is the
+   presheath. The physical total is ~24 (u_B = 1714 m/s against a one-sided neutral flux v̄/4 =
+   71 m/s), and the shortfall is entirely in the directed term — u_B is set by the ELECTRON
+   temperature, not the ion temperature, so no amount of ion heating closes it. PRESHEATH_W is
+   deliberately held inside its measured-isotropic band instead, which is why μ_u lands near 0.90
+   rather than the ~0.97 the full Bohm flux would give. */
+const ION_VTH_RATIO = 4.3;             // scales ion jitter/clamp; emergent speed ratio is 2.9 (see above)
 function apertureY(y){
   let n = Math.round((y - AXY) / APER_DY);
   n = Math.max(-APER_N, Math.min(APER_N, n));
@@ -2121,13 +2172,27 @@ const PARTS = [];
 // second electron; it's pulled from here so the fixed GPU buffer never has to grow,
 // and returned here when a freed electron is later collected at the anode.
 const spareE = [];
-// Neutralizer ⇄ ion balance. neuTarget is a smoothed (time-averaged) count of the ions
-// extracted through the grids; the neutralizer matches its electron count to it so the
-// plume reads ≈ one e⁻ per ion. Smoothing matters because activation is instant but
-// retirement only happens at beam-exit — without it the electron count would ratchet up
-// to transient ion PEAKS instead of the average. neuSurplus (active − target) is the
-// number retired to the dormant pool as they leave the beam.
-let neuTarget = 0, neuSurplus = 0;
+/* Neutralizer ⇄ ion CURRENT balance. The cathode has to emit one electron per ion leaving the
+   grids — I_e = I_i — or the spacecraft charges up, which is the whole point of the component.
+   So the quantity that must match is a RATE, electrons/s out of the cathode against ions/s
+   through the optics, not a headcount of what happens to be on screen.
+   ionExitEvents is the raw extraction count since the last balance pass; ionExitRate is that
+   smoothed into extractions per second, and it IS the cathode's emission rate. The smoothing is
+   what makes the stream constant: a single frame sees 0 or 1 extractions, so metering off the
+   instantaneous count would fire the gun in stutters. A real hollow cathode emits a steady
+   current set by the beam it has to neutralize, not by individual extraction events — a ~1.2 s
+   memory is long enough to erase the frame-to-frame shot noise of a bursty discharge while still
+   following a genuine change (the thruster throttling, or being switched off) within a second.
+   This replaces a flat 16 e⁻/s at a fixed population of 26, which was tied to nothing: after the
+   utilisation rework the grids extract ~24 ions/s in Overview, so the old gun under-emitted by
+   a third and the plume was left with a standing positive imbalance. */
+const NEU_RATE_TAU = 1.2;   // half-life of the emission-rate smoothing, sim-seconds
+let ionExitEvents = 0;      // extractions through the grids since the last balance pass
+let ionExitRate   = 0;      // smoothed extractions per second == the cathode's emission rate
+// neuSurplus (active − target) is the number retired to the dormant pool as they leave the beam.
+// Only the Neutralizer STAGE uses it — that stage runs a fixed paired stream rather than a
+// metered one, so it needs a headcount target; the full-device views are rate-driven.
+let neuSurplus = 0;
 let neuEmitAcc = 0;   // fractional accumulator that meters the cathode's steady electron emission
 // Propellant-utilization tracking (ionization stage): decaying event counters for atoms
 // that get IONIZED vs those that leak out as NEUTRALS. μ_u = ṁ_ion/ṁ_total ≈ ionize/(ionize+leak).
@@ -2148,11 +2213,16 @@ const PARTICLE_PROFILES = {
   // `size` is now the sprite diameter in MODEL (world) units — the glyph keeps a fixed
   // size RELATIVE TO THE THRUSTER (grows on zoom-in, shrinks on zoom-out) via the
   // projection-derived gl_PointSize in the vertex shader.
-  default:  { counts:{ neutral:64,  eD:36, eN:40,  spare:64  }, size:5.4 },
+  // eN is a POOL, not a population: the neutralizer fires at the ion-extraction rate and its
+  // spent electrons retire to this pool at the beam end, so the number actually in flight is
+  // rate × beam-transit-time and the pool only has to be big enough not to run dry. Measured,
+  // Overview extracts ~24 ions/s against a ~2.4 s transit → ~58 in flight, so 40 starved the gun
+  // to 16 e⁻/s (a two-thirds-neutralized beam). 90 leaves headroom for rate excursions.
+  default:  { counts:{ neutral:64,  eD:36, eN:90,  spare:64  }, size:5.4 },
   // Overview (nominal performance): a full-device view fed with plenty of propellant so the
   // discharge chamber reads densely populated + a slightly larger sprite (the view is zoomed
   // out) + a natural, lively playback.
-  overview: { counts:{ neutral:500, eD:22, eN:40,  spare:220 }, size:8.4 },
+  overview: { counts:{ neutral:500, eD:22, eN:90,  spare:220 }, size:8.4 },
   // Ionization (utilization fraction): the same discharge-chamber plasma as Overview (the
   // dispersion / injection-from-injector behaviour is shared, ungated), just ~1/3 the particle
   // count since this view is zoomed in — enough that μ_u reads steady without overcrowding.
@@ -2193,25 +2263,56 @@ const E_COLLECT_FREED = 0.8;
 // speed clamp (mean vx +80 of a 90 cap, 97% positive). That read as ions streaming rightward rather
 // than wandering. Narrowing it to a real layer leaves the bulk field-free and isotropic, and makes
 // extraction something an ion has to WANDER INTO — which is the physical picture.
-const PRESHEATH_W = 12;     // depth of the extraction layer upstream of the screen grid (x ≳ 123.5)
+const PRESHEATH_W = 28;     // depth of the extraction layer upstream of the screen grid (x ≳ 107.5)
 const PRESHEATH_A = 1400;   // pull inside it — strong enough to capture an ion that wanders in
-// Utilisation now comes from that capture competing with wall recombination, so PRESHEATH_W trades
+// Utilisation comes from that capture competing with wall recombination, so PRESHEATH_W trades
 // directly against μ_u. Measured, sampling ion vx over a FIXED upstream window (x < 60) so the
-// metric doesn't move with the layer — fraction of chamber ions travelling downstream, and μ_u:
+// metric doesn't move with the layer — fraction of chamber ions travelling downstream, and μ_u
+// (μ_u figures are from the OLD, over-leaky grid model; the ratios are what matter here):
 //     W =  26 → 0.53 isotropic, μ_u 61%      W =  70 → 0.68 BIASED, μ_u 78%
 //     W =  40 → 0.53 isotropic, μ_u 73%      W =  90 → 0.63 BIASED, μ_u 75%
-// Wider buys μ_u but re-introduces the very streaming this rework removed. 12 is deliberately at
-// the tight end: the pull is meant to be visible only once an ion is right at the grid, so the
-// downstream-moving fraction stays ~0.5 until the last bin. If more utilisation is wanted, raise
-// the ionization gates (ION_CONF / OVERVIEW_CONF below) — never widen this into a chamber drift.
-// Ionization-rate gate for the zoomed-in Ionization stage (magnets ON). Utilization comes from
-// GEOMETRY + DENSITY, not an ion drift: a neutral leaks only if it lucks through BOTH grid holes
-// (0.80·0.30 = 24%/visit — see GRID_OPEN_SCREEN/GRID_OPEN_ACCEL), so with a dense enough discharge it almost always
-// ionizes before it can escape → exit-based μ_u (extracted ions / total exits) stays high. Its ion
-// then reaches the beam having lucked only the screen hole, so ions leave far more readily than
-// neutrals. Magnets-off uses a far lower fixed rate (0.0015) so the discharge starves and μ_u drops.
-// Separate from Overview (OVERVIEW_CONF) since the two views have different densities.
-const ION_CONF = 0.009;
+// 28 sits inside the measured-isotropic band (≤ 40 leaves the upstream population at 0.53, i.e.
+// unbiased) while being a real layer rather than a skin. That matters because the presheath is the
+// DIRECTED half of the Bohm flux: of the ~24× by which ion flux to the grid plane exceeds the
+// neutral flux at equal density, √(T_i/T_n) ≈ 4.3 is temperature (ION_VTH_RATIO) and the remaining
+// ~5.8 is that ions cross the boundary at u_B in one direction while neutrals present only a
+// one-sided thermal flux v̄/4. A 12-deep skin carried almost none of that. Do NOT widen past ~40:
+// beyond it the upstream bulk starts streaming and the quasineutral-chamber picture breaks.
+/* Ionization-rate gate — ONE number for every stage with the magnets on. It used to be two
+   (ION_CONF = 0.30 for the Ionization view, OVERVIEW_CONF = 0.009 for Overview), and that split is
+   what hid the real bug. The two stages were each tuned until their own readout looked right, and
+   they landed 33× apart: Overview ran a ~8% ionized plasma and read μ_u = 14%, the Ionization view
+   ran a 61% ionized plasma to read μ_u = 93%. A 61% ionized discharge is nonsense — real chambers
+   run ~5–15% — and it was being used to paper over a grid model that barely discriminated between
+   ions and neutrals at all (measured ion-preference factor 2.0 against a physical ~200).
+   With that discrimination now carried by the physics — the screen sheath lens
+   (SCREEN_ION_TRANSPARENCY), the accel bore's Clausing factor (accelClausing), the ion temperature
+   (ION_VTH_RATIO) and a real presheath (PRESHEATH_W) — this single gate sets the ionized fraction
+   and the physics sets μ_u, instead of the gate being asked to do both jobs.
+   Magnets OFF still uses a far lower fixed rate (0.0015) so the discharge starves and μ_u collapses.
+   Swept against the instrumented build (60 s windows, magnets on, μ_u and the instantaneous
+   ionized fraction x, both stages). Re-swept after ion wall loss was confined to the cusps
+   (see the ion chamber branch) — that removed the model's dominant ion sink, roughly tripling
+   how many produced ions survive to the grids, so the gate came down 0.12 → 0.06 to keep the
+   plasma at a sane density:
+       CONF     Ionization μ_u / x     Overview μ_u / x
+       0.030      0.812 / 0.151          0.819 / 0.113
+       0.045      0.858 / 0.132          0.866 / 0.182
+       0.060      0.907 / 0.199          0.900 / 0.198    ← both stages agree, μ_u ≈ NSTAR's 0.90
+       0.090      0.922 / 0.250          0.935 / 0.254
+   Chosen for μ_u, with x accepted as the looser constraint: 0.06 puts utilisation on the measured
+   0.90 while leaving the chamber ~20% ionized, which is at the top of the physical band rather
+   than inside it (0.045 would centre x but drop μ_u to 0.86). The old two-gate arrangement could
+   not make that trade at all — it sat at 61% ionized to buy its 93%. That the two stages track
+   each other across the whole sweep is the check that utilisation is no longer a per-view
+   calibration. */
+const DISCHARGE_CONF = 0.06;
+/* Decay time of the standing chamber plasma once the cusps are switched off (Ionization stage
+   only). Confinement is what was holding that plasma; without it the ions are lost to the walls
+   promptly rather than lingering for the minute-plus a pure one-collision-at-a-time drain takes.
+   3 s empties the chamber in about ten, which is what makes the toggle feel connected to the
+   readout — the μ_u counters carry their own 2.5 s memory on top. */
+const PLASMA_DECAY_T = 3.0;
 // Width of the wall band where the ring-cusp B field lives (Change 3). Discharge electrons
 // gyrate only within B_BAND of an anode wall / back plate; the core is field-free (ballistic).
 const B_BAND = 30;
@@ -2219,14 +2320,10 @@ const B_BAND = 30;
 // fraction of non-aperture-aligned primaries is collected (Change 4). Freed secondaries and
 // aperture-aligned primaries always reflect.
 const SCREEN_E_COLLECT = 0.1;
-// (The old probabilistic accel-grid "slip" chance was removed — neutral escape is now a purely
-// geometric double filter at the two grids: see APER_R_SCREEN / APER_R_ACCEL and the gtransit
-// branch. Leak rate comes from grid geometry; ionization rate comes from the conf knobs.)
-// Ionization-rate gate for Overview (magnets always on). Set so neutrals mostly ionize before they
-// can leak (double geometric grid filter) — the exhaust plume is NOT swamped with un-ionized
-// (white) neutrals. The chamber still reads mostly neutral because ions extract by lucking the
-// screen hole and being swept out, so they turn over rather than piling up.
-const OVERVIEW_CONF = 0.009;
+// (The old probabilistic accel-grid "slip" chance was removed — neutral escape is a geometric
+// double filter at the two grids, now with the accel bore's Clausing factor on top: see
+// APER_R_SCREEN / APER_R_ACCEL / accelClausing and the gtransit branch. Leak rate comes from grid
+// geometry; ionization rate comes from DISCHARGE_CONF.)
 // atlas cell: +, −, plain disc, or cell 3 (empty) for hidden spare-pool slots
 const glyphOf = p => p.dead ? 3 : (p.sp === 'ion' ? 1 : (p.sp === 'electron' ? 2 : 0));
 
@@ -2276,24 +2373,60 @@ function reflectElectronWall(p, nx, ny){
 }
 
 /* A neutral atom that misses an aperture strikes the grid's flat upstream (or downstream)
-   FACE, whose normal is the thrust axis. It bounces ELASTICALLY: it keeps its speed and its
-   sideways velocity and leaves at the mirror of its approach angle, so an atom arriving at a
-   slant departs at a slant. (It used to be sent straight back along −k̂ with its sideways
-   motion thrown away — at the accel grid it was even snapped onto the channel centreline —
-   which read as every atom rebounding along one axis instead of scattering off a surface.)
-   nx is the face's inward normal: −1 for the upstream face (turn it back the way it came),
-   +1 for the downstream face. p.x is pinned to the face so nothing is left inside the metal.
-   The clamp keeps |v·n̂| ≥ cos 80° of the speed, so an atom can never end up sliding along the
-   face and creeping through it. */
+   FACE, whose normal is the thrust axis. It leaves at the mirror of its approach angle, so an
+   atom arriving at a slant departs at a slant. (It used to be sent straight back along −k̂ with
+   its sideways motion thrown away — at the accel grid it was even snapped onto the channel
+   centreline — which read as every atom rebounding along one axis instead of scattering off a
+   surface.) nx is the face's inward normal: −1 for the upstream face (turn it back the way it
+   came), +1 for the downstream face. p.x is pinned to the face so nothing is left inside the
+   metal. The clamp keeps |v·n̂| ≥ cos 80° of the speed, so an atom can never end up sliding along
+   the face and creeping through it.
+   The bounce is THERMAL, not elastic: a xenon atom striking metal accommodates to the surface and
+   leaves at the wall temperature, which is the standard free-molecular assumption and is also what
+   keeps this model honest. The reflection used to preserve speed exactly, and that turned the
+   inter-grid gap into a cold trap — see NEUTRAL_VTH. */
 const GRID_REFLECT_JITTER = 28 * Math.PI / 180;   // ±28° roughness scatter off the webbing
 const GRID_REFLECT_MAX    = 80 * Math.PI / 180;   // exit stays within 80° of the face normal
+/* Neutral thermal speed at the wall temperature. Matched to the equilibrium the chamber's own
+   jitter+clamp random walk settles at (measured mean 43), so an atom that bounces off metal
+   rejoins the gas at the right temperature instead of at whatever speed it happened to arrive
+   with. This is what fixes atoms parking in the inter-grid gap: the gap applies NO thermal jitter
+   (only the chamber branch does), so any energy sink there was permanent. The gap's radial wall
+   damped vy by half per bounce and the grid faces preserved whatever was left, so an atom that
+   rattled a few times cooled toward zero and stopped — measured, 13% of gap atoms had |vx| < 5
+   and individual atoms sat between the grids for 23–27 s. Re-thermalising on contact removes the
+   sink entirely: every wall contact resets the speed, so nothing can cool below wall temperature. */
+const NEUTRAL_VTH = () => rnd(25, 65);
+/* Thermal re-emission off a wall with inward unit normal (nx,ny): the atom accommodates to the
+   surface and leaves with a FRESH speed AND a FRESH direction about that normal — its incoming
+   velocity is forgotten entirely. Rescaling the speed while keeping the direction is not enough,
+   and the difference is exactly the second half of the stuck-atom bug: an atom crossing the gap
+   almost sideways has its direction preserved by a mirror bounce, so it keeps almost no velocity
+   along the thrust axis and slides up and down the gap indefinitely no matter how often its speed
+   is reset (measured, single atoms still sat there ~30 s). Redrawing the direction means every
+   wall contact gives it a new axial component, so nothing can be trapped moving tangentially.
+   The exit stays within GRID_REFLECT_MAX of the normal, so atoms still leave at believable
+   slants rather than all rebounding along one axis. */
+function thermalizeOffWall(p, nx, ny, speed){
+  const s = speed === undefined ? NEUTRAL_VTH() : speed, phi = rnd(-GRID_REFLECT_MAX, GRID_REFLECT_MAX);
+  const tx = -ny, ty = nx;
+  p.vx = s * (Math.cos(phi) * nx + Math.sin(phi) * tx);
+  p.vy = s * (Math.cos(phi) * ny + Math.sin(phi) * ty);
+}
+/* An ion that reaches a magnetised stretch of anode wall BETWEEN the cusps never touches metal —
+   the ring-cusp field turns it around, so it returns to the plasma still charged. Same treatment
+   as the neutrals' wall bounce (fresh direction about the inward normal, so nothing can be left
+   sliding along the wall), but redrawn at the ION thermal speed: it is still a discharge ion, not
+   an atom accommodated to the wall. */
+const ION_VTH = () => rnd(25, 65) * ION_VTH_RATIO;
+function mirrorIonOffWall(p, nx, ny){ thermalizeOffWall(p, nx, ny, ION_VTH()); }
 function bounceOffGrid(p, xFace, nx){
   p.holeY = undefined;   // it hit webbing — it is not in a bore
   // Rest a hair CLEAR of the face along the inward normal, not exactly on it: parked exactly on
   // the face, float rounding leaves the sprite overlapping the metal by a fraction of a unit, and
   // an atom that lingers there sits permanently a sliver inside the grid.
   p.x = xFace + nx * 0.02;
-  reflectOffWall(p, nx, 0, GRID_REFLECT_JITTER, GRID_REFLECT_MAX);
+  thermalizeOffWall(p, nx, 0);
 }
 
 /* ── Drawing a particle INSIDE the aperture it went through ────────────────────────────────
@@ -2379,15 +2512,19 @@ function absorbElectron(p){
   if (p.freed) recycleFreed(p);
   else spawnEDischarge(p);
 }
-/* Does this electron get collected at the wall it just hit? Cusp zones absorb at
-   CUSP_ABSORB_PROB; separately, freed secondaries are poorly confined and are collected
-   at a background rate everywhere on an absorbing wall (unchanged ionization closure). */
+/* Does this electron get collected at the wall it just hit? ONLY inside a cusp zone. Everywhere
+   else the ring-cusp field mirrors it back into the chamber, so charge never reaches the metal —
+   that is the entire purpose of the magnet rings, and it is what the field-line overlay draws.
+   Freed secondaries are still collected far more readily than primaries once they DO reach a cusp
+   (they are low-energy and poorly confined), but they used to be collected at E_COLLECT_FREED
+   ANYWHERE on the wall, which was a loss channel the magnets did not gate: measured, most
+   secondaries died on unmagnetised wall between the rings. That both understated the confinement
+   the stage is teaching and put anode flashes all along the wall instead of at the cusps. */
 function electronCollected(p, inCusp){
   // Ionization stage with the magnets OFF: no ring-cusp confinement, so an electron is
   // collected the instant it reaches ANY anode wall (it flies straight out and is lost).
   if (!magnetsOn && appMode === 'ion') return true;
-  return (inCusp && Math.random() < CUSP_ABSORB_PROB) ||
-         (p.freed && Math.random() < E_COLLECT_FREED);
+  return inCusp && Math.random() < (p.freed ? E_COLLECT_FREED : CUSP_ABSORB_PROB);
 }
 
 function spawnNeutral(p){
@@ -2429,10 +2566,13 @@ function recycleNeutral(p){
    chamber position and gives it an ISOTROPIC thermal velocity — no axial (toward-grids) bias,
    so a freshly created ion has no preferred direction (it wanders like the neutral it was until
    the presheath near the grids extracts it). A directed birth velocity would read as an interior
-   axial E-field pushing ions to the grids — exactly the error this model avoids. */
+   axial E-field pushing ions to the grids — exactly the error this model avoids.
+   Born at the ION thermal speed, not the parent atom's: the newly created ion equilibrates with
+   the ~0.75 eV ion population far faster than it crosses the chamber, and seeding it cold would
+   suppress the very flux asymmetry ION_VTH_RATIO exists to carry. */
 function ionizeNeutral(p){
   p.sp='ion'; p.sub=null; p.phase='chamber'; p.slope=0;
-  const a=rnd(0,6.283), s=rnd(15,45); p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s;
+  const a=rnd(0,6.283), s=rnd(15,45)*ION_VTH_RATIO; p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s;
 }
 /* Recombine an ion AT a wall it just contacted: convert it to a neutral IN PLACE (metal
    neutralizes the charge), with a fresh residence life and a small thermal velocity biased
@@ -2522,8 +2662,9 @@ function spawnENeutralizer(p){
   // Jet transit speed. Neutralizer stage: fast (÷560) so most committed electrons are IN the
   // beam (beam e⁻ ≈ beam ions for the probe). Full-device views: slower (÷300) so more
   // electrons are visibly strung ALONG the cathode→beam jet at once — the cathode reads as a
-  // continuous stream rather than a few sparse dots (the extra transit count is jet-only, so
-  // the beam still lands ≈ one e⁻ per ion; see the ≈1.5× commit in balanceNeutralizer).
+  // continuous stream rather than a few sparse dots. This costs nothing in current balance: the
+  // gun is metered by RATE (balanceNeutralizer emits at ionExitRate), so a longer jet transit
+  // just puts more electrons in flight along the arc, one per extracted ion either way.
   const jetSpeed = appMode === 'neu' ? 560 : 300;
   p.t=0; p.dur=(Math.abs(p.mergeX-p.p0x)+Math.abs(p.targetY-p.p0y))/jetSpeed;
   p.phase='jet'; p.slope=0; p.vx=0;
@@ -2586,7 +2727,15 @@ function stepParticle(p, dt){
       // The inter-grid gap has no side wall, so a sideways-drifting neutral used to wander clear out
       // through the housing at the top/bottom of the grids (the "particles leaving the sides" leak).
       // Keep it within the grid silhouette: reflect at the chamber radius like the discharge walls.
-      { const ry = p.y - AXY; if (Math.abs(ry) > CH_R){ p.y = AXY + Math.sign(ry) * CH_R; p.vy = -p.vy * 0.5; } }
+      // Reflect THERMALLY, like the grid faces either side of it — this is the same metal at the
+      // same temperature. It used to damp vy by half per bounce, and since the gap has no thermal
+      // jitter to re-heat an atom, that damping was a one-way energy sink: a few bounces and the
+      // atom was parked between the grids for tens of seconds (see NEUTRAL_VTH).
+      { const ry = p.y - AXY;
+        if (Math.abs(ry) > CH_R){
+          p.y = AXY + Math.sign(ry) * CH_R;
+          thermalizeOffWall(p, 0, ry > 0 ? -1 : 1);
+        } }
       confineToBore(p);   // if it is inside a grid bore, that bore's wall confines it
       if (p.x + partR >= ACCEL_SLAB.x0 && p.vx > 0){
         // Accel (second) grid — a GEOMETRIC filter, not a coin flip. Its holes are far smaller than
@@ -2595,8 +2744,14 @@ function stepParticle(p, dt){
         // Un-ionized atoms leave ONLY here, VISIBLY, as exhaust. (Ions are sheath-focused onto the
         // channel and thread this same small hole every time — see the ion 'accel' branch. That
         // contrast — focused ions sail through, unfocused neutrals are choked — is the whole point.)
+        // Alignment is necessary but NOT sufficient: the bore is a short TUBE (L/d ≈ 1), not a slot
+        // in a zero-thickness sheet, so an aligned atom entering it is about as likely to strike the
+        // bore wall and scatter back as to make it out — the free-molecular Clausing factor. The
+        // ions do not care (the field carries them straight down the channel), so this is a
+        // neutral-only choke, and it is the second half of why gas leaks far more slowly than the
+        // open-area product alone suggests.
         const na = apertureY(p.y);
-        if (Math.abs(p.y - na) < APER_R_ACCEL){   // threads the small accel hole → beam (un-utilized)
+        if (Math.abs(p.y - na) < APER_R_ACCEL && Math.random() < accelClausing()){   // threads the small accel hole → beam (un-utilized)
           muLeak++; enterBore(p, na, 'accel');                                  // counted here, at the exhaust exit plane (exit-based μ_u)
           p.phase='leak'; p.vx=rnd(60,95);
           // The Overview 3-D plume flings it to a random azimuth, which is a sideways TELEPORT —
@@ -2635,11 +2790,25 @@ function stepParticle(p, dt){
   } else if (p.sp === 'ion'){
     const accelSolo = particleProfile === 'accel';   // the lone accelerator-stage ion: dead-centre, no jitter
     if (p.phase === 'chamber'){
+      /* Magnets OFF collapses the discharge, and that has to include the plasma ALREADY in the
+         chamber, not just the supply of new ions. Starving ionization on its own leaves the standing
+         inventory to drain one wall collision at a time, and raising the ionization gate made that
+         inventory ~8× bigger: measured, the cusps going off left 121 ions draining and μ_u sliding
+         15+ seconds later. Without confinement those ions are lost to the walls promptly, so decay
+         them with a PLASMA_DECAY_T time constant — the chamber empties in ~8 s and the readout
+         follows the switch. Gated to the Ionization stage, the only view that owns the toggle. */
+      if (!magnetsOn && appMode === 'ion' && !accelSolo && Math.random() < dt / PLASMA_DECAY_T){
+        recombineIonAt(p, 0, 0); return;
+      }
       if (!accelSolo){
-        // Isotropic random walk over the whole chamber — same treatment the neutrals get, because
-        // the quasineutral bulk exerts no axial force on an ion. Jitter matched to the neutrals'
-        // so the two species read as one population until extraction separates them.
-        p.vx += rnd(-1,1)*140*dt; p.vy += rnd(-1,1)*240*dt; clampSpeed(p, 110);
+        // Isotropic random walk over the whole chamber — the quasineutral bulk exerts no axial
+        // force on an ion, so the MOTION is undirected, exactly like the neutrals'. What differs
+        // is the TEMPERATURE: discharge ions sit at ~0.75 eV against the propellant's ~0.04 eV, so
+        // they wander ION_VTH_RATIO ≈ 4.3× faster and hit the grid plane that much more often per
+        // particle. That is the thermal part of the ion/neutral flux asymmetry — still isotropic,
+        // so it adds no chamber-wide streaming (see PRESHEATH_W for the directed part).
+        p.vx += rnd(-1,1)*140*ION_VTH_RATIO*dt; p.vy += rnd(-1,1)*240*ION_VTH_RATIO*dt;
+        clampSpeed(p, 120*ION_VTH_RATIO);
         // The ONE directed region: a thin extraction layer where the grid field leaks upstream.
         // An ion only feels it once it has wandered within PRESHEATH_W of the screen grid.
         if (p.x > GRID_X - PRESHEATH_W) p.vx += PRESHEATH_A * dt;
@@ -2648,35 +2817,69 @@ function stepParticle(p, dt){
       }
       p.x += p.vx*dt; p.y += p.vy*dt;
       if (!accelSolo){
-        // Ions RECOMBINE on metal instead of bouncing: contact with the back plate or an anode
-        // wall neutralizes the charge, leaving a neutral that drifts back into the chamber.
+        // Ions reach the metal ONLY at the cusps. Between the magnet rings the ring-cusp field
+        // stands the plasma off the wall, so an ion that wanders out there is mirrored back still
+        // charged; inside a cusp band the field lines run INTO the metal, the ion gets there and
+        // recombines, leaving a neutral that drifts back into the chamber. This is the same rule
+        // the electrons already followed (electronCollected) — it simply was not applied to ions,
+        // which recombined on contact anywhere along the wall. That was the model's dominant ion
+        // sink: measured, 28 wall recombinations/s against 11 extractions/s, i.e. the magnets
+        // confined the electrons while the ions poured straight into unmagnetised wall.
         const ry = p.y - AXY;
-        if (p.x < CH_X0){ p.x = CH_X0; recombineIonAt(p, 1, 0); return; }                            // back plate → neutral
-        if (Math.abs(ry) > CH_R){ p.y = AXY + Math.sign(ry) * CH_R; recombineIonAt(p, 0, ry > 0 ? -1 : 1); return; }   // anode wall → neutral
+        const confined = magnetsOn || appMode !== 'ion';   // magnets off → no standoff anywhere
+        if (p.x < CH_X0){
+          p.x = CH_X0;
+          if (!confined || inCuspBackY(p.y)){ recombineIonAt(p, 1, 0); return; }   // back-ring cusp → neutral
+          mirrorIonOffWall(p, 1, 0);                                               // magnetised back plate → turned back
+        }
+        if (Math.abs(ry) > CH_R){
+          p.y = AXY + Math.sign(ry) * CH_R;
+          const n = ry > 0 ? -1 : 1;
+          if (!confined || inCuspX(p.x)){ recombineIonAt(p, 0, n); return; }       // magnet-ring cusp → neutral
+          mirrorIonOffWall(p, 0, n);                                               // magnetised anode wall → turned back
+        }
       } else {
         reflectChamber(p, false);   // lone accelerator-stage ion: unchanged (rides the axis, never hits metal)
       }
-      // At the SCREEN grid an ion passes by the SAME geometric luck as a neutral — it is NOT focused
-      // into the hole by the field (no channel-snapping). If it happens to line up with a screen
-      // hole it slips into the inter-grid gap; if it is over the webbing it strikes metal and
-      // recombines to a neutral. The one charged-vs-neutral difference comes NEXT (the 'accel'
-      // branch): once in the gap the ion is charged, so the accelerator field sweeps it straight
-      // out — the grid's actual job — whereas a neutral in the gap must luck through the small accel
-      // hole too. So an ion reaches the beam having only lucked the FIRST hole; a neutral must luck BOTH.
+      // At the SCREEN grid the SHEATH does the work, not luck. λ_D (≈27 µm) is tiny against the
+      // aperture radius (~1 mm), so the sheath is a thin skin that hugs the metal and bulges across
+      // each hole — and that curved sheath is an electrostatic LENS. It gathers ions from the FULL
+      // grid area, webbing shadow included, and funnels them into the bore. Effective ion
+      // transparency is therefore set by the OPTICS (SCREEN_ION_TRANSPARENCY) and deliberately
+      // EXCEEDS the 0.80 geometric open fraction — NSTAR measures 0.87 ion transparency against a
+      // 0.67 open area. Only the small remainder impinges on the aperture rim, which is why screen
+      // grids barely erode while accel grids do (the verdict the Acceleration stage teaches).
+      // A NEUTRAL feels none of this: uncharged, it sees only the geometric hole, and then has to
+      // clear the far smaller accel bore as well. That asymmetry — a lensed ion beam against a
+      // doubly-choked gas leak — IS propellant utilisation.
       if (p.x + partR > SCREEN_SLAB.x0 && p.vx > 0){
         beamIgnited = true;   // an ion has reached the screen grid → the exhaust plume may start growing
         if (accelSolo){ p.phase='accel'; enterBore(p, AXY, 'both'); p.gapY0 = p.y; p.chanY = AXY; p.slope = 0; }
         else {
           const na = apertureY(p.y);
-          // Entered through a screen hole: settle the disc into the bore, then let the 'accel'
-          // branch FOCUS it from there (gapY0) onto the channel centreline (chanY) across the gap.
-          if (Math.abs(p.y - na) < APER_R_SCREEN){
-            p.phase='accel'; enterBore(p, na, 'both'); p.gapY0 = p.y; p.chanY = na; p.slope = (p.y-AXY)/BEAM_R0 * BEAM_TAN; muIon++;
+          // Outside the perforated area there is no aperture to be lensed into — only the solid
+          // grid rim. (CH_R = 90 against an outermost channel at 83.1, so this is a guard, not a
+          // common path; without it apertureY's clamp would teleport a rim ion onto a channel.)
+          const onGrid = Math.abs(p.y - na) <= APER_DY / 2;
+          if (onGrid && Math.random() < SCREEN_ION_TRANSPARENCY){
+            // Lensed in: map the ion's offset over the full aperture PITCH onto the bore, so one
+            // that arrived over the webbing is delivered INTO the hole already converging rather
+            // than teleporting to the centreline. The 'accel' branch eases it the rest of the way
+            // onto the channel axis across the gap.
+            p.y = na + (p.y - na) * (APER_R_SCREEN / (APER_DY / 2));
+            p.phase='accel'; enterBore(p, na, 'both'); p.gapY0 = p.y; p.chanY = na;
+            p.slope = (p.y-AXY)/BEAM_R0 * BEAM_TAN;
+            muIon++;            // propellant-utilisation numerator
+            ionExitEvents++;    // and the beam current the neutralizer has to match
           }
-          // Hit webbing → recombines to a neutral. Pin it to the grid FACE first: it had already
-          // stepped into the slab, and recombineIonAt only rewrites the velocity, so the new
-          // neutral was left standing inside the grid metal for the frames it took to walk back out.
-          else { p.x = SCREEN_SLAB.x0 - partR; recombineIonAt(p, -1, 0); return; }
+          // Direct impingement on the aperture rim → recombines to a neutral. Pin it to the grid
+          // FACE first: it had already stepped into the slab, and recombineIonAt only rewrites the
+          // velocity, so the new neutral was left standing inside the grid metal for the frames it
+          // took to walk back out.
+          else {
+            if (onGrid) p.y = na + (p.y >= na ? 1 : -1) * APER_R_SCREEN;   // lands on the rim it was aimed at
+            p.x = SCREEN_SLAB.x0 - partR; recombineIonAt(p, -1, 0); return;
+          }
         }
       }
     } else if (p.phase === 'accel'){
@@ -2846,7 +3049,7 @@ function stepParticle(p, dt){
 const GLYPH_CELLS = [
   { core:'#e6edf8', sym:null,  symCol:null       },   // 0 neutral
   { core:'#4d9bff', sym:'+',   symCol:'#ffffff'  },   // 1 ion (blue)
-  { core:'#ffe94d', sym:'−',   symCol:'#2a2405'  },   // 2 electron (yellow)
+  { core:'#ffe94d', sym:'−',   symCol:'#2a2405'  },   // 2 electron (yellow — see SPECIES note above)
   { core:null,      sym:null,  symCol:null       },   // 3 empty — hidden spare-pool slot
 ];
 function makeGlyphAtlas(){
@@ -3015,7 +3218,10 @@ function igniteThruster(){
     else if (p.sp === 'electron' && p.sub === 'd'){ if (p.freed) recycleFreed(p); else spawnEDischarge(p); }   // cathode already firing
     else if (p.sp === 'electron' && p.sub === 'n'){ p.dead = true; }               // neutralizer dark until ions arrive
   }
-  neuTarget = 0; neuSurplus = 0; muIon = 1.5; muLeak = 1.5;
+  // Zero the beam current too, so the cathode starts genuinely silent and comes up only as the
+  // grids begin extracting — no leftover rate firing electrons into an empty exhaust.
+  neuSurplus = 0; neuEmitAcc = 0; ionExitEvents = 0; ionExitRate = 0;
+  muIon = 1.5; muLeak = 1.5;
   igniteLevel = 0; igniteAcc = 0;
   beamIgnited = false; beamIgniteT = 0; beamRamp = 0;   // exhaust + neutralizer stay dark until the first ion reaches the grid (or the fallback timer)
   writeParticleGlyphs();
@@ -3063,11 +3269,11 @@ function ionizePass(dt){
   // Ring-cusp confinement gate: with the magnets OFF the primary electrons stream straight
   // to the walls and are lost before making ionizing collisions, so the discharge starves —
   // ionization is strongly suppressed and the propellant utilization μ_u collapses.
-  // Ionization-rate gate. Ion stage w/ magnets OFF → starved discharge (utilization drops).
-  // Ion stage w/ magnets ON uses the low ION_CONF so only ~5% of the chamber gas is ionized at
-  // once; Overview uses its own OVERVIEW_CONF (denser fill, lifted so a few gray atoms slip into
-  // the exhaust and μ_u is not an unrealistic 100%).
-  const conf = (appMode === 'ion' && !magnetsOn) ? 0.0015 : appMode === 'ion' ? ION_CONF : appMode === 'overview' ? OVERVIEW_CONF : 1;
+  // Ionization-rate gate. Ion stage w/ magnets OFF → starved discharge (utilization collapses).
+  // Magnets on, BOTH chamber views share DISCHARGE_CONF — one ionization rate, landing each at a
+  // ~15% ionized plasma. They no longer carry separate per-view calibrations.
+  const conf = (appMode === 'ion' && !magnetsOn) ? 0.0015
+             : (appMode === 'ion' || appMode === 'overview') ? DISCHARGE_CONF : 1;
   // Each primary electron ionizes at most one atom per pass, so the per-ATOM ionization rate
   // scales with how many primaries are in the chamber — and the stages carry different counts
   // (Overview 22, Ionization 15). That made the ionized fraction a property of the stage rather
@@ -3089,61 +3295,58 @@ function ionizePass(dt){
   }
 }
 
-/* Quasineutral plume: the neutralizer emits ≈ one electron per extracted ion, so the
-   number of neutralizer electrons in the beam tracks the number of ions that came out
-   of the accelerator grids. Extra neutralizer electrons wait DORMANT (hidden) and are
-   activated on demand; the surplus is retired to that pool as they leave the beam
-   (see the neutralizer branch of stepParticle). */
+/* Quasineutral plume: the neutralizer emits one electron per ion extracted through the grids,
+   so the beam leaves current-neutral. Spent electrons retire DORMANT (hidden) at the beam end
+   and are re-emitted from the cathode at the metered rate (see the neutralizer branch of
+   stepParticle) — retirement and emission are deliberately decoupled, so a clump of electrons
+   reaching the beam end together cannot fire a matching burst back out of the gun. */
 function balanceNeutralizer(dt){
-  let ni = 0, jetE = 0;
+  let jetE = 0;
   const dormant = [], beamE = [];
   for (let i=0;i<PARTS.length;i++){
     const p = PARTS[i];
-    // Beam ions (out of the grids) vs. the neutralizer electrons (dormant / in the jet /
-    // in the beam). We match the COMMITTED electron count (jet + beam) to the beam-ion
-    // count so the plume reads ≈ one e⁻ per ion.
-    if (p.sp === 'ion'){ if (p.phase === 'beam') ni++; }
-    else if (p.sp === 'electron' && p.sub === 'n'){
+    if (p.sp === 'electron' && p.sub === 'n'){
       if (p.dead) dormant.push(p);
       else if (p.phase === 'beam') beamE.push(p);
       else jetE++;
     }
   }
-  neuTarget += (ni - neuTarget) * 0.15;
-  // Emission target. Neutralizer stage: a CONSTANT stream (NEU_BEAM_N) matching the constant
-  // beam-ion stream when on, zero when off. Full-device views (overview/default): also a flat
-  // CONSTANT stream — the discharge is bursty, and tracking it made the cathode stutter in
-  // spurts; a fixed target keeps the gun firing a continuous, steady stream regardless of the
-  // moment-to-moment ion count (there is no quasineutrality probe here to hold it exactly 1:1).
-  const OVERVIEW_NEU_N = 26;
-  // Overview: hold the neutralizer OFF until ions have reached the grids (beamRamp starts on the
-  // first extraction), then ramp its electron stream up to nominal — so it never fires into an
-  // empty exhaust; it turns on only once there are ions in the beam to neutralize.
-  const neuRamp = appMode === 'overview' ? smooth01(0.15, 1.0, beamRamp) : 1;
-  const tgt = appMode === 'neu' ? (neuOn ? Math.round(NEU_BEAM_N * 1.3) : 0)
-                                : (neutralizerActive() ? Math.round(OVERVIEW_NEU_N * neuRamp) : 0);
   let committed = beamE.length + jetE;
+
+  // Extraction rate through the grids, smoothed into the cathode's emission rate. Do this every
+  // pass regardless of stage so the estimate never goes stale, and drain the raw counter here.
+  const inst = ionExitEvents / Math.max(dt, 1e-4);
+  ionExitEvents = 0;
+  ionExitRate += (inst - ionExitRate) * (1 - Math.pow(0.5, dt / NEU_RATE_TAU));
+
   if (appMode === 'neu'){
-    // Neutralizer STAGE: fill promptly (respawn-on-recycle does most of the work) so the beam
-    // holds the 1:1 electron:ion balance the quasineutral probe depends on.
+    // Neutralizer STAGE: no discharge is simulated here (the chamber is hidden behind the solid
+    // side profile) — the beam is a CONSTANT paired stream, NEU_BEAM_N ions seeded straight off
+    // the grids against an equal electron stream. So this stage matches a headcount, not a rate,
+    // and fills promptly so the n_i/n_e probe reads quasineutral.
+    const tgt = neuOn ? Math.round(NEU_BEAM_N * 1.3) : 0;
     let budget = 3;
     while (committed < tgt && dormant.length && budget-- > 0){
       const p = dormant.pop(); p.dead = false; spawnENeutralizer(p); committed++;
     }
-  } else {
-    // Full-device views: fire the gun at a STEADY, METERED rate — a smooth drip, not a
-    // refill-the-whole-deficit burst. Every electron retires to the dormant pool at the beam
-    // end, so a constant emission rate (just matching the retirement rate) holds the population
-    // near tgt while keeping the cathode stream perfectly even (no burst-then-pause stutter).
-    neuEmitAcc += dt * 16;   // electrons/sec leaving the cathode
-    while (neuEmitAcc >= 1 && committed < tgt && dormant.length){
-      neuEmitAcc -= 1;
-      const p = dormant.pop(); p.dead = false; spawnENeutralizer(p); committed++;
-    }
-    if (neuEmitAcc > 1) neuEmitAcc = 1;   // never bank a backlog that would later fire as a burst
+    neuSurplus = Math.max(0, committed - tgt);
+    return;
   }
-  // Surplus retires at the beam EXIT (see stepParticle) as electrons reach the far end.
-  neuSurplus = Math.max(0, committed - tgt);
+
+  // Full-device views: the gun fires at ionExitRate — one electron per extracted ion, as a
+  // STEADY drip metered by a fractional accumulator rather than a refill-the-deficit burst.
+  // The population is not targeted at all; it settles at rate × beam-transit-time on its own,
+  // which is the honest way round (a cathode controls its current, not the beam's contents).
+  // No separate spin-up ramp is needed either: before the first extraction ionExitRate is 0, so
+  // the gun is already silent, and it comes up exactly as ions start leaving the grids.
+  neuSurplus = 0;
+  if (neutralizerActive()) neuEmitAcc += dt * ionExitRate;
+  else neuEmitAcc = 0;
+  while (neuEmitAcc >= 1 && dormant.length){
+    neuEmitAcc -= 1;
+    const p = dormant.pop(); p.dead = false; spawnENeutralizer(p); committed++;
+  }
+  if (neuEmitAcc > 1) neuEmitAcc = 1;   // never bank a backlog that would later fire as a burst
 }
 
 /* Switching the neutralizer ON: prime the electron beam as a full, UNIFORM stream
@@ -4820,7 +5023,13 @@ const DP_POOL = Array.from({ length: 96 }, (_, i) => {
            sp: f < 0.20 ? 'i' : (f < 0.40 ? 'e' : 'n') };
 });
 const DP_SPD = { i:0.05, e:0.34, n:0.11 };   // box speed per species — electrons fast, ions slow
-const DP_COL     = { i:'#ffd06a', e:'#c78bff', n:'rgba(206,216,236,0.62)' };
+/* The applet-wide SPECIES palette — blue ⊕ ion, yellow ⊖ electron, pale ⊙ neutral — the same three
+   colours the 3-D stages and the legend use, so a particle keeps its identity across the lesson.
+   Note the gap beam is drawn in the space-charge amber instead: in there a colour is standing for
+   the ion CONTRIBUTION to the field (it ties the dots to the E_ions arrow and the φ_ions arch),
+   not for the species. The sheath is where the one becomes the other, which is exactly the physical
+   boundary anyway — a plasma ion is extracted there and becomes a beam ion. */
+const DP_COL = { i:'#4d9bff', e:'#ffe94d', n:'rgba(230,237,248,0.62)' };
 function updateDischargePlasma(dt){
   const h = Math.min(0.05, dt || 0);
   for (const q of DP_POOL){
@@ -4833,13 +5042,13 @@ function updateDischargePlasma(dt){
     if (q.y < 0){ q.y = 0; q.vy = -q.vy; }   if (q.y > 1){ q.y = 1; q.vy = -q.vy; }
   }
 }
-// One ⊕ / ⊖ / ⊙ glyph, the same disc-with-a-symbol the gap ions use so a plasma ion and a beam ion
-// are visibly the same particle either side of the sheath.
+// One ⊕ / ⊖ / ⊙ glyph — the same disc-with-a-symbol used everywhere else, so the sign is carried by
+// the symbol as well as the colour and neither has to do the job alone.
 function dpGlyph(ctx, x, y, sp, r){
   ctx.fillStyle = DP_COL[sp];
   ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
   if (sp === 'n') return;
-  ctx.strokeStyle = sp === 'i' ? 'rgba(70,38,0,0.85)' : 'rgba(34,10,52,0.85)';
+  ctx.strokeStyle = sp === 'i' ? 'rgba(255,255,255,0.92)' : 'rgba(42,36,5,0.9)';
   ctx.lineWidth = 1;
   const t = r * 0.55;
   ctx.beginPath(); ctx.moveTo(x - t, y); ctx.lineTo(x + t, y);

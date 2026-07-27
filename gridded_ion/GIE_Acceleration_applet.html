@@ -24,14 +24,23 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
-  --c-bfield: #5c6bc0;
-  --c-efield: #ef5350;
-  --c-phi:    #e0a458;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -95,30 +104,50 @@ footer {
 
 /* ── Inline applet link ─────────────────────────────── */
 a.applet-link {
-  color: var(--hi-blue);
+  color: var(--text-heading);
   text-decoration: none;
-  border-bottom: 1px solid rgba(61,191,255,0.35);
+  border-bottom: 1px solid var(--c-accent);
   transition: border-color 0.15s ease, color 0.15s ease;
 }
-a.applet-link:hover {
-  color: var(--hi-blue-soft);
-  border-bottom-color: var(--hi-blue);
-}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust               { color: var(--c-thrust); }
-.hl-ve                   { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
-.hl-B                    { color: var(--c-bfield); }
-.hl-q                    { color: var(--c-power); }
-.hl-ion                  { color: var(--c-ve); }
-.hl-electron             { color: var(--c-power); }
-.hl-E                    { color: var(--c-efield); }
-.hl-phi                  { color: var(--c-phi); }
-.hl-neutral              { color: var(--text-secondary); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -539,15 +568,23 @@ footer {
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   Now that most of the <span class="hl-neutral">neutral propellant particles</span> have been ionized, they are ready
-  to be accelerated to produce useful <span class="key hl-thrust">thrust</span>! A large
+  to be accelerated to produce useful <span class="hl-thrust">thrust</span>! A large
   <span class="key">voltage difference</span> is applied over the short distance between the
-  <span class="key">screen and accelerator grids</span>, creating a strong <span class="key hl-E">electric field</span>
+  <span class="key">screen and accelerator grids</span>, creating a strong <span class="hl-E">electric field</span>
   $E = V_T/d$. Much like chemical rockets, only so many particles can be accelerated at a time via the
   <span class="key">accelerator grid</span>. This means that for a given gridded ion engine size, there is a limit to
-  the amount of the <span class="hl-thrust">thrust</span> that can be generated. Let&rsquo;s explore what the limit
+  the amount of the thrust that can be generated. Let&rsquo;s explore what the limit
   seems to be.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity, ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>electron</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field, potential</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+</div>
 <!-- ════════════════════ STAGE 2 — ACCELERATING GRIDS ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Stage 2 &mdash; Accelerating Grids</div>
@@ -573,7 +610,7 @@ footer {
   <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">The more <span class="hl-ion">ions</span> that pass through the accelerator grids, the greater our
     mass flow rate and thus our <span class="hl-thrust">thrust</span>. What causes the fundamental limit on the amount
-    of <span class="hl-ion">ions</span> that pass through the screen grid into the accelerator grid?</p>
+    of ions that pass through the screen grid into the accelerator grid?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
         <span class="quiz-opt-label">a</span>If a sufficient number of ions exists between the screen and accelerator grids, an incoming ion will be repelled by the positive charge of the ions in the gap instead of attracted by the accelerator grid.
@@ -604,12 +641,12 @@ footer {
   <details class="clarify-detail">
     <summary>If we have both positively charged <span class="hl-ion">ions</span> and negatively charged
     <span class="hl-electron">electrons</span> available to us, why do we always choose to accelerate the
-    <span class="hl-ion">ions</span> and not the <span class="hl-electron">electrons</span>?</summary>
+    ions and not the electrons?</summary>
     <div class="clarify-body">
       Recall that <span class="hl-electron">electrons</span> have far less mass than
       <span class="hl-ion">ions</span>, by three to four orders of magnitude. While they can be accelerated extremely
       fast, their minuscule mass means that the <span class="hl-thrust">thrust</span> an
-      <span class="hl-electron">electron</span> jet produces is near zero.
+      electron jet produces is near zero.
     </div>
   </details>
 
@@ -645,7 +682,7 @@ footer {
   <div class="eq-panel">
     <span class="eq-step-label">Space-Charge-Limited Current Density</span>
     $$ \boxed{\;\textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0 \sqrt{\frac{2q}{m}}\,
-       \frac{\textcolor{#ef5350}{V_T}^{3/2}}{d^{2}}\;} $$
+       \frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}\;} $$
 
     <details class="deriv-detail">
       <summary>Show Child&ndash;Langmuir derivation</summary>
@@ -657,47 +694,47 @@ footer {
         $$ \textcolor{#3DBFFF}{j} = \rho v \;\;\rightarrow\;\; \rho = \frac{\textcolor{#3DBFFF}{j}}{v} $$
 
         <span class="eq-step-label">Conservation of Energy</span>
-        $$ \tfrac{1}{2}m v_0^{2} + q\textcolor{#ef5350}{V_T} = \tfrac{1}{2}m v^{2} + q\phi $$
-        $$ \rightarrow\; v = \sqrt{\tfrac{2q}{m}\left(\textcolor{#ef5350}{V_T}-\phi\right)}
-           \;\;\rightarrow\;\; \rho = \frac{\textcolor{#3DBFFF}{j}}{\sqrt{\tfrac{2q}{m}\left(\textcolor{#ef5350}{V_T}-\phi\right)}} $$
+        $$ \tfrac{1}{2}m v_0^{2} + q\textcolor{#F5C518}{V_T} = \tfrac{1}{2}m v^{2} + q\phi $$
+        $$ \rightarrow\; v = \sqrt{\tfrac{2q}{m}\left(\textcolor{#F5C518}{V_T}-\phi\right)}
+           \;\;\rightarrow\;\; \rho = \frac{\textcolor{#3DBFFF}{j}}{\sqrt{\tfrac{2q}{m}\left(\textcolor{#F5C518}{V_T}-\phi\right)}} $$
 
         <span class="eq-step-label">Substitute into Poisson&rsquo;s Equation</span>
         $$ \frac{d^{2}\phi}{dx^{2}} = -\frac{\rho}{\varepsilon_0}
-           = -\frac{\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,\frac{1}{\sqrt{\textcolor{#ef5350}{V_T}-\phi}} $$
+           = -\frac{\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,\frac{1}{\sqrt{\textcolor{#F5C518}{V_T}-\phi}} $$
 
         <span class="eq-step-label">Recall Chain + Power Rule</span>
         $$ \frac{d}{dx}\!\left(\frac{d\phi}{dx}\right)^{2} = 2\,\frac{d\phi}{dx}\,\frac{d^{2}\phi}{dx^{2}} $$
         $$ \rightarrow\; \frac{d}{dx}\!\left(\frac{d\phi}{dx}\right)^{2}
-           = \frac{-2\textcolor{#3DBFFF}{j}\,\frac{d\phi}{dx}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}\,\sqrt{\textcolor{#ef5350}{V_T}-\phi}} $$
+           = \frac{-2\textcolor{#3DBFFF}{j}\,\frac{d\phi}{dx}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}\,\sqrt{\textcolor{#F5C518}{V_T}-\phi}} $$
         $$ \rightarrow\; \int_{0}^{\frac{d\phi}{dx}} d\!\left(\frac{d\phi}{dx}\right)^{2}
            = \frac{-2\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}
-             \int_{V_T}^{\phi}\frac{d\phi'}{\sqrt{\textcolor{#ef5350}{V_T}-\phi'}} $$
+             \int_{V_T}^{\phi}\frac{d\phi'}{\sqrt{\textcolor{#F5C518}{V_T}-\phi'}} $$
 
         <p>The field vanishes at the screen grid at space-charge saturation, so
-        $\left.\tfrac{d\phi}{dx}\right|_{0} = 0$ with $\phi(0)=\textcolor{#ef5350}{V_T}$.</p>
+        $\left.\tfrac{d\phi}{dx}\right|_{0} = 0$ with $\phi(0)=\textcolor{#F5C518}{V_T}$.</p>
 
         $$ \rightarrow\; \left(\frac{d\phi}{dx}\right)^{2}
-           = \frac{-2\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,(-2)\left(\textcolor{#ef5350}{V_T}-\phi\right)^{1/2} $$
+           = \frac{-2\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,(-2)\left(\textcolor{#F5C518}{V_T}-\phi\right)^{1/2} $$
         $$ \rightarrow\; \frac{d\phi}{dx} = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}
-           \left(\textcolor{#ef5350}{V_T}-\phi\right)^{1/4} $$
+           \left(\textcolor{#F5C518}{V_T}-\phi\right)^{1/4} $$
 
         <span class="eq-step-label">Separate &amp; Integrate</span>
-        $$ \int_{V_T}^{\phi}\frac{d\phi'}{\left(\textcolor{#ef5350}{V_T}-\phi'\right)^{1/4}}
+        $$ \int_{V_T}^{\phi}\frac{d\phi'}{\left(\textcolor{#F5C518}{V_T}-\phi'\right)^{1/4}}
            = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\int_{0}^{x}dx' $$
-        $$ \rightarrow\; -\frac{4}{3}\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/4}\Big|_{V_T}^{\phi}
+        $$ \rightarrow\; -\frac{4}{3}\left(\textcolor{#F5C518}{V_T}-\phi\right)^{3/4}\Big|_{V_T}^{\phi}
            = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\;x $$
 
         <span class="eq-step-label">Square Both Sides</span>
-        $$ \frac{16}{9}\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/2}
+        $$ \frac{16}{9}\left(\textcolor{#F5C518}{V_T}-\phi\right)^{3/2}
            = \frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,x^{2} $$
 
         <span class="eq-step-label">Rearrange for Current</span>
         $$ \textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0\sqrt{\tfrac{2q}{m}}\,
-           \frac{\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/2}}{x^{2}} $$
+           \frac{\left(\textcolor{#F5C518}{V_T}-\phi\right)^{3/2}}{x^{2}} $$
 
         <span class="eq-step-label">Evaluate at $x=d,\;\phi=0$</span>
         $$ \boxed{\;\textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0\sqrt{\tfrac{2q}{m}}\,
-           \frac{\textcolor{#ef5350}{V_T}^{3/2}}{d^{2}}\;} $$
+           \frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}\;} $$
       </div>
     </details>
   </div>
@@ -708,14 +745,14 @@ footer {
 
   <p class="th-body">
     The <span class="hl-thrust">thrust</span> the grids can produce per unit area is the
-    <span class="hl-E">electric</span> pressure pulling on the accelerator grid. Evaluating the Maxwell stress tensor at
+    <span class="hl-E">electric pressure</span> pulling on the accelerator grid. Evaluating the Maxwell stress tensor at
     space-charge saturation caps the <span class="hl-thrust">thrust density</span> of a gridded ion engine.
   </p>
 
   <div class="eq-panel">
     <span class="eq-step-label">Maximum Thrust Density</span>
     $$ \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0
-       \left(\frac{\textcolor{#ef5350}{V_T}}{d}\right)^{2}\;} $$
+       \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\;} $$
 
     <details class="deriv-detail">
       <summary>Show thrust-density derivation</summary>
@@ -727,25 +764,25 @@ footer {
         $$ T_{xx} = \varepsilon_0 E_x^{2} - \tfrac{1}{2}\varepsilon_0\left(E_x^{2}+E_y^{2}+E_z^{2}\right) $$
 
         <span class="eq-step-label">Electric Pressure</span>
-        $$ T = \tfrac{1}{2}\varepsilon_0 \textcolor{#ef5350}{E}^{2}
-           \;\;\rightarrow\;\; \frac{\textcolor{#FF4400}{F}}{A} = \tfrac{1}{2}\varepsilon_0 \textcolor{#ef5350}{E}^{2} $$
+        $$ T = \tfrac{1}{2}\varepsilon_0 \textcolor{#F5C518}{E}^{2}
+           \;\;\rightarrow\;\; \frac{\textcolor{#FF4400}{F}}{A} = \tfrac{1}{2}\varepsilon_0 \textcolor{#F5C518}{E}^{2} $$
 
         <span class="eq-step-label">Potential at Space-Charge Saturation</span>
-        $$ \frac{\left(\textcolor{#ef5350}{V_T}-\phi\right)^{3/2}}{x^{2}}
-           = \frac{\textcolor{#ef5350}{V_T}^{3/2}}{d^{2}}
-           \;\;\rightarrow\;\; \left(1-\frac{\phi}{\textcolor{#ef5350}{V_T}}\right)^{3/2} = \left(\frac{x}{d}\right)^{2} $$
-        $$ \rightarrow\; 1-\frac{\phi}{\textcolor{#ef5350}{V_T}} = \left(\frac{x}{d}\right)^{4/3}
-           \;\;\rightarrow\;\; \phi = \textcolor{#ef5350}{V_T}\left(1-\left(\frac{x}{d}\right)^{4/3}\right) $$
+        $$ \frac{\left(\textcolor{#F5C518}{V_T}-\phi\right)^{3/2}}{x^{2}}
+           = \frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}
+           \;\;\rightarrow\;\; \left(1-\frac{\phi}{\textcolor{#F5C518}{V_T}}\right)^{3/2} = \left(\frac{x}{d}\right)^{2} $$
+        $$ \rightarrow\; 1-\frac{\phi}{\textcolor{#F5C518}{V_T}} = \left(\frac{x}{d}\right)^{4/3}
+           \;\;\rightarrow\;\; \phi = \textcolor{#F5C518}{V_T}\left(1-\left(\frac{x}{d}\right)^{4/3}\right) $$
 
         <span class="eq-step-label">Recall $E = -\,d\phi/dx$</span>
-        $$ \textcolor{#ef5350}{E} = -\frac{d\phi}{dx}
-           = \frac{4}{3}\left(\frac{x}{d}\right)^{1/3}\frac{\textcolor{#ef5350}{V_T}}{d} $$
+        $$ \textcolor{#F5C518}{E} = -\frac{d\phi}{dx}
+           = \frac{4}{3}\left(\frac{x}{d}\right)^{1/3}\frac{\textcolor{#F5C518}{V_T}}{d} $$
 
         <span class="eq-step-label">Substitute into Electric Pressure (at $x=d$)</span>
-        $$ \frac{\textcolor{#FF4400}{F}}{A} = \tfrac{1}{2}\varepsilon_0 \textcolor{#ef5350}{E}^{2}
-           = \tfrac{1}{2}\varepsilon_0\left(\frac{4}{3}\frac{\textcolor{#ef5350}{V_T}}{d}\right)^{2} $$
+        $$ \frac{\textcolor{#FF4400}{F}}{A} = \tfrac{1}{2}\varepsilon_0 \textcolor{#F5C518}{E}^{2}
+           = \tfrac{1}{2}\varepsilon_0\left(\frac{4}{3}\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2} $$
         $$ \rightarrow\; \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0
-           \left(\frac{\textcolor{#ef5350}{V_T}}{d}\right)^{2}\;} $$
+           \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\;} $$
       </div>
     </details>
   </div>

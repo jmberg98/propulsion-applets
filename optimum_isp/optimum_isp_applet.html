@@ -26,11 +26,18 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -97,13 +104,42 @@ footer {
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v            { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -606,30 +642,36 @@ footer {
 <!-- ════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   Spacecraft and satellites are designed with <span class="key">mission requirements</span> in mind, namely a
-  <span class="key hl-ve">mission Delta-V</span>, desired <span class="key hl-mass">payload mass</span>, and
+  <span class="hl-ve">mission Delta-V</span>, desired <span class="hl-mass">payload mass</span>, and
   required <span class="key">mission time</span>. While technological and physical constraints restrict
-  <span class="key hl-thrust">propulsion device</span> choices, these mission requirements help guide what
-  <span class="key hl-thrust">propulsion device</span> is best for the desired mission. Use the applet below to
+  <span class="key">propulsion device</span> choices, these mission requirements help guide what
+  <span class="key">propulsion device</span> is best for the desired mission. Use the applet below to
   explore how different mission parameters and technology readiness impact our choice of propulsive device.
   Consider the conceptual questions below to help guide your thinking!
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust, mass</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>power</span>
+</div>
 <!-- ════════════════ CONCEPTUAL QUESTIONS (BULLET POINTS) ════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>Why isn't higher <span class="key hl-ve">specific impulse</span> always better? How does higher
-    <span class="key hl-ve">specific impulse</span> affect <span class="key">mission time</span> for a given
-    <span class="key hl-power">power source</span>?</span>
+    <span>Why isn't higher <span class="hl-ve">specific impulse</span> always better? How does higher
+    specific impulse affect <span class="key">mission time</span> for a given
+    <span class="hl-power">power source</span>?</span>
   </div>
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>How does our mission <span class="key hl-ve">Delta-V</span> affect the optimum
-    <span class="key hl-ve">exhaust velocity</span> and thus desired
-    <span class="key hl-ve">specific impulse</span>?</span>
+    <span>How does our mission <span class="hl-ve">Delta-V</span> affect the optimum
+    <span class="hl-ve">exhaust velocity</span> and thus desired
+    <span class="hl-ve">specific impulse</span>?</span>
   </div>
 </div>
 
@@ -765,44 +807,44 @@ footer {
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <details class="clarify-detail">
-    <summary>Why isn't higher <span class="key hl-ve">specific impulse</span> always better? How does higher
-    <span class="key hl-ve">specific impulse</span> affect <span class="key">mission time</span> for a given
-    <span class="key hl-power">power source</span>?</summary>
+    <summary>Why isn't higher <span class="hl-ve">specific impulse</span> always better? How does higher
+    specific impulse affect <span class="key">mission time</span> for a given
+    <span class="hl-power">power source</span>?</summary>
     <div class="clarify-body">
-      <span class="key hl-thrust">Spacecraft propulsion systems</span> must satisfy a desired
-      <span class="key hl-ve">mission Delta-V</span>, a required <span class="key">mission time</span>, and a
-      desired <span class="key hl-mass">payload mass</span>. The best
-      <span class="key hl-ve">specific impulse</span> is therefore not simply the highest one available, but the one
+      <span class="key">Spacecraft propulsion systems</span> must satisfy a desired
+      <span class="hl-ve">mission Delta-V</span>, a required <span class="key">mission time</span>, and a
+      desired <span class="hl-mass">payload mass</span>. The best
+      <span class="hl-ve">specific impulse</span> is therefore not simply the highest one available, but the one
       that best satisfies the full set of <span class="key">mission requirements</span>. If we arbitrarily increase
-      <span class="key hl-ve">specific impulse</span> without increasing the technology level or efficiency of the
-      <span class="key hl-power">power system</span>, we must usually compromise somewhere else. For a fixed
-      <span class="key hl-power">power source</span>, higher <span class="key hl-ve">specific impulse</span>
-      generally means lower <span class="key hl-thrust">thrust</span>, which increases
+      specific impulse without increasing the technology level or efficiency of the
+      <span class="hl-power">power system</span>, we must usually compromise somewhere else. For a fixed
+      <span class="hl-power">power source</span>, higher specific impulse
+      generally means lower <span class="hl-thrust">thrust</span>, which increases
       <span class="key">mission time</span>. For example, a spacecraft powered by
-      <span class="key hl-power">solar panels</span> may achieve excellent propellant efficiency, but only by
-      accepting lower <span class="key hl-thrust">thrust</span> and therefore a longer
+      <span class="hl-power">solar panels</span> may achieve excellent propellant efficiency, but only by
+      accepting lower thrust and therefore a longer
       <span class="key">mission time</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>How does our mission <span class="key hl-ve">Delta-V</span> affect the optimum
-    <span class="key hl-ve">exhaust velocity</span> and thus desired
-    <span class="key hl-ve">specific impulse</span>?</summary>
+    <summary>How does our mission <span class="hl-ve">Delta-V</span> affect the optimum
+    <span class="hl-ve">exhaust velocity</span> and thus desired
+    <span class="hl-ve">specific impulse</span>?</summary>
     <div class="clarify-body">
-      As long as the required <span class="key hl-ve">mission Delta-V</span> is small compared with the effective
-      <span class="key hl-ve">exhaust velocity</span> $c$, the
-      <span class="key hl-ve">Stuhlinger characteristic velocity</span> is a good approximation to the optimum
-      <span class="key hl-ve">exhaust velocity</span>. Lowering the required
-      <span class="key hl-ve">mission Delta-V</span>, while holding other <span class="key">mission parameters</span>
-      fixed, favors lower <span class="key hl-thrust">thrust</span>, higher
-      <span class="key hl-ve">specific impulse</span> propulsion because more time is available to build up the
-      required change in velocity. Raising the required <span class="key hl-ve">mission Delta-V</span> for the same
-      <span class="key">mission time</span> instead favors higher <span class="key hl-thrust">thrust</span>, lower
-      <span class="key hl-ve">specific impulse</span> propulsion, since less time is available for the
-      <span class="key hl-power">power system</span> to supply the needed energy. In that sense, higher
-      <span class="key hl-ve">mission Delta-V</span> pushes the design toward shorter, more power-intensive burns,
-      while lower <span class="key hl-ve">mission Delta-V</span> makes slower, more mass-efficient propulsion more
+      As long as the required <span class="hl-ve">mission Delta-V</span> is small compared with the effective
+      <span class="hl-ve">exhaust velocity</span> $c$, the
+      <span class="hl-ve">Stuhlinger characteristic velocity</span> is a good approximation to the optimum
+      exhaust velocity. Lowering the required
+      mission Delta-V, while holding other <span class="key">mission parameters</span>
+      fixed, favors lower <span class="hl-thrust">thrust</span>, higher
+      <span class="hl-ve">specific impulse</span> propulsion because more time is available to build up the
+      required change in velocity. Raising the required mission Delta-V for the same
+      <span class="key">mission time</span> instead favors higher thrust, lower
+      specific impulse propulsion, since less time is available for the
+      <span class="hl-power">power system</span> to supply the needed energy. In that sense, higher
+      mission Delta-V pushes the design toward shorter, more power-intensive burns,
+      while lower mission Delta-V makes slower, more mass-efficient propulsion more
       attractive.
     </div>
   </details>
@@ -813,28 +855,28 @@ footer {
   <div class="clarify-hdr">Clarifying Points</div>
 
   <details class="clarify-detail">
-    <summary>Why do we only care about optimizing for <span class="key hl-mass">payload mass</span>?
+    <summary>Why do we only care about optimizing for <span class="hl-mass">payload mass</span>?
     Aren't there other design specifications that our spacecraft can be optimized for?</summary>
     <div class="clarify-body">
       This is an important observation. In many missions, we seek to maximize
-      <span class="key hl-mass">payload mass</span> so that the spacecraft can carry as much useful equipment or cargo
+      <span class="hl-mass">payload mass</span> so that the spacecraft can carry as much useful equipment or cargo
       as possible, such as telecommunications hardware, imaging instruments, telescopes, scientific packages, or crew
       supplies. However, some missions care more about other <span class="key">design objectives</span>, such as
       shorter <span class="key">mission time</span>, lower total cost, or greater reliability. The
-      <span class="key hl-ve">Stuhlinger curve</span> is specifically useful for understanding how to maximize
-      <span class="key hl-mass">payload mass</span>, but the underlying ideas and mathematics also provide a strong
+      <span class="hl-ve">Stuhlinger curve</span> is specifically useful for understanding how to maximize
+      payload mass, but the underlying ideas and mathematics also provide a strong
       foundation for optimizing other <span class="key">mission parameters</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>If the <span class="key hl-ve">Stuhlinger characteristic velocity</span> isn't the optimum
-    <span class="key hl-ve">exhaust velocity</span>, what is its significance?</summary>
+    <summary>If the <span class="hl-ve">Stuhlinger characteristic velocity</span> isn't the optimum
+    <span class="hl-ve">exhaust velocity</span>, what is its significance?</summary>
     <div class="clarify-body">
-      MIT's 16.522 course notes capture the meaning of <span class="key hl-ve">$v_{ch}$</span> well: if all
-      <span class="key hl-power">power source mass</span> were accelerated by converting all available
-      <span class="key hl-power">electrical energy</span> during time $t_m$, it would reach
-      <span class="key hl-ve">$v_{ch}$</span>, where
+      MIT's 16.522 course notes capture the meaning of <span class="hl-ve">$v_{ch}$</span> well: if all
+      <span class="hl-mass">power source mass</span> were accelerated by converting all available
+      <span class="hl-power">electrical energy</span> during time $t_m$, it would reach
+      <span class="hl-ve">$v_{ch}$</span>, where
       $$
       \boxed{
       \textcolor{#3DBFFF}{v_{ch}}
@@ -843,9 +885,9 @@ footer {
       }
       $$
       It is therefore effectively the
-      <span class="key hl-ve">speed limit</span> of the <span class="key hl-thrust">propulsion system</span>. A real
+      <span class="hl-ve">speed limit</span> of the <span class="hl-thrust">propulsion system</span>. A real
       spacecraft never reaches this speed, because some of its mass must remain as
-      <span class="key hl-mass">payload</span>, <span class="key hl-mass">structure</span>, tanks, and other
+      <span class="hl-mass">payload</span>, <span class="hl-mass">structure</span>, tanks, and other
       non-propellant components.
     </div>
   </details>
@@ -856,16 +898,16 @@ footer {
   <div class="th-hdr">Delta-V &amp; The Ideal Rocket Equation</div>
 
   <p class="th-body">
-    The overall <span class="key hl-ve">change in velocity</span> of a spacecraft is determined by both the
-    difference in its <span class="key hl-mass">initial and final mass</span> and by its
-    <span class="key hl-ve">specific impulse</span>. While higher
-    <span class="key hl-ve">specific impulse</span> most significantly increases the total
-    <span class="key hl-ve">Delta-V</span> of the spacecraft, recall that higher
-    <span class="key hl-ve">specific impulses</span> require higher total
-    <span class="key hl-power">power</span> to achieve the same <span class="key">mission time</span>.
-    However, higher total <span class="key hl-power">power</span> is not trivial, as higher
-    <span class="key hl-power">power</span> requirements necessitate higher
-    <span class="key hl-power">power + propulsion system mass</span> or greater technology levels.
+    The overall <span class="hl-ve">change in velocity</span> of a spacecraft is determined by both the
+    difference in its <span class="hl-mass">initial and final mass</span> and by its
+    <span class="hl-ve">specific impulse</span>. While higher
+    specific impulse most significantly increases the total
+    <span class="hl-ve">Delta-V</span> of the spacecraft, recall that higher
+    specific impulses require higher total
+    <span class="hl-power">power</span> to achieve the same <span class="key">mission time</span>.
+    However, higher total power is not trivial, as higher
+    power requirements necessitate higher
+    <span class="hl-power">power + propulsion system mass</span> or greater technology levels.
   </p>
 
   <div class="eq-panel">
@@ -938,13 +980,13 @@ footer {
   <div class="th-hdr">Spacecraft Mass</div>
 
   <p class="th-body">
-    The various subsystems of a spacecraft comprise its <span class="key hl-mass">mass components</span>,
-    namely the <span class="key hl-mass">structure</span>, <span class="key hl-mass">payload</span>,
-    <span class="key hl-mass">propellant</span>, and
-    <span class="key hl-power">power source</span>. Generally, the spacecraft is optimized for
-    <span class="key hl-mass">payload mass</span> so that it may perform useful tasks. The structural mass is
-    treated as fixed by the design, while the <span class="key hl-mass">propellant</span> and
-    <span class="key hl-power">power source</span> masses vary with the propulsion and power systems.
+    The various subsystems of a spacecraft comprise its <span class="hl-mass">mass components</span>,
+    namely the <span class="hl-mass">structure</span>, <span class="hl-mass">payload</span>,
+    <span class="hl-mass">propellant</span>, and
+    <span class="hl-power">power source</span>. Generally, the spacecraft is optimized for
+    <span class="hl-mass">payload mass</span> so that it may perform useful tasks. The structural mass is
+    treated as fixed by the design, while the propellant and
+    power source masses vary with the propulsion and power systems.
   </p>
 
   <div class="eq-panel">
@@ -1001,13 +1043,13 @@ footer {
   <div class="th-hdr">Objective Function &amp; Stuhlinger Velocity</div>
 
   <p class="th-body">
-    For fixed <span class="key hl-mass">initial mass</span>, <span class="key hl-mass">structural mass</span>, and
+    For fixed initial mass, structural mass, and
     <span class="key">mission time</span>, we seek to maximize
-    <span class="key hl-mass">payload mass</span>. This is equivalent to minimizing the combined
-    <span class="key hl-mass">propellant mass</span> and
-    <span class="key hl-power">power source mass</span> with respect to
-    <span class="key hl-ve">exhaust velocity</span>. The notes then use the
-    <span class="key hl-ve">Stuhlinger approximation</span> for the case
+    <span class="hl-mass">payload mass</span>. This is equivalent to minimizing the combined
+    <span class="hl-mass">propellant mass</span> and
+    <span class="hl-mass">power source mass</span> with respect to
+    <span class="hl-ve">exhaust velocity</span>. The notes then use the
+    <span class="key">Stuhlinger approximation</span> for the case
     $\textcolor{#3DBFFF}{\Delta v} \ll \textcolor{#3DBFFF}{c}$.
   </p>
 

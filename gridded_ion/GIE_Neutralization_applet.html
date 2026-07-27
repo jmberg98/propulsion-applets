@@ -24,13 +24,23 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
-  --c-bfield: #5c6bc0;
-  --c-efield: #ef5350;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -92,19 +102,43 @@ footer {
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust               { color: var(--c-thrust); }
-.hl-ve                   { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
-.hl-B                    { color: var(--c-bfield); }
-.hl-q                    { color: var(--c-power); }
-.hl-ion                  { color: var(--c-ve); }
-.hl-electron             { color: var(--c-power); }
-.hl-E                    { color: var(--c-efield); }
-.hl-neutral              { color: var(--text-secondary); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -435,16 +469,22 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The <span class="key hl-ion">ion jet</span> emitted by the accelerating grids must be neutralized for the device
+  The <span class="hl-ion">ion jet</span> emitted by the accelerating grids must be neutralized for the device
   to operate as desired. Like mass and energy, <span class="key">charge is conserved</span> on our spacecraft. If we
   expel a large amount of positive charge from the spacecraft, the spacecraft will be left with a large
   <span class="hl-electron">negative charge</span>. Not only does this pose a risk to on-board electronics, but the
-  negatively charged spacecraft attracts the positively charged <span class="key hl-ion">exhaust jet</span>,
-  cancelling <span class="key hl-thrust">thrust</span>.
+  negatively charged spacecraft attracts the positively charged <span class="hl-ion">exhaust jet</span>,
+  cancelling <span class="hl-thrust">thrust</span>.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>electron</span>
+</div>
 <p class="page-intro">
-  If we instead neutralize the beam by shooting <span class="key hl-electron">electrons</span> at it with a
+  If we instead neutralize the beam by shooting <span class="hl-electron">electrons</span> at it with a
   <span class="key">neutralizer cathode</span>, we get a <span class="key">quasineutral</span> plasma jet. The exhaust
   will then be a beam consisting of positive and negative charges, but is, on average, electrically neutral.
 </p>

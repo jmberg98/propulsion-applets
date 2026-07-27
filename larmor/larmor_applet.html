@@ -24,11 +24,18 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -89,15 +96,42 @@ footer {
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v            { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
-.hl-B                    { color: var(--c-press); }
-.hl-q                    { color: var(--c-power); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -535,13 +569,20 @@ footer {
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   <span class="key">Thermochemistry</span> and <span class="key">compressible flow</span> govern the operating
-  fundamentals of <span class="key hl-thrust">chemical rocket engines</span>. Likewise,
-  <span class="key">electromagnetism</span> and <span class="key hl-power">plasma physics</span> govern the
-  operating fundamentals of <span class="key hl-thrust">electric thrusters</span>. We start by exploring the
-  non-intuitive behavior of <span class="key hl-q">charged particles</span> in a uniform
-  <span class="key hl-B">magnetic field</span>.
+  fundamentals of <span class="key">chemical rocket engines</span>. Likewise,
+  <span class="key">electromagnetism</span> and <span class="key">plasma physics</span> govern the
+  operating fundamentals of <span class="key">electric thrusters</span>. We start by exploring the
+  non-intuitive behavior of <span class="hl-q">charged particles</span> in a uniform
+  <span class="hl-B">magnetic field</span>.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust, mass</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity, ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+</div>
 <!-- ════════════════════ Q1 ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
@@ -579,10 +620,10 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">Cyclotron &amp; Larmor Motion</div>
   <p class="th-body">
-    When a particle travels perpendicular to a uniform <span class="key hl-B">magnetic field</span>, it travels
+    When a particle travels perpendicular to a uniform <span class="hl-B">magnetic field</span>, it travels
     circularly, undergoing <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>. The
-    radius of this circle is called the <span class="key hl-ve">Larmor radius</span>, and the angular frequency
-    of the motion is called the <span class="key hl-ve">cyclotron frequency</span>. A particle in Larmor motion
+    radius of this circle is called the <span class="hl-ve">Larmor radius</span>, and the angular frequency
+    of the motion is called the <span class="hl-ve">cyclotron frequency</span>. A particle in Larmor motion
     is said to be <span class="key">"magnetized"</span> (more on this in the magnetic mirror applet!).
   </p>
 </div>
@@ -643,11 +684,11 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">Ion vs. Electron Behavior</div>
   <p class="th-body">
-    Let's compare the behavior of <span class="key hl-q">ions</span> and
-    <span class="key hl-power">electrons</span>. <span class="key hl-q">Ions</span> are far more
-    <span class="key hl-mass">massive</span> than <span class="key hl-power">electrons</span> — by three to
+    Let's compare the behavior of <span class="hl-ion">ions</span> and
+    <span class="hl-electron">electrons</span>. <span class="hl-q">Ions</span> are far more
+    <span class="hl-mass">massive</span> than electrons — by three to
     five orders of magnitude! How might this affect their <span class="key">cyclotron motion</span>? Assume that
-    the <span class="key hl-power">electron</span> and <span class="key hl-q">ion</span> are in isolation of
+    the electron and ion are in isolation of
     each other. They are shown together for visual purposes only.
   </p>
 </div>
@@ -671,51 +712,51 @@ footer {
   <details class="clarify-detail">
     <summary>What does a <span class="hl-B">magnetic field</span> do to a
     <span class="hl-q">charged particle</span>? How is the particle accelerated? Does the
-    <span class="hl-B">magnetic field</span> speed up or slow down the
-    <span class="hl-q">charged particle</span>?</summary>
+    magnetic field speed up or slow down the
+    charged particle?</summary>
     <div class="clarify-body">
-      A <span class="key hl-B">magnetic field</span> exerts no force on a
-      <span class="key hl-q">charged particle</span> if the particle has zero velocity, or if the particle has
+      A <span class="hl-B">magnetic field</span> exerts no force on a
+      <span class="hl-q">charged particle</span> if the particle has zero velocity, or if the particle has
       nonzero velocity but is traveling entirely tangent to the
-      <span class="key hl-B">magnetic field lines</span>. If instead the
-      <span class="key hl-q">charged particle</span> has a nonzero
-      <span class="key hl-v">velocity component</span> perpendicular to
+      <span class="hl-B">magnetic field lines</span>. If instead the
+      charged particle has a nonzero
+      <span class="hl-v">velocity component</span> perpendicular to
       $\textcolor{#00DDB5}{\vec{B}}$, the
-      <span class="key hl-B">magnetic force</span> provides
+      <span class="hl-thrust">magnetic force</span> provides
       <span class="key">centripetal acceleration</span> to the particle. Recall that centripetal acceleration
       doesn't speed up or slow down a body, but rather <span class="key">changes its direction</span>. In fact,
       the particle undergoes <span class="key">circular motion</span> around the field line! Furthermore, because
       the particle can be positively or negatively
-      <span class="key hl-q">charged</span>, the direction of rotation can either be
+      <span class="hl-q">charged</span>, the direction of rotation can either be
       <span class="key">clockwise</span> or <span class="key">counter-clockwise</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>The ionization chambers of <span class="hl-thrust">electric propulsion devices</span> generally
+    <summary>The ionization chambers of <span class="key">electric propulsion devices</span> generally
     contain three species: neutral propellant atoms, positively
-    <span class="hl-q">charged ions</span>, and negatively
-    <span class="hl-power">charged electrons</span>. How are each of these three species affected by a
+    <span class="hl-ion">charged ions</span>, and negatively
+    <span class="hl-electron">charged electrons</span>. How are each of these three species affected by a
     <span class="hl-B">magnetic field</span>?</summary>
     <div class="clarify-body">
       Neutral propellant atoms are (by definition) not
-      <span class="key hl-q">charged</span>, so they are entirely unaffected by a
-      <span class="key hl-B">magnetic field</span>. Positively
-      <span class="key hl-q">charged ions</span> and negatively
-      <span class="key hl-power">charged electrons</span> are both magnetized by
-      <span class="key hl-B">magnetic field lines</span> and travel in a
+      <span class="hl-q">charged</span>, so they are entirely unaffected by a
+      <span class="hl-B">magnetic field</span>. Positively
+      <span class="hl-q">charged ions</span> and negatively
+      <span class="hl-electron">charged electrons</span> are both magnetized by
+      <span class="hl-B">magnetic field lines</span> and travel in a
       <span class="key">helical trajectory</span>. They will wind in
       <span class="key">opposite directions</span>, given that they are oppositely
-      <span class="key hl-q">charged</span>. More interestingly, the
-      <span class="key hl-mass">mass</span> of the
-      <span class="key hl-q">ion</span> is 3–5 orders of magnitude larger than the
-      <span class="key hl-power">electron</span>. The
-      <span class="key hl-q">ion</span> will therefore have a much
-      <span class="key">larger <span class="hl-ve">Larmor radius</span></span> and
-      <span class="key">smaller <span class="hl-ve">cyclotron frequency</span></span>, while the
-      <span class="key hl-power">electron</span> will have a much
-      <span class="key">smaller <span class="hl-ve">Larmor radius</span></span> and
-      <span class="key">greater <span class="hl-ve">cyclotron frequency</span></span>.
+      charged. More interestingly, the
+      <span class="hl-mass">mass</span> of the
+      <span class="hl-ion">ion</span> is 3–5 orders of magnitude larger than the
+      <span class="hl-electron">electron</span>. The
+      ion will therefore have a much
+      <span class="key">larger</span> <span class="hl-ve">Larmor radius</span> and
+      <span class="key">smaller</span> <span class="hl-ve">cyclotron frequency</span>, while the
+      electron will have a much
+      <span class="key">smaller</span> Larmor radius and
+      <span class="key">greater</span> cyclotron frequency.
     </div>
   </details>
 </div>
@@ -725,10 +766,10 @@ footer {
   <div class="th-hdr">Larmor Radius</div>
 
   <p class="th-body">
-    The <span class="key hl-ve">Larmor radius</span> is the radius of a particle's circular orbit in a uniform
-    <span class="key hl-B">magnetic field</span>. The greater the <span class="key hl-mass">mass</span> of the
+    The <span class="hl-ve">Larmor radius</span> is the radius of a particle's circular orbit in a uniform
+    <span class="hl-B">magnetic field</span>. The greater the <span class="hl-mass">mass</span> of the
     particle, the <span class="key">larger</span> the radius. Conversely, the greater the
-    <span class="key hl-q">charge</span> and <span class="key hl-B">magnetic field strength</span>, the
+    <span class="hl-q">charge</span> and magnetic field strength, the
     <span class="key">smaller</span> the radius.
   </p>
 
@@ -747,7 +788,7 @@ footer {
 
         <span class="eq-step-label">Setup — particle parameters</span>
         <span class="eq-note">
-          Apply the <span class="hl-B">Lorentz force</span> to a particle of
+          Apply the <span class="hl-thrust">Lorentz force</span> to a particle of
           <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>
           traveling at total speed $|\textcolor{#3DBFFF}{v}|$ at pitch angle $\theta$ to
           $\textcolor{#00DDB5}{\vec{B}}$, decomposed into perpendicular and parallel components:
@@ -773,7 +814,7 @@ footer {
         $$
 
         <div class="eq-callout">
-          The <span class="hl-B">magnetic force</span> is always <strong>perpendicular</strong>
+          The <span class="hl-thrust">magnetic force</span> is always <strong>perpendicular</strong>
           to the particle's velocity, so it provides centripetal accleration.
         </div>
 
@@ -796,8 +837,8 @@ footer {
         $$
 
         <div class="eq-callout highlight-blue">
-          A heavier <span class="hl-mass">ion</span> gyrates with a
-          <strong>larger</strong> radius than a light <span class="hl-power">electron</span>
+          A heavier <span class="hl-ion">ion</span> gyrates with a
+          <strong>larger</strong> radius than a light <span class="hl-electron">electron</span>
           at the same speed. A stronger <span class="hl-B">field</span> or larger
           <span class="hl-q">charge</span> tightens the orbit.
         </div>
@@ -812,11 +853,11 @@ footer {
   <div class="th-hdr">Cyclotron Frequency</div>
 
   <p class="th-body">
-    The <span class="key hl-ve">cyclotron frequency</span> is the angular frequency of a particle's circular
-    orbit in a uniform <span class="key hl-B">magnetic field</span>. The greater the
-    <span class="key hl-mass">mass</span> of the particle, the <span class="key">lesser</span> the frequency.
-    Conversely, the greater the <span class="key hl-q">charge</span> and
-    <span class="key hl-B">magnetic field strength</span>, the <span class="key">greater</span> the frequency.
+    The <span class="hl-ve">cyclotron frequency</span> is the angular frequency of a particle's circular
+    orbit in a uniform <span class="hl-B">magnetic field</span>. The greater the
+    <span class="hl-mass">mass</span> of the particle, the <span class="key">lesser</span> the frequency.
+    Conversely, the greater the <span class="hl-q">charge</span> and
+    magnetic field strength, the <span class="key">greater</span> the frequency.
   </p>
 
   $$

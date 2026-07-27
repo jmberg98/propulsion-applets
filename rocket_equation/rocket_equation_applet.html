@@ -24,11 +24,18 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -81,16 +88,41 @@ footer {
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v            { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
+.key { font-weight: 700; font-style: italic; }
 
-.key {
-  font-weight: 700;
-  font-style: italic;
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
 }
 
 /* ── Header ──────────────────────────────────────────── */
@@ -1293,34 +1325,40 @@ details.deriv-detail > summary:focus-visible {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The purpose of a <span class="key hl-thrust">spacecraft propulsion system</span> is to deliver a <span class="key hl-ve">change in velocity</span> to the vehicle of interest.
-  Orbital maneuvers require a certain <span class="key hl-ve">change in velocity</span> to be executed. Likewise, the effect of <span class="key hl-press">rarefied drag</span> in low orbit
-  and the loss of velocity from fighting against gravity necessitate a certain <span class="key hl-ve">change in velocity</span> to maintain the spacecraft's trajectory.
-  This "certain change in velocity" is quantified as <span class="key hl-ve">"Delta-V"</span>. Orbital mechanics dictates the required <span class="key hl-ve">Delta-V</span> for a mission given the
-  necessary maneuvers and <span class="key hl-ve">Delta-V</span> losses to gravity and drag. The sum is the required <span class="key hl-ve">Delta-V budget</span> for the mission.
+  The purpose of a <span class="key">spacecraft propulsion system</span> is to deliver a <span class="hl-ve">change in velocity</span> to the vehicle of interest.
+  Orbital maneuvers require a certain change in velocity to be executed. Likewise, the effect of <span class="key">rarefied drag</span> in low orbit
+  and the loss of velocity from fighting against gravity necessitate a certain change in velocity to maintain the spacecraft's trajectory.
+  This "certain change in velocity" is quantified as <span class="hl-ve">"Delta-V"</span>. Orbital mechanics dictates the required Delta-V for a mission given the
+  necessary maneuvers and Delta-V losses to gravity and drag. The sum is the required <span class="hl-ve">Delta-V budget</span> for the mission.
 
-  The <span class="key">ideal rocket equation</span> tells us that the available <span class="key hl-ve">Delta-V budget</span> for the mission is a function of the <span class="key hl-ve">effective exhaust velocity</span>,
-  or <span class="key hl-ve">specific impulse</span>, of the propulsion system, the vehicle's <span class="key hl-mass">initial (wet) mass</span>, and the vehicle's <span class="key hl-mass">final (dry) mass</span>. However, it is not
-  immediately obvious how these parameters affect the <span class="key hl-ve">Delta-V budget</span>, nor is it immediately obvious how <span class="key hl-ve">Delta-V budgets</span> translate to real missions.
+  The <span class="key">ideal rocket equation</span> tells us that the available Delta-V budget for the mission is a function of the <span class="hl-ve">effective exhaust velocity</span>,
+  or <span class="hl-ve">specific impulse</span>, of the propulsion system, the vehicle's <span class="hl-mass">initial (wet) mass</span>, and the vehicle's <span class="hl-mass">final (dry) mass</span>. However, it is not
+  immediately obvious how these parameters affect the Delta-V budget, nor is it immediately obvious how Delta-V budgets translate to real missions.
 
-  To better understand <span class="key hl-ve">Delta-V</span>, and how the <span class="key">ideal rocket equation</span> affects mission design, let's explore our solar system.
+  To better understand Delta-V, and how the <span class="key">ideal rocket equation</span> affects mission design, let's explore our solar system.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust, mass</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>power</span>
+</div>
 <!-- ════════════════ CONCEPTUAL QUESTIONS ════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>The difference between the dry and wet mass of the vehicle is the <span class="key hl-mass">propellant mass</span>.
-    If a mission requires higher <span class="key hl-ve">Delta-V</span>, why don't we simply add more
-    <span class="key hl-mass">propellant mass</span>?</span>
+    <span>The difference between the dry and wet mass of the vehicle is the <span class="hl-mass">propellant mass</span>.
+    If a mission requires higher <span class="hl-ve">Delta-V</span>, why don't we simply add more
+    propellant mass?</span>
   </div>
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>Greater <span class="key hl-ve">specific impulse</span> means that our propulsion system is more mass efficient.
-    How does this affect our <span class="key hl-ve">Delta-V budget</span>?</span>
+    <span>Greater <span class="hl-ve">specific impulse</span> means that our propulsion system is more mass efficient.
+    How does this affect our <span class="hl-ve">Delta-V budget</span>?</span>
   </div>
 </div>
 
@@ -1441,22 +1479,22 @@ details.deriv-detail > summary:focus-visible {
   <div class="clarify-hdr">Clarifying Points</div>
 
   <details class="clarify-detail">
-    <summary>What is <span class="key hl-press">aerobraking</span>? Why don't all destinations in the <span class="key">Solar System</span> have it available?</summary>
+    <summary>What is <span class="key">aerobraking</span>? Why don't all destinations in the <span class="key">Solar System</span> have it available?</summary>
     <div class="clarify-body">
-      <span class="key hl-press">Aerobraking</span> involves using a planet's <span class="key hl-press">atmosphere</span> to slow down a spacecraft via <span class="key hl-press">drag</span>, giving the spacecraft the ability to reach the destination
-      without spending any <span class="key hl-ve">Delta-V</span>. This requires the destination to have sufficient <span class="key hl-press">atmosphere</span> to make <span class="key hl-press">aerobraking</span> possible. Additionally, <span class="key hl-press">aerobraking</span>
+      <span class="key">Aerobraking</span> involves using a planet's <span class="key">atmosphere</span> to slow down a spacecraft via <span class="key">drag</span>, giving the spacecraft the ability to reach the destination
+      without spending any <span class="hl-ve">Delta-V</span>. This requires the destination to have sufficient <span class="key">atmosphere</span> to make <span class="key">aerobraking</span> possible. Additionally, <span class="key">aerobraking</span>
       only helps a spacecraft during arrival, not when a spacecraft is departing from a planetary body. Therefore, takeoff from enormous bodies
-      with high <span class="key hl-ve">escape velocities</span> cannot benefit from <span class="key hl-press">aerobraking</span>.
+      with high <span class="hl-ve">escape velocities</span> cannot benefit from <span class="key">aerobraking</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>How were the <span class="key hl-ve">Delta-V values</span> decided for the solar system map? Don't different maneuvers have different <span class="key hl-ve">Delta-V costs</span>?</summary>
+    <summary>How were the <span class="hl-ve">Delta-V values</span> decided for the solar system map? Don't different maneuvers have different <span class="hl-ve">Delta-V costs</span>?</summary>
     <div class="clarify-body">
-      For simplicity, all maneuvers are done without <span class="key">gravity assists</span>, which would reduce the required <span class="key hl-ve">Delta-V</span> for a given destination. All transfers are
-      assumed to be <span class="key">Hohmann transfers</span> with <span class="key hl-thrust">burns</span> performed at the periapses. These maneuvers are only possible with <span class="key hl-thrust">highly impulsive propulsion devices</span>,
-      which have <span class="key hl-ve">low specific impulse</span>. Devices with greater mass efficiency, however, cannot produce these <span class="key hl-thrust">high impulse burns</span>, and must use <span class="key hl-thrust">low thrust spiral maneuvers</span>.
-      While these spiral maneuvers have higher <span class="key hl-ve">Delta-V costs</span>, the <span class="key hl-ve">Delta-V budget</span> of these devices far exceeds those of high impulse devices.
+      For simplicity, all maneuvers are done without <span class="key">gravity assists</span>, which would reduce the required <span class="hl-ve">Delta-V</span> for a given destination. All transfers are
+      assumed to be <span class="key">Hohmann transfers</span> with <span class="hl-thrust">burns</span> performed at the periapses. These maneuvers are only possible with <span class="hl-thrust">highly impulsive propulsion devices</span>,
+      which have <span class="hl-ve">low specific impulse</span>. Devices with greater mass efficiency, however, cannot produce these <span class="hl-thrust">high impulse burns</span>, and must use <span class="hl-thrust">low thrust spiral maneuvers</span>.
+      While these spiral maneuvers have higher <span class="hl-ve">Delta-V costs</span>, the <span class="hl-ve">Delta-V budget</span> of these devices far exceeds those of high impulse devices.
     </div>
   </details>
 </div>
@@ -1466,24 +1504,24 @@ details.deriv-detail > summary:focus-visible {
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <details class="clarify-detail">
-    <summary>The difference between the dry and wet mass of the vehicle is the <span class="key hl-mass">propellant mass</span>. If a mission requires higher <span class="key hl-ve">Delta-V</span>, why don't we simply add more <span class="key hl-mass">propellant mass</span>?</summary>
+    <summary>The difference between the dry and wet mass of the vehicle is the <span class="hl-mass">propellant mass</span>. If a mission requires higher <span class="hl-ve">Delta-V</span>, why don't we simply add more propellant mass?</summary>
     <div class="clarify-body">
-      Adding more <span class="key hl-mass">propellant mass</span> is a valid way to increase the <span class="key hl-ve">Delta-V budget</span>. It must be noted that adding <span class="key hl-mass">propellant mass</span> means that the spacecraft
-      <span class="key hl-thrust">propulsion system</span> must now accelerate the mass of the additional <span class="key hl-mass">propellant</span> as well. Because of this, adding <span class="key hl-mass">propellant mass</span> has diminishing returns
-      on increasing <span class="key hl-ve">Delta-V</span>. Additionally, additional <span class="key hl-mass">propellant mass</span> can require additional <span class="key hl-mass">structural mass</span>.
+      Adding more <span class="hl-mass">propellant mass</span> is a valid way to increase the <span class="hl-ve">Delta-V budget</span>. It must be noted that adding propellant mass means that the spacecraft
+      <span class="hl-thrust">propulsion system</span> must now accelerate the mass of the additional <span class="hl-mass">propellant</span> as well. Because of this, adding propellant mass has diminishing returns
+      on increasing <span class="hl-ve">Delta-V</span>. Additionally, additional propellant mass can require additional <span class="hl-mass">structural mass</span>.
 
-      While <span class="key hl-ve">specific impulse</span> has the strongest effect on increasing <span class="key hl-ve">Delta-V</span>, <span class="key hl-mass">refueling</span> a spacecraft in orbit can also be an effective method
-      of increasing <span class="key hl-ve">Delta-V</span>. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the <span class="key hl-mass">propellant</span>
-      of the spacecraft. This is by no means trivial, but could be revolutionary for high <span class="key hl-ve">Delta-V</span>, high <span class="key hl-mass">payload</span> missions.
+      While <span class="hl-ve">specific impulse</span> has the strongest effect on increasing Delta-V, <span class="hl-mass">refueling</span> a spacecraft in orbit can also be an effective method
+      of increasing Delta-V. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the propellant
+      of the spacecraft. This is by no means trivial, but could be revolutionary for high Delta-V, high <span class="hl-mass">payload</span> missions.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>Greater <span class="key hl-ve">specific impulse</span> means that our propulsion system is more mass efficient. How does this affect our <span class="key hl-ve">Delta-V budget</span>?</summary>
+    <summary>Greater <span class="hl-ve">specific impulse</span> means that our propulsion system is more mass efficient. How does this affect our <span class="hl-ve">Delta-V budget</span>?</summary>
     <div class="clarify-body">
-      Greater mass efficiency lessens the need to carry additional <span class="key hl-mass">propellant</span> to achieve a given <span class="key hl-ve">Delta-V</span>. Increases in <span class="key hl-ve">specific impulse</span>, or
-      <span class="key hl-ve">effective exhaust velocity</span>, results in a linear increase in <span class="key hl-ve">Delta-V</span>. To reach far destinations, or to reach a destination with less <span class="key hl-mass">propellant</span>
-      and more <span class="key hl-mass">payload</span>, greater <span class="key hl-ve">specific impulses</span> are required. This is the motivation for <span class="key hl-power">electric propulsion</span>, which is further explored in the
+      Greater mass efficiency lessens the need to carry additional <span class="hl-mass">propellant</span> to achieve a given <span class="hl-ve">Delta-V</span>. Increases in <span class="hl-ve">specific impulse</span>, or
+      <span class="hl-ve">effective exhaust velocity</span>, results in a linear increase in Delta-V. To reach far destinations, or to reach a destination with less propellant
+      and more <span class="hl-mass">payload</span>, greater specific impulses are required. This is the motivation for <span class="hl-power">electric propulsion</span>, which is further explored in the
       electrostatic acceleration applet.
     </div>
   </details>
@@ -1565,9 +1603,9 @@ details.deriv-detail > summary:focus-visible {
   <div class="th-hdr">Specific Impulse</div>
 
   <p class="th-body">
-    Recall that <span class="key hl-ve">specific impulse</span> is a measure of how efficiently <span class="key hl-mass">propellant mass</span> is used to deliver <span class="key">impulse</span> to our spacecraft.
-    <span class="key hl-ve">Specific impulse</span> and <span class="key hl-ve">effective exhaust velocity</span> are often used interchangeably, as they are directly proportional to each other.
-    It is important to note the units, m/s and s, which indicate whether <span class="key hl-ve">exhaust velocity</span> or <span class="key hl-ve">specific impulse</span> is being referenced.
+    Recall that <span class="hl-ve">specific impulse</span> is a measure of how efficiently <span class="hl-mass">propellant mass</span> is used to deliver <span class="key">impulse</span> to our spacecraft.
+    Specific impulse and <span class="hl-ve">effective exhaust velocity</span> are often used interchangeably, as they are directly proportional to each other.
+    It is important to note the units, m/s and s, which indicate whether <span class="hl-ve">exhaust velocity</span> or specific impulse is being referenced.
   </p>
 
   <details class="deriv-detail">

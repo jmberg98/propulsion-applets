@@ -24,13 +24,23 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
-  --c-bfield: #5c6bc0;
-  --c-efield: #ef5350;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -92,19 +102,43 @@ footer {
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust               { color: var(--c-thrust); }
-.hl-ve                   { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
-.hl-B                    { color: var(--c-bfield); }
-.hl-q                    { color: var(--c-power); }
-.hl-ion                  { color: var(--c-ve); }
-.hl-electron             { color: var(--c-power); }
-.hl-E                    { color: var(--c-efield); }
-.hl-neutral              { color: var(--text-secondary); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -498,7 +532,7 @@ footer {
   Before we look into the physics, it is important to acknowledge the history under which
   <span class="key">electrostatic thrusters</span> were developed. Nearly all electric propulsion devices used
   today are <span class="key">electrostatic devices</span>, meaning they use solely
-  <span class="key hl-E">electric fields</span> to accelerate <span class="key hl-q">charged particles</span> for
+  <span class="hl-E">electric fields</span> to accelerate <span class="hl-q">charged particles</span> for
   thrust. During the Cold War, the United States and Soviet Union began research on two such electrostatic
   thrusters: the <span class="key">gridded ion engine</span> and the <span class="key">Hall-Effect thruster</span>.
   While the United States began early theoretical research on the Hall-Effect thruster, it had plasma
@@ -507,6 +541,14 @@ footer {
   thruster.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+</div>
 <p class="page-intro">
   <span class="key">Gridded ion engines</span> are highly efficient electric propulsion devices used on modern
   satellite platforms and several high profile missions. These ion engines have three characteristic features: an
@@ -518,7 +560,7 @@ footer {
 <p class="page-intro">
   Use this 3D model to familiarize yourself with the gridded ion engine. The cross section feature allows you to
   see the inner components and workings of the thruster. You can also toggle the visibility of
-  <span class="key hl-E">electromagnetic fields</span> and <span class="key hl-q">particles</span> for greater
+  <span class="hl-E">electromagnetic fields</span> and <span class="hl-q">particles</span> for greater
   detail.
 </p>
 
@@ -535,11 +577,11 @@ footer {
   <div class="th-hdr">Ionization</div>
   <p class="th-body">
     The first stage of the gridded ion engine involves the <span class="key">ionization chamber</span>, which
-    ionizes <span class="key hl-neutral">neutral propellant atoms</span> so that they can be propelled by the
+    ionizes <span class="hl-neutral">neutral propellant atoms</span> so that they can be propelled by the
     upcoming <span class="key">accelerator grids</span>. Because ionization requires a certain amount of energy,
-    ionization chambers are designed to prevent <span class="key hl-electron">electrons</span> from being immediately
+    ionization chambers are designed to prevent <span class="hl-electron">electrons</span> from being immediately
     collected by the inside wall, which acts as an <span class="key">anode</span>, so that it has as many
-    opportunities to ionize <span class="key hl-neutral">neutral propellant particles</span> as possible.
+    opportunities to ionize <span class="hl-neutral">neutral propellant particles</span> as possible.
   </p>
 </div>
 
@@ -547,13 +589,13 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">Acceleration</div>
   <p class="th-body">
-    The second stage of the gridded ion engine provides the <span class="key hl-thrust">thrust</span> of the engine
+    The second stage of the gridded ion engine provides the <span class="hl-thrust">thrust</span> of the engine
     via multiple <span class="key">accelerating grids</span>. A voltage difference is applied between a
     <span class="key">screen grid</span> and an <span class="key">accelerating grid</span>, creating an
-    <span class="key hl-E">electric field</span> that accelerates an <span class="key hl-ion">ion</span> that
+    <span class="hl-E">electric field</span> that accelerates an <span class="hl-ion">ion</span> that
     happens to drift into the grid holes. However, there exists a limit on how many
-    <span class="key hl-ion">ions</span> can be between the screen and accelerating grid: the more
-    <span class="key hl-ion">ions</span> that exist there, the more incoming <span class="key hl-ion">ions</span>
+    ions can be between the screen and accelerating grid: the more
+    ions that exist there, the more incoming ions
     are repelled away.
   </p>
 </div>
@@ -562,10 +604,10 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">Neutralization</div>
   <p class="th-body">
-    The third stage of the gridded ion engine neutralizes the <span class="key hl-ion">ion beam</span> expelled from
-    the accelerating grids by emitting <span class="key hl-electron">electrons</span> that join the beam, creating an
-    overall neutral jet of <span class="key hl-ion">ions</span> and <span class="key hl-electron">electrons</span>: a
-    <span class="key">plasma jet</span>. If the <span class="key hl-ion">ion beam</span> were not neutralized, the
+    The third stage of the gridded ion engine neutralizes the <span class="hl-ion">ion beam</span> expelled from
+    the accelerating grids by emitting <span class="hl-electron">electrons</span> that join the beam, creating an
+    overall neutral jet of <span class="hl-ion">ions</span> and electrons: a
+    <span class="key">plasma jet</span>. If the ion beam were not neutralized, the
     spacecraft would be left negatively charged, since all the positive charge has left via the jet.
   </p>
 </div>
@@ -595,16 +637,16 @@ footer {
   <details class="clarify-detail">
     <summary>Circuit 1</summary>
     <div class="clarify-body">
-      The first circuit is between the <span class="key hl-electron">electron</span>-emitting
+      The first circuit is between the <span class="hl-electron">electron</span>-emitting
       &ldquo;<span class="key">bombardment cathode</span>&rdquo; and the inside walls of the ion engine, which serve
-      as the <span class="key">anode</span>. When an <span class="key hl-electron">electron</span> is emitted from the
+      as the <span class="key">anode</span>. When an electron is emitted from the
       bombardment cathode, it will travel throughout the chamber until it eventually touches the wall and is
-      collected, completing the circuit. If an <span class="key hl-electron">electron</span> hits a
-      <span class="key hl-neutral">neutral particle</span> and ionizes it, the reaction results in a positively
-      charged <span class="key hl-ion">ion</span> and two <span class="key hl-electron">electrons</span>. The newly
-      added &ldquo;secondary&rdquo; <span class="key hl-electron">electron</span> can also be collected by the walls.
-      In fact, the <span class="key hl-ion">ion</span> may hit the walls by chance, losing its charge and becoming
-      <span class="key hl-neutral">neutral</span> again.
+      collected, completing the circuit. If an electron hits a
+      <span class="hl-neutral">neutral particle</span> and ionizes it, the reaction results in a positively
+      charged <span class="hl-ion">ion</span> and two electrons. The newly
+      added &ldquo;secondary&rdquo; electron can also be collected by the walls.
+      In fact, the ion may hit the walls by chance, losing its charge and becoming
+      <span class="hl-neutral">neutral</span> again.
     </div>
   </details>
 
@@ -613,8 +655,8 @@ footer {
     <div class="clarify-body">
       The second circuit is between the <span class="key">screen</span> and <span class="key">accelerating grids</span>
       toward the ion engine exit. The circuit creates a voltage difference between the grids, accelerating any
-      <span class="key hl-ion">ions</span> that happen to drift in between the two. However, there is an
-      <span class="key hl-ion">ion jet</span>, a form of current, leaving the grids, meaning the circuit isn&rsquo;t
+      <span class="hl-ion">ions</span> that happen to drift in between the two. However, there is an
+      <span class="hl-ion">ion jet</span>, a form of current, leaving the grids, meaning the circuit isn&rsquo;t
       quite closed (yet).
     </div>
   </details>
@@ -623,9 +665,9 @@ footer {
     <summary>Circuit 3</summary>
     <div class="clarify-body">
       The third circuit is between the <span class="key">neutralizer cathode</span>, <span class="key">anode
-      walls</span>, and outgoing <span class="key hl-ion">ion jet</span>. The neutralizer cathode emits the collected
-      <span class="key hl-electron">electrons</span> in the ionization chamber, expelling them toward the
-      <span class="key hl-ion">ion jet</span> and completing Circuit 2.
+      walls</span>, and outgoing <span class="hl-ion">ion jet</span>. The neutralizer cathode emits the collected
+      <span class="hl-electron">electrons</span> in the ionization chamber, expelling them toward the
+      ion jet and completing Circuit 2.
     </div>
   </details>
 </div>
@@ -641,13 +683,13 @@ footer {
     most limiting to the lifetime of the thruster?</summary>
     <div class="clarify-body">
       The <span class="key">accelerating grid</span> is often the most lifetime-limiting component in a gridded ion
-      engine. By the time <span class="key hl-ion">ions</span> reach the accelerating grid, they have reached their
+      engine. By the time <span class="hl-ion">ions</span> reach the accelerating grid, they have reached their
       maximum speed. If they collide with the grid instead of passing through the gaps, they
       &ldquo;<span class="key">sputter</span>&rdquo;, eroding the grid material. Additionally, ionization can occur
-      past the accelerating grids. At this point, the newly created <span class="key hl-ion">ion</span> is moving
+      past the accelerating grids. At this point, the newly created ion is moving
       slowly and is highly attracted to the negatively charged accelerator grid, causing erosion. Most gridded ion
       engines implement a &ldquo;<span class="key">decelerator grid</span>&rdquo;, which is
-      <span class="key hl-neutral">neutral</span>. <span class="key hl-ion">Ions</span> that come back toward the
+      <span class="hl-neutral">neutral</span>. Ions that come back toward the
       accelerator grid thus hit the decelerator instead, extending the operating lifetime of the accelerator grid.
     </div>
   </details>

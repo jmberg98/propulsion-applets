@@ -24,11 +24,18 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
   --c-accent-glow: rgba(160,160,160,0.13);
@@ -74,12 +81,42 @@ footer {
   width: var(--page-w);
 }
 
-/* ── Highlight classes ─────────────────────────────── */
-.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v             { color: var(--c-ve); }
-.hl-mass                  { color: var(--c-mass); }
-.hl-power                 { color: var(--c-power); }
-.hl-press                 { color: var(--c-press); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ────────────────────────────────────────── */
 #hdr {
@@ -241,7 +278,7 @@ details.clarify-detail > summary:focus-visible {
   transform: translate(-50%, -50%);
   display: none;
 }
-#thrust-label { color: #CC0000; }
+#thrust-label { color: var(--c-thrust); }
 #ve-label     { color: #3DBFFF; }
 .cv-label .katex { font-size: 1.35em !important; }
 
@@ -578,15 +615,22 @@ footer {
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   Propulsion systems expel propellant to generate
-  <strong class="hl-thrust">thrust</strong> and ultimately change the momentum of the vehicle.
+  <span class="hl-thrust">thrust</span> and ultimately change the momentum of the vehicle.
   Propulsion systems must be designed with key design constraints in mind. Engineers must consider
-  <strong class="hl-ve">mass budget</strong>, <strong class="hl-power">power budget</strong>, and satisfy the
-  required <strong class="hl-thrust">mission time</strong>. These requirements dictate the
-  <strong class="hl-ve">exhaust velocity</strong>,
-  <strong class="hl-power">input power</strong>, and
-  <strong class="hl-thrust">thrust</strong> of the propulsion system respectively.
+  <span class="hl-mass">mass budget</span>, <span class="hl-power">power budget</span>, and satisfy the
+  required <strong class="key">mission time</strong>. These requirements dictate the
+  <span class="hl-ve">exhaust velocity</span>,
+  <span class="hl-power">input power</span>, and
+  thrust of the propulsion system respectively.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>force F, thrust, mass</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>power</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>pressure</span>
+</div>
 <!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
 <div class="clarify-section">
   <div class="clarify-hdr">Conceptual Questions</div>
@@ -594,20 +638,20 @@ footer {
   <details class="clarify-detail">
     <summary>Why do high thrust propulsion systems tend to be less mass efficient? Likewise, why do more mass-efficient systems typically have lower thrust?</summary>
     <div class="clarify-body">
-      There is a limit to the amount of <strong class="hl-power">input power</strong> available to accelerate the propellant, whether from chemical energy stored in the fuel or on-board solar/nuclear power.
-      To achieve high <strong class="hl-thrust">thrust</strong>, a large <strong class="hl-mass">mass flow rate</strong> of propellant must be accelerated, resulting in less power being delivered to
-      each unit of propellant mass and thus a lower <strong class="hl-ve">exhaust velocity</strong> and lower <strong class="hl-ve">specific impulse</strong>. Conversely, to achieve high
-      <strong class="hl-ve">exhaust velocity</strong> and high <strong class="hl-ve">specific impulse</strong>, the power must be distributed over a smaller <strong class="hl-mass">mass flow rate</strong>, resulting in lower
-      <strong class="hl-thrust">thrust</strong>.
+      There is a limit to the amount of <span class="hl-power">input power</span> available to accelerate the propellant, whether from chemical energy stored in the fuel or on-board solar/nuclear power.
+      To achieve high <span class="hl-thrust">thrust</span>, a large <span class="hl-mass">mass flow rate</span> of propellant must be accelerated, resulting in less power being delivered to
+      each unit of propellant mass and thus a lower <span class="hl-ve">exhaust velocity</span> and lower <span class="hl-ve">specific impulse</span>. Conversely, to achieve high
+      exhaust velocity and high specific impulse, the power must be distributed over a smaller mass flow rate, resulting in lower
+      thrust.
     </div>
   </details>
 
   <details class="clarify-detail">
     <summary>How can high thrust and high specific impulse be achieved by the same propulsion system?</summary>
     <div class="clarify-body">
-      High <strong class="hl-thrust">thrust</strong> and high <strong class="hl-ve">specific impulse</strong> requires a high <strong class="hl-power">power budget</strong>. There are drawbacks, however, to arbitrarily increasing <strong class="hl-power">input power</strong>. The amount of <strong class="hl-power">power</strong> that a <strong class="hl-power">power source</strong> can deliver
-      scales with its mass. This can adversely affect the <strong class="hl-ve">mass budget</strong> and <strong class="hl-thrust">mission time</strong> of the spacecraft. To effectively accomplish a higher <strong class="hl-power">power</strong>, higher <strong class="hl-power">power</strong> density is required.
-      This makes nuclear <strong class="hl-power">power sources</strong> very appealing, as both fusion and fission can achieve much higher power densities than solar panels. Fission reactors have been flown in space, but fusion reactors (the holy grail) have yet to be realized.
+      High <span class="hl-thrust">thrust</span> and high <span class="hl-ve">specific impulse</span> requires a high <span class="hl-power">power budget</span>. There are drawbacks, however, to arbitrarily increasing <span class="hl-power">input power</span>. The amount of <span class="hl-power">power</span> that a <span class="hl-power">power source</span> can deliver
+      scales with its mass. This can adversely affect the <span class="hl-mass">mass budget</span> and <strong class="key">mission time</strong> of the spacecraft. To effectively accomplish a higher power, higher power density is required.
+      This makes nuclear power sources very appealing, as both fusion and fission can achieve much higher power densities than solar panels. Fission reactors have been flown in space, but fusion reactors (the holy grail) have yet to be realized.
     </div>
   </details>
 </div>
@@ -636,7 +680,7 @@ footer {
   <div id="top-row">
     <div id="cv-wrap">
       <canvas id="cnv" width="820" height="440"></canvas>
-      <div id="thrust-label" class="cv-label">$\textcolor{#CC0000}{F_N}$</div>
+      <div id="thrust-label" class="cv-label">$\textcolor{#FF4400}{F_N}$</div>
       <div id="ve-label"     class="cv-label">$\textcolor{#3DBFFF}{v_e}$</div>
     </div>
 
@@ -700,7 +744,7 @@ footer {
     <summary>Why do we care about mass efficiency? Can't we just carry more propellant or refuel?</summary>
     <div class="clarify-body">
       In space, propellant is carried at a premium: every kg of propellant takes from the
-      <strong class="hl-ve">mass budget</strong>, leaving less mass available for payload and other important
+      <span class="hl-mass">mass budget</span>, leaving less mass available for payload and other important
       subsystems. Carrying extra propellant increases the mass of the vehicle, meaning the
       propulsion system must additionally handle the increased mass (more on this in the Ideal
       Rocket Equation!). Additionally, refueling introduces complexity and is not always possible,
@@ -712,15 +756,15 @@ footer {
     <summary>Where does the input power for the propulsion system come from?</summary>
     <div class="clarify-body">
       Ground-based propulsion systems exclusively rely on the stored chemical energy of rocket fuel
-      and oxidizer for <strong class="hl-power">power</strong> to escape Earth's gravity. Once in
-      space, other <strong class="hl-power">power sources</strong> become available. Spacecraft
+      and oxidizer for <span class="hl-power">power</span> to escape Earth's gravity. Once in
+      space, other <span class="hl-power">power sources</span> become available. Spacecraft
       rely on solar or nuclear power to run their payloads — leftover energy can be used to drive
       an electric propulsion system. This simulation assumes that
-      <strong class="hl-power">input power</strong> and
-      <strong class="hl-mass">mass flow rate</strong> are decoupled, which is true for electric
+      <span class="hl-power">input power</span> and
+      <span class="hl-mass">mass flow rate</span> are decoupled, which is true for electric
       propulsion. Traditional chemical engines rely on combustion, so
-      <strong class="hl-power">input power</strong> and
-      <strong class="hl-mass">mass flow rate</strong> are inherently coupled.
+      input power and
+      mass flow rate are inherently coupled.
     </div>
   </details>
 </div>
@@ -733,15 +777,15 @@ footer {
     <div class="th-hdr">Thrust</div>
 
     <p class="th-body">
-      Let's derive the <strong class="hl-thrust">thrust</strong> of a general rocket propulsion
+      Let's derive the <span class="hl-thrust">thrust</span> of a general rocket propulsion
       device, which carries its own propellant. Apply conservation laws to a
       <strong>control volume</strong>. Assume <strong>steady-state</strong> operation, no viscous
       forces, and a uniform exit stream with density $\rho_e$,
-      <strong class="hl-ve">velocity $v_e$</strong>, area $A_e$, and exit pressure
-      <strong class="hl-press">$P_e$</strong>, expelling into ambient pressure
-      <strong class="hl-press">$P_{amb}$</strong>. Let $\hat{\mathbf{i}}$ denote the axial
+      <span class="hl-ve">velocity $v_e$</span>, area $A_e$, and exit pressure
+      <span class="hl-press">$P_e$</span>, expelling into ambient pressure
+      <span class="hl-press">$P_{amb}$</span>. Let $\hat{\mathbf{i}}$ denote the axial
       direction. The thrust stand measures the reaction force,
-      i.e.&nbsp;the <strong class="hl-thrust">thrust</strong>, on the vehicle.
+      i.e.&nbsp;the thrust, on the vehicle.
     </p>
 
     <div class="cv-diagram">
@@ -931,9 +975,9 @@ footer {
       the spacecraft. Recall that propellant is limited in space, so we normalize the impulse by
       propellant mass (or historically, propellant weight on Earth). In the spacecraft frame of
       reference, the expelled propellant flow begins at rest and is accelerated to leave with
-      <strong class="hl-ve">effective exhaust velocity $c$</strong>, so the propellant stream has
-      jet power equivalent to <strong class="hl-power">input power</strong> times the
-      <strong class="hl-power">power system's efficiency</strong> factor.
+      <span class="hl-ve">effective exhaust velocity $c$</span>, so the propellant stream has
+      jet power equivalent to <span class="hl-power">input power</span> times the
+      <span class="hl-power">power system's efficiency</span> factor.
     </p>
 
     <div class="eq-panel">
@@ -1031,7 +1075,7 @@ footer {
         <span class="hl-ve">exhaust velocity / $I_{sp}$</span>,
         but also reduces <span class="hl-thrust">thrust</span>.
         Designing a propulsion system around a power source entails balancing
-        <span class="hl-thrust">thrust</span>&ndash;<span class="hl-ve">$I_{sp}$</span> trade.
+        thrust&ndash;$I_{sp}$ trade.
       </span>
     </div>
   </div>
@@ -1146,7 +1190,7 @@ const ARROW_HEAD_L  = 45  * PNG_SCALE;            // arrowhead length (constant)
 const ARROW_HEAD_HW = 46  * PNG_SCALE;            // arrowhead half-width (constant)
 const ARROW_LEN_MAX = 196 * 2.3 * PNG_SCALE;      // slightly over twice the sprite length at max thrust
 const ARROW_LEN_MIN = ARROW_HEAD_L + 6;           // smallest visible length
-const ARROW_COLOR   = '#CC0000';
+const ARROW_COLOR   = '#FF4400';   // canonical --c-thrust
 
 // Exhaust velocity arrow — points +î (right), length scales with exhaust velocity
 const VE_ARROW_TAIL_X  = EX + 10;

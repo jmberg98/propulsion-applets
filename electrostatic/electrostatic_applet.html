@@ -24,12 +24,18 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
-  --c-efield: #F5C518;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -90,16 +96,42 @@ footer {
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust, .hl-F, .hl-m { color: var(--c-thrust); }
-.hl-ve, .hl-v            { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
-.hl-B                    { color: var(--c-press); }
-.hl-q                    { color: var(--c-power); }
-.hl-E                    { color: var(--c-efield); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -579,16 +611,24 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  To give a <span class="key hl-q">charged particle</span> speed, we must apply an
-  <span class="key hl-E">electric field</span> over a distance, applying a
-  <span class="key hl-E">voltage</span> to the <span class="key hl-q">charged particle</span>. Recall the common
+  To give a <span class="hl-q">charged particle</span> speed, we must apply an
+  <span class="hl-E">electric field</span> over a distance, applying a
+  <span class="hl-E">voltage</span> to the charged particle. Recall the common
   phrase &ldquo;opposites attract, likes repel.&rdquo; In doing so, we repel a positively
-  <span class="key hl-q">charged particle</span> away from our positively charged surface, creating
-  <span class="key hl-thrust">thrust</span>! Using the demo below, experiment with different
-  <span class="key hl-E">voltages</span> or <span class="key hl-E">electric field</span> setups with different
-  <span class="key hl-q">charged particles</span> to see what exhaust speeds are possible!
+  charged particle away from our positively charged surface, creating
+  <span class="hl-thrust">thrust</span>! Using the demo below, experiment with different
+  voltages or electric field setups with different
+  charged particles to see what exhaust speeds are possible!
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust, mass</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, power</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+</div>
 <!-- ════════════════════ Q1 ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
@@ -624,24 +664,24 @@ footer {
     <summary>Why are we exploring both <span class="hl-E">electric</span> and
     <span class="hl-B">magnetic fields</span>? If an <span class="hl-E">electric field</span> is all that is needed
     to accelerate a particle to very high velocities, why are
-    <span class="hl-thrust">electric propulsion devices</span> complex?</summary>
+    <span class="key">electric propulsion devices</span> complex?</summary>
     <div class="clarify-body">
-      <span class="key hl-E">Electric</span> and <span class="key hl-B">magnetic fields</span> allow us to
-      manipulate the trajectories of <span class="key hl-q">charged particles</span> in more ways than simply
+      <span class="hl-E">Electric</span> and <span class="hl-B">magnetic fields</span> allow us to
+      manipulate the trajectories of <span class="hl-q">charged particles</span> in more ways than simply
       &ldquo;forward&rdquo; or &ldquo;backward.&rdquo; Recall that the inert gas propellant of
-      <span class="key hl-thrust">electric propulsion devices</span> is not itself
+      <span class="key">electric propulsion devices</span> is not itself
       <span class="key">ionized</span>. It must be <span class="key">ionized</span> by other means, requiring
       radio-frequency (RF) devices or electron emitters, before it can be accelerated by a plate.
       <br><br>
-      Additionally, the positively <span class="key hl-q">charged</span> exhaust jet must be
+      Additionally, the positively <span class="hl-q">charged</span> exhaust jet must be
       <span class="key">neutralized</span>! Why? Recall that <span class="key">charge</span>, like mass and energy,
-      must be <span class="key">conserved</span>. If a lot of positive <span class="key hl-q">charge</span> leaves the
-      spacecraft, the spacecraft is left charged highly <span class="key hl-power">negative</span>, which can disrupt
-      electronics and be catastrophic. Moreover, if the positive <span class="key hl-q">charge</span> is not
+      must be <span class="key">conserved</span>. If a lot of positive <span class="hl-q">charge</span> leaves the
+      spacecraft, the spacecraft is left charged highly <span class="hl-power">negative</span>, which can disrupt
+      electronics and be catastrophic. Moreover, if the positive charge is not
       <span class="key">neutralized</span>, it will eventually accelerate back to the negatively
-      <span class="key hl-power">charged</span> spacecraft, canceling the <span class="key hl-thrust">thrust</span>!
-      These factors introduce engineering requirements of <span class="key hl-thrust">electric propulsion
-      devices</span> beyond an accelerating <span class="key hl-E">electric field</span>.
+      <span class="hl-power">charged</span> spacecraft, canceling the <span class="hl-thrust">thrust</span>!
+      These factors introduce engineering requirements of <span class="hl-thrust">electric propulsion
+      devices</span> beyond an accelerating <span class="hl-E">electric field</span>.
     </div>
   </details>
 </div>
@@ -651,19 +691,19 @@ footer {
   <div class="th-hdr">Motivation for Electric Propulsion</div>
 
   <p class="th-body">
-    Increasing <span class="key hl-ve">effective exhaust velocity</span> <strong class="hl-ve">$c$</strong>, or <span class="key hl-ve">specific impulse</span> <strong class="hl-ve">$I_{sp}$</strong>,
+    Increasing <span class="hl-ve">effective exhaust velocity</span> <span class="hl-ve">$c$</span>, or <span class="hl-ve">specific impulse</span> <span class="hl-ve">$I_{sp}$</span>,
     is clearly the greatest driver for achieving high
-    <strong class="hl-ve">$\Delta V$</strong> or meeting a
-    <strong class="hl-ve">$\Delta V$</strong> specification using less <span class="key hl-mass">propellant</span>.
+    <span class="hl-ve">$\Delta V$</span> or meeting a
+    <span class="hl-ve">$\Delta V$</span> specification using less <span class="hl-mass">propellant</span>.
 
-    Assume we have a <span class="key hl-thrust">chemical engine</span> that uses <span class="key hl-mass">liquid hydrogen and liquid oxygen</span> as propellants, one of the most energetic
+    Assume we have a <span class="key">chemical engine</span> that uses <span class="hl-mass">liquid hydrogen and liquid oxygen</span> as propellants, one of the most energetic
     reactions available to us. Assume that combustion is 100% efficient and that the engine nozzle is perfectly expanded such that
     exit pressure is 0 Pascals. These assumptions are intentionally optimistic. In making them, we derive the upper limit of the
-    <span class="key hl-ve">specific impulse</span> for chemical engines, which is around 500 seconds.
+    specific impulse for chemical engines, which is around 500 seconds.
 
-    If we want to increase <span class="key hl-ve">specific impulse</span> further, we must decouple the <span class="key hl-power">energy source</span> of the propulsion system from the <span class="key hl-mass">propellant</span>.
-    If we instead apply a <span class="key hl-power">voltage</span> to a charged <span class="key hl-mass">propellant</span>, we can clearly achieve much higher <span class="key hl-ve">specific impulses</span>, limited only by our
-    choice of mass flow rate and <span class="key hl-power">power</span>. <span class="key hl-power">Electric propulsion</span> aims to achieve much higher <span class="key hl-ve">specific impulses</span> than available by traditional chemical engines.
+    If we want to increase specific impulse further, we must decouple the <span class="hl-power">energy source</span> of the propulsion system from the propellant.
+    If we instead apply a <span class="hl-E">voltage</span> to a charged propellant, we can clearly achieve much higher specific impulses, limited only by our
+    choice of mass flow rate and <span class="hl-power">power</span>. <span class="hl-power">Electric propulsion</span> aims to achieve much higher specific impulses than available by traditional chemical engines.
   </p>
 
   <details class="deriv-detail">
@@ -681,7 +721,7 @@ footer {
 
       <span class="eq-step-label">For chemical rockets, the power is coupled to the propellant</span>
       <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
-        Suppose we use <span class="key hl-thrust">LH$_2$ &amp; LOX combustion</span>
+        Suppose we use <span class="hl-thrust">LH$_2$ &amp; LOX combustion</span>
       </p>
 
       $$
@@ -702,7 +742,7 @@ footer {
 
       <span class="eq-step-label">For electric rockets, however, power and propellant are decoupled from each other</span>
       <p class="th-body" style="margin-top:8px; margin-bottom:0;">
-        <strong class="hl-ve">$c$</strong> can be made higher by applying a large amount of <span class="key hl-power">voltage</span> to a small amount of <span class="key hl-mass">gas</span>.
+        <span class="hl-ve">$c$</span> can be made higher by applying a large amount of <span class="hl-E">voltage</span> to a small amount of <span class="hl-mass">gas</span>.
       </p>
 
       <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
@@ -737,10 +777,10 @@ footer {
   <div class="th-hdr">Exhaust Velocity</div>
 
   <p class="th-body">
-    The <span class="key hl-ve">exhaust velocity</span> of a <span class="key hl-q">charged particle</span> with
-    <span class="key hl-q">charge $q$</span> and <span class="key hl-mass">mass $m$</span> after having an
-    <span class="key hl-E">electric field</span> of magnitude $E$ over a distance $d$, or equivalently a
-    <span class="key hl-E">voltage</span> difference $\Delta V$ or $\phi$ applied is:
+    The <span class="hl-ve">exhaust velocity</span> of a charged particle with
+    <span class="hl-q">charge $q$</span> and <span class="hl-mass">mass $m$</span> after having an
+    <span class="hl-E">electric field</span> of magnitude $E$ over a distance $d$, or equivalently a
+    <span class="hl-E">voltage</span> difference $\Delta V$ or $\phi$ applied is:
   </p>
 
   $$
@@ -768,7 +808,7 @@ footer {
             <div class="deriv-col-hdr">Via the Electric Field</div>
 
             <span class="eq-note">
-              Apply the <span class="hl-E">Lorentz force</span> to a stationary particle with
+              Apply the <span class="hl-thrust">Lorentz force</span> to a stationary particle with
               <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>.
             </span>
 
@@ -860,12 +900,12 @@ footer {
   <div class="th-hdr">Electric Field &amp; Potential</div>
 
   <p class="th-body">
-    The <span class="key hl-E">electric field</span> and <span class="key hl-E">potential</span> are related by a
-    work-energy relation. For a given <span class="key hl-E">electric potential difference</span> applied over a
-    greater distance, there is a weaker <span class="key hl-E">electric field</span>. Likewise, for a given
-    <span class="key hl-E">electric potential difference</span> applied over a smaller distance, there is a stronger
-    <span class="key hl-E">electric field</span>. Notice that the <span class="key hl-E">electric field</span> lines
-    point in the direction of decreasing <span class="key hl-E">electric potential</span>. This is very similar to
+    The <span class="hl-E">electric field</span> and <span class="hl-E">potential</span> are related by a
+    work-energy relation. For a given <span class="hl-E">electric potential difference</span> applied over a
+    greater distance, there is a weaker electric field. Likewise, for a given
+    electric potential difference applied over a smaller distance, there is a stronger
+    electric field. Notice that the electric field lines
+    point in the direction of decreasing <span class="hl-E">electric potential</span>. This is very similar to
     gravitational potential energy (think of a ball on a slope!). We will return to these potential gradients when
     examining magnetic mirrors.
   </p>

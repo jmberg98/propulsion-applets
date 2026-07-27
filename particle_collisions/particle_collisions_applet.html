@@ -24,9 +24,18 @@
 
 <style>
 :root {
-  --c-ve:     #3DBFFF;
-  --c-thrust: #FF6A2A;
-  --c-power:  #C060FF;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -81,14 +90,42 @@ footer { width: var(--page-w); }
 
 .theory-block.applet-host { width: var(--page-w); margin-left: 0; }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-ve       { color: var(--c-ve); }
-.hl-ion      { color: var(--c-ve); }
-.hl-thrust   { color: var(--c-thrust); }
-.hl-electron { color: var(--c-power); }
-.hl-neutral  { color: var(--text-secondary); }
-.hl-photon   { color: #cbb2ff; }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
@@ -141,9 +178,22 @@ footer { width: var(--page-w); }
   border-top: 1px solid var(--border); background: var(--bg-canvas);
 }
 
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 /* ══════════ PROPELLANT CARDS ══════════ */
 .propellant-grid { display: flex; flex-direction: column; gap: 12px; }
 .prop-card {
+  /* Propellants are neutral species — they take the neutral token rather
+     than five decorative hues, two of which collided with ion-blue and
+     electron-violet. Identity is carried by the 46px element symbol. */
+  --c-el: var(--c-neutral);
   display: flex; align-items: stretch; gap: 20px;
   padding: 16px; border: 1px solid var(--border); border-left: 3px solid var(--c-el);
   border-radius: 6px; background: var(--bg-panel-2);
@@ -277,6 +327,14 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
   fields.
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>velocity, ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>electron</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+  <span class="ck"><i style="background:var(--c-photon)"></i>light</span>
+</div>
 <p class="page-intro">
   Particles are only accelerated by electric and magnetic fields if they are charged. Thus, we must separate our
   propellant particles into positively and negatively charged particles, also called
@@ -284,7 +342,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
   <span class="key">electron bombardment</span> and <span class="key">radio-frequency (RF) excitation</span>. Both use
   energy to cause a <span class="hl-neutral">neutral atom</span> to break into a positively charged
   <span class="hl-ion">ion</span> and a negatively charged <span class="hl-electron">electron</span>. Electron
-  bombardment uses the kinetic energy of <span class="hl-electron">electrons</span> to provide the required energy for
+  bombardment uses the kinetic energy of electrons to provide the required energy for
   a neutral atom to be ionized, also known as the <span class="key">ionization energy</span>.
 </p>
 
@@ -319,7 +377,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
   <span class="hl-electron">electron</span> come in contact, they <span class="key">recombine</span> into a
   <span class="hl-neutral">neutral atom</span>, releasing energy in the form of <span class="hl-photon">light</span>.
   This causes the characteristic glow of plasmas in fusion reactors and electric thrusters. This is also a loss
-  mechanism, as we seek to maximize the number of <span class="hl-ion">ions</span> in the ionization chamber, which can
+  mechanism, as we seek to maximize the number of ions in the ionization chamber, which can
   be used to produce useful <span class="hl-thrust">thrust</span> for our engine.
 </p>
 
@@ -388,7 +446,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
   <div class="propellant-grid">
 
     <!-- Xenon -->
-    <div class="prop-card" style="--c-el:#3DBFFF">
+    <div class="prop-card">
       <div class="el-box">
         <span class="el-num">54</span>
         <span class="el-sym">Xe</span>
@@ -404,7 +462,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Argon -->
-    <div class="prop-card" style="--c-el:#B455FF">
+    <div class="prop-card">
       <div class="el-box">
         <span class="el-num">18</span>
         <span class="el-sym">Ar</span>
@@ -420,7 +478,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Iodine -->
-    <div class="prop-card" style="--c-el:#FF4FD8">
+    <div class="prop-card">
       <div class="el-box">
         <span class="el-num">53</span>
         <span class="el-sym">I</span>
@@ -437,7 +495,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Krypton -->
-    <div class="prop-card" style="--c-el:#7B78FF">
+    <div class="prop-card">
       <div class="el-box">
         <span class="el-num">36</span>
         <span class="el-sym">Kr</span>
@@ -453,7 +511,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Lithium -->
-    <div class="prop-card" style="--c-el:#FF5064">
+    <div class="prop-card">
       <div class="el-box">
         <span class="el-num">3</span>
         <span class="el-sym">Li</span>
@@ -478,13 +536,13 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
 
   <details class="clarify-detail">
     <summary>Why do many conventional electric propulsion propellants have a high atomic mass? Wouldn&rsquo;t this lead
-    to a lower <span class="key hl-ve">specific impulse</span>, since the particle&rsquo;s exhaust speed leaving the
+    to a lower <span class="hl-ve">specific impulse</span>, since the particle&rsquo;s exhaust speed leaving the
     thruster would be lower?</summary>
     <div class="clarify-body">
       This is true! However, consider that electric propulsion devices already achieve very high
-      <span class="key hl-ve">specific impulses</span> (1000s of seconds, or 10s of km/s). The
-      <span class="key hl-thrust">thrust</span> of these devices is commonly measured in millinewtons, similar to the
-      weight of a mosquito. An easy way to increase the <span class="key hl-thrust">thrust</span>, without increasing
+      <span class="hl-ve">specific impulses</span> (1000s of seconds, or 10s of km/s). The
+      <span class="hl-thrust">thrust</span> of these devices is commonly measured in millinewtons, similar to the
+      weight of a mosquito. An easy way to increase the thrust, without increasing
       the power, is to use a propellant with a higher atomic mass, like Xenon or Krypton.
     </div>
   </details>
@@ -495,11 +553,11 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     <div class="clarify-body">
       While a particle with greater charge will be accelerated more by electromagnetic fields, the highly excited
       particle can cause greater erosion damage to the accelerating grids on contact, limiting the overall lifetime of
-      the thruster. Additionally, the increase to exhaust velocity or <span class="key hl-ve">specific impulse</span> is
-      not very large (see <a class="hl-ve" style="text-decoration:none"
+      the thruster. Additionally, the increase to exhaust velocity or <span class="hl-ve">specific impulse</span> is
+      not very large (see <a class="applet-link"
       href="../electrostatic/electrostatic_applet.html">Electrostatic Acceleration</a> applet). The energy is thus
-      better used to ionize another neutral atom, raising the <span class="key hl-thrust">thrust</span> and
-      <span class="key hl-ve">specific impulse</span> of the device.
+      better used to ionize another neutral atom, raising the <span class="hl-thrust">thrust</span> and
+      specific impulse of the device.
     </div>
   </details>
 </div>

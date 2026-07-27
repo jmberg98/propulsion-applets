@@ -150,12 +150,18 @@ ________________________________________________________________________________
 ---------------------------
 Always declare ALL of the following in :root on every HTML file.
 
-  /* --- Physics highlight colors --- */
-  --c-thrust:      #FF4400    /* F, thrust, mass flow (orange-red)  */
-  --c-ve:          #3DBFFF    /* velocity, r_L, omega_c (sky blue)  */
-  --c-mass:        #FF4400    /* alias for thrust — same color family */
-  --c-power:       #C060FF    /* charge q, electron (violet)        */
-  --c-press:       #00DDB5    /* B field, pressure (teal-green)     */
+  /* --- Physics colour tokens — BYTE-IDENTICAL IN EVERY APPLET --- */
+  /* Divergence here is what made a colour mean two different things
+     from one lesson to the next (B was teal in four applets and indigo
+     in five; E was gold in three and red in five). Copy verbatim.    */
+  --c-thrust:      #FF4400   /* F, thrust, mass m, mdot        5.6:1 */
+  --c-ve:          #3DBFFF   /* v, c, Isp, dV, r_L, w_c, ion   9.3:1 */
+  --c-power:       #C060FF   /* q, charge, electron, power, mu 5.9:1 */
+  --c-press:       #00DDB5   /* B field, pressure p           11.0:1 */
+  --c-efield:      #F5C518   /* E field, potential phi, voltage 11.8:1 */
+  --c-neutral:     #9aa3b2   /* neutral species — no charge    7.6:1 */
+  --c-photon:      #cbb2ff   /* emitted light                 10.4:1 */
+  /* --c-mass was an alias of --c-thrust — deleted. Use --c-thrust. */
 
   /* --- UI chrome --- */
   --c-accent:      #a0a0a0
@@ -234,27 +240,63 @@ Rows marked ← LOCKED must never be resized or reweighted.
 -----------------------------------------
 [AGENT]
 Always color-code physics variables consistently in BOTH prose and equations.
+The prose word and the equation symbol for the SAME quantity must carry the
+SAME colour. That pairing is the entire return on the system: it hands the
+reader a symbol table without printing one.
 
   PROSE & EQUATION COLORS:
 
   VARIABLE                    COLOR     CSS CLASSES              KATEX
   --------------------------  --------  -----------------------  --------------------------
-  F, thrust, mass m, ṁ        #FF4400   .hl-thrust .hl-F         \textcolor{#FF4400}{...}
-                                        .hl-m .hl-mass
-  v, v_perp, r_L, omega_c,    #3DBFFF   .hl-ve .hl-v             \textcolor{#3DBFFF}{...}
-  Isp
-  q, electron, power,         #C060FF   .hl-power .hl-q          \textcolor{#C060FF}{...}
-  efficiency η
+  F, thrust, mass m, ṁ,       #FF4400   .hl-thrust .hl-F         \textcolor{#FF4400}{...}
+  ANY force incl. Lorentz               .hl-m .hl-mass
+  v, c, Isp, ΔV, r_L,         #3DBFFF   .hl-ve .hl-v .hl-ion     \textcolor{#3DBFFF}{...}
+  omega_c, ion
+  q, charge, electron,        #C060FF   .hl-power .hl-q          \textcolor{#C060FF}{...}
+  power, efficiency η,                  .hl-electron .hl-moment
+  magnetic moment μ
   B field, pressure p         #00DDB5   .hl-B .hl-press          \textcolor{#00DDB5}{...}
+  E field, potential φ,       #F5C518   .hl-E .hl-phi            \textcolor{#F5C518}{...}
+  voltage V
+  neutral species             #9aa3b2   .hl-neutral              achromatic: no charge
+  emitted light               #cbb2ff   .hl-photon
 
-  3D SCENE OBJECT COLORS:
+  THE PALETTE IS AT CAPACITY — DO NOT ADD A SIXTH HUE.
+  Measured in OKLab the five hued tokens sit at dE >= 15.7 from one another.
+  Every candidate for a sixth came in under 14, and the confusable pairs this
+  system was cleaned up from sat at dE 3-11. Fold a new quantity into the
+  nearest family or leave it uncoloured. (That is why μ is violet: it is
+  built from q, via I = q·omega_c/2pi.)
+
+  WHAT DOES *NOT* GET A COLOUR
+  Terms of art that are not quantities: "electric propulsion device",
+  "cyclotron motion", "magnetic mirror", "aerobraking", "mission time",
+  "ionization chamber", "Stuhlinger approximation". These take .key —
+  bold italic, no hue. Colouring them drains the hue of its meaning: once
+  teal means "magnetism-flavoured" it can no longer mean B.
+
+  NEVER STACK CHANNELS
+  .key gives weight; .hl-* gives colour. class="key hl-ve" is three
+  channels (bold + italic + hue) for one signal and reads as noise at
+  any density. Pick one. Likewise never use <strong class="hl-*">.
+
+  COLOUR THE FIRST MENTION IN A BLOCK, NOT EVERY MENTION
+  Once the reader has been told thrust is orange, the fourth orange
+  "thrust" in a paragraph teaches nothing and costs attention.
+
+  3D SCENE / CANVAS OBJECT COLORS
+
+  These MUST agree with the prose colours above. A reader told the electrons
+  are violet who then sees yellow dots has been handed two different codes.
 
   OBJECT                      COLOR     NOTES
   --------------------------  --------  ------------------------------------------
-  Ion particle                #ff6e40
-  Electron                    #4fc3f7
+  Ion particle                #4d9bff   blue disc, white "+"   (reads as --c-ve)
+  Electron                    #C060FF   violet disc, dark "−"  (= --c-power)
+  Neutral particle            #e6edf8   near-white disc, no glyph
   Velocity arrow V            #ffd54f
-  Force arrow F_b             #ef5350
+  Force arrow F_b             #ef5350   scene arrows ONLY — never for an E field;
+                                        #ef5350 is dE 5.3 from thrust #FF4400
   V_par arrow                 #66bb6a   parallel to B
   V_perp arrow                #ab47bc   perpendicular to B
   B field line tubes          #1a5272   vibrant blue (NOT the dark prototype value)
@@ -446,10 +488,13 @@ Include in every HTML file:
 
   Coloring equations:
     Use \textcolor{#RRGGBB}{...} with the physics-quantity hex codes.
-    \textcolor{#FF4400}{...}   thrust / mass
-    \textcolor{#3DBFFF}{...}   velocity / r_L
-    \textcolor{#C060FF}{...}   charge q
+    \textcolor{#FF4400}{...}   force F / thrust / mass
+    \textcolor{#3DBFFF}{...}   velocity / c / Isp / r_L / ion
+    \textcolor{#C060FF}{...}   charge q / electron / power / mu
     \textcolor{#00DDB5}{...}   B field / pressure
+    \textcolor{#F5C518}{...}   E field / potential phi / voltage
+    Every symbol coloured here must wear the same colour wherever the prose
+    names it in words, and vice versa. Check both directions before shipping.
 
   Boxed results: use \boxed{...} for final derived expressions.
   Rule: the boxed result appears ABOVE the details.deriv-detail element

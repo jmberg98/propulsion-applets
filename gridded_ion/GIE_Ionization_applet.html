@@ -24,13 +24,23 @@
 
 <style>
 :root {
-  --c-thrust: #FF4400;
-  --c-ve:     #3DBFFF;
-  --c-mass:   #FF4400;
-  --c-power:  #C060FF;
-  --c-press:  #00DDB5;
-  --c-bfield: #5c6bc0;
-  --c-efield: #ef5350;
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
@@ -89,34 +99,55 @@ footer {
 
 /* ── Inline applet link ─────────────────────────────── */
 a.applet-link {
-  color: var(--hi-blue);
+  color: var(--text-heading);
   text-decoration: none;
-  border-bottom: 1px solid rgba(61,191,255,0.35);
+  border-bottom: 1px solid var(--c-accent);
   transition: border-color 0.15s ease, color 0.15s ease;
 }
-a.applet-link:hover {
-  color: var(--hi-blue-soft);
-  border-bottom-color: var(--hi-blue);
-}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 .theory-block.applet-host {
   width: var(--page-w);
   margin-left: 0;
 }
 
-/* ── Highlight classes ───────────────────────────────── */
-.hl-thrust               { color: var(--c-thrust); }
-.hl-ve                   { color: var(--c-ve); }
-.hl-mass                 { color: var(--c-mass); }
-.hl-power                { color: var(--c-power); }
-.hl-press                { color: var(--c-press); }
-.hl-B                    { color: var(--c-bfield); }
-.hl-q                    { color: var(--c-power); }
-.hl-ion                  { color: var(--c-ve); }
-.hl-electron             { color: var(--c-power); }
-.hl-E                    { color: var(--c-efield); }
-.hl-neutral              { color: var(--text-secondary); }
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr {
@@ -507,23 +538,32 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  In order for the ion engine to actually accelerate propellant to generate <span class="key hl-thrust">thrust</span>,
+  In order for the ion engine to actually accelerate propellant to generate <span class="hl-thrust">thrust</span>,
   the propellant must be separated into positively and negatively charged particles, or
   <span class="key">ionized</span>, in the <span class="key">ionization chamber</span>.
   <span class="hl-neutral">Neutral propellant particles</span> are typically ionized by
-  <span class="key hl-electron">electron</span> bombardment or radio-frequency (RF) wave emitters. Both deliver the
-  required energy to separate an <span class="key hl-electron">electron</span> from a
-  <span class="hl-neutral">neutral particle</span>, producing a positively charged <span class="key hl-ion">ion</span>
+  <span class="hl-electron">electron</span> bombardment or radio-frequency (RF) wave emitters. Both deliver the
+  required energy to separate an electron from a
+  <span class="hl-neutral">neutral particle</span>, producing a positively charged <span class="hl-ion">ion</span>
   that we can use for thrust!
 </p>
 
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+</div>
 <p class="page-intro">
   Recall from the
   <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">Ionization &amp; Recombination
   Applet</a> that <span class="hl-electron">electrons</span> must have a certain amount of energy in order for a
   collision with a <span class="hl-neutral">neutral particle</span> to ionize it. Because of this, we want to maximize
-  the time that the <span class="hl-electron">electron</span> is in the <span class="key">ionization chamber</span>.
-  This way, an <span class="hl-electron">electron</span> has more chances to ionize a
+  the time that the electron is in the <span class="key">ionization chamber</span>.
+  This way, an electron has more chances to ionize a
   <span class="hl-neutral">neutral atom</span>. Consider a <span class="key">utilization fraction</span> $\mu_u$: the
   fraction of propellant injected into the <span class="key">ionization chamber</span> that actually gets ionized. The
   greater this <span class="key">utilization fraction</span> is, the more efficient the engine!
@@ -558,7 +598,7 @@ footer {
     <p class="quiz-q">The walls of the ion engine collect charge from incoming
     <span class="hl-electron">electrons</span> and <span class="hl-ion">ions</span>. Knowing what you know about
     <span class="hl-q">charged particles</span> and how they respond to electromagnetic fields, how might we prevent
-    <span class="hl-electron">electrons</span> from hitting the walls too early?</p>
+    electrons from hitting the walls too early?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
         <span class="quiz-opt-label">a</span>Apply a radial electric field directed toward the walls, which attracts ions and repels electrons, keeping them in the chamber longer.
@@ -584,17 +624,17 @@ footer {
   <div class="clarify-hdr">Conceptual Question</div>
 
   <details class="clarify-detail">
-    <summary>Only about 4&ndash;5% of the particles in the <span class="hl-neutral">ionization chamber</span> are
+    <summary>Only about 4&ndash;5% of the particles in the <span class="key">ionization chamber</span> are
     ionized at any given time. Why are there relatively few <span class="hl-ion">ions</span> in the ionization
     chamber compared to <span class="hl-neutral">neutrals</span>? How are high
     <span class="key">utilization fractions</span> achieved in spite of this?</summary>
     <div class="clarify-body">
       Most <span class="hl-electron">electron</span>&ndash;<span class="hl-neutral">neutral</span> collisions
       don&rsquo;t result in ionization, but rather an <span class="key">elastic collision</span>. The
-      <span class="hl-electron">electron</span> keeps its energy and continues to travel about the chamber. As it does
-      so, it can transfer energy with other <span class="hl-electron">electrons</span>, which can then ionize the
-      <span class="hl-neutral">neutral propellant atoms</span>. The <span class="key hl-B">magnetic field</span> lines
-      along the chamber walls help retain <span class="hl-electron">electrons</span>, promoting ionization further.
+      electron keeps its energy and continues to travel about the chamber. As it does
+      so, it can transfer energy with other electrons, which can then ionize the
+      <span class="hl-neutral">neutral propellant atoms</span>. The <span class="hl-B">magnetic field</span> lines
+      along the chamber walls help retain electrons, promoting ionization further.
       <span class="hl-neutral">Neutral particles</span> that drift toward the exit often bounce back into the chamber by
       colliding into either the screen or accelerating grid. Unlike <span class="hl-ion">ions</span> that drift toward
       these grids, they aren&rsquo;t guided by the high-strength <span class="hl-E">electric field</span>, and have a
