@@ -942,6 +942,18 @@
           <div class="ix-dd-body">To make the chamber more efficient, we can use magnetic cusps to
             prevent electrons from heading directly to the anode walls.</div>
         </details>
+        <details class="ix-dd">
+          <summary>Why only the electrons are held</summary>
+          <div class="ix-dd-body">The cusps confine <b>electrons</b> but not <b>ions</b>, and that
+            asymmetry is the whole mechanism. A particle's gyroradius grows as
+            <span class="ck" data-tex="\sqrt{m}"></span>, so a Xe⁺ ion circles about 490× wider than
+            an electron of the same energy — wider than the chamber itself. The field is simply too
+            weak to bend it, so ions cross the cusps as though they were not there and recombine
+            wherever they meet a wall. That ion wall loss is normal and unavoidable: it is why a
+            chamber spends 150–250 eV per beam ion against xenon's 12.1 eV ionization energy.
+            Utilization stays high anyway, because a recombined ion returns to the chamber as a
+            <b>neutral</b> and can be ionized again.</div>
+        </details>
         <div class="ix-toglabel">Magnets</div>
         <div class="seg" id="ion-mag">
           <button data-mag="on" class="active">On</button>
@@ -1178,7 +1190,13 @@ const CALLOUTS = [
    out of the rear ring, then hooks in to meet the back-wall ring's inner (+X) face horizontally.
    Every polyline is ordered N→S (starts on an N face, ends on the S face), so the direction
    arrow — placed at the arc centre and oriented along the local tangent — always points N→S.
-   The lower arcs are exact mirror images about the chamber axis (Y ≈ −11.5, i.e. Y' = −23 − Y). */
+   The lower arcs are exact mirror images about the chamber axis (Y ≈ −11.5, i.e. Y' = −23 − Y).
+   SCHEMATIC LIMIT: the front ring (x ≈ +118.5, N) is the last one, so only its upstream flux is
+   drawn closing on the mid S ring — its downstream half has no partner here. A real chamber closes
+   that cusp on a pole piece or puts a ring at the screen-grid periphery; the applet stops at the
+   grids, so the arc is simply omitted rather than drawn ending in mid-air.
+   NOTE what these lines do and do not confine. They are what the ELECTRONS are tied to; the ions
+   are unmagnetised and cross them freely (see the ion chamber wall branch). */
 const FIELD_LINES = [
   [[-46.5,  90],[ -6.5,  68],[ 33.5,  90]],                       // top: rear(N) → mid(S)
   [[118.5,  90],[ 76.0,  68],[ 33.5,  90]],                       // top: front(N) → mid(S)
@@ -1227,10 +1245,14 @@ const POLE_MARKERS = (() => {
 
 /* Electric field E — each entry is a straight arrow [x0,y0 → x1,y1] in centered
    section space (E points from + toward −, i.e. along the force on a positive ion).
-   Two sources (simplified electrode picture):
-     • ANODE  — the discharge-chamber wall is biased positive, so E points radially
-                INWARD from the top & bottom anode walls toward the axis/cathode
-                (drives discharge electrons out to the anode, ions toward the axis).
+   ONE source — the grid gap. The discharge chamber carries no drawn E field:
+     • ANODE  — NO arrows. The anode is positive with respect to the CATHODE, but the bulk
+                plasma sits a few volts ABOVE the anode, so the wall sheath points outward
+                (toward the metal): it retards electrons and accelerates ions to the wall,
+                which is the Bohm flux and the chamber's dominant ion sink. An inward,
+                chamber-spanning "anode E" was drawn here once and was wrong twice over —
+                wrong sign, and a bulk field at all in a quasineutral plasma. See the
+                EFIELD note below and PRESHEATH_W for the same argument axially.
      • ACCEL GRID — the screen grid (+, upstream) to accel grid (−, downstream) gap
                 holds the strong axial field that extracts and accelerates the ions
                 downstream (+X). This is the dominant field in the device. */
@@ -2033,20 +2055,46 @@ const fadeAlpha = p => p.x <= BEAM_FADE0 ? 1
   : Math.max(0, 1 - (p.x - BEAM_FADE0) / (BEAM_RECYCLE - BEAM_FADE0));
 
 /* ── Electron ⇄ wall interaction (discharge chamber) ───────────────────────────
-   Cusp zones are narrow bands on the anode walls centred on the magnet rings —
-   the places where the ring-cusp field actually lets electrons reach the wall.
-   An electron hitting a wall INSIDE a cusp is collected (absorbed) with probability
-   CUSP_ABSORB_PROB; anywhere else it REFLECTS non-specularly (specular bounce rotated
-   by a random ±45°, clamped to point back into the chamber, speed preserved). The
-   screen grid (right wall) collects electrons that hit its webbing but reflects those
-   aligned with an aperture (the negative accelerator grid repels them — no backstreaming);
-   it has no cusps. The back
-   plate (left wall) reflects like the other walls when BACK_PLATE_PROTECTED is true,
-   otherwise it collects every electron that touches it. Ions & neutrals are unaffected.
-   A collected PRIMARY electron is re-emitted from the cathode, so cathode emission
-   balances anode collection and the discharge sustains itself at a stable count. */
+   TWO DIFFERENT MECHANISMS keep electrons off the wall, and they must not be confused:
+
+     • BETWEEN the rings the field lines run PARALLEL to the wall. An electron's guiding
+       centre is tied to a line that never intersects metal, so it cannot reach the wall
+       except by cross-field diffusion. That is magnetic INSULATION, not a mirror. Modelled
+       as a perfect reflector (the diffusive leak is real but subdominant, and gating it on
+       the cusps is what the stage is teaching).
+     • AT a cusp the lines run INTO the metal and |B| rises steeply toward the pole face.
+       THIS is where the magnetic MIRROR operates: it reflects everything except the loss
+       cone, and only that cone is collected. See the magnetic_mirror applet — for a mirror
+       ratio R the escaping fraction of an isotropic population is 1 − cos θ_max with
+       sin θ_max = √(1/R), i.e. 1 − √(1 − 1/R). CUSP_ABSORB_PROB is that number, not a fit.
+
+   So a cusp band is not "the hole in the confinement" — it is where the mirror is, and the
+   mirror is what makes even the cusp mostly reflective. An electron hitting a wall INSIDE a
+   cusp is collected with probability CUSP_ABSORB_PROB; anywhere else it REFLECTS
+   non-specularly (specular bounce rotated by a random ±45°, clamped to point back into the
+   chamber, speed preserved). The screen grid (right wall) collects electrons that hit its
+   webbing but reflects those aligned with an aperture (the negative accelerator grid repels
+   them — no backstreaming); it has no cusps. The back plate (left wall) reflects like the
+   other walls when BACK_PLATE_PROTECTED is true, otherwise it collects every electron that
+   touches it. A collected PRIMARY electron is re-emitted from the cathode, so cathode
+   emission balances anode collection and the discharge sustains itself at a stable count.
+
+   IONS ARE UNAFFECTED BY ALL OF THIS — they are unmagnetised and recombine at any wall they
+   reach. See the ion chamber wall branch for the gyroradius numbers. */
 const CUSP_WIDTH = 0.10 * (2 * CH_R);   // band width ≈ 10% of chamber height — wider flicker section
-const CUSP_ABSORB_PROB = 0.03;          // absorb chance at a cusp zone (low → strongly reflected/confined)
+/* Mirror ratio at a cusp, B_pole/B_bulk. A few hundred G of bulk-band field against ~0.2 T at the
+   pole face puts this in the teens; 17 is the value the collected fraction was previously fitted
+   to, so naming it changes no behaviour while making the constant derived instead of tuned. */
+const CUSP_MIRROR_R = 17;
+// Loss-cone fraction of an isotropic population at that mirror ratio → 0.0303.
+// (Applied per wall contact rather than by sampling pitch angle at the field minimum, so this is
+// the right magnitude by the right formula, not a strict equivalence.)
+const CUSP_ABSORB_PROB = 1 - Math.sqrt(1 - 1 / CUSP_MIRROR_R);
+/* Note on CUSP_WIDTH: the physical leak width at a cusp is of order the hybrid gyroradius
+   2√(r_e·r_i) — millimetres — not 10% of the chamber. The band is deliberately drawn/modelled
+   wide so the loss sites read on screen, and CUSP_ABSORB_PROB is small, so it is the PRODUCT that
+   is calibrated: 3 rings × CUSP_WIDTH ≈ 26% of the side wall × 0.030 ≈ 0.008 effective loss
+   fraction for primaries, which is the right order for cusp loss. Change one and re-check both. */
 const BACK_PLATE_PROTECTED = true;      // false → the back plate collects EVERY electron
 // Magnet-ring x-positions on the top & bottom anode walls (match the section field lines).
 const CUSP_X = [-46.5, 33.5, 118.5];
@@ -2290,29 +2338,34 @@ const PRESHEATH_A = 1400;   // pull inside it — strong enough to capture an io
    (ION_VTH_RATIO) and a real presheath (PRESHEATH_W) — this single gate sets the ionized fraction
    and the physics sets μ_u, instead of the gate being asked to do both jobs.
    Magnets OFF still uses a far lower fixed rate (0.0015) so the discharge starves and μ_u collapses.
-   Swept against the instrumented build (60 s windows, magnets on, μ_u and the instantaneous
-   ionized fraction x, both stages). Re-swept after ion wall loss was confined to the cusps
-   (see the ion chamber branch) — that removed the model's dominant ion sink, roughly tripling
-   how many produced ions survive to the grids, so the gate came down 0.12 → 0.06 to keep the
-   plasma at a sane density:
-       CONF     Ionization μ_u / x     Overview μ_u / x
-       0.030      0.812 / 0.151          0.819 / 0.113
-       0.045      0.858 / 0.132          0.866 / 0.182
-       0.060      0.907 / 0.199          0.900 / 0.198    ← both stages agree, μ_u ≈ NSTAR's 0.90
-       0.090      0.922 / 0.250          0.935 / 0.254
-   Chosen for μ_u, with x accepted as the looser constraint: 0.06 puts utilisation on the measured
-   0.90 while leaving the chamber ~20% ionized, which is at the top of the physical band rather
-   than inside it (0.045 would centre x but drop μ_u to 0.86). The old two-gate arrangement could
-   not make that trade at all — it sat at 61% ionized to buy its 93%. That the two stages track
-   each other across the whole sweep is the check that utilisation is no longer a per-view
-   calibration. */
-const DISCHARGE_CONF = 0.06;
-/* Decay time of the standing chamber plasma once the cusps are switched off (Ionization stage
-   only). Confinement is what was holding that plasma; without it the ions are lost to the walls
-   promptly rather than lingering for the minute-plus a pure one-collision-at-a-time drain takes.
-   3 s empties the chamber in about ten, which is what makes the toggle feel connected to the
-   readout — the μ_u counters carry their own 2.5 s memory on top. */
-const PLASMA_DECAY_T = 3.0;
+   RE-SWEPT after ion wall loss was restored across the whole anode wall (the ring cusps do not
+   confine ions — see the ion chamber wall branch). A previous revision had gated ion recombination
+   to the cusp bands, which removed the model's dominant ion sink and forced this gate down to 0.06
+   to keep the plasma from running away. With the sink back, the gate goes back up.
+   Instrumented build, 80 s runs sampled over the last 20 s, 4 repeats averaged, both stages.
+   (The earlier sweep used a 4 s tail, which left ±0.05 of scatter on μ_u — enough to reorder
+   adjacent rows. Anything re-measured here should use the 20 s window.)
+       CONF     Ionization μ_u / x     Overview μ_u / x     extracted/(extracted+wall)
+       0.060      0.793 / 0.111          0.834 / 0.107          0.245
+       0.075      0.875 / 0.132          0.859 / 0.131          0.262
+       0.090      0.885 / 0.149          0.872 / 0.147          0.258   ← chosen
+       0.095      0.893 / 0.156          0.870 / 0.155          0.260
+       0.100      0.896 / 0.165          0.885 / 0.161          0.249
+       0.105      0.903 / 0.167          0.896 / 0.164          0.244
+       0.120      0.908 / 0.179          0.894 / 0.178          0.250
+   0.09 is the LARGEST gate that still leaves the chamber inside the physical 5–15% ionized band,
+   and it puts μ_u at 0.885/0.872 — within 2% of NSTAR's 0.90 and with the two stages agreeing to
+   0.013. The trade against the old 0.06-with-ions-confined setting is explicit: μ_u 0.907 → 0.885,
+   ionized fraction 0.199 → 0.149. Giving up 0.02 of μ_u to bring x inside the band is the right
+   direction, because x was the constraint the old arrangement could never satisfy — it was pinned
+   out of band precisely BY the missing ion sink.
+   The third column is the check that the restored sink is physical: ~26% of ions produced are
+   extracted and the rest recombine on a wall, which is where real chambers sit and is why discharge
+   loss runs 150–250 eV per beam ion against Xe's 12.13 eV ionization potential. Note μ_u stays high
+   anyway — a wall-recombined ion returns as a neutral and gets another chance (see the wall branch).
+   That the two stages track each other across the whole sweep remains the check that utilisation is
+   no longer a per-view calibration. */
+const DISCHARGE_CONF = 0.09;
 // Width of the wall band where the ring-cusp B field lives (Change 3). Discharge electrons
 // gyrate only within B_BAND of an anode wall / back plate; the core is field-free (ballistic).
 const B_BAND = 30;
@@ -2413,13 +2466,8 @@ function thermalizeOffWall(p, nx, ny, speed){
   p.vx = s * (Math.cos(phi) * nx + Math.sin(phi) * tx);
   p.vy = s * (Math.cos(phi) * ny + Math.sin(phi) * ty);
 }
-/* An ion that reaches a magnetised stretch of anode wall BETWEEN the cusps never touches metal —
-   the ring-cusp field turns it around, so it returns to the plasma still charged. Same treatment
-   as the neutrals' wall bounce (fresh direction about the inward normal, so nothing can be left
-   sliding along the wall), but redrawn at the ION thermal speed: it is still a discharge ion, not
-   an atom accommodated to the wall. */
-const ION_VTH = () => rnd(25, 65) * ION_VTH_RATIO;
-function mirrorIonOffWall(p, nx, ny){ thermalizeOffWall(p, nx, ny, ION_VTH()); }
+/* (There is deliberately no ion wall-mirror helper. Ions are unmagnetised — see the ion chamber
+   wall branch — so an ion that reaches a wall recombines there; it is never turned back.) */
 function bounceOffGrid(p, xFace, nx){
   p.holeY = undefined;   // it hit webbing — it is not in a bore
   // Rest a hair CLEAR of the face along the inward normal, not exactly on it: parked exactly on
@@ -2512,9 +2560,10 @@ function absorbElectron(p){
   if (p.freed) recycleFreed(p);
   else spawnEDischarge(p);
 }
-/* Does this electron get collected at the wall it just hit? ONLY inside a cusp zone. Everywhere
-   else the ring-cusp field mirrors it back into the chamber, so charge never reaches the metal —
-   that is the entire purpose of the magnet rings, and it is what the field-line overlay draws.
+/* Does this electron get collected at the wall it just hit? ONLY inside a cusp zone, and even
+   there only if it falls in the mirror's loss cone (CUSP_ABSORB_PROB). Everywhere else the field
+   lines run parallel to the wall and the electron's guiding centre never intersects metal — that
+   is the entire purpose of the magnet rings, and it is what the field-line overlay draws.
    Freed secondaries are still collected far more readily than primaries once they DO reach a cusp
    (they are low-energy and poorly confined), but they used to be collected at E_COLLECT_FREED
    ANYWHERE on the wall, which was a loss channel the magnets did not gate: measured, most
@@ -2790,16 +2839,12 @@ function stepParticle(p, dt){
   } else if (p.sp === 'ion'){
     const accelSolo = particleProfile === 'accel';   // the lone accelerator-stage ion: dead-centre, no jitter
     if (p.phase === 'chamber'){
-      /* Magnets OFF collapses the discharge, and that has to include the plasma ALREADY in the
-         chamber, not just the supply of new ions. Starving ionization on its own leaves the standing
-         inventory to drain one wall collision at a time, and raising the ionization gate made that
-         inventory ~8× bigger: measured, the cusps going off left 121 ions draining and μ_u sliding
-         15+ seconds later. Without confinement those ions are lost to the walls promptly, so decay
-         them with a PLASMA_DECAY_T time constant — the chamber empties in ~8 s and the readout
-         follows the switch. Gated to the Ionization stage, the only view that owns the toggle. */
-      if (!magnetsOn && appMode === 'ion' && !accelSolo && Math.random() < dt / PLASMA_DECAY_T){
-        recombineIonAt(p, 0, 0); return;
-      }
+      /* No artificial decay term here. It used to exist because ions were being held off the walls
+         by the (incorrect) cusp confinement, so switching the magnets off left a standing inventory
+         that drained only one wall collision at a time — measured, 121 ions still draining 15 s
+         later. Now that ions are lost to the walls at every contact (see the wall branch below),
+         that drain IS the physical one: with the magnets off ionization starves and the standing
+         plasma empties on its own wall-loss time constant. Decaying it on top would double-count. */
       if (!accelSolo){
         // Isotropic random walk over the whole chamber — the quasineutral bulk exerts no axial
         // force on an ion, so the MOTION is undirected, exactly like the neutrals'. What differs
@@ -2817,26 +2862,32 @@ function stepParticle(p, dt){
       }
       p.x += p.vx*dt; p.y += p.vy*dt;
       if (!accelSolo){
-        // Ions reach the metal ONLY at the cusps. Between the magnet rings the ring-cusp field
-        // stands the plasma off the wall, so an ion that wanders out there is mirrored back still
-        // charged; inside a cusp band the field lines run INTO the metal, the ion gets there and
-        // recombines, leaving a neutral that drifts back into the chamber. This is the same rule
-        // the electrons already followed (electronCollected) — it simply was not applied to ions,
-        // which recombined on contact anywhere along the wall. That was the model's dominant ion
-        // sink: measured, 28 wall recombinations/s against 11 extractions/s, i.e. the magnets
-        // confined the electrons while the ions poured straight into unmagnetised wall.
+        /* An ion that reaches ANY wall recombines there, cusp or no cusp. The ring cusps do not
+           confine ions and must not be modelled as if they did: at equal energy r_L scales as √m,
+           so a Xe⁺ gyroradius is √(M/m) ≈ 490× an electron's. In the wall band (B ≈ 100 G) that is
+           r_Le ≈ 0.7 mm against r_Li ≈ 23 cm at the Bohm speed u_B = √(eT_e/M) = 1714 m/s — larger
+           than the whole chamber (CH_R = 90). Even at the pole face (≈0.2 T) r_Li ≈ 1.2 cm, i.e.
+           comparable to the cusp width itself. The ion crosses the cusp field as though it were not
+           there. Ions are UNMAGNETISED and are lost to the walls at the Bohm current; only the
+           electrons are magnetised, and that asymmetry IS the ring cusp's whole mechanism.
+           This wall loss is the dominant ion sink, and it is why discharge loss runs 150–250 eV per
+           beam ion against Xe's 12.13 eV ionization potential: most of that energy goes into ions
+           that recombine on a wall and never leave. A previous revision gated it to the cusp bands
+           because the measured 28 wall recombinations/s against 11 extractions/s looked like a bug.
+           It was not — 11/39 ≈ 28% extracted sits squarely in the physical band, and suppressing it
+           is what pushed the chamber to ~20% ionized (real: 5–15%) and forced DISCHARGE_CONF down
+           to compensate. See DISCHARGE_CONF for the re-sweep.
+           μ_u does not need ions confined to stay high: recombineIonAt returns the ion to the
+           chamber as a NEUTRAL, and μ_u counts how an injected atom finally LEAVES, not how many
+           times it was ionized on the way. Heavy wall recombination means many ionization cycles
+           per atom, not poor utilisation. */
         const ry = p.y - AXY;
-        const confined = magnetsOn || appMode !== 'ion';   // magnets off → no standoff anywhere
-        if (p.x < CH_X0){
-          p.x = CH_X0;
-          if (!confined || inCuspBackY(p.y)){ recombineIonAt(p, 1, 0); return; }   // back-ring cusp → neutral
-          mirrorIonOffWall(p, 1, 0);                                               // magnetised back plate → turned back
+        if (p.x < CH_X0){                                    // back plate
+          p.x = CH_X0; recombineIonAt(p, 1, 0); return;
         }
-        if (Math.abs(ry) > CH_R){
+        if (Math.abs(ry) > CH_R){                            // top / bottom anode wall
           p.y = AXY + Math.sign(ry) * CH_R;
-          const n = ry > 0 ? -1 : 1;
-          if (!confined || inCuspX(p.x)){ recombineIonAt(p, 0, n); return; }       // magnet-ring cusp → neutral
-          mirrorIonOffWall(p, 0, n);                                               // magnetised anode wall → turned back
+          recombineIonAt(p, 0, ry > 0 ? -1 : 1); return;
         }
       } else {
         reflectChamber(p, false);   // lone accelerator-stage ion: unchanged (rides the axis, never hits metal)
@@ -5017,7 +5068,12 @@ let gapSeqIdx  = 0;       // walks the Halton transverse-offset sequence
    NORMALIZED box that is mapped onto whatever rectangle the graph leaves left of the screen grid,
    so it rescales with the embed. It is scenery, not a source: the extracted current is set by the
    space-charge slider, and the only thing that crosses the sheath is what updateGapIons injects. */
-const DP_POOL = Array.from({ length: 96 }, (_, i) => {
+// Density is set against the OVERVIEW chamber, not chosen for the box: one particle per DP_AREA_PER
+// square pixels is what that view shows at this sprite size, so the reservoir reads as densely
+// populated there and here. The pool is the ceiling at the widest embed; drawDischargePlasma draws
+// the area-appropriate prefix of it.
+const DP_AREA_PER = 390;
+const DP_POOL = Array.from({ length: 128 }, (_, i) => {
   const f = _halton(i + 1, 5);
   return { x:_halton(i + 1, 2), y:_halton(i + 1, 3), vx:0, vy:0,
            sp: f < 0.20 ? 'i' : (f < 0.40 ? 'e' : 'n') };
@@ -5029,7 +5085,8 @@ const DP_SPD = { i:0.05, e:0.34, n:0.11 };   // box speed per species — electr
    the ion CONTRIBUTION to the field (it ties the dots to the E_ions arrow and the φ_ions arch),
    not for the species. The sheath is where the one becomes the other, which is exactly the physical
    boundary anyway — a plasma ion is extracted there and becomes a beam ion. */
-const DP_COL = { i:'#4d9bff', e:'#ffe94d', n:'rgba(230,237,248,0.62)' };
+const DP_COL = { i:'#4d9bff', e:'#ffe94d', n:'#e6edf8' };
+const DP_SYM = { i:'#ffffff', e:'#2a2405', n:null };   // symbol ink — matches GLYPH_CELLS exactly
 function updateDischargePlasma(dt){
   const h = Math.min(0.05, dt || 0);
   for (const q of DP_POOL){
@@ -5042,18 +5099,42 @@ function updateDischargePlasma(dt){
     if (q.y < 0){ q.y = 0; q.vy = -q.vy; }   if (q.y > 1){ q.y = 1; q.vy = -q.vy; }
   }
 }
-// One ⊕ / ⊖ / ⊙ glyph — the same disc-with-a-symbol used everywhere else, so the sign is carried by
-// the symbol as well as the colour and neither has to do the job alone.
+/* One ⊕ / ⊖ / ⊙ glyph, drawn from a 2-D copy of the 3-D sprite atlas (makeGlyphAtlas) rather than
+   as its own flat disc + hairline symbol. Same disc profile — flat colour out to 0.82 r, then a soft
+   transparent edge, no rim — and the same symbol proportions (stroke 0.24 r, arms 0.46 r), so a
+   particle in this schematic reads as the SAME OBJECT as the one in the overview cross-section
+   instead of a smaller, dimmer shorthand for it. Pre-rendered once and blitted: 90-odd live radial
+   gradients per frame would be the expensive way to draw the same picture. */
+const DP_CELL = 64;      // atlas cell, px
+const DP_DISC = 0.44;    // disc radius as a fraction of the cell — the 3-D atlas value
+const DP_ORDER = ['n', 'i', 'e'];
+let dpAtlas = null;
+function dpAtlasCanvas(){
+  if (dpAtlas) return dpAtlas;
+  const S = DP_CELL;
+  const cv = document.createElement('canvas'); cv.width = S * DP_ORDER.length; cv.height = S;
+  const g = cv.getContext('2d');
+  DP_ORDER.forEach((sp, i) => {
+    const cx = i*S + S/2, cy = S/2, r = S*DP_DISC;
+    const grd = g.createRadialGradient(cx, cy, r*0.08, cx, cy, r);
+    grd.addColorStop(0,    DP_COL[sp]);
+    grd.addColorStop(0.82, DP_COL[sp]);
+    grd.addColorStop(1,    'rgba(0,0,0,0)');
+    g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, 6.283); g.fill();
+    if (!DP_SYM[sp]) return;
+    g.strokeStyle = DP_SYM[sp]; g.lineCap = 'round'; g.lineWidth = r*0.24;
+    const h = r*0.46;
+    g.beginPath(); g.moveTo(cx-h, cy); g.lineTo(cx+h, cy);
+    if (sp === 'i'){ g.moveTo(cx, cy-h); g.lineTo(cx, cy+h); }
+    g.stroke();
+  });
+  dpAtlas = cv;
+  return dpAtlas;
+}
+// `r` is the DISC radius on screen; the cell it is blitted from is wider than the disc by 1/DP_DISC.
 function dpGlyph(ctx, x, y, sp, r){
-  ctx.fillStyle = DP_COL[sp];
-  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
-  if (sp === 'n') return;
-  ctx.strokeStyle = sp === 'i' ? 'rgba(255,255,255,0.92)' : 'rgba(42,36,5,0.9)';
-  ctx.lineWidth = 1;
-  const t = r * 0.55;
-  ctx.beginPath(); ctx.moveTo(x - t, y); ctx.lineTo(x + t, y);
-  if (sp === 'i'){ ctx.moveTo(x, y - t); ctx.lineTo(x, y + t); }
-  ctx.stroke();
+  const box = r / DP_DISC, i = DP_ORDER.indexOf(sp);
+  ctx.drawImage(dpAtlasCanvas(), i*DP_CELL, 0, DP_CELL, DP_CELL, x - box/2, y - box/2, box, box);
 }
 /* Paint the plasma block, the sheath meniscus bulging out of the screen hole, and a small key.
    `x0..x1` is the clear band left of the screen grid; the hole is centred on yMid with radius rHole. */
@@ -5061,36 +5142,59 @@ function drawDischargePlasma(ctx, x0, x1, yT, yB, yMid, rHole, xEmit){
   const w = x1 - x0, h = yB - yT;
   if (w < 60 || h < 40) return;
   ctx.save();
-  // Body + the stipple the textbook section uses to mean "plasma".
-  ctx.fillStyle = 'rgba(118,140,190,0.09)';
-  ctx.fillRect(x0, yT, w, h);
-  ctx.fillStyle = 'rgba(198,212,240,0.15)';
-  for (let i = 1; i <= 240; i++) ctx.fillRect(x0 + _halton(i,2)*w, yT + _halton(i,3)*h, 1.2, 1.2);
-  ctx.strokeStyle = 'rgba(150,170,220,0.30)'; ctx.lineWidth = 1;
-  ctx.strokeRect(x0 + 0.5, yT + 0.5, w - 1, h - 1);
-  // The live soup.
-  for (const q of DP_POOL){
-    dpGlyph(ctx, x0 + q.x * w, yT + q.y * h, q.sp, q.sp === 'e' ? 2.4 : q.sp === 'i' ? 3.0 : 2.6);
+  /* Body. In the overview cross-section the chamber plasma is nothing but the particles, standing on
+     the grey of the chamber wall — no stipple, no ruled outline. There is no wall behind it here, so
+     the block is a faint glow that fades out toward the frame edge rather than a boxed-in patch: it
+     says the chamber carries on upstream, which is true, and leaves the particles to carry the look. */
+  const body = ctx.createLinearGradient(x0, 0, x1, 0);
+  body.addColorStop(0,    'rgba(118,140,190,0.015)');
+  body.addColorStop(0.45, 'rgba(118,140,190,0.075)');
+  body.addColorStop(1,    'rgba(118,140,190,0.10)');
+  ctx.fillStyle = body; ctx.fillRect(x0, yT, w, h);
+  /* The live soup, at the overview's sprite size — ONE radius for every species, as in the 3-D view,
+     where a single uWorldSize drives all three glyphs and the neutral only looks bigger because it
+     carries no symbol. Scaled off the block height so it holds up in a narrow embed. */
+  const rG = Math.max(3.2, Math.min(5.4, h * 0.019));
+  /* How many of the pool actually get drawn is set by AREA, not by the pool size: the block narrows
+     with the embed, and a fixed 128 that reads right at full width packs to twice the overview's
+     density in a 760 px frame. DP_AREA_PER is that view's particles-per-square-pixel. A Halton
+     prefix is stratified in both position and species, so drawing the first n keeps the mix. */
+  const nDraw = Math.max(48, Math.min(DP_POOL.length, Math.round(w * h / DP_AREA_PER)));
+  for (let i = 0; i < nDraw; i++){
+    const q = DP_POOL[i];
+    // Inset by a radius so a particle at the extreme of its box is fully inside the block.
+    dpGlyph(ctx, x0 + rG + q.x * (w - 2*rG), yT + rG + q.y * (h - 2*rG), q.sp, rG);
   }
-  // Title, on a dark backing so the drifting particles never swim through the lettering.
+  // Title, on a dark backing so the drifting particles never swim through the lettering. Nearly
+  // opaque: at the overview's sprite size a particle behind the plate still ghosts through 0.78.
   const label = (txt, ax, cy, px, col, align) => {
     align = align || 'center';
     ctx.font = '700 ' + px + 'px Barlow, sans-serif'; ctx.textAlign = align;
     const tw = ctx.measureText(txt).width;
     const lx = align === 'left' ? ax : align === 'right' ? ax - tw : ax - tw/2;
-    ctx.fillStyle = 'rgba(9,9,9,0.78)';
+    ctx.fillStyle = 'rgba(9,9,9,0.92)';
     ctx.fillRect(lx - 4, cy - px + 1, tw + 8, px + 5);
     ctx.fillStyle = col; ctx.fillText(txt, ax, cy);
   };
   const cx = x0 + w/2;
   label('DISCHARGE CHAMBER', cx, yT + 16, 10.5, 'rgba(216,226,246,0.9)');
   label('PLASMA',            cx, yT + 30, 10.5, 'rgba(216,226,246,0.9)');
-  // Species key, bottom-left of the block.
-  const kx = x0 + 12, ky = yB - 46;
-  [['i','ions'], ['e','electrons'], ['n','neutrals']].forEach(([sp, name], i) => {
-    const y = ky + i * 15;
-    label(name, kx + 12, y + 4, 10.5, 'rgba(206,216,236,0.82)', 'left');
-    dpGlyph(ctx, kx + 1, y, sp, sp === 'e' ? 2.4 : sp === 'i' ? 3.0 : 2.6);
+  /* Species key, bottom-left of the block — same three entries, same order, as the viewer's own
+     particle legend (#part-legend), so the two never disagree about what a colour means. Its swatches
+     are now the very same glyph the soup is drawn with, which is the point of the key but also means
+     a particle drifting past one is indistinguishable from it: so the whole key sits on a dark plate,
+     glyphs included, and nothing swims through it. */
+  const KEY = [['n','neutrals'], ['i','ions'], ['e','electrons']];
+  const kx = x0 + 15, ky = yB - 48, kRow = 16, kGlyph = 4.4;
+  ctx.font = '700 10.5px Barlow, sans-serif';
+  const kw = Math.max(...KEY.map(([, name]) => ctx.measureText(name).width));
+  ctx.fillStyle = 'rgba(9,9,9,0.92)';
+  ctx.fillRect(kx - kGlyph - 7, ky - kRow*0.55, kw + kGlyph + 26, kRow*(KEY.length - 1) + kRow*1.1);
+  KEY.forEach(([sp, name], i) => {
+    const y = ky + i * kRow;
+    ctx.textAlign = 'left'; ctx.fillStyle = 'rgba(206,216,236,0.82)';
+    ctx.fillText(name, kx + 13, y + 4);
+    dpGlyph(ctx, kx, y, sp, kGlyph);
   });
   // The screen-hole plasma sheath: the meniscus that bulges out of the hole and from whose
   // surface the ions are actually pulled. It is the emitter — u = 0 on the graph.
