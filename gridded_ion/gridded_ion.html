@@ -1178,35 +1178,19 @@ const CALLOUTS = [
   { text:'Accelerator Grid',            anchor:[ 157, -70], pos:[ 210,  -148], bottomLabel:true },
 ];
 
-/* Magnetic field lines — one DISCRETE cusp arc per inter-ring gap, in centered section
-   space (cut plane Z = 0; X = thrust axis with the grids at +X, Y up, chamber axis at
-   Y ≈ −11.5). Ring-cusp topology (Goebel & Katz, Fundamentals of Electric Propulsion): the
-   ring magnets ALTERNATE polarity (N,S,N …), so each arc springs from an N ring face, bows
-   into the chamber, and closes on the ADJACENT S ring — leaving a nearly field-free interior.
-   Each arc is a SHARP CUSP: three control points [ring face, deep dip, ring face], so the line
-   comes to a point right at each magnet's inner face and bulges into the plasma between them.
-   Where two arcs share a ring (the middle S ring, and the rear N ring) they meet at a cusp.
-   Rings sit at x ≈ −46.5 (N), +33.5 (S), +118.5 (N); both side gaps close on the middle S ring
-   from opposite sides (the field converges there). The rear N ring ALSO closes a corner cusp
-   onto the buried back-wall ring (S, at x ≈ −85.5, y = AXY ± 51): the line drops straight down
-   out of the rear ring, then hooks in to meet the back-wall ring's inner (+X) face horizontally.
-   Every polyline is ordered N→S (starts on an N face, ends on the S face), so the direction
-   arrow — placed at the arc centre and oriented along the local tangent — always points N→S.
-   The lower arcs are exact mirror images about the chamber axis (Y ≈ −11.5, i.e. Y' = −23 − Y).
-   SCHEMATIC LIMIT: the front ring (x ≈ +118.5, N) is the last one, so only its upstream flux is
-   drawn closing on the mid S ring — its downstream half has no partner here. A real chamber closes
-   that cusp on a pole piece or puts a ring at the screen-grid periphery; the applet stops at the
-   grids, so the arc is simply omitted rather than drawn ending in mid-air.
-   NOTE what these lines do and do not confine. They are what the ELECTRONS are tied to; the ions
-   are unmagnetised and cross them freely (see the ion chamber wall branch). */
-const FIELD_LINES = [
-  [[-46.5,  90],[ -6.5,  68],[ 33.5,  90]],                       // top: rear(N) → mid(S)
-  [[118.5,  90],[ 76.0,  68],[ 33.5,  90]],                       // top: front(N) → mid(S)
-  [[-46.5,  90],[-46.5,  58],[-65.0,  42],[-85.5,  39.5]],        // top: rear(N) → back-wall(S) corner cusp
-  [[-46.5,-113],[ -6.5, -91],[ 33.5,-113]],                       // bottom mirror of arc 0
-  [[118.5,-113],[ 76.0, -91],[ 33.5,-113]],                       // bottom mirror of arc 1
-  [[-46.5,-113],[-46.5, -81],[-65.0, -65],[-85.5, -62.5]],        // bottom mirror of the corner cusp
-];
+/* Magnetic field lines are no longer authored here — they are TRACED from the field itself,
+   next to cuspFieldAt (search FIELD_LINE_SEEDS). They used to be hand-placed control points,
+   which is how they drifted out of step with what the electrons actually did: the arcs were
+   anchored on the magnet faces while the sim's field sat on the plasma wall, 13% of the
+   chamber radius away, and electron paths visibly failed to follow the drawn lines. Deriving
+   the polylines from the same field the particles move in makes that class of drift
+   impossible. Ring-cusp topology, for reference (Goebel & Katz, Fundamentals of Electric
+   Propulsion): the ring magnets ALTERNATE polarity (N,S,N …), so each line springs from an N
+   face, bows into the chamber, and closes on the adjacent S face — leaving a nearly
+   field-free interior. Rings sit at x ≈ −46.5 (N), +33.5 (S), +118.5 (N), plus a back-wall
+   ring (S) closing a corner cusp with the rear N ring.
+   NOTE what these lines do and do not confine. They are what the ELECTRONS are tied to; the
+   ions are unmagnetised and cross them freely (see the ion chamber wall branch). */
 
 /* Magnet rings. Each ring carries a RADIAL magnetization, so its marker is drawn split
    into two poles: `inner` is the pole on the plasma-facing face (the one that sets the cusp
@@ -2127,25 +2111,41 @@ const inCuspBackY = y => CUSP_BACK_Y.some(cy => Math.abs(y - cy) <= CUSP_WIDTH *
    spacing, leaving the field-free core the design exists to create. Nothing here is fitted
    to a picture; the arcs the overlay draws and the arcs electrons now follow come from the
    same ring positions and the same alternating polarity.
-   B_POLE_R softens the 1/r singularity: the magnet has finite width, so |B| saturates at the
-   pole face instead of diverging. It therefore sets the MIRROR RATIO available at a cusp
-   (B_face / B_midgap), which is what decides the loss cone — see the electron branch. */
-const B_POLE_R  = 6;      // pole softening radius — sets the achievable mirror ratio
-const B_MAG_MIN = 0.16;   // below this fraction of B_REF the electron is effectively unmagnetised
-const GYRO_W    = 26;     // gyro-phase rate (rad/s) — sets how tight the visible spiral reads
-const GYRO_AMP  = 0.35;   // DRAWN fraction of v⊥ (see the electron branch) — visibility, not physics
-/* Poles in SIM space. The side rings show on the top AND bottom anode walls (the ring is
-   radially magnetised, so both walls present the same pole to the plasma); the back-wall ring
-   presents its face on the back plate at CUSP_BACK_Y. Polarity alternates with CUSP_X order,
-   matching MAGNET_RINGS (N at −46.5, S at +33.5, N at +118.5, S on the back wall). */
+   WHERE THE POLES SIT MATTERS, and getting it wrong is visible. They belong at the magnet
+   faces the viewer can SEE — radius RING_FACE_R from the axis, which is outside the plasma
+   boundary CH_R, because real ring magnets sit behind the anode wall. Putting them on the
+   plasma wall instead (CH_R) left every drawn arc anchored 11.5 units — 13% of the chamber
+   radius — away from where electrons actually turned, which is exactly the "paths don't
+   follow the lines" mismatch. A field line legitimately runs from the magnet face THROUGH
+   the wall and into the plasma; the electron just cannot follow it past the metal.
+   B_FALLOFF sets how fast a pole's field decays. It is a SHAPE parameter, not a claim about
+   multipole order: what it is chosen for is the mirror ratio available inside the plasma,
+   B(wall under a pole) / B(wall at mid-gap). At 3 that ratio is 13.2, which sits in the range
+   real ring cusps run (pole face ~0.2 T against a few mT in the bulk) and yields a 3.9% loss
+   cone by 1 − √(1 − 1/R). A gentler 1/r² gives only 5.1, below anything physical. It also
+   sets how clean the field-free core is: |B| at the core against the wall mid-gap is 0.05
+   here, versus 0.57 for a bare 1/r — the core is genuinely field-free, not merely weaker. */
+const RING_FACE_R = 101.5;  // radius of the magnet faces (> CH_R — the magnets are behind the wall)
+const B_FALLOFF = 3;        // |B| ∝ 1/r^B_FALLOFF — chosen for the mirror ratio (see above)
+const B_POLE_R  = 8;        // pole softening — finite magnet, so |B| saturates at the face
+const B_MAG_MIN = 0.16;     // below this fraction of B_REF the electron is effectively unmagnetised
+const GYRO_W    = 90;       // gyro-phase rate (rad/s) — sets how tight the visible spiral reads
+const GYRO_R    = 5.0;      // DRAWN helix radius in model units (see the electron branch)
+const MIRROR_KICK = 0.06;   // v∥ left at a reversal, as a fraction of v² — see the turning-point note
+const B_UNLATCH   = 0.5;    // release the field line only below this FRACTION of B_MAG_MIN (hysteresis)
+const LATCH_MAX_PERP = 0.9; // cap on v⊥²/v² at latch, so a fresh latch is never already mirroring
+/* Poles in SIM space, on the magnet faces. The side rings present a pole on the TOP and the
+   BOTTOM wall (the ring is radially magnetised, so both faces point at the plasma); the
+   back-wall ring presents its face on the back plate at CUSP_BACK_Y. Polarity alternates with
+   CUSP_X order, matching MAGNET_RINGS (N at −46.5, S at +33.5, N at +118.5, S on the back). */
 const B_POLES = (() => {
-  const out = [], yTop = AXY + CH_R, yBot = AXY - CH_R;
+  const out = [], yTop = AXY + RING_FACE_R, yBot = AXY - RING_FACE_R;
   CUSP_X.forEach((x, i) => {
     const s = i % 2 === 0 ? 1 : -1;                 // N, S, N …
     out.push({ x, y: yTop, s });
     out.push({ x, y: yBot, s });
   });
-  for (const y of CUSP_BACK_Y) out.push({ x: CH_X0, y, s: -1 });   // back-wall ring — S
+  for (const y of CUSP_BACK_Y) out.push({ x: CH_X0 - 11.5, y, s: -1 });   // back-wall ring — S, behind the plate
   return out;
 })();
 function cuspFieldAt(x, y){
@@ -2153,11 +2153,61 @@ function cuspFieldAt(x, y){
   for (const q of B_POLES){
     const dx = x - q.x, dy = y - q.y;
     const r2 = dx*dx + dy*dy + B_POLE_R*B_POLE_R;   // softened — finite magnet, finite |B|
-    const k = q.s / (r2 * Math.sqrt(r2));           // (P−R)/|P−R|² with the softening carried through
+    const k = q.s / Math.pow(r2, (B_FALLOFF + 1) / 2);
     bx += k * dx; by += k * dy;
   }
   return { bx, by, mag: Math.hypot(bx, by) };
 }
+/* Trace a field line by stepping along B̂ until it lands on an S pole (or leaves the frame).
+   This is what makes the overlay and the electrons agree BY CONSTRUCTION rather than by two
+   people drawing the same thing twice: the polylines the section draws are integral curves of
+   the exact field cuspFieldAt returns, so an electron following B is following the drawn line.
+   The arcs used to be hand-authored control points, which is why they could drift out of step
+   with the sim without anything catching it. */
+function traceFieldLine(sx, sy, maxSteps){
+  let x = sx, y = sy;
+  const raw = [[x, y]];
+  for (let i = 0; i < maxSteps; i++){
+    const F = cuspFieldAt(x, y);
+    if (!F.mag) break;
+    x += F.bx / F.mag; y += F.by / F.mag;             // unit-length step along the field
+    raw.push([x, y]);
+    for (const q of B_POLES)                           // arrived at the closing S face
+      if (q.s < 0 && Math.hypot(x - q.x, y - q.y) < 10) { i = maxSteps; break; }
+    if (x < CH_X0 - 40 || x > CH_X1 + 40 || Math.abs(y - AXY) > 135) break;
+  }
+  // Resample to a light control polyline — smoothCurve re-interpolates it for drawing.
+  const want = 14, step = Math.max(1, Math.floor(raw.length / want)), out = [];
+  for (let i = 0; i < raw.length; i += step) out.push(raw[i]);
+  if (out[out.length - 1] !== raw[raw.length - 1]) out.push(raw[raw.length - 1]);
+  return out;
+}
+/* One line per inter-ring gap, seeded off the N faces at angles chosen so each traces the
+   route the chamber actually has: rear→mid, front→mid, and the rear→back-wall corner cusp.
+   (A fourth route exists — front N all the way round to the back-wall ring — but it sweeps
+   through the core and is not what the cusps are for, so it is not drawn.) The lower half is
+   the exact mirror about the chamber axis, which is legitimate here because the pole set is
+   symmetric about it. Every line is ordered N→S, so the direction arrows still read N→S. */
+/* THREE lines per gap, not one. A single arc per gap was the old hand-drawn convention, and it
+   is what made the sim look wrong even once the physics was right: an electron rides the field
+   line through ITS OWN position, which is almost never one of three sampled curves, so it
+   tracked a neighbouring line and read as "not following the drawn field". Drawing a family
+   that spans the magnetised band means whatever line an electron is on, there is a drawn line
+   under it. The seeds are angles off each N face, chosen so each route's three lines dip to
+   roughly 74 / 62 / 50 in y — i.e. spread across the band rather than stacked. */
+const FIELD_LINE_SEEDS = [
+  { x: CUSP_X[0], deg: 335 }, { x: CUSP_X[0], deg: 320 }, { x: CUSP_X[0], deg: 310 },  // rear N  → mid S
+  { x: CUSP_X[2], deg: 205 }, { x: CUSP_X[2], deg: 220 }, { x: CUSP_X[2], deg: 235 },  // front N → mid S
+  { x: CUSP_X[0], deg: 200 }, { x: CUSP_X[0], deg: 240 }, { x: CUSP_X[0], deg: 280 },  // rear N  → back-wall S
+];
+const FIELD_LINES = (() => {
+  const yTop = AXY + RING_FACE_R;
+  const top = FIELD_LINE_SEEDS.map(sd => {
+    const th = sd.deg * Math.PI / 180;
+    return traceFieldLine(sd.x + 11 * Math.cos(th), yTop + 11 * Math.sin(th), 3000);
+  });
+  return top.concat(top.map(l => l.map(([x, y]) => [x, 2 * AXY - y])));
+})();
 /* Reference magnitude for "fully magnetised", measured from the model itself rather than
    guessed: |B| at the wall midway between the first two rings. Deriving it means B_POLE_R or
    the ring layout can change without silently rescaling how magnetised the chamber is. */
@@ -2437,14 +2487,16 @@ const PRESHEATH_A = 1400 * HEAVY_A;   // pull inside it — strong enough to cap
    RE-SWEPT AGAIN after the heavy species were put on a slower clock (HEAVY_V). Slowing ions and
    neutrals slows every ion sink and the neutral leak with them, while ionization is driven by the
    unchanged electrons — so the same gate now builds a denser plasma and the gate has to come down.
+   Re-measured again after the cusp field was rebuilt around the magnet faces (the poles moved
+   out to RING_FACE_R and the falloff steepened), which changes electron confinement — but as
+   the table shows, barely moves the landing point:
        CONF     Ionization μ_u / x     Overview μ_u / x     extracted/(extracted+wall)
-       0.020      0.779 / 0.079          0.810 / 0.080          0.281
-       0.035      0.893 / 0.123          0.863 / 0.120          0.297
-       0.040      0.888 / 0.130          0.870 / 0.138          0.301   ← chosen
-       0.045      0.864 / 0.140          0.884 / 0.143          0.271
-       0.050      0.910 / 0.161          0.895 / 0.156          0.250
-       0.065      0.909 / 0.186          0.932 / 0.189          0.253
-       0.090      0.951 / 0.223          0.934 / 0.223          0.255
+       0.028      0.862 / 0.115          0.843 / 0.116          0.278
+       0.034      0.881 / 0.125          0.859 / 0.134          0.269
+       0.040      0.876 / 0.141          0.876 / 0.146          0.272   ← chosen
+       0.055      0.946 / 0.178          0.912 / 0.179          0.257
+       0.070      0.930 / 0.203          0.936 / 0.209          0.243
+       0.085      0.955 / 0.226          0.938 / 0.230          0.260
    Same policy as before: take the largest gate that still leaves the chamber inside the physical
    5–15% ionized band. 0.04 puts x at 0.130/0.138 with margin (0.045 and up start crowding the
    ceiling) and μ_u at 0.888/0.870 — the same place the previous calibration landed, which is the
@@ -3122,32 +3174,61 @@ function stepParticle(p, dt){
       if (magnetsOn){
         if (p.spd === undefined) p.spd = Math.hypot(p.vx, p.vy) || 1;
         const F = cuspFieldAt(p.x, p.y), s = p.spd;
-        if (F.mag < B_MAG_MIN * B_REF){
-          p.mu = undefined;                                   // field-free core → ballistic
+        /* HYSTERESIS on the magnetised/ballistic boundary. A single threshold let an electron
+           cycle: latch just inside the field, mirror straight back out, unlatch, drift in,
+           re-latch with a fresh (and, having just mirrored, near-perpendicular) pitch, mirror
+           again — hovering at the boundary and going nowhere. That was the second stuck mode,
+           and it survived the turning-point fix because each individual step looked legal.
+           Latching needs a real field (B_MAG_MIN); releasing needs the field to fall well
+           below it, so the two events cannot chase each other. */
+        if (p.mu !== undefined && F.mag < B_MAG_MIN * B_UNLATCH * B_REF){
+          p.mu = undefined;                                   // well out into the field-free core → ballistic
+        }
+        if (p.mu === undefined && F.mag < B_MAG_MIN * B_REF){
+          p.gx = p.gy = 0;                                    // ballistic — no helix to draw
         } else {
           const ux = F.bx / F.mag, uy = F.by / F.mag;         // unit vector along B
           if (p.mu === undefined){                            // just entered the field: latch the pitch
             const vpar = p.vx*ux + p.vy*uy;
-            p.mu  = Math.max(0, s*s - vpar*vpar) / F.mag;
+            // Cap the latched moment so there is always SOME parallel velocity. Latching an
+            // almost purely perpendicular pitch puts the electron at a turning point on the
+            // very first step, which is the other half of the boundary cycle above.
+            p.mu  = Math.min(Math.max(0, s*s - vpar*vpar), LATCH_MAX_PERP * s*s) / F.mag;
             p.par = vpar >= 0 ? 1 : -1;
             p.gyroPh = rnd(0, 6.283);
           }
+          /* Turning point → mirror back. The reversal must leave v∥ NON-ZERO, or the electron
+             parks exactly at its turning point: with v∥ = 0 it stops advancing, |B| therefore
+             never drops, the condition re-fires on the very next step, and p.par flips again —
+             a flip-flop that pins the particle in place, still gyrating but going nowhere and
+             never reaching a wall to be collected. (That was the "stuck electron".) Stepping
+             v⊥² back off the boundary by MIRROR_KICK gives it enough v∥ to move back down the
+             gradient, where μB < v² and normal motion resumes. μ itself is untouched — this
+             clamps only the value used for THIS step, so the invariant still governs where the
+             electron turns. */
           let vperp2 = p.mu * F.mag;
-          if (vperp2 >= s*s){ vperp2 = s*s; p.par = -p.par; } // turning point → mirror back
+          if (vperp2 >= s*s){ p.par = -p.par; vperp2 = s*s * (1 - MIRROR_KICK); }
           const vpar = p.par * Math.sqrt(Math.max(0, s*s - vperp2));
-          // The guiding centre advances at the TRUE v∥, so the slow-down and reversal at a
-          // mirror point are exact and watchable. Only the transverse excursion is scaled
-          // down (GYRO_AMP): a real gyroradius here is ~0.008 of the chamber radius, so drawn
-          // at true size the spiral would be invisible, and drawn at true PITCH it swamps the
-          // along-line motion and reads as looping across the field again. This keeps the
-          // wiggle indicative — wider as the electron nears its turning point — without
-          // letting it dominate the picture.
-          const wob = Math.sqrt(vperp2) * GYRO_AMP * Math.sin(p.gyroPh += GYRO_W * dt);
-          p.vx = vpar*ux - wob*uy;
-          p.vy = vpar*uy + wob*ux;
+          /* The VELOCITY is pure guiding centre — it advances along B̂ at the true v∥, so the
+             slow-down and reversal at a mirror point are exact. The visible helix is a DRAWN
+             OFFSET (p.gx, p.gy) instead of a transverse velocity, and that separation is
+             deliberate: coil width and coil pitch are v⊥/ω and 2πv∥/ω, so with a velocity
+             wobble you cannot have both a tight pitch and a width you can see — at the pitch
+             this reads best the excursion works out sub-pixel, and buying width back means a
+             transverse speed several times the electron's own, which looks like it is flying
+             sideways. Decoupling them is honest about what the helix is: a schematic marker
+             for "this particle is gyrating, tightly, around this line". The true gyroradius
+             here is ~0.008 of the chamber radius — genuinely invisible — so any drawn spiral
+             is a symbol, and it should at least be a legible one. Amplitude still tracks v⊥,
+             so the coil visibly fattens as the electron nears its turning point. */
+          p.vx = vpar*ux; p.vy = vpar*uy;
+          const amp = GYRO_R * Math.sqrt(vperp2) / s;
+          p.gyroPh += GYRO_W * dt;
+          p.gx = -uy * amp * Math.sin(p.gyroPh);
+          p.gy =  ux * amp * Math.sin(p.gyroPh);
         }
       } else {
-        p.mu = undefined;                                     // magnets off → nothing is tied to anything
+        p.mu = undefined; p.gx = p.gy = 0;                    // magnets off → nothing is tied to anything
       }
       p.x += p.vx*dt; p.y += p.vy*dt; p.age += dt;
       // Continuous emission: a primary's lifetime runs out → it is re-emitted from the
@@ -3589,7 +3670,9 @@ function updateParticles(dt){
       if (p.z > zm){ p.z = zm; p.vz = -Math.abs(p.vz)*0.6; }            // bounce off the cylindrical wall (+ĵ)
       else if (p.z < -zm){ p.z = -zm; p.vz = Math.abs(p.vz)*0.6; }      // bounce off the cylindrical wall (−ĵ)
     }
-    pPos[i*3]=p.x; pPos[i*3+1]=drawnY(p); pPos[i*3+2]=p.z;   // drawnY keeps a glyph crossing a grid inside its bore
+    // p.gx/p.gy are the drawn gyro-helix offset for a field-aligned electron (zero for
+    // everything else); they are applied HERE only, so no physics sees them.
+    pPos[i*3]=p.x+(p.gx||0); pPos[i*3+1]=drawnY(p)+(p.gy||0); pPos[i*3+2]=p.z;   // drawnY keeps a glyph crossing a grid inside its bore
     pGlyph[i]=glyphOf(p);
     pAlpha[i]=fadeAlpha(p);                       // dissolve into the plume near the beam end
   }
