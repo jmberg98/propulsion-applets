@@ -210,8 +210,10 @@
   .albl.accel  { color: rgba(255,138,107,0.98); }
   .albl.vac    { color: rgba(160,176,255,0.95); font-size: 13px; background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 4px; }
   /* Field-decomposition arrows on the test ion: E_net = E_grid + E_ions. Colours match the
-     canvas arrows — blue = the field the GRIDS set up, yellow = the field of the gap IONS
-     (same yellow as the ⊕ glyphs), green/red = the NET field (forward / reversed). */
+     canvas arrows — lavender = the field the GRIDS set up, yellow = the field of the gap IONS,
+     green/red = the NET field (forward / reversed). All three name FIELDS, so all three are
+     E-field colours; the ⊕ glyphs themselves are ion blue (see ION_COL). "ions" on the yellow
+     arrow says what CAUSES that field, not what colour an ion is. */
   .albl.e-grid { color: #8fa0ff; font-weight: 700; }
   .albl.e-ions { color: #ffd06a; font-weight: 700; }
   .albl.e-fwd  { color: #63e06a; font-weight: 700; }
@@ -2103,6 +2105,64 @@ const CUSP_BACK_Y = [AXY + 51, AXY - 51];
 const inCuspX     = x => CUSP_X.some(cx => Math.abs(x - cx) <= CUSP_WIDTH * 0.5);
 const inCuspBackY = y => CUSP_BACK_Y.some(cy => Math.abs(y - cy) <= CUSP_WIDTH * 0.5);
 
+/* ── The ring-cusp field, as an actual field ───────────────────────────────────────────
+   Electrons used to be turned by rotating their velocity in the SECTION PLANE at a fixed
+   rate near a wall. Two things were wrong with that, and both were visible:
+     • Circular motion in the section plane implies B is PERPENDICULAR to the section. The
+       overlay draws B as arcs lying IN the section (ring cusps are purely poloidal — an
+       axisymmetric ring magnet has no azimuthal component), so the sim and the picture
+       disagreed about which way the field pointed.
+     • The drawn orbits were ~30 units across against a 90-unit chamber radius. A real
+       magnetised electron has r_Le ≈ 0.7 mm in a 90 mm chamber — about 0.008 of the radius.
+       What a viewer should see is a particle SLIDING ALONG a field line, not looping across
+       a third of the chamber. It also contradicted the magnetic_mirror applet, where
+       particles correctly spiral along the line.
+   So the field is modelled directly. Each magnet ring presents a pole to the plasma at the
+   wall, alternating N,S,N along the chamber (MAGNET_RINGS), and in the section plane a pole
+   is a 2-D source whose field falls as 1/r:
+       B(P) = Σ_i s_i (P − R_i) / |P − R_i|²
+   Summing ALTERNATING poles reproduces the whole ring-cusp topology for free: field springs
+   from an N face, arcs into the plasma, closes on the adjacent S face, and — because
+   neighbouring poles cancel at range — decays away from the wall over roughly the ring
+   spacing, leaving the field-free core the design exists to create. Nothing here is fitted
+   to a picture; the arcs the overlay draws and the arcs electrons now follow come from the
+   same ring positions and the same alternating polarity.
+   B_POLE_R softens the 1/r singularity: the magnet has finite width, so |B| saturates at the
+   pole face instead of diverging. It therefore sets the MIRROR RATIO available at a cusp
+   (B_face / B_midgap), which is what decides the loss cone — see the electron branch. */
+const B_POLE_R  = 6;      // pole softening radius — sets the achievable mirror ratio
+const B_MAG_MIN = 0.16;   // below this fraction of B_REF the electron is effectively unmagnetised
+const GYRO_W    = 26;     // gyro-phase rate (rad/s) — sets how tight the visible spiral reads
+const GYRO_AMP  = 0.35;   // DRAWN fraction of v⊥ (see the electron branch) — visibility, not physics
+/* Poles in SIM space. The side rings show on the top AND bottom anode walls (the ring is
+   radially magnetised, so both walls present the same pole to the plasma); the back-wall ring
+   presents its face on the back plate at CUSP_BACK_Y. Polarity alternates with CUSP_X order,
+   matching MAGNET_RINGS (N at −46.5, S at +33.5, N at +118.5, S on the back wall). */
+const B_POLES = (() => {
+  const out = [], yTop = AXY + CH_R, yBot = AXY - CH_R;
+  CUSP_X.forEach((x, i) => {
+    const s = i % 2 === 0 ? 1 : -1;                 // N, S, N …
+    out.push({ x, y: yTop, s });
+    out.push({ x, y: yBot, s });
+  });
+  for (const y of CUSP_BACK_Y) out.push({ x: CH_X0, y, s: -1 });   // back-wall ring — S
+  return out;
+})();
+function cuspFieldAt(x, y){
+  let bx = 0, by = 0;
+  for (const q of B_POLES){
+    const dx = x - q.x, dy = y - q.y;
+    const r2 = dx*dx + dy*dy + B_POLE_R*B_POLE_R;   // softened — finite magnet, finite |B|
+    const k = q.s / (r2 * Math.sqrt(r2));           // (P−R)/|P−R|² with the softening carried through
+    bx += k * dx; by += k * dy;
+  }
+  return { bx, by, mag: Math.hypot(bx, by) };
+}
+/* Reference magnitude for "fully magnetised", measured from the model itself rather than
+   guessed: |B| at the wall midway between the first two rings. Deriving it means B_POLE_R or
+   the ring layout can change without silently rescaling how magnetised the chamber is. */
+const B_REF = cuspFieldAt((CUSP_X[0] + CUSP_X[1]) / 2, AXY + CH_R).mag;
+
 /* Ion-optics apertures. The grids are perforated on a 16 mm hex pitch, but only the
    holes centred on the cut plane (every other hex row) read as gaps in the section, so
    the beamlets ride channels spaced one FULL hex row apart (16·√3 ≈ 27.7 mm) about the
@@ -2171,11 +2231,18 @@ const SCREEN_ION_TRANSPARENCY = 0.92;  // effective ion transparency of the scre
    Bohm-flux picture.
    This constant scales the ion jitter and clamp, but it is NOT the ratio that comes out. Ions are
    short-lived — born, then lost to a wall or extracted well before they random-walk up to their
-   clamp the way the long-lived neutrals do — so the EMERGENT mean chamber speeds are 121 for ions
-   against 42 for neutrals, a ratio of 2.9. That is the number to quote, and it is the physical
-   one: 2.9 = √(T_i/T_n) puts T_i ≈ 0.36 eV against a 500 K gas, which sits inside the few-tenths
-   range discharge-chamber ions are measured at. (For scale, Xe at 500 K has v̄ = 284 m/s and at
-   0.36 eV v̄ = 820 m/s.)
+   clamp the way the long-lived neutrals do — so the ratio is EMERGENT, not this constant.
+   Measured after the HEAVY_V rescale: 53 for ions against 16 for neutrals, a ratio of 3.4, i.e.
+   √(T_i/T_n) = 3.4 → T_i ≈ 0.49 eV against a 500 K gas. Still inside the few-tenths range
+   discharge-chamber ions are measured at, but up from the 2.9 (T_i ≈ 0.36 eV) this read before.
+   The drift is not the rescale failing to be a clean time change — velocities scale by HEAVY_V and
+   accelerations by HEAVY_V², which IS a pure time change. It comes from reflectChamber's inelastic
+   0.85 wall bounce: that damping applies per BOUNCE (rate ∝ HEAVY_V) while the thermal jitter
+   re-heats per SECOND (∝ HEAVY_V²), so the balance between them shifts with the clock and the
+   long-lived neutrals settle colder. The 0.85 is itself dubious — a neutral should accommodate to
+   the wall temperature, not shed 15% of its speed every contact — and fixing that would both
+   restore the ratio and remove the scaling sensitivity. Left alone here to keep this change to one
+   subject. (For scale, Xe at 500 K has v̄ = 284 m/s and at 0.49 eV v̄ = 960 m/s.)
    Note what this factor does and does not buy. Measured, ions reach the grid plane 7.5× as often
    per particle as neutrals; 2.9 of that is this thermal term and the remaining ~2.6 is the
    presheath. The physical total is ~24 (u_B = 1714 m/s against a one-sided neutral flux v̄/4 =
@@ -2183,6 +2250,29 @@ const SCREEN_ION_TRANSPARENCY = 0.92;  // effective ion transparency of the scre
    temperature, not the ion temperature, so no amount of ion heating closes it. PRESHEATH_W is
    deliberately held inside its measured-isotropic band instead, which is why μ_u lands near 0.90
    rather than the ~0.97 the full Bohm flux would give. */
+/* ── Heavy-species time base ───────────────────────────────────────────────────────────
+   The mass asymmetry is the single most transferable fact in this stage: the ring cusps hold
+   electrons and not ions BECAUSE an electron is ~10⁵ times lighter. Physically the speed ratio
+   is √((M/m)(T_e/T_i)) ≈ 1600 for Xe⁺ against a 4 eV electron population. Nothing can show
+   1600 — real electrons would cross the chamber in microseconds and be invisible — but the
+   model used to show 2.3, measured, which reads as "two similar particles of opposite charge"
+   and quietly contradicts the lesson the stage teaches in words.
+   So the heavy species run on a slower clock: chamber ions and neutrals are scaled to HEAVY_V
+   of their previous speeds, electrons left as they were. That lands the ratio near 5, which is
+   watchable and unmistakably says "electrons are the quick ones".
+   This is a TIME rescale for the heavy species, not a physics change, so it has to be applied
+   consistently: velocities scale by HEAVY_V and accelerations by HEAVY_V² (for t → t/k, v → kv
+   and a → k²a). Applying it to velocities alone would leave the presheath pull and the thermal
+   jitter over-strong relative to thermal motion, which would tilt extraction against wall loss
+   and break the very ratios the ion model was calibrated on.
+   NOT scaled: beam ions downstream of the grids (they have just fallen through ~1100 V — their
+   speed-up on extraction is real physics and worth seeing), the lone Acceleration-stage ion
+   (its pacing is that stage's own didactic choice), and the neutralizer streams (the n_i/n_e
+   probe depends on ions and electrons co-flowing at matched speeds).
+   The ion/neutral ratio is untouched by construction — both scale together — so the emergent
+   √(T_i/T_n) ≈ 2.9 the ION_VTH_RATIO note documents still holds. */
+const HEAVY_V = 0.45;                 // velocity scale for chamber ions & neutrals
+const HEAVY_A = HEAVY_V * HEAVY_V;    // matching acceleration scale
 const ION_VTH_RATIO = 4.3;             // scales ion jitter/clamp; emergent speed ratio is 2.9 (see above)
 function apertureY(y){
   let n = Math.round((y - AXY) / APER_DY);
@@ -2312,7 +2402,7 @@ const E_COLLECT_FREED = 0.8;
 // than wandering. Narrowing it to a real layer leaves the bulk field-free and isotropic, and makes
 // extraction something an ion has to WANDER INTO — which is the physical picture.
 const PRESHEATH_W = 28;     // depth of the extraction layer upstream of the screen grid (x ≳ 107.5)
-const PRESHEATH_A = 1400;   // pull inside it — strong enough to capture an ion that wanders in
+const PRESHEATH_A = 1400 * HEAVY_A;   // pull inside it — strong enough to capture an ion that wanders in
 // Utilisation comes from that capture competing with wall recombination, so PRESHEATH_W trades
 // directly against μ_u. Measured, sampling ion vx over a FIXED upstream window (x < 60) so the
 // metric doesn't move with the layer — fraction of chamber ions travelling downstream, and μ_u
@@ -2342,33 +2432,38 @@ const PRESHEATH_A = 1400;   // pull inside it — strong enough to capture an io
    confine ions — see the ion chamber wall branch). A previous revision had gated ion recombination
    to the cusp bands, which removed the model's dominant ion sink and forced this gate down to 0.06
    to keep the plasma from running away. With the sink back, the gate goes back up.
-   Instrumented build, 80 s runs sampled over the last 20 s, 4 repeats averaged, both stages.
-   (The earlier sweep used a 4 s tail, which left ±0.05 of scatter on μ_u — enough to reorder
-   adjacent rows. Anything re-measured here should use the 20 s window.)
+   Instrumented build, 80 s runs sampled over the last 20 s, repeats averaged, both stages.
+   (Do not re-measure on a 4 s tail — it leaves ±0.05 of scatter on μ_u, enough to reorder rows.)
+   RE-SWEPT AGAIN after the heavy species were put on a slower clock (HEAVY_V). Slowing ions and
+   neutrals slows every ion sink and the neutral leak with them, while ionization is driven by the
+   unchanged electrons — so the same gate now builds a denser plasma and the gate has to come down.
        CONF     Ionization μ_u / x     Overview μ_u / x     extracted/(extracted+wall)
-       0.060      0.793 / 0.111          0.834 / 0.107          0.245
-       0.075      0.875 / 0.132          0.859 / 0.131          0.262
-       0.090      0.885 / 0.149          0.872 / 0.147          0.258   ← chosen
-       0.095      0.893 / 0.156          0.870 / 0.155          0.260
-       0.100      0.896 / 0.165          0.885 / 0.161          0.249
-       0.105      0.903 / 0.167          0.896 / 0.164          0.244
-       0.120      0.908 / 0.179          0.894 / 0.178          0.250
-   0.09 is the LARGEST gate that still leaves the chamber inside the physical 5–15% ionized band,
-   and it puts μ_u at 0.885/0.872 — within 2% of NSTAR's 0.90 and with the two stages agreeing to
-   0.013. The trade against the old 0.06-with-ions-confined setting is explicit: μ_u 0.907 → 0.885,
-   ionized fraction 0.199 → 0.149. Giving up 0.02 of μ_u to bring x inside the band is the right
-   direction, because x was the constraint the old arrangement could never satisfy — it was pinned
-   out of band precisely BY the missing ion sink.
+       0.020      0.779 / 0.079          0.810 / 0.080          0.281
+       0.035      0.893 / 0.123          0.863 / 0.120          0.297
+       0.040      0.888 / 0.130          0.870 / 0.138          0.301   ← chosen
+       0.045      0.864 / 0.140          0.884 / 0.143          0.271
+       0.050      0.910 / 0.161          0.895 / 0.156          0.250
+       0.065      0.909 / 0.186          0.932 / 0.189          0.253
+       0.090      0.951 / 0.223          0.934 / 0.223          0.255
+   Same policy as before: take the largest gate that still leaves the chamber inside the physical
+   5–15% ionized band. 0.04 puts x at 0.130/0.138 with margin (0.045 and up start crowding the
+   ceiling) and μ_u at 0.888/0.870 — the same place the previous calibration landed, which is the
+   point: the electron and speed changes were made to fix what the stage SHOWS, and they should not
+   move the numbers it reports. Extraction fraction 0.30 is unchanged and still physical.
    The third column is the check that the restored sink is physical: ~26% of ions produced are
    extracted and the rest recombine on a wall, which is where real chambers sit and is why discharge
    loss runs 150–250 eV per beam ion against Xe's 12.13 eV ionization potential. Note μ_u stays high
    anyway — a wall-recombined ion returns as a neutral and gets another chance (see the wall branch).
    That the two stages track each other across the whole sweep remains the check that utilisation is
    no longer a per-view calibration. */
-const DISCHARGE_CONF = 0.09;
-// Width of the wall band where the ring-cusp B field lives (Change 3). Discharge electrons
-// gyrate only within B_BAND of an anode wall / back plate; the core is field-free (ballistic).
-const B_BAND = 30;
+const DISCHARGE_CONF = 0.04;
+/* Magnets OFF. Held as a RATIO of the on-gate rather than an absolute rate, because it has to
+   stay in step with everything the on-gate is calibrated against. It was a bare 0.0015, and when
+   the heavy species were put on a slower clock (HEAVY_V) the neutral LEAK rate fell with them
+   while this number did not — so μ_u with the magnets off drifted up from 0.06 to ~0.20 purely
+   because propellant was escaping more slowly, not because the starved discharge had improved.
+   μ_u is ionize/(ionize+leak); scaling both sides together is what keeps the collapse honest. */
+const DISCHARGE_CONF_OFF = DISCHARGE_CONF / 60;
 // Screen grid (cathode potential) reflects almost all electrons; only this small energetic-tail
 // fraction of non-aperture-aligned primaries is collected (Change 4). Freed secondaries and
 // aperture-aligned primaries always reflect.
@@ -2423,6 +2518,9 @@ const CUSP_REFLECT_JITTER = Math.PI / 4;   // ±45° scatter about the specular 
 const CUSP_REFLECT_MAX    = 85 * Math.PI / 180;   // keep the exit within 85° of the inward normal
 function reflectElectronWall(p, nx, ny){
   reflectOffWall(p, nx, ny, CUSP_REFLECT_JITTER, CUSP_REFLECT_MAX);
+  // The bounce gave it a new direction, so its pitch angle relative to B is new too —
+  // drop the latched moment and let it re-latch on the next step.
+  p.mu = undefined; p.spd = Math.hypot(p.vx, p.vy) || p.spd;
 }
 
 /* A neutral atom that misses an aperture strikes the grid's flat upstream (or downstream)
@@ -2449,7 +2547,7 @@ const GRID_REFLECT_MAX    = 80 * Math.PI / 180;   // exit stays within 80° of t
    rattled a few times cooled toward zero and stopped — measured, 13% of gap atoms had |vx| < 5
    and individual atoms sat between the grids for 23–27 s. Re-thermalising on contact removes the
    sink entirely: every wall contact resets the speed, so nothing can cool below wall temperature. */
-const NEUTRAL_VTH = () => rnd(25, 65);
+const NEUTRAL_VTH = () => rnd(25, 65) * HEAVY_V;
 /* Thermal re-emission off a wall with inward unit normal (nx,ny): the atom accommodates to the
    surface and leaves with a FRESH speed AND a FRESH direction about that normal — its incoming
    velocity is forgotten entirely. Rescaling the speed while keeping the direction is not enough,
@@ -2589,7 +2687,7 @@ function spawnNeutral(p){
   // measured ~0.62 either way — while the fill got much worse (gas piled at the port, left/right
   // 17:1 at t+3s vs 0.9:1 here). Fill is what this velocity is for; the ion stream was the real
   // problem and it lived in the presheath, not here.
-  p.vx=rnd(14,46); p.vy=rnd(-62,34); p.vz=rnd(-38,38); p.phase='chamber'; p.age=0; p.ttl=rnd(4,8);
+  p.vx=rnd(14,46)*HEAVY_V; p.vy=rnd(-62,34)*HEAVY_V; p.vz=rnd(-38,38)*HEAVY_V; p.phase='chamber'; p.age=0; p.ttl=rnd(4,8);
   p.pendRadial=false; p.holeY=undefined;   // clear any deferred plume fan-out / bore latch from its previous life
 }
 /* Return an exhaust particle to the propellant population. WHERE it reappears matters more than
@@ -2608,7 +2706,7 @@ function recycleNeutral(p){
   spawnNeutral(p);
   if (Math.random() < RECYCLE_AT_INJECTOR) return;      // visibly re-enters at the port
   p.x = rnd(CH_X0, CH_X1); p.y = AXY + rnd(-CH_R, CH_R); p.z = chamberZ(p.y);
-  const a = rnd(0, 6.283), s = rnd(40, 90);             // isotropic — adds no axial preference
+  const a = rnd(0, 6.283), s = rnd(40, 90) * HEAVY_V;   // isotropic — adds no axial preference
   p.vx = Math.cos(a) * s; p.vy = Math.sin(a) * s;
 }
 /* Turn a neutral into an ion IN PLACE — the only way an ion is created. Keeps its current
@@ -2621,7 +2719,7 @@ function recycleNeutral(p){
    suppress the very flux asymmetry ION_VTH_RATIO exists to carry. */
 function ionizeNeutral(p){
   p.sp='ion'; p.sub=null; p.phase='chamber'; p.slope=0;
-  const a=rnd(0,6.283), s=rnd(15,45)*ION_VTH_RATIO; p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s;
+  const a=rnd(0,6.283), s=rnd(15,45)*ION_VTH_RATIO*HEAVY_V; p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s;
 }
 /* Recombine an ion AT a wall it just contacted: convert it to a neutral IN PLACE (metal
    neutralizes the charge), with a fresh residence life and a small thermal velocity biased
@@ -2630,8 +2728,8 @@ function ionizeNeutral(p){
    !accelSolo at the call sites (the lone accelerator ion rides the axis and never touches metal). */
 function recombineIonAt(p, nx, ny){
   p.sp='neutral'; p.sub=null; p.phase='chamber'; p.slope=0; p.age=0; p.ttl=rnd(4,8);
-  const s=rnd(15,40);
-  p.vx = nx*s + rnd(-15,15); p.vy = ny*s + rnd(-15,15); p.vz = rnd(-30,30);
+  const s=rnd(15,40)*HEAVY_V, j=15*HEAVY_V;
+  p.vx = nx*s + rnd(-j,j); p.vy = ny*s + rnd(-j,j); p.vz = rnd(-30,30)*HEAVY_V;
 }
 /* Accelerator stage: (re)launch THE single ion from the chamber, on the axis, so it
    threads both grid apertures straight down the middle and out into the beam. Same ion
@@ -2680,6 +2778,7 @@ function activateFreedElectron(x, y){
   p.dead=false; p.sp='electron'; p.sub='d'; p.freed=true;
   p.x=x+rnd(-2,2); p.y=y+rnd(-2,2); p.z=chamberZ(p.y);
   const a=rnd(0,6.283), s=rnd(70,150); p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s; p.age=0;   // low-energy secondary
+  p.spd=s; p.mu=undefined;   // fresh pitch angle — it latches onto a field line on its first step
   // Freed secondaries die at the ANODE WALLS, not on a timer: they are low-energy and poorly
   // confined, so E_COLLECT_FREED (raised to 0.8) collects them quickly and VISIBLY the first
   // few times they reach a wall (anode flash in ion mode). fttl is now only a long fail-safe
@@ -2698,6 +2797,9 @@ function spawnEDischarge(p){
   // cathode — so emission is CONTINUOUS, not just a one-off at start-up.
   p.sp='electron'; p.sub='d'; p.x=BCATH.x+rnd(1,4); p.y=BCATH.y+rnd(-3,3); p.z=chamberZ(p.y);
   const s=rnd(280,420); p.vx=s; p.vy=rnd(-45,45); p.vz=rnd(-30,30); p.age=0; p.ettl=rnd(1.6,3.0);   // fastest species in the chamber
+  // p.spd is the electron's TRUE speed. The drawn (vx,vy) is a guiding-centre direction times
+  // that speed, so it cannot be used to recover the speed once the electron is field-aligned.
+  p.spd=Math.hypot(p.vx,p.vy); p.mu=undefined;
 }
 function spawnENeutralizer(p){
   p.sp='electron'; p.sub='n'; p.z=pZ();
@@ -2744,7 +2846,7 @@ function radializeBeam(p){
 function stepParticle(p, dt){
   if (p.sp === 'neutral'){
     if (p.phase === 'chamber'){
-      p.vx += rnd(-1,1)*140*dt; p.vy += rnd(-1,1)*240*dt; clampSpeed(p, 120);   // strong thermal jitter (esp. in y) → neutrals random-walk to fill the chamber, not a tight band
+      p.vx += rnd(-1,1)*140*HEAVY_A*dt; p.vy += rnd(-1,1)*240*HEAVY_A*dt; clampSpeed(p, 120*HEAVY_V);   // strong thermal jitter (esp. in y) → neutrals random-walk to fill the chamber, not a tight band
       p.x += p.vx*dt; p.y += p.vy*dt; reflectChamber(p, false); p.age += dt;
       // A neutral NEVER steers toward a hole and never self-accelerates — escape is pure GEOMETRY:
       // it must line up with a screen hole (wide, below) AND then still line up with the far smaller
@@ -2852,8 +2954,8 @@ function stepParticle(p, dt){
         // they wander ION_VTH_RATIO ≈ 4.3× faster and hit the grid plane that much more often per
         // particle. That is the thermal part of the ion/neutral flux asymmetry — still isotropic,
         // so it adds no chamber-wide streaming (see PRESHEATH_W for the directed part).
-        p.vx += rnd(-1,1)*140*ION_VTH_RATIO*dt; p.vy += rnd(-1,1)*240*ION_VTH_RATIO*dt;
-        clampSpeed(p, 120*ION_VTH_RATIO);
+        p.vx += rnd(-1,1)*140*ION_VTH_RATIO*HEAVY_A*dt; p.vy += rnd(-1,1)*240*ION_VTH_RATIO*HEAVY_A*dt;
+        clampSpeed(p, 120*ION_VTH_RATIO*HEAVY_V);
         // The ONE directed region: a thin extraction layer where the grid field leaks upstream.
         // An ion only feels it once it has wandered within PRESHEATH_W of the screen grid.
         if (p.x > GRID_X - PRESHEATH_W) p.vx += PRESHEATH_A * dt;
@@ -2993,20 +3095,59 @@ function stepParticle(p, dt){
     }
   } else {   // electron
     if (p.sub === 'd'){
-      if (Math.random() < 3.2*dt){ const a=rnd(0,6.283), s=rnd(220,360); p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s; }   // occasional collision scatter (fast — electrons stay the quickest species inside the chamber)
-      // Gyration is LOCAL to where the field lives. The ring-cusp B field only reaches the
-      // chamber near the anode walls and back plate (the field-line overlay shows it hugging
-      // those surfaces); the core is nearly field-free. So an electron runs ballistic straight
-      // segments through the core and only curls tightly within B_BAND of a wall — where it
-      // then mirrors/bounces off the cusp. Magnets off → no gyration anywhere (straight to the
-      // wall and lost). Peak curl is raised (was uniform 5.4) so the wall-band arcs read clearly.
+      // Occasional collision scatter — this is what DE-MAGNETISES an electron: it forgets the
+      // line it was tied to and gets a fresh pitch angle, which is how it explores the chamber
+      // instead of bouncing on one field line forever. Clearing p.mu re-latches it below.
+      if (Math.random() < 3.2*dt){
+        const a=rnd(0,6.283), s=rnd(220,360);
+        p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s; p.spd=s; p.mu=undefined;
+      }
+      /* ── Guiding-centre motion along the cusp field ──────────────────────────────────
+         The electron does NOT loop across the field lines; it follows one. Away from the
+         walls |B| is negligible and it flies straight (the field-free core the ring cusps
+         exist to create). Inside the cusp field it moves along the local line, and the
+         magnetic moment μ = v⊥²/B — the invariant the magnetic_mirror applet derives — is
+         carried with it. As it runs toward a pole the field rises, so v⊥² = μB grows and
+         v∥ = √(v² − μB) falls: the electron slows along the line, and if μB reaches v² it
+         MIRRORS and heads back. Everything a cusp does follows from that one line of algebra.
+         The loss cone is emergent, not imposed: an electron latched with a small enough μ
+         never reaches its turning point and reaches the metal at the ring instead. That is
+         precisely which particles the wall collects, and it is why the loss sites are the
+         magnet rings.
+         The visible zig-zag is the gyration seen edge-on. Real gyration is a circle in the
+         plane perpendicular to B, which for an in-plane field is mostly OUT of the section —
+         so what a section view can honestly show is the in-plane projection: a wiggle about
+         the field line whose width is the pitch angle. Wide wiggle = mostly perpendicular
+         energy = close to mirroring. Speed is preserved exactly, because B does no work. */
       if (magnetsOn){
-        const ry = p.y - AXY;
-        const w = Math.min(CH_R - Math.abs(ry), p.x - CH_X0);   // distance to the nearest B-carrying wall (anode top/bottom, back plate)
-        const gs = 1 - Math.min(1, w / B_BAND);
-        const g = 9.0 * gs * dt, cs = Math.cos(g), sn = Math.sin(g);
-        const nvx = p.vx*cs - p.vy*sn, nvy = p.vx*sn + p.vy*cs;
-        p.vx = nvx; p.vy = nvy;
+        if (p.spd === undefined) p.spd = Math.hypot(p.vx, p.vy) || 1;
+        const F = cuspFieldAt(p.x, p.y), s = p.spd;
+        if (F.mag < B_MAG_MIN * B_REF){
+          p.mu = undefined;                                   // field-free core → ballistic
+        } else {
+          const ux = F.bx / F.mag, uy = F.by / F.mag;         // unit vector along B
+          if (p.mu === undefined){                            // just entered the field: latch the pitch
+            const vpar = p.vx*ux + p.vy*uy;
+            p.mu  = Math.max(0, s*s - vpar*vpar) / F.mag;
+            p.par = vpar >= 0 ? 1 : -1;
+            p.gyroPh = rnd(0, 6.283);
+          }
+          let vperp2 = p.mu * F.mag;
+          if (vperp2 >= s*s){ vperp2 = s*s; p.par = -p.par; } // turning point → mirror back
+          const vpar = p.par * Math.sqrt(Math.max(0, s*s - vperp2));
+          // The guiding centre advances at the TRUE v∥, so the slow-down and reversal at a
+          // mirror point are exact and watchable. Only the transverse excursion is scaled
+          // down (GYRO_AMP): a real gyroradius here is ~0.008 of the chamber radius, so drawn
+          // at true size the spiral would be invisible, and drawn at true PITCH it swamps the
+          // along-line motion and reads as looping across the field again. This keeps the
+          // wiggle indicative — wider as the electron nears its turning point — without
+          // letting it dominate the picture.
+          const wob = Math.sqrt(vperp2) * GYRO_AMP * Math.sin(p.gyroPh += GYRO_W * dt);
+          p.vx = vpar*ux - wob*uy;
+          p.vy = vpar*uy + wob*ux;
+        }
+      } else {
+        p.mu = undefined;                                     // magnets off → nothing is tied to anything
       }
       p.x += p.vx*dt; p.y += p.vy*dt; p.age += dt;
       // Continuous emission: a primary's lifetime runs out → it is re-emitted from the
@@ -3323,7 +3464,7 @@ function ionizePass(dt){
   // Ionization-rate gate. Ion stage w/ magnets OFF → starved discharge (utilization collapses).
   // Magnets on, BOTH chamber views share DISCHARGE_CONF — one ionization rate, landing each at a
   // ~15% ionized plasma. They no longer carry separate per-view calibrations.
-  const conf = (appMode === 'ion' && !magnetsOn) ? 0.0015
+  const conf = (appMode === 'ion' && !magnetsOn) ? DISCHARGE_CONF_OFF
              : (appMode === 'ion' || appMode === 'overview') ? DISCHARGE_CONF : 1;
   // Each primary electron ionizes at most one atom per pass, so the per-ATOM ionization rate
   // scales with how many primaries are in the chamber — and the stages carry different counts
@@ -4962,6 +5103,17 @@ function accelPhiIons(u, s){
 }
 // Arrow colours for the decomposition (shared with the .albl.e-* label classes).
 const E_COL = { grid:'#8fa0ff', ions:'#ffd06a', fwd:'#63e06a', rev:'#ff5b5b' };
+/* The ⊕ ION's own colour — the same blue as GLYPH_CELLS, the particle legend and the chamber-plasma
+   block, so an ion looks like an ion in every view of this thruster. Deliberately NOT E_COL.ions:
+   that amber belongs to the FIELD the ion cloud sets up (the E_ions arrow, the φ_ions arch and the
+   band under it), which is an E/φ quantity and reads yellow through the whole lesson. Particle blue,
+   the field it causes amber — the label "ions" on the arrow names the SOURCE of that field, not its
+   colour. Everything hung on the test ion (its glow, station line and φ marker) takes the blue too,
+   so the particle and its construction lines read as one object. */
+const ION_COL  = '#4d9bff';
+const ION_SYM  = 'rgba(255,255,255,0.95)';     // the ⊕ bars — white, as in the sprite atlas
+const ION_GLOW = 'rgba(110,180,255,0.34)';
+const ION_LINE = 'rgba(120,180,255,0.65)';     // dotted station line / φ marker
 function emitterFieldVmm(){ return (ACCEL.vTotal / ACCEL.gap) * (1 - ACCEL.charge); }  // E(0), V/mm (signed)
 // Low-discrepancy (Halton) sequence, used to hand each gap ion a vertical lane so the cloud spreads
 // evenly across the gap instead of clumping the way Math.random() would.
@@ -5081,10 +5233,10 @@ const DP_POOL = Array.from({ length: 128 }, (_, i) => {
 const DP_SPD = { i:0.05, e:0.34, n:0.11 };   // box speed per species — electrons fast, ions slow
 /* The applet-wide SPECIES palette — blue ⊕ ion, yellow ⊖ electron, pale ⊙ neutral — the same three
    colours the 3-D stages and the legend use, so a particle keeps its identity across the lesson.
-   Note the gap beam is drawn in the space-charge amber instead: in there a colour is standing for
-   the ion CONTRIBUTION to the field (it ties the dots to the E_ions arrow and the φ_ions arch),
-   not for the species. The sheath is where the one becomes the other, which is exactly the physical
-   boundary anyway — a plasma ion is extracted there and becomes a beam ion. */
+   The gap beam past the sheath uses the same ion blue (ION_COL): a plasma ion extracted at the
+   sheath becomes a beam ion and must not change colour on the way through. The amber in the gap is
+   the E_ions arrow, the φ_ions arch and the band under it — the FIELD that cloud of ions sets up,
+   which is an E/φ quantity. One quantity, one colour: the ions blue, the field they cause amber. */
 const DP_COL = { i:'#4d9bff', e:'#ffe94d', n:'#e6edf8' };
 const DP_SYM = { i:'#ffffff', e:'#2a2405', n:null };   // symbol ink — matches GLYPH_CELLS exactly
 function updateDischargePlasma(dt){
@@ -5656,7 +5808,7 @@ function drawAccelGraph(dt){
   // the canvas. Guides running
   // on past the last ion would read as beam that isn't there.
   const U_DRAW = Math.min(2.4, (W - xL) / (xR - xL));
-  ctx.strokeStyle = 'rgba(255,208,106,0.22)'; ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgba(77,155,255,0.26)'; ctx.lineWidth = 1.2;   // the ION beamlet — ion blue, faint
   for (const sgn of [-1, 1]){
     ctx.beginPath();
     for (let i = 0; i <= 90; i++){
@@ -5671,9 +5823,17 @@ function drawAccelGraph(dt){
     const y = yMid + p.r * rEnv(p.u) * BEAM_INSET;
     const r = p.refused ? 2.7 : 3.1;
     ctx.globalAlpha = Math.max(0, 1 - p.fade) * edgeA(x);   // dissolving out of the gap (see GAP_FADE_F)
-    ctx.fillStyle = p.refused ? '#ff8a6b' : '#ffd06a';
+    ctx.fillStyle = ION_COL;
     ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
-    ctx.strokeStyle = p.refused ? 'rgba(80,20,0,0.85)' : 'rgba(70,38,0,0.85)'; ctx.lineWidth = 1;
+    /* A REFUSED ion is still an ion, so it keeps the blue body and carries its state in a second
+       channel: the reversed-field red as a ring around it, the same red the φ_net curve and the
+       E_net arrow turn past saturation. Colour-by-state on the body would have said "different
+       species" — and the ion is already distinguishable by what it DOES, turning back at the hump. */
+    if (p.refused){
+      ctx.strokeStyle = '#ff8a6b'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(x, y, r + 1.3, 0, 6.283); ctx.stroke();
+    }
+    ctx.strokeStyle = ION_SYM; ctx.lineWidth = 1;
     const t = r * 0.53;
     ctx.beginPath(); ctx.moveTo(x-t, y); ctx.lineTo(x+t, y); ctx.moveTo(x, y-t); ctx.lineTo(x, y+t); ctx.stroke();
   }
@@ -5781,12 +5941,12 @@ function drawAccelGraph(dt){
     // reading. When the ion is still outside the gap the station stays at the gap edge, so a dotted
     // lead runs across to it.
     ctx.save();
-    ctx.setLineDash([2,4]); ctx.strokeStyle = 'rgba(255,214,120,0.65)'; ctx.lineWidth = 1.4;
+    ctx.setLineDash([2,4]); ctx.strokeStyle = ION_LINE; ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(xA, Math.min(...stops)); ctx.lineTo(xA, Math.max(...stops)); ctx.stroke();
     if (Math.abs(xA - xI) > 4){ ctx.beginPath(); ctx.moveTo(xI, yI); ctx.lineTo(xA, yI); ctx.stroke(); }
     ctx.setLineDash([]);
     if (showPhi.net){                                              // marker where it meets the curve
-      ctx.fillStyle = 'rgba(255,214,120,0.9)';
+      ctx.fillStyle = ION_COL;
       ctx.beginPath(); ctx.arc(xA, yPhi, 3, 0, 6.283); ctx.fill();
     }
     ctx.restore();
@@ -5797,11 +5957,16 @@ function drawAccelGraph(dt){
     if (showE.ions) eRow(yIons, Eions, E_COL.ions,                        'Eions', '\\vec{E}_{\\text{ions}}', 'e-ions');                     else agHide('Eions');
 
     // the ion glyph (drawn last so it sits on top of the arrow tails)
-    ctx.fillStyle = 'rgba(255,214,120,0.26)';                      // glow
-    ctx.beginPath(); ctx.arc(xI, yI, 11, 0, 6.283); ctx.fill();
-    ctx.fillStyle = '#ffe08a'; ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 1.6;
+    /* Glow. Stronger than it was in amber: amber popped off the dark field by hue alone, whereas the
+       test ion is now the same blue as the beamlet crowd it flies through, so its bloom (plus the
+       white rim below and its greater size) is what marks it out as THE ion being read. */
+    ctx.fillStyle = ION_GLOW;
+    ctx.beginPath(); ctx.arc(xI, yI, 12.5, 0, 6.283); ctx.fill();
+    // The white rim is what makes this ONE ion the marked particle, distinct from the beamlet crowd
+    // behind it — it is a highlight, not a species mark, so the body and the ⊕ stay the ion's own.
+    ctx.fillStyle = ION_COL; ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 1.6;
     ctx.beginPath(); ctx.arc(xI, yI, 6.5, 0, 6.283); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle = 'rgba(70,38,0,0.9)'; ctx.lineWidth = 1.5;    // ⊕
+    ctx.strokeStyle = ION_SYM; ctx.lineWidth = 1.5;                // ⊕
     ctx.beginPath(); ctx.moveTo(xI-3.2, yI); ctx.lineTo(xI+3.2, yI); ctx.moveTo(xI, yI-3.2); ctx.lineTo(xI, yI+3.2); ctx.stroke();
     ctx.globalAlpha = 1;
   } else {
