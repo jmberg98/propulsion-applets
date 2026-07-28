@@ -23,6 +23,10 @@
     --c-power  : #C060FF;
     --c-press  : #00DDB5;
     --c-bfield : #7f92ff;   /* magnetic field B — bright blue */
+    /* The extra field lines flanking each gap's primary one. Same hue, lifted toward white:
+       they carry the same meaning, so a different HUE would be a lie, but they are context
+       rather than the labelled line and should sit behind it. */
+    --c-bfield-soft : #a8b5ff;
     --c-efield : #ff6360;   /* electric field E — bright red */
 
     /* UI chrome */
@@ -684,7 +688,12 @@
     /* crisp dark backing so the bright lines pop over the section */
     filter: drop-shadow(0 0 3.4px rgba(10,12,18,0.75));
   }
+  /* One line per gap is the PRIMARY (original) line and keeps the full-strength colour; the
+     two flanking it are drawn lighter and a touch thinner so the family reads as a field
+     without three equal-weight lines competing per gap. */
+  .fieldline.added  { stroke: var(--c-bfield-soft); stroke-width: 1.7; }
   .fieldarrow { fill: var(--c-bfield); filter: drop-shadow(0 0 3px rgba(10,12,18,0.75)); }
+  .fieldarrow.added { fill: var(--c-bfield-soft); }
   /* Electric field E — bright red (solid, same style as B) */
   .efieldline {
     fill: none;
@@ -2196,10 +2205,18 @@ function traceFieldLine(sx, sy, maxSteps){
    under it. The seeds are angles off each N face, chosen so each route's three lines dip to
    roughly 74 / 62 / 50 in y — i.e. spread across the band rather than stacked. */
 const FIELD_LINE_SEEDS = [
-  { x: CUSP_X[0], deg: 335 }, { x: CUSP_X[0], deg: 320 }, { x: CUSP_X[0], deg: 310 },  // rear N  → mid S
-  { x: CUSP_X[2], deg: 205 }, { x: CUSP_X[2], deg: 220 }, { x: CUSP_X[2], deg: 235 },  // front N → mid S
-  { x: CUSP_X[0], deg: 200 }, { x: CUSP_X[0], deg: 240 }, { x: CUSP_X[0], deg: 280 },  // rear N  → back-wall S
+  { x: CUSP_X[0], deg: 335 }, { x: CUSP_X[0], deg: 320, primary: 1 }, { x: CUSP_X[0], deg: 310 },  // rear N  → mid S
+  { x: CUSP_X[2], deg: 205 }, { x: CUSP_X[2], deg: 220, primary: 1 }, { x: CUSP_X[2], deg: 235 },  // front N → mid S
+  { x: CUSP_X[0], deg: 240, primary: 1 }, { x: CUSP_X[0], deg: 280 },                              // rear N  → back-wall S
 ];
+/* A third corner-cusp seed (deg 200) was dropped. Traced, 96% of that line lay OUTSIDE the
+   plasma — it swung to x ≈ −85 against a chamber wall at CH_X0 = −74, looping through the
+   structure to reach the buried back-wall pole. No electron can follow a line there, so it
+   drew a conspicuous arc in the corner that nothing in the sim would ever ride. (The old
+   hand-authored corner arc ran out to x = −85.5 too; same issue, inherited.) The two
+   remaining corner lines stay inside the chamber apart from their last few points. */
+/* Which of a gap's lines is drawn at full strength. The other two get .added — see the CSS. */
+const FIELD_LINE_PRIMARY = FIELD_LINE_SEEDS.map(sd => !!sd.primary);
 const FIELD_LINES = (() => {
   const yTop = AXY + RING_FACE_R;
   const top = FIELD_LINE_SEEDS.map(sd => {
@@ -4447,19 +4464,23 @@ function buildAnnotations(){
   host.appendChild(svg);
   annotSvg = svg;
 
-  fieldPolys = fieldLinesS.map(() => {
+  /* FIELD_LINES is the traced top half followed by its mirrored bottom half, so line i and
+     line i + half are the same physical line on opposite walls and must be styled alike —
+     index the primary flag modulo the half-length rather than off the raw index. */
+  const fieldIsAdded = i => !FIELD_LINE_PRIMARY[i % FIELD_LINE_PRIMARY.length];
+  fieldPolys = fieldLinesS.map((_, i) => {
     const pl = document.createElementNS(SVGNS, 'polyline');
-    pl.setAttribute('class', 'fieldline');
+    pl.setAttribute('class', 'fieldline' + (fieldIsAdded(i) ? ' added' : ''));
     svg.appendChild(pl);
     return pl;
   });
 
   // Right-pointing direction arrows — one per inter-ring gap, laid on each line.
-  fieldArrows = fieldLinesS.map(() => {
+  fieldArrows = fieldLinesS.map((_, i) => {
     const arr = [];
     for (let k = 0; k < ARROWS_PER_LINE; k++){
       const tri = document.createElementNS(SVGNS, 'polygon');
-      tri.setAttribute('class', 'fieldarrow');
+      tri.setAttribute('class', 'fieldarrow' + (fieldIsAdded(i) ? ' added' : ''));
       svg.appendChild(tri);
       arr.push(tri);
     }
