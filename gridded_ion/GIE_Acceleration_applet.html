@@ -788,6 +788,126 @@ footer {
   </div>
 </div>
 
+<!-- ════════════════════ NET VOLTAGE & THE GRID RATIO ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Net Voltage &amp; the Grid Ratio</div>
+
+  <p class="th-body">
+    An ion does not keep everything it falls through. The accelerator grid is biased <em>below</em> the
+    potential of the beam plasma downstream, so the ion is pulled down through the full
+    <span class="hl-E">total voltage</span> and then <span class="key">decelerated</span> back up on its
+    way out. What it keeps is the <span class="hl-E">net voltage</span>, and the ratio of the two is the
+    <span class="key">net-to-total voltage ratio</span>.
+  </p>
+
+  $$
+  \boxed{\;\textcolor{#F5C518}{R} = \frac{\textcolor{#F5C518}{V_{net}}}{\textcolor{#F5C518}{V_T}}\;}
+  \qquad
+  \boxed{\;\textcolor{#F5C518}{V_{net}} = \textcolor{#F5C518}{R}\,\textcolor{#F5C518}{V_T}\;}
+  $$
+
+  <p class="th-body">
+    That negative bias is not waste for its own sake. It is the barrier that stops
+    <span class="hl-electron">electrons</span> in the beam from streaming back up through the apertures
+    into the discharge chamber, and it lets the gap draw space-charge-limited current at
+    <span class="hl-E">$V_T$</span> rather than at the smaller <span class="hl-E">$V_{net}$</span>.
+    <span class="hl-E">$R$</span> is what that protection costs. Real engines run
+    <span class="hl-E">$R$</span> $\approx 0.8$&ndash;$0.9$; NSTAR extracts about 1100&nbsp;V net against
+    1280&nbsp;V total, so <span class="hl-E">$R \approx 0.86$</span>.
+  </p>
+
+  <p class="th-body">
+    The three results of this stage do not depend on <span class="hl-E">$R$</span> the same way, and that
+    asymmetry is the point: lowering <span class="hl-E">$R$</span> costs
+    <span class="hl-ve">exhaust velocity</span> and buys no extra <span class="hl-ve">current</span>.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Current density &mdash; carries no $R$</span>
+    $$
+    \textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0 \sqrt{\frac{2\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}}\,
+    \frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}
+    $$
+    <span class="eq-note">
+      The <em>full</em> gap voltage sets the space-charge limit, so the current is untouched by how that
+      voltage is split between accelerating and decelerating the ion.
+    </span>
+
+    <span class="eq-step-label">Thrust density</span>
+    $$
+    \frac{\textcolor{#FF4400}{F}}{A}
+    = \frac{8}{9}\,\varepsilon_0 \frac{\textcolor{#F5C518}{V_T}^{3/2}\sqrt{\textcolor{#F5C518}{V_{net}}}}{d^{2}}
+    = \frac{8}{9}\,\varepsilon_0 \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\sqrt{\textcolor{#F5C518}{R}}
+    $$
+
+    <span class="eq-step-label">Specific impulse</span>
+    $$
+    \textcolor{#3DBFFF}{I_{sp}}
+    = \frac{1}{g_0}\sqrt{\frac{2\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V_{net}}}{\textcolor{#FF4400}{m}}}
+    = \frac{1}{g_0}\sqrt{\frac{2\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{R}\,\textcolor{#F5C518}{V_T}}{\textcolor{#FF4400}{m}}}
+    $$
+
+    <span class="eq-note">
+      Setting <span class="hl-E">$R = 1$</span> recovers the simpler forms in the sections above. That is
+      the ideal case of an ion keeping every volt it fell through, which no real grid set delivers &mdash;
+      it would mean no accelerator bias at all, and therefore nothing stopping the backstreaming electrons.
+    </span>
+
+    <details class="deriv-detail">
+      <summary>Show thrust-density derivation with $R$</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-note">
+          Thrust is the momentum carried off per second. Per unit grid area, the mass flux is the
+          <span class="hl-ve">current density</span> converted from charge to mass, and each ion leaves at
+          the <span class="hl-ve">exhaust velocity</span>.
+        </span>
+
+        <span class="eq-step-label">Momentum flux per unit area</span>
+        $$
+        \frac{\textcolor{#FF4400}{F}}{A} = \dot m_A\,\textcolor{#3DBFFF}{v_{ex}}
+        = \left(\textcolor{#3DBFFF}{j}\,\frac{\textcolor{#FF4400}{m}}{\textcolor{#C060FF}{q}}\right)\textcolor{#3DBFFF}{v_{ex}}
+        $$
+
+        <span class="eq-step-label">The ion keeps only the net drop</span>
+        $$
+        \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V_{net}} = \tfrac{1}{2}\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_{ex}}^{2}
+        \;\;\rightarrow\;\;
+        \textcolor{#3DBFFF}{v_{ex}} = \sqrt{\frac{2\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V_{net}}}{\textcolor{#FF4400}{m}}}
+        $$
+
+        <span class="eq-step-label">Substitute both</span>
+        $$
+        \frac{\textcolor{#FF4400}{F}}{A}
+        = \frac{\textcolor{#FF4400}{m}}{\textcolor{#C060FF}{q}}
+          \cdot \frac{4}{9}\varepsilon_0\sqrt{\frac{2\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}}\frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}
+          \cdot \sqrt{\frac{2\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V_{net}}}{\textcolor{#FF4400}{m}}}
+        $$
+
+        <span class="eq-note">
+          The two square roots combine as
+          $\sqrt{2q/m}\cdot\sqrt{2qV_{net}/m} = 2q\sqrt{V_{net}}\,/\,m$, and the leading $m/q$ cancels it
+          down to $2\sqrt{V_{net}}$.
+        </span>
+        $$
+        \rightarrow\;
+        \frac{\textcolor{#FF4400}{F}}{A}
+        = \frac{8}{9}\,\varepsilon_0\,\frac{\textcolor{#F5C518}{V_T}^{3/2}\sqrt{\textcolor{#F5C518}{V_{net}}}}{d^{2}}
+        $$
+
+        <span class="eq-step-label">Write the net voltage as $R\,V_T$</span>
+        $$
+        \rightarrow\; \boxed{\;
+        \frac{\textcolor{#FF4400}{F}}{A}
+        = \frac{8}{9}\,\varepsilon_0 \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\sqrt{\textcolor{#F5C518}{R}}
+        \;}
+        $$
+
+      </div>
+    </details>
+  </div>
+</div>
+
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
 
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->

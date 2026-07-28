@@ -879,6 +879,13 @@
           <input type="range" id="acc-gap" min="0.4" max="1.6" step="0.05" value="1.2">
           <span class="ix-val"><input class="ix-num" id="acc-gap-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1.20"><span class="ix-unit">mm</span></span>
         </label>
+        <!-- Net-to-total voltage ratio. The ion falls through the whole of V_T but is decelerated
+             back up as it leaves, so only V_net = R·V_T ends up as exhaust velocity. -->
+        <label class="ix-slider">Net/total ratio&nbsp; <span class="ck" data-tex="R"></span>
+          <input type="range" id="acc-r" min="0.60" max="0.98" step="0.01" value="0.85">
+          <span class="ix-val"><input class="ix-num" id="acc-r-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="0.85"><span class="ix-unit"></span></span>
+        </label>
+        <div id="acc-r-status" class="ix-status" style="margin-top:8px"></div>
         <!-- Both decompositions share the same three columns, because they ARE the same split:
              φ_net = φ_grid + φ_ions differentiates to E_net = E_grid + E_ions. Row 1 toggles the
              field arrows on the test ion, row 2 the potential curves; the colours are the ones used
@@ -5031,6 +5038,7 @@ const ACCEL = {
   cv:null, ctx:null,
   vTotal:1450,      // total accelerating voltage V_T across the gap, volts (slider)
   gap:1.2,          // grid gap d, mm (slider)
+  R:0.85,           // net-to-total voltage ratio V_net/V_T (slider) — see accelIsp
   charge:1.0,       // space-charge parameter s = ρd²/(2ε₀V_T) ≡ J/J_CL; s=1 is saturation (slider)
   animIon:true,     // Feature 1: animate a test ion riding the potential curve (toggleable)
   showE:{ net:true, grid:true, ions:true },   // which of the three field arrows on the ion are drawn
@@ -5084,12 +5092,18 @@ function childLangmuirJ(){                  // space-charge-limited current dens
   const d = ACCEL.gap * 1e-3;               // mm → m
   return CL_K * Math.pow(VT, 1.5) / (d*d);
 }
-// Maximum thrust density (electric pressure on the accel grid at saturation): F/A = (8/9)ε₀(V_T/d)², Pa.
+/* Maximum thrust density. F/A = j·(m·v_ex/q): the space-charge-limited current carries momentum
+   set by the exhaust velocity, and v_ex comes from V_net, NOT V_T. Working it through,
+       F/A = (8/9)·ε₀·V_T^{3/2}·√V_net / d²  =  (8/9)·ε₀·(V_T/d)²·√R
+   so the familiar (V_T/d)² form is the R = 1 special case — an ion that keeps everything it fell
+   through. It never does: the accel grid sits below the downstream beam plasma, so the ion is
+   decelerated back up on the way out. This used to be computed without the √R, which silently
+   assumed a perfect grid set and overstated F/A by 1/√R (≈8% at R = 0.85). */
 function childLangmuirFA(){
   const VT = ACCEL.vTotal;
   const d = ACCEL.gap * 1e-3;               // mm → m
   const E = VT / d;                         // V/m
-  return (8/9) * 8.854e-12 * E * E;
+  return (8/9) * 8.854e-12 * E * E * Math.sqrt(ACCEL.R);
 }
 // Everyday feel of the electrostatic pressure F/A (Pa): the weight of a familiar object resting
 // on a fingertip (contact area ≈ 1 cm²), except the sheet of paper, which is its flat areal weight.
@@ -5109,12 +5123,19 @@ function faEquivalent(pa){
   for (const [hi, n] of tiers){ if (pa < hi) return n; }
   return '';
 }
-// Specific impulse of the thruster. A xenon ion falling through the full extraction voltage V_T
-// gains kinetic energy q·V_T = ½·m·v_ex², so the exhaust velocity is v_ex = √(2·q·V_T/m), and the
-// specific impulse is I_sp = v_ex / g0. (q, m match the Child–Langmuir constant CL_K.)
+/* Specific impulse. The ion does NOT keep the full V_T. It is pulled down through the whole gap
+   voltage, then DECELERATED back up as it exits, because the accel grid sits below the potential of
+   the downstream beam plasma. What it keeps is the net drop V_net = R·V_T, so
+       q·V_net = ½·m·v_ex²   →   v_ex = √(2·q·R·V_T/m),   I_sp = v_ex/g0
+   This was computed from vTotal, which is the R = 1 case and overstates I_sp by 1/√R — about 8% at
+   a realistic R = 0.85, and in the flattering direction. The deceleration is not waste for its own
+   sake: the accel grid's negative bias is what blocks beam electrons from streaming back upstream,
+   and what lets the gap pull space-charge-limited current at V_T rather than at V_net. That is the
+   trade R measures. (q, m match the Child–Langmuir constant CL_K.) */
+function accelVNet(){ return ACCEL.R * ACCEL.vTotal; }
 function accelIsp(){
   const q = 1.602e-19, m = 2.18e-25, g0 = 9.80665;   // xenon ion
-  const vex = Math.sqrt(2 * q * ACCEL.vTotal / m);
+  const vex = Math.sqrt(2 * q * accelVNet() / m);
   return { vex, isp: vex / g0 };
 }
 function updateChildLangmuir(){
@@ -5571,6 +5592,12 @@ function setAccelGap(d){
   const el = $('acc-gap-val'); if (el) el.value = d.toFixed(2);
   updateChildLangmuir(); updateAccelStatus();
 }
+function setAccelR(r){
+  ACCEL.R = r;
+  const el = $('acc-r-val'); if (el) el.value = r.toFixed(2);
+  const sl = $('acc-r'); if (sl && Math.abs(+sl.value - r) > 1e-9) sl.value = r;
+  updateChildLangmuir(); updateAccelStatus();
+}
 function setAccelCharge(pct){
   // Soft detent at the space-charge limit (Feature 4): values near 100% snap to exactly 100%, so
   // it is easy to land on saturation (E(0)=0) — where the crossing flash fires.
@@ -5622,6 +5649,35 @@ function updateAccelStatus(){
     st.className = 'ix-status over';
     st.innerHTML = 'Over Space Charge Saturation:&nbsp; J &gt; J<sub>CL</sub>';
     if (vd){ vd.className = 'out-verdict over'; vd.textContent = 'Grids at max thrust density: Grid Eroding'; }
+  }
+  updateAccelRStatus();
+}
+/* ── The R verdict ────────────────────────────────────────────────────────────────────────
+   R is bounded from BOTH sides, and the two bounds are different physics — which is the whole
+   reason the parameter is interesting rather than just "bigger is better".
+     • R too HIGH means |V_accel| is too small. The accel grid's negative bias is the barrier that
+       stops electrons in the downstream beam plasma from streaming back up through the apertures
+       into the discharge. Lose it and backstreaming electrons carry current the wrong way, dump
+       power into the discharge chamber, and corrupt the beam current entirely.
+     • R too LOW means the grid set is over-biased. The extra voltage buys no exhaust velocity —
+       I_sp goes as √(R·V_T) — while charge-exchange ions born in the beam are pulled into the
+       accel grid at the full |V_accel| and sputter it. Accel-grid erosion is the life-limiting
+       wear-out mechanism of a gridded engine, so this is a lifetime cost, not just an efficiency one.
+   Real thrusters sit in between: NSTAR runs ≈1100 V net against ≈1280 V total, R ≈ 0.86. */
+const R_LOW = 0.75, R_HIGH = 0.90;
+function updateAccelRStatus(){
+  const el = $('acc-r-status'); if (!el) return;
+  const R = ACCEL.R, vn = Math.round(accelVNet()), vt = Math.round(ACCEL.vTotal);
+  const tail = '&nbsp; V<sub>net</sub> = ' + vn + '&nbsp;V of ' + vt + '&nbsp;V';
+  if (R > R_HIGH){
+    el.className = 'ix-status over';
+    el.innerHTML = 'Accel grid too weak: electrons backstream from the beam' + tail;
+  } else if (R < R_LOW){
+    el.className = 'ix-status below';
+    el.innerHTML = 'Accel grid over-biased: voltage wasted, grid erodes faster' + tail;
+  } else {
+    el.className = 'ix-status at';
+    el.innerHTML = 'Typical design range' + tail;
   }
 }
 /* ── Floating KaTeX labels for the space-charge graph ─────────────────────────
@@ -6880,6 +6936,7 @@ try {
   wireNumBox('acc-rho', 'acc-rho-val', setAccelCharge);
   wireNumBox('acc-v',   'acc-v-val',   setAccelVoltage);
   wireNumBox('acc-gap', 'acc-gap-val', setAccelGap);
+  wireNumBox('acc-r',   'acc-r-val',   setAccelR);
   wireNumBox('thr-v',   'thr-v-val',   setThrustV);
   wireNumBox('thr-i',   'thr-i-val',   setThrustI);
   wireNumBox('pl-temp', 'pl-temp-val', setPlasmaTemp);
@@ -6893,7 +6950,9 @@ try {
     .forEach(t => $('acc-rho').addEventListener(t, releaseAccTestIon));
   setAccelCharge(ACCEL.charge * 100);
   $('acc-v').addEventListener('input', e => setAccelVoltage(+e.target.value));
+  $('acc-r').addEventListener('input', e => setAccelR(+e.target.value));
   setAccelVoltage(ACCEL.vTotal);
+  setAccelR(ACCEL.R);
   // Child–Langmuir grid-gap slider.
   $('acc-gap').addEventListener('input', e => setAccelGap(+e.target.value));
   setAccelGap(ACCEL.gap);
