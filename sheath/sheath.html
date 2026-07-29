@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Plasma Sheath</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"
+  onload="window.__onKatex && window.__onKatex()"></script>
+
+<style>
+  :root {
+    /* Physics-quantity colors */
+    --c-thrust : #FF4400;
+    --c-ve     : #3DBFFF;
+    --c-power  : #C060FF;
+    --c-press  : #00DDB5;
+    --c-efield : #F5C518;
+    --c-neutral: #9aa3b2;
+
+    /* UI chrome */
+    --c-accent      : #a0a0a0;
+    --c-accent-bg   : rgba(160,160,160,0.07);
+    --c-accent-glow : rgba(160,160,160,0.13);
+
+    /* Text */
+    --text-main      : #d6d6d6;
+    --text-secondary : #aaaaaa;
+    --text-muted     : #7a7a7a;
+    --text-heading   : #f0f0f0;
+
+    /* Borders */
+    --border : #282828;
+
+    /* Backgrounds */
+    --bg-page    : #090909;
+    --bg-panel-1 : #0e0e0e;
+    --bg-panel-2 : #121212;
+    --bg-panel-3 : #171717;
+    --bg-panel-4 : #1d1d1d;
+    --bg-input   : #191919;
+    --bg-canvas  : #090909;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Barlow', 'Segoe UI', sans-serif;
+    background : var(--bg-page);
+    color      : var(--text-main);
+    overflow   : hidden;
+  }
+
+  ::-webkit-scrollbar             { width:6px; height:6px; }
+  ::-webkit-scrollbar-track       { background: var(--bg-panel-1); }
+  ::-webkit-scrollbar-thumb       { background:#383838; border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:#d0d0d0; }
+
+  /* ── App shell ───────────────────────────────────────────── */
+  #app { display:flex; flex-direction:row; height:100vh; width:100vw; }
+
+  #viewport {
+    position:relative; flex:1 1 auto; min-width:0;
+    background: var(--bg-canvas);
+  }
+  /* Opaque 2-D scene canvas fills the viewport. */
+  #scene-canvas {
+    position:absolute; inset:0; width:100%; height:100%;
+    display:block; background: var(--bg-canvas); z-index:1;
+  }
+
+  /* ── KaTeX overlay laid over the canvas ──────────────────── */
+  #scene-ui { position:absolute; inset:0; pointer-events:none; z-index:2; }
+  #scene-ui .katex { color:inherit; }
+  .slbl {
+    position:absolute; transform:translate(-50%,-50%);
+    font-size:15px; color:var(--text-secondary); white-space:nowrap;
+    text-align:center; opacity:0; transition:opacity 0.2s ease;
+  }
+  .slbl.show { opacity:1; }
+  #lbl-eq  { font-size:20px; color:var(--text-heading); }
+  #lbl-cap { font-size:14px; color:var(--text-muted); }
+
+  /* ── Control sidebar ─────────────────────────────────────── */
+  #panel {
+    flex:0 0 360px; width:360px; height:100vh; overflow-y:auto;
+    background: var(--bg-panel-1); border-left:1px solid var(--border);
+    padding:22px 22px 40px;
+  }
+
+  /* Mode tabs */
+  .mode-tabs { display:flex; gap:7px; margin-bottom:18px; }
+  .mode-tab {
+    flex:1 1 0; font-family:'Barlow',sans-serif; font-size:12.5px; font-weight:700;
+    letter-spacing:0.2px; padding:9px 5px; text-align:center; cursor:pointer;
+    color:var(--text-secondary); background:var(--bg-panel-2);
+    border:1px solid var(--border); border-radius:6px;
+    transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .mode-tab small { display:block; font-size:10px; font-weight:600; color:var(--text-muted); letter-spacing:0.3px; margin-top:2px; }
+  .mode-tab:hover { border-color:var(--c-accent); }
+  .mode-tab.active { color:var(--text-heading); border-color:var(--c-ve); background:var(--c-accent-glow); }
+  .mode-tab.active small { color:var(--c-ve); }
+
+  /* Panels */
+  .ix-panel { display:none; flex-direction:column; }
+  .ix-panel.active { display:flex; }
+  .ix-title { font-size:15px; font-weight:700; color:var(--text-heading); letter-spacing:0.2px; margin-bottom:8px; }
+
+  /* Slider rows: [name .... value] / [track] / [sub-caption].
+     The readout is a flex sibling of the name, NOT a float — a floated box
+     stacked against a full-width track sits over the end of the track and
+     swallows the drag. */
+  .ix-slider { display:block; font-size:13px; color:var(--text-secondary); margin-bottom:15px; }
+  .ix-slider.dim { opacity:0.38; pointer-events:none; }
+  .ix-slider .ix-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .ix-slider .ix-val { color:var(--c-ve); font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .ix-slider input[type=range] {
+    display:block; width:100%; accent-color:var(--c-ve); cursor:pointer;
+    /* Height + padding give the thumb a forgiving grab target; without them the
+       track is ~4 px tall and a drag that starts a few pixels off does nothing. */
+    height:22px; margin:4px 0 0; padding:0; position:relative; z-index:1;
+  }
+  .ix-slider .ix-sub { display:block; font-size:11.5px; color:var(--text-muted); text-align:right; }
+
+  .ix-sel-lbl { display:block; font-size:13px; color:var(--text-secondary); margin-bottom:15px; }
+  .ix-select {
+    width:100%; margin-top:7px;
+    font-family:'Barlow',sans-serif; font-size:13.5px; font-weight:600;
+    padding:9px 10px; color:var(--text-heading);
+    background:var(--bg-panel-2); border:1px solid var(--border); border-radius:6px; cursor:pointer;
+  }
+  .ix-select:hover { border-color:var(--c-accent); }
+
+  .ix-chk {
+    display:flex; align-items:center; gap:9px; font-size:13px; color:var(--text-secondary);
+    margin-bottom:14px; cursor:pointer; user-select:none;
+  }
+  .ix-chk input { accent-color:var(--c-ve); width:15px; height:15px; cursor:pointer; }
+
+  .ix-btn {
+    font-family:'Barlow',sans-serif; font-size:13px; font-weight:600; letter-spacing:0.3px;
+    padding:9px 12px; width:100%; cursor:pointer; color:var(--text-heading);
+    background:var(--bg-panel-3); border:1px solid var(--border); border-radius:6px;
+    transition:border-color 0.15s ease, background 0.15s ease;
+  }
+  .ix-btn:hover { border-color:var(--c-accent); background:var(--bg-panel-4); }
+
+  /* Readout blocks */
+  .ix-mu { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+  .ix-mu-lbl { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--c-accent); margin-bottom:6px; }
+  /* Greek symbols must escape the uppercase transform — it turns λ into Λ
+     and φ into Φ, which are different quantities. */
+  .ix-mu-lbl .sym { text-transform:none; }
+  .ix-mu-val { font-size:15px; color:var(--text-secondary); display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+  .ix-mu-val b { color:var(--c-ve); font-variant-numeric:tabular-nums; font-weight:700; }
+
+  .ix-big { font-size:29px; font-weight:700; color:var(--c-efield); font-variant-numeric:tabular-nums; line-height:1.1; }
+  .ix-big span { font-size:16px; font-weight:600; color:var(--text-secondary); }
+  .ix-note { font-size:12.5px; color:var(--text-muted); line-height:1.5; margin-top:6px; }
+
+  /* Compact two-column readout grid (structure mode has a lot to say) */
+  .ix-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px 14px; margin-top:2px; }
+  .ix-cell .k {
+    font-size:10px; font-weight:700; letter-spacing:0.7px; text-transform:uppercase;
+    color:var(--text-muted); white-space:nowrap;
+  }
+  .ix-cell .k .sym { text-transform:none; }
+  .ix-cell .v {
+    font-family:'Courier New', monospace; font-size:16px; font-weight:600;
+    color:var(--c-ve); font-variant-numeric:tabular-nums; margin-top:1px;
+  }
+  .ix-cell .v small { font-size:11.5px; font-weight:400; color:var(--text-secondary); }
+
+  /* Verdict box — Bohm criterion satisfied or not */
+  .verdict {
+    margin-top:12px; padding:10px 12px; border-radius:0 4px 4px 0;
+    background:#141414; border-left:3px solid #383838;
+    font-size:12.5px; line-height:1.5; color:var(--text-secondary);
+  }
+  .verdict.ok   { border-left-color:var(--c-press); }
+  .verdict.bad  { border-left-color:#ef5350; }
+  .verdict b    { color:var(--text-heading); }
+
+  /* Legend */
+  .legend { display:flex; flex-direction:column; gap:6px; margin-top:4px; }
+  .legend-row { display:flex; align-items:center; gap:9px; font-size:13px; color:var(--text-secondary); }
+  .legend-row i { width:16px; height:3px; border-radius:2px; flex:0 0 auto; }
+  .legend-row i.dot { width:11px; height:11px; border-radius:50%; }
+
+  .katex { color:inherit; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ── Scene ─────────────────────────────────────────────── -->
+  <div id="viewport">
+    <canvas id="scene-canvas"></canvas>
+    <!-- KaTeX overlay: governing equation + caption -->
+    <div id="scene-ui" aria-hidden="true">
+      <div class="slbl" id="lbl-eq"></div>
+      <div class="slbl" id="lbl-cap"></div>
+    </div>
+  </div>
+
+  <!-- ── Controls ──────────────────────────────────────────── -->
+  <aside id="panel">
+
+    <div class="mode-tabs">
+      <div class="mode-tab active" data-mode="wall">Why the Wall<br>Goes Negative<small>flux balance</small></div>
+      <div class="mode-tab" data-mode="bohm">The Bohm<br>Criterion<small>u &ge; c<sub>s</sub></small></div>
+      <div class="mode-tab" data-mode="structure">Sheath<br>Structure<small>&phi;, n<sub>e</sub>, n<sub>i</sub></small></div>
+    </div>
+
+    <!-- ══════════ Mode 1 — wall charging ══════════ -->
+    <div id="ix-wall" class="ix-panel active">
+      <div class="ix-title">A wall in contact with a plasma</div>
+
+      <label class="ix-sel-lbl">Ion species
+        <select id="w-sp" class="ix-select">
+          <option value="xe" selected>Xenon (Xe&#8314;) &mdash; 131.293 amu</option>
+          <option value="kr">Krypton (Kr&#8314;) &mdash; 83.798 amu</option>
+          <option value="ar">Argon (Ar&#8314;) &mdash; 39.948 amu</option>
+          <option value="h">Hydrogen (H&#8314;) &mdash; 1.008 amu</option>
+        </select>
+      </label>
+
+      <label class="ix-slider">
+        <span class="ix-head"><span>Electron temperature&nbsp; T<sub>e</sub></span>
+          <span class="ix-val" id="w-T-val">5.0&nbsp;eV</span></span>
+        <input type="range" id="w-T" min="1" max="40" step="0.5" value="5">
+        <span class="ix-sub" id="w-T-sub">&equiv; 58,000&nbsp;K</span>
+      </label>
+
+      <label class="ix-chk" for="w-float">
+        <input type="checkbox" id="w-float" checked>
+        Let the wall float (draw no net current)
+      </label>
+
+      <label class="ix-slider dim" id="w-bias-row">
+        <span class="ix-head"><span>Wall potential&nbsp; &phi;<sub>w</sub> &minus; &phi;<sub>p</sub></span>
+          <span class="ix-val" id="w-bias-val">&minus;28.9&nbsp;V</span></span>
+        <input type="range" id="w-bias" min="-120" max="0" step="0.5" value="-28.9">
+        <span class="ix-sub">relative to the bulk plasma</span>
+      </label>
+
+      <button class="ix-btn" id="w-reset">Discharge the wall and watch it recharge</button>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Flux ratio at &phi;<span class="sym"><sub>w</sub></span> = &phi;<span class="sym"><sub>p</sub></span></div>
+        <div class="ix-mu-val"><b id="w-R">322</b> &times; more electrons than ions</div>
+        <div class="ix-note">
+          A wall held at the plasma potential is hit by
+          &frac14;n<sub>e</sub><span style="font-style:italic">v&#772;</span><sub>e</sub> electrons and only
+          n<sub>s</sub>c<sub>s</sub> ions. It must charge negative until the exponential Boltzmann factor
+          closes that gap.
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Floating potential <span class="sym">&phi;<sub>f</sub></span></div>
+        <div class="ix-big" id="w-phif">&minus;28.9 <span>V</span></div>
+        <div class="ix-grid" style="margin-top:10px">
+          <div class="ix-cell"><div class="k">In units of T<span class="sym"><sub>e</sub></span></div>
+            <div class="v" id="w-chif">&minus;5.77 <small>T<sub>e</sub>/e</small></div></div>
+          <div class="ix-cell"><div class="k">Sheath drop only</div>
+            <div class="v" id="w-chish">&minus;5.27 <small>T<sub>e</sub>/e</small></div></div>
+        </div>
+        <div class="ix-note">
+          Independent of density &mdash; the floating potential is set by the mass ratio and
+          T<sub>e</sub> alone. Heavier ions are slower, so the wall must repel harder.
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Live at the present wall potential</div>
+        <div class="ix-grid">
+          <div class="ix-cell"><div class="k">Electron flux <span class="sym">&Gamma;<sub>e</sub></span>/<span class="sym">&Gamma;<sub>i</sub></span></div>
+            <div class="v" id="w-ratio">1.00</div></div>
+          <div class="ix-cell"><div class="k">Net current</div>
+            <div class="v" id="w-net">0.00 <small>&times;J<sub>B</sub></small></div></div>
+          <div class="ix-cell"><div class="k">Bohm speed <span class="sym">c<sub>s</sub></span></div>
+            <div class="v" id="w-cs">1917 <small>m/s</small></div></div>
+          <div class="ix-cell"><div class="k">Electron <span class="sym">v&#772;<sub>e</sub></span></div>
+            <div class="v" id="w-ve">1.49 <small>Mm/s</small></div></div>
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Legend</div>
+        <div class="legend">
+          <div class="legend-row"><i class="dot" style="background:#4d9bff"></i>Ion &mdash; slow, falls into the wall</div>
+          <div class="legend-row"><i class="dot" style="background:#ffe94d"></i>Electron &mdash; fast, mostly turned back</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ Mode 2 — Bohm criterion ══════════ -->
+    <div id="ix-bohm" class="ix-panel">
+      <div class="ix-title">How fast must ions enter?</div>
+
+      <label class="ix-slider">
+        <span class="ix-head"><span>Entry Mach number&nbsp; M = u<sub>s</sub>/c<sub>s</sub></span>
+          <span class="ix-val" id="b-M-val">1.00</span></span>
+        <input type="range" id="b-M" min="0.20" max="2.50" step="0.01" value="1.00">
+        <span class="ix-sub">ion speed at the sheath edge, in units of the Bohm speed</span>
+      </label>
+
+      <div class="verdict" id="b-verdict"></div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Curvature of the sheath solution</div>
+        <div class="ix-mu-val">
+          <span style="font-family:'Courier New',monospace">&chi;&#8243; = (1 &minus; 1/M&sup2;)&nbsp;&chi;</span>
+        </div>
+        <div class="ix-grid" style="margin-top:10px">
+          <div class="ix-cell"><div class="k">1 &minus; 1/M&sup2;</div>
+            <div class="v" id="b-coef">0.00</div></div>
+          <div class="ix-cell"><div class="k" id="b-kl-lbl">e-folding length</div>
+            <div class="v" id="b-kl">&mdash;</div></div>
+        </div>
+        <div class="ix-note">
+          Near the sheath edge the potential obeys a linear equation with this coefficient.
+          Positive &rarr; a growing exponential, which is a sheath. Negative &rarr; a sine,
+          which would make &phi; rise above the plasma potential. Only the first is physical.
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">In real units</div>
+        <div class="ix-grid">
+          <div class="ix-cell"><div class="k">Bohm speed <span class="sym">c<sub>s</sub></span></div>
+            <div class="v" id="b-cs">1917 <small>m/s</small></div></div>
+          <div class="ix-cell"><div class="k">Entry speed <span class="sym">u<sub>s</sub></span></div>
+            <div class="v" id="b-us">1917 <small>m/s</small></div></div>
+          <div class="ix-cell"><div class="k">Ion energy at edge</div>
+            <div class="v" id="b-eng">2.50 <small>eV</small></div></div>
+          <div class="ix-cell"><div class="k">Debye length <span class="sym">&lambda;<sub>Ds</sub></span></div>
+            <div class="v" id="b-lam">67.5 <small>&micro;m</small></div></div>
+        </div>
+        <div class="ix-note">
+          Uses the species, T<sub>e</sub> and density set in the other two modes.
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Legend</div>
+        <div class="legend">
+          <div class="legend-row"><i style="background:#F5C518"></i>Linearised solution &chi;(&xi;)</div>
+          <div class="legend-row"><i style="background:#3DBFFF"></i>Full non-linear sheath (M &ge; 1)</div>
+          <div class="legend-row"><i style="background:#ef5350"></i>&chi; &lt; 0 &mdash; forbidden region</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════ Mode 3 — full structure ══════════ -->
+    <div id="ix-structure" class="ix-panel">
+      <div class="ix-title">Pre-sheath and sheath</div>
+
+      <label class="ix-sel-lbl">Ion species
+        <select id="s-sp" class="ix-select">
+          <option value="xe" selected>Xenon (Xe&#8314;) &mdash; 131.293 amu</option>
+          <option value="kr">Krypton (Kr&#8314;) &mdash; 83.798 amu</option>
+          <option value="ar">Argon (Ar&#8314;) &mdash; 39.948 amu</option>
+          <option value="h">Hydrogen (H&#8314;) &mdash; 1.008 amu</option>
+        </select>
+      </label>
+
+      <label class="ix-slider">
+        <span class="ix-head"><span>Electron temperature&nbsp; T<sub>e</sub></span>
+          <span class="ix-val" id="s-T-val">5.0&nbsp;eV</span></span>
+        <input type="range" id="s-T" min="1" max="40" step="0.5" value="5">
+        <span class="ix-sub" id="s-T-sub">&equiv; 58,000&nbsp;K</span>
+      </label>
+
+      <label class="ix-slider">
+        <span class="ix-head"><span>Bulk density&nbsp; n<sub>0</sub></span>
+          <span class="ix-val" id="s-n-val">1.0&times;10<sup>17</sup></span></span>
+        <input type="range" id="s-n" min="16" max="19" step="0.02" value="17">
+        <span class="ix-sub">m<sup>&minus;3</sup></span>
+      </label>
+
+      <label class="ix-slider">
+        <span class="ix-head"><span>Pre-sheath length&nbsp; L</span>
+          <span class="ix-val" id="s-L-val">10.0&nbsp;mm</span></span>
+        <input type="range" id="s-L" min="0.5" max="60" step="0.5" value="10">
+        <span class="ix-sub">set by the ionization or collision scale</span>
+      </label>
+
+      <label class="ix-chk" for="s-float">
+        <input type="checkbox" id="s-float" checked>
+        Wall is floating
+      </label>
+
+      <label class="ix-slider dim" id="s-bias-row">
+        <span class="ix-head"><span>Wall potential&nbsp; &phi;<sub>w</sub></span>
+          <span class="ix-val" id="s-bias-val">&minus;28.9&nbsp;V</span></span>
+        <input type="range" id="s-bias" min="-250" max="-2" step="1" value="-29">
+        <span class="ix-sub">relative to the bulk plasma</span>
+      </label>
+
+      <label class="ix-chk" for="s-dens">
+        <input type="checkbox" id="s-dens" checked>
+        Show the density profiles
+      </label>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Sheath thickness <span class="sym">s</span></div>
+        <div class="ix-big" id="s-s">186 <span>&micro;m</span></div>
+        <div class="ix-note" id="s-s-note">
+          Child&ndash;Langmuir: s = (&radic;2/3)&thinsp;&lambda;<sub>Ds</sub>(2&chi;<sub>w</sub>)<sup>3/4</sup>
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Scales</div>
+        <div class="ix-grid">
+          <div class="ix-cell"><div class="k">Debye length <span class="sym">&lambda;<sub>Ds</sub></span></div>
+            <div class="v" id="s-lam">67.5 <small>&micro;m</small></div></div>
+          <div class="ix-cell"><div class="k">s / <span class="sym">&lambda;<sub>Ds</sub></span></div>
+            <div class="v" id="s-slam">2.76</div></div>
+          <div class="ix-cell"><div class="k">Bohm speed <span class="sym">c<sub>s</sub></span></div>
+            <div class="v" id="s-cs">1917 <small>m/s</small></div></div>
+          <div class="ix-cell"><div class="k">L / s</div>
+            <div class="v" id="s-Ls">54</div></div>
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Potential drops</div>
+        <div class="ix-grid">
+          <div class="ix-cell"><div class="k">Pre-sheath</div>
+            <div class="v" id="s-dps">&minus;2.5 <small>V</small></div></div>
+          <div class="ix-cell"><div class="k">Sheath</div>
+            <div class="v" id="s-dsh">&minus;26.4 <small>V</small></div></div>
+          <div class="ix-cell"><div class="k">Total to the wall</div>
+            <div class="v" id="s-dtot">&minus;28.9 <small>V</small></div></div>
+          <div class="ix-cell"><div class="k">Edge density n<span class="sym"><sub>s</sub></span>/n<span class="sym"><sub>0</sub></span></div>
+            <div class="v" id="s-ns">0.61</div></div>
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">What it costs the thruster</div>
+        <div class="ix-grid">
+          <div class="ix-cell"><div class="k">Bohm current <span class="sym">J<sub>B</sub></span></div>
+            <div class="v" id="s-jb">18.6 <small>A/m&sup2;</small></div></div>
+          <div class="ix-cell"><div class="k">Ion impact energy</div>
+            <div class="v" id="s-ei">28.9 <small>eV</small></div></div>
+        </div>
+        <div class="ix-note" id="s-erode">&nbsp;</div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Legend</div>
+        <div class="legend">
+          <div class="legend-row"><i style="background:#F5C518"></i>Potential &phi;(x)</div>
+          <div class="legend-row"><i style="background:#3DBFFF"></i>Ion density n<sub>i</sub></div>
+          <div class="legend-row"><i style="background:#C060FF"></i>Electron density n<sub>e</sub></div>
+        </div>
+        <div class="ix-note">
+          The sheath is drawn magnified &mdash; see the scale note under the axis. In reality it is
+          the thin sliver marked by the dotted line.
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ── Physical constants ──────────────────────────────────────────── */
+const EPS0 = 8.8541878128e-12;   // F/m
+const QE   = 1.602176634e-19;    // C
+const ME   = 9.1093837015e-31;   // kg
+const KB   = 1.380649e-23;       // J/K
+const AMU  = 1.66053906660e-27;  // kg
+const EV_K = QE / KB;            // 1 eV expressed in kelvin (11604.5)
+
+/* ── Scene colours ───────────────────────────────────────────────────
+   Two palettes, applied by the rule in the style guide: a PARTICLE drawn
+   on the canvas wears the species colour; a QUANTITY plotted as a curve
+   wears the prose colour. Mode 1 draws particles, modes 2–3 draw curves. */
+const C_ION_P = '#4d9bff';   // ion disc, white "+"
+const C_EL_P  = '#ffe94d';   // electron disc, dark "−"
+const C_PHI   = '#F5C518';   // potential φ            (--c-efield)
+const C_NI    = '#3DBFFF';   // ion density n_i        (--c-ve)
+const C_NE    = '#C060FF';   // electron density n_e   (--c-power)
+const C_BAD   = '#ef5350';
+const C_OK    = '#00DDB5';
+const C_WALL  = 'rgba(190,196,204,0.16)';
+
+/* ── Ion species ─────────────────────────────────────────────────────
+   Masses are physics constants — do not round. */
+const SPECIES = {
+  xe: { name:'Xenon',    m: 131.293   },
+  kr: { name:'Krypton',  m:  83.798   },
+  ar: { name:'Argon',    m:  39.948   },
+  h : { name:'Hydrogen', m:   1.00784 }
+};
+
+/* ── Governing relations ─────────────────────────────────────────────
+   λ_D  = sqrt(ε₀ kT_e / (e² n))                Debye length
+   c_s  = sqrt(kT_e / m_i)                      Bohm (ion-acoustic) speed
+   v̄_e  = sqrt(8 kT_e / (π m_e))                mean electron thermal speed
+   R    = ¼v̄_e / c_s = sqrt(m_i / 2π m_e)       random-flux ratio at φ = 0
+   χ_f  = ln R = ½ ln(m_i / 2π m_e)             sheath drop at a floating wall
+   n_s  = n₀ e^(−1/2) = 0.6065 n₀               density at the sheath edge
+   s    = (√2/3) λ_Ds (2χ_w)^(3/4)              Child–Langmuir sheath thickness
+   Temperatures are entered in eV, so kT_e = T_eV · e.                     */
+function debyeLength(n, T_eV){ return Math.sqrt(EPS0 * T_eV * QE / (QE * QE * n)); }
+function bohmSpeed(T_eV, m_amu){ return Math.sqrt(QE * T_eV / (m_amu * AMU)); }
+function vbarE(T_eV){ return Math.sqrt(8 * QE * T_eV / (Math.PI * ME)); }
+function fluxRatio(m_amu){ return Math.sqrt(m_amu * AMU / (2 * Math.PI * ME)); }
+function chiFloat(m_amu){ return Math.log(fluxRatio(m_amu)); }
+function childThickness(lamDs, chi_w){ return (Math.SQRT2 / 3) * lamDs * Math.pow(2 * chi_w, 0.75); }
+
+const NS_FRAC = Math.exp(-0.5);   // 0.60653 — sheath-edge density / bulk density
+
+/* ── Shared state ────────────────────────────────────────────────────
+   Species, T_e and n₀ are shared by every mode so the numbers a student
+   reads in one panel still apply in the next. Each panel carries its own
+   widgets; syncWidgets() mirrors them. */
+const G = {
+  sp: 'xe', T: 5.0, n0: 1e17,
+  L: 10e-3,                  // pre-sheath length, m
+  wFloat: true,  wBias: -28.9,   // mode 1: wall potential rel. plasma, V
+  sFloat: true,  sBias: -29,     // mode 3: same
+  showDens: true,
+  M: 1.0,                    // mode 2: entry Mach number
+  phiW: 0                    // mode 1: live wall potential during charging
+};
+const S = { cv:null, ctx:null, mode:'wall', t:0, _lbl:'' };
+
+function mass(){ return SPECIES[G.sp].m; }
+
+/* KaTeX helper: render `tex` into `el`, or fall back to plain text. */
+function kx(el, tex, fallback){
+  if (!el) return;
+  if (window.katex) katex.render(tex, el, { throwOnError:false });
+  else el.textContent = (fallback != null ? fallback : tex);
+}
+/* Position a scene call-out at canvas coords (== viewport px). */
+function sLabel(id, on, x, y){
+  const el = $(id); if (!el) return;
+  el.classList.toggle('show', !!on);
+  if (on){ el.style.left = x + 'px'; el.style.top = y + 'px'; }
+}
+
+/* ── Formatting ──────────────────────────────────────────────────── */
+function sci(x, sig){
+  if (!isFinite(x) || x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  const m = x / Math.pow(10, e);
+  return m.toFixed(sig == null ? 2 : sig) + '&times;10<sup>' + e + '</sup>';
+}
+function fmtLen(m){
+  if (m < 1e-6)  return { v:(m*1e9).toFixed(0),  u:'nm' };
+  if (m < 1e-3)  return { v:(m*1e6).toFixed(m*1e6 < 10 ? 2 : 1), u:'&micro;m' };
+  if (m < 1)     return { v:(m*1e3).toFixed(2),  u:'mm' };
+  return { v:m.toFixed(2), u:'m' };
+}
+function fmtSpeed(v){
+  if (v >= 1e6) return { v:(v/1e6).toFixed(2), u:'Mm/s' };
+  if (v >= 1e3) return { v:(v/1e3).toFixed(2), u:'km/s' };
+  return { v:v.toFixed(0), u:'m/s' };
+}
+
+/* Canvas text with a manual subscript. Unicode subscript letters are not in
+   every font we might fall back to, so the offset is drawn by hand instead —
+   the same +y nudge the SVG diagrams use. Returns the total advance width. */
+function subText(ctx, base, sub, x, y, size, color, align, italic){
+  const fs = (italic === false ? '' : 'italic ');
+  ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.font = fs + size + 'px Barlow, "Segoe UI", sans-serif';
+  const wB = ctx.measureText(base).width;
+  ctx.font = fs + (size * 0.68) + 'px Barlow, "Segoe UI", sans-serif';
+  const wS = sub ? ctx.measureText(sub).width : 0;
+  const tot = wB + wS;
+  let x0 = x;
+  if (align === 'center') x0 = x - tot / 2;
+  else if (align === 'right') x0 = x - tot;
+  ctx.font = fs + size + 'px Barlow, "Segoe UI", sans-serif';
+  ctx.fillText(base, x0, y);
+  if (sub){
+    ctx.font = fs + (size * 0.68) + 'px Barlow, "Segoe UI", sans-serif';
+    ctx.fillText(sub, x0 + wB, y + size * 0.22);
+  }
+  return tot;
+}
+function plainText(ctx, txt, x, y, size, color, align, weight){
+  ctx.fillStyle = color; ctx.textAlign = align || 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.font = (weight || 400) + ' ' + size + 'px Barlow, "Segoe UI", sans-serif';
+  ctx.fillText(txt, x, y);
+}
+/* "n_e ≈ n_i" laid out as one centred unit. Measuring first and then placing
+   is the only way the relation symbol sits evenly between the two terms —
+   eyeballed offsets drift the moment the font metrics change. */
+function relCaption(ctx, rel, cx, cy, size){
+  const F  = s => 'italic ' + s + 'px Barlow, "Segoe UI", sans-serif';
+  ctx.font = F(size);        const wN = ctx.measureText('n').width;
+  ctx.font = F(size*0.68);   const wE = ctx.measureText('e').width;
+                             const wI = ctx.measureText('i').width;
+  const gap = ' ' + rel + ' ';
+  ctx.font = '400 ' + size + 'px Barlow, "Segoe UI", sans-serif';
+  const wR = ctx.measureText(gap).width;
+
+  let x = cx - (wN + wE + wR + wN + wI)/2;
+  x += subText(ctx, 'n', 'e', x, cy, size, C_NE, 'left');
+  plainText(ctx, gap, x, cy, size, '#9a9a9a', 'left', 400);
+  x += wR;
+  subText(ctx, 'n', 'i', x, cy, size, C_NI, 'left');
+}
+
+function arrowHead(ctx, x, y, dx, dy, len, wid){
+  const n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n;
+  const px = -dy, py = dx;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - dx*len + px*wid, y - dy*len + py*wid);
+  ctx.lineTo(x - dx*len - px*wid, y - dy*len - py*wid);
+  ctx.closePath(); ctx.fill();
+}
+
+function drawIon(ctx, x, y, r){
+  ctx.fillStyle = C_ION_P; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '700 ' + (r*1.5) + 'px Barlow, sans-serif';
+  ctx.fillText('+', x, y + r*0.06); ctx.textBaseline = 'alphabetic';
+}
+function drawElec(ctx, x, y, r){
+  ctx.fillStyle = C_EL_P; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#2a2405'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '700 ' + (r*1.6) + 'px Barlow, sans-serif';
+  ctx.fillText('−', x, y + r*0.06); ctx.textBaseline = 'alphabetic';
+}
+/* One species convention across the whole codebase: an electron disc is always
+   this fraction of an ion disc. Emphasis is carried by opacity, never by
+   resizing a species. */
+const E_SCALE = 0.66;
+
+function rnd(a,b){ return a + Math.random()*(b-a); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODE 1 — why a floating wall charges negative
+   ═══════════════════════════════════════════════════════════════════
+   Everything here is measured relative to the BULK plasma potential, so
+   the reader only ever has one reference to hold in mind. The sheath-edge
+   potential sits kT_e/2e below the bulk, hence the −0.5 in χ.
+
+       χ  = −e(φ_w − φ_p)/kT_e − 1/2          (drop across the sheath)
+       Γ_e/Γ_i = R e^{−χ},   R = sqrt(m_i / 2π m_e)
+
+   At φ_w = φ_p this is R e^{1/2} — the full random electron flux measured
+   against the Bohm ion flux — and it is the number the scene opens with. */
+const N_ION = 30, N_EL = 26;
+const EDGE_N = 0.79;      // sheath edge, in normalized plasma-to-wall coords
+const V_ION  = 0.085;     // drift speed at the sheath edge, box-widths per second
+let ions = [], elecs = [];
+
+function seedWall(){
+  ions = []; elecs = [];
+  for (let i=0;i<N_ION;i++){
+    const v0 = V_ION*rnd(0.8,1.2);
+    ions.push({ x:rnd(0.02,0.99), y:rnd(0.06,0.94), v0, vx:v0, vy:rnd(-0.05,0.05) });
+  }
+  for (let i=0;i<N_EL;i++){
+    const th = rnd(0,6.283), sp = rnd(0.38,0.75);
+    elecs.push({ x:rnd(0.02,0.78), y:rnd(0.06,0.94),
+                 vx:Math.cos(th)*sp, vy:Math.sin(th)*sp, pass:false });
+  }
+}
+
+function chiOfWall(phiW){ return Math.max(0, -phiW / G.T - 0.5); }
+
+function stepWallParticles(dt, chi){
+  const pass = Math.exp(-chi);       // fraction of electrons that get through
+  for (const p of ions){
+    // Ions fall through the sheath. Energy conservation gives u = u_s√(1+2χ),
+    // so they thin out by that same factor — which is why the sheath looks
+    // ion-poor without being ion-empty.
+    if (p.x > EDGE_N){
+      const f = (p.x - EDGE_N)/(1 - EDGE_N);
+      p.vx = p.v0 * Math.sqrt(1 + 2*chi*f);
+    }
+    p.x += p.vx*dt; p.y += p.vy*dt;
+    if (p.y < 0.04 || p.y > 0.96){ p.vy = -p.vy; p.y = Math.max(0.04, Math.min(0.96, p.y)); }
+    if (p.x >= 1){
+      p.x = rnd(0.01, 0.06); p.v0 = V_ION*rnd(0.8,1.2); p.vx = p.v0; p.vy = rnd(-0.05,0.05);
+    }
+    if (p.x < 0.01){ p.x = 0.01; p.vx = Math.abs(p.vx); }
+  }
+  for (const p of elecs){
+    const wasIn = p.x < EDGE_N;
+    p.x += p.vx*dt; p.y += p.vy*dt;
+    if (p.y < 0.04 || p.y > 0.96){ p.vy = -p.vy; p.y = Math.max(0.04, Math.min(0.96, p.y)); }
+    // Crossing the sheath edge outward: roll against the Boltzmann factor.
+    if (wasIn && p.x >= EDGE_N){
+      if (Math.random() < pass){ p.pass = true; }
+      else { p.pass = false; p.x = EDGE_N - 0.002; p.vx = -Math.abs(p.vx); }
+    }
+    if (p.x >= 1){                       // absorbed at the wall
+      p.x = rnd(0.02, 0.30); p.pass = false;
+      const th = rnd(0,6.283), sp = rnd(0.38,0.75);
+      p.vx = Math.cos(th)*sp; p.vy = Math.sin(th)*sp;
+    }
+    if (p.x < 0.01){ p.x = 0.01; p.vx = Math.abs(p.vx); }
+  }
+}
+
+function drawWallScene(dt){
+  const ctx = S.ctx, cv = S.cv, W = cv.clientWidth, H = cv.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+  S.t += dt;
+
+  const m = mass();
+  const chiF = chiFloat(m);
+  const phiF = -(chiF + 0.5) * G.T;
+
+  // Relax toward the floating potential, or sit at the commanded bias.
+  if (G.wFloat){
+    G.phiW += (phiF - G.phiW) * Math.min(1, dt / 0.55);
+    $('w-bias').value = Math.max(-120, Math.min(0, phiF));
+    $('w-bias-val').innerHTML = phiF.toFixed(1).replace('-', '−') + '&nbsp;V';
+  } else {
+    G.phiW = G.wBias;
+  }
+  const chi = chiOfWall(G.phiW);
+
+  const padL = W*0.06, padR = W*0.05;
+  const plotW = W - padL - padR;
+  const xEdge = padL + plotW*EDGE_N*0.86;
+  const xWall = padL + plotW*0.86;
+  const wallR = padL + plotW;
+  const boxT  = H*0.085, boxB = H*0.530;
+  const boxH  = boxB - boxT;
+  const R = Math.max(6, Math.min(11, plotW*0.011));
+
+  /* ── Sheath shading + wall block ──────────────────────────── */
+  ctx.fillStyle = 'rgba(245,197,24,0.055)';
+  ctx.fillRect(xEdge, boxT, xWall - xEdge, boxH);
+  ctx.fillStyle = C_WALL;
+  ctx.fillRect(xWall, boxT, wallR - xWall, boxH);
+  ctx.strokeStyle = '#5a5f66'; ctx.lineWidth = 1.4;
+  ctx.strokeRect(xWall, boxT, wallR - xWall, boxH);
+
+  // Plasma volume — the same dashed control-volume grey used elsewhere
+  ctx.save();
+  ctx.setLineDash([7,4]); ctx.strokeStyle = '#404040'; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(xWall, boxT); ctx.lineTo(padL, boxT);
+  ctx.lineTo(padL, boxB); ctx.lineTo(xWall, boxB);
+  ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+
+  // Sheath edge
+  ctx.save();
+  ctx.setLineDash([5,5]); ctx.strokeStyle = 'rgba(245,197,24,0.55)'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(xEdge, boxT - H*0.018); ctx.lineTo(xEdge, boxB + H*0.018); ctx.stroke();
+  ctx.restore();
+  plainText(ctx, 'sheath edge', xEdge, boxT - H*0.032, 12.5, '#8a8a8a', 'center', 600);
+  plainText(ctx, 'bulk plasma', (padL + xEdge)/2, boxT - H*0.032, 12.5, '#8a8a8a', 'center', 600);
+
+  /* ── Particles ────────────────────────────────────────────── */
+  stepWallParticles(dt, chi);
+  const px = xn => padL + xn * (xWall - padL);
+  for (const p of ions)  drawIon (ctx, px(p.x), boxT + p.y*boxH, R);
+  for (const p of elecs) drawElec(ctx, px(p.x), boxT + p.y*boxH, R*E_SCALE);
+
+  /* ── Charge on the wall: one "−" per 0.45 units of χ ──────── */
+  const nMinus = Math.max(0, Math.min(11, Math.round(chi / 0.55)));
+  const wx = (xWall + wallR) / 2;
+  ctx.save();
+  ctx.fillStyle = C_NE; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '700 ' + (R*1.7) + 'px Barlow, sans-serif';
+  for (let i=0;i<nMinus;i++){
+    ctx.fillText('−', wx, boxT + boxH*((i+0.5)/11));
+  }
+  ctx.restore();
+  ctx.save();
+  ctx.translate(wallR - (wallR-xWall)*0.22, (boxT+boxB)/2);
+  ctx.rotate(-Math.PI/2);
+  plainText(ctx, 'WALL', 0, 0, 13, '#9aa3b2', 'center', 700);
+  ctx.restore();
+
+  // Live wall potential, above the wall
+  const pv = G.phiW.toFixed(1).replace('-', '−') + ' V';
+  plainText(ctx, pv, wx, boxT - H*0.032, 15, C_PHI, 'center', 700);
+
+  /* ── Flux comparison, on a logarithmic axis ───────────────── */
+  const R0   = fluxRatio(m);
+  const ratio = R0 * Math.exp(-chi);
+  const ayL = padL + plotW*0.12, ayR = padL + plotW*0.80;
+  const ay  = H*0.825;
+  const DEC_LO = -2, DEC_HI = 3;             // 10^-2 … 10^3 in units of Γ_i
+  const fOf = r => {
+    const d = Math.max(DEC_LO, Math.min(DEC_HI, Math.log10(Math.max(r, 1e-6))));
+    return ayL + (d - DEC_LO)/(DEC_HI - DEC_LO) * (ayR - ayL);
+  };
+
+  plainText(ctx, 'FLUX TO THE WALL, IN UNITS OF THE ION FLUX', (ayL+ayR)/2, ay - H*0.075, 11.5, '#8a8a8a', 'center', 700);
+
+  ctx.strokeStyle = '#4a4a4a'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(ayL, ay); ctx.lineTo(ayR, ay); ctx.stroke();
+  ctx.fillStyle = '#6a6a6a';
+  for (let d=DEC_LO; d<=DEC_HI; d++){
+    const x = fOf(Math.pow(10,d));
+    ctx.strokeStyle = '#4a4a4a';
+    ctx.beginPath(); ctx.moveTo(x, ay); ctx.lineTo(x, ay+5); ctx.stroke();
+    const lbl = ({'-2':'0.01', '-1':'0.1', '0':'1', '1':'10', '2':'100', '3':'1000'})[String(d)];
+    plainText(ctx, lbl, x, ay+19, 11.5, '#6a6a6a', 'center', 400);
+  }
+
+  // Ion flux pin — fixed at 1 by construction
+  const xi = fOf(1);
+  ctx.strokeStyle = C_ION_P; ctx.fillStyle = C_ION_P; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.moveTo(xi, ay-14); ctx.lineTo(xi, ay); ctx.stroke();
+  subText(ctx, 'Γ', 'i', xi, ay-22, 15, C_ION_P, 'center');
+
+  // Electron flux pin — slides down as the wall charges
+  const xe = fOf(ratio);
+  ctx.strokeStyle = C_EL_P; ctx.fillStyle = C_EL_P; ctx.lineWidth = 2.4;
+  ctx.beginPath(); ctx.moveTo(xe, ay+14); ctx.lineTo(xe, ay); ctx.stroke();
+  subText(ctx, 'Γ', 'e', xe, ay+44, 15, C_EL_P, 'center');
+
+  // Gap bar between the two, so the imbalance reads as a distance
+  if (Math.abs(xe - xi) > 3){
+    ctx.strokeStyle = ratio > 1.05 ? C_BAD : (ratio < 0.95 ? C_BAD : C_OK);
+    ctx.lineWidth = 3; ctx.globalAlpha = 0.55;
+    ctx.beginPath(); ctx.moveTo(xi, ay); ctx.lineTo(xe, ay); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  const bal = Math.abs(Math.log10(Math.max(ratio,1e-9))) < 0.02;
+  plainText(ctx,
+    bal ? 'balanced — no net current, the wall floats'
+        : (ratio > 1 ? 'too many electrons — the wall keeps charging negative'
+                     : 'too few electrons — the wall charges back up'),
+    (ayL+ayR)/2, ay + H*0.095, 13.5, bal ? C_OK : '#8a8a8a', 'center', 600);
+
+  /* ── Call-outs ────────────────────────────────────────────── */
+  if (S._lbl !== 'wall'){
+    S._lbl = 'wall';
+    kx($('lbl-eq'),
+      '\\tfrac{1}{4}\\textcolor{#C060FF}{n_s}\\bar{v}_e\\,' +
+      'e^{\\textcolor{#F5C518}{e\\phi_w}/kT_e} \\;=\\; \\textcolor{#3DBFFF}{n_s c_s}',
+      '(1/4) n_s v_e exp(e phi_w / kTe) = n_s c_s');
+    kx($('lbl-cap'), '\\text{a floating wall draws no net current}',
+      'a floating wall draws no net current');
+  }
+  sLabel('lbl-eq',  true, W*0.5, H*0.615);
+  sLabel('lbl-cap', true, W*0.5, H*0.668);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODE 2 — the Bohm criterion
+   ═══════════════════════════════════════════════════════════════════
+   With χ = −eφ/kT_e and ξ = x/λ_D, Poisson's equation in the sheath is
+
+       χ'' = (1 + 2χ/M²)^(−1/2) − e^(−χ)
+
+   Linearising about the sheath edge gives χ'' = (1 − 1/M²)χ, so the
+   solution is a growing exponential only when M ≥ 1. For M < 1 it is a
+   cosine, which drives φ ABOVE the plasma potential — an ion-repelling
+   barrier in a region that must attract ions. That is the criterion. */
+const CHI0 = 0.35;                     // seed amplitude at the sheath edge
+const XI_MAX = 12;
+
+function sheathAccel(chi, M){
+  const a = 1 + 2*chi/(M*M);
+  return Math.pow(Math.max(a, 1e-6), -0.5) - Math.exp(-chi);
+}
+/* Energy integral: ½χ'² = M²[√(1+2χ/M²) − 1] + e^(−χ) − 1 */
+function sheathEnergy(chi, M){
+  return M*M*(Math.sqrt(Math.max(1 + 2*chi/(M*M), 0)) - 1) + Math.exp(-chi) - 1;
+}
+function integrateSheath(M){
+  const pts = [];
+  const F0 = sheathEnergy(CHI0, M);
+  if (F0 <= 0) return pts;             // no real slope — no sheath solution
+  let chi = CHI0, dchi = Math.sqrt(2*F0), xi = 0;
+  const h = 0.01;
+  pts.push({ xi, chi });
+  while (xi < XI_MAX && chi < 8){
+    // RK4 on (χ, χ')
+    const k1c = dchi,                k1d = sheathAccel(chi, M);
+    const k2c = dchi + 0.5*h*k1d,    k2d = sheathAccel(chi + 0.5*h*k1c, M);
+    const k3c = dchi + 0.5*h*k2d,    k3d = sheathAccel(chi + 0.5*h*k2c, M);
+    const k4c = dchi + h*k3d,        k4d = sheathAccel(chi + h*k3c, M);
+    chi  += h/6*(k1c + 2*k2c + 2*k3c + k4c);
+    dchi += h/6*(k1d + 2*k2d + 2*k3d + k4d);
+    xi   += h;
+    if (!isFinite(chi) || !isFinite(dchi)) break;
+    pts.push({ xi, chi });
+  }
+  return pts;
+}
+
+function drawBohmScene(dt){
+  const ctx = S.ctx, cv = S.cv, W = cv.clientWidth, H = cv.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+
+  const M = G.M;
+  const coef = 1 - 1/(M*M);
+  const padL = W*0.095, padR = W*0.07, padT = H*0.14, padB = H*0.20;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const CHI_HI = 2.0, CHI_LO = -0.95;
+  const xOf = xi  => padL + (xi/XI_MAX)*plotW;
+  const yOf = chi => padT + (CHI_HI - chi)/(CHI_HI - CHI_LO)*plotH;
+
+  /* ── Forbidden region χ < 0 ──────────────────────────────── */
+  const y0 = yOf(0);
+  ctx.fillStyle = 'rgba(239,83,80,0.07)';
+  ctx.fillRect(padL, y0, plotW, padT + plotH - y0);
+  plainText(ctx, 'φ above the plasma potential — forbidden',
+            padL + plotW*0.5, padT + plotH - H*0.022, 12.5, 'rgba(239,83,80,0.75)', 'center', 600);
+
+  /* ── Axes ─────────────────────────────────────────────────── */
+  ctx.strokeStyle = '#4a4a4a'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(padL, y0); ctx.lineTo(padL + plotW + W*0.022, y0); ctx.stroke();
+  ctx.fillStyle = '#4a4a4a'; arrowHead(ctx, padL + plotW + W*0.028, y0, 1, 0, 9, 4);
+  ctx.beginPath(); ctx.moveTo(padL, padT + plotH); ctx.lineTo(padL, padT - H*0.022); ctx.stroke();
+  ctx.fillStyle = '#4a4a4a'; arrowHead(ctx, padL, padT - H*0.028, 0, -1, 9, 4);
+
+  // Ticks are parked at the FOOT of the plot, not on the axis — the curve
+  // oscillates about χ = 0 and would sit right on top of them there.
+  const yTick = padT + plotH;
+  ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 1;
+  for (let t=2; t<=XI_MAX; t+=2){
+    const x = xOf(t);
+    ctx.beginPath(); ctx.moveTo(x, y0); ctx.lineTo(x, y0+5); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x, yTick); ctx.lineTo(x, yTick+5); ctx.stroke();
+    plainText(ctx, String(t), x, yTick+19, 11.5, '#7a7a7a', 'center', 400);
+  }
+  subText(ctx, 'ξ = x/λ', 'D', padL + plotW + W*0.034, y0 + 5, 13, '#8a8a8a', 'left');
+  subText(ctx, 'χ = −eφ/kT', 'e', padL - 8, padT - H*0.035, 13.5, '#8a8a8a', 'right');
+
+  /* ── Linearised solution ─────────────────────────────────── */
+  ctx.strokeStyle = C_PHI; ctx.lineWidth = 2.8; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  const NP = 420;
+  let clipped = false;
+  for (let i=0;i<=NP;i++){
+    const xi = XI_MAX*i/NP;
+    let chi;
+    if (Math.abs(coef) < 1e-6)      chi = CHI0;
+    else if (coef > 0)              chi = CHI0*Math.cosh(Math.sqrt(coef)*xi);
+    else                            chi = CHI0*Math.cos(Math.sqrt(-coef)*xi);
+    if (chi > CHI_HI){ clipped = true; chi = CHI_HI; }
+    const x = xOf(xi), y = yOf(chi);
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  /* ── Full non-linear solution, where one exists ──────────── */
+  const nl = integrateSheath(M);
+  if (nl.length > 2){
+    ctx.save();
+    ctx.setLineDash([6,4]); ctx.strokeStyle = C_NI; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    let started = false;
+    for (const p of nl){
+      if (p.xi > XI_MAX) break;
+      const chi = Math.min(p.chi, CHI_HI);
+      const x = xOf(p.xi), y = yOf(chi);
+      if (!started){ ctx.moveTo(x,y); started = true; } else ctx.lineTo(x,y);
+      if (p.chi > CHI_HI) break;
+    }
+    ctx.stroke(); ctx.restore();
+  }
+
+  /* ── Seed marker at the sheath edge ──────────────────────── */
+  ctx.fillStyle = C_PHI;
+  ctx.beginPath(); ctx.arc(xOf(0), yOf(CHI0), 4.5, 0, 6.283); ctx.fill();
+  plainText(ctx, 'sheath edge', xOf(0) + 10, yOf(CHI0) - 10, 12.5, '#8a8a8a', 'left', 600);
+
+  if (clipped){
+    plainText(ctx, 'off scale — the potential runs away into the wall',
+              padL + plotW*0.62, padT + H*0.03, 12.5, '#8a8a8a', 'center', 600);
+  }
+
+  /* ── Verdict banner on the canvas ────────────────────────── */
+  const ok = M >= 1;
+  plainText(ctx,
+    ok ? (M > 1.001 ? 'M ≥ 1 — the potential grows monotonically: a sheath forms'
+                    : 'M = 1 exactly — the marginal case the plasma actually chooses')
+       : 'M < 1 — the solution oscillates: no sheath can exist',
+    W*0.5, H*0.075, 15.5, ok ? C_OK : C_BAD, 'center', 700);
+
+  if (S._lbl !== 'bohm'){
+    S._lbl = 'bohm';
+    kx($('lbl-eq'),
+      '\\textcolor{#3DBFFF}{u_s} \\;\\ge\\; \\textcolor{#3DBFFF}{c_s} = ' +
+      '\\sqrt{kT_e/\\textcolor{#FF4400}{m_i}}',
+      'u_s >= c_s = sqrt(kTe/mi)');
+    kx($('lbl-cap'), '\\text{the Bohm criterion}', 'the Bohm criterion');
+  }
+  sLabel('lbl-eq',  true, W*0.5, H*0.935);
+  sLabel('lbl-cap', false);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODE 3 — the full pre-sheath + sheath structure
+   ═══════════════════════════════════════════════════════════════════
+   PRE-SHEATH (quasineutral, Tonks–Langmuir free-fall form). With the ions
+   born at rest and accelerated by the ambipolar field,
+
+       χ = M²/2 ,   n/n₀ = e^(−χ) ,   x/L = (3M − M³)/2 ,   M : 0 → 1
+
+   so the drop across it is exactly kT_e/2e and the edge density is
+   e^(−1/2) n₀ = 0.61 n₀. Note dM/dx → ∞ at M = 1: the quasineutral
+   solution has a singularity at the sheath edge, which is precisely the
+   signal that quasineutrality has to break down there.
+
+   SHEATH (Child–Langmuir). φ ∝ (x/s)^(4/3) with s from the Child law.
+   Electrons stay Boltzmann, n_e = n₀e^(−χ); ions conserve energy and flux,
+   n_i = n_s(1 + 2χ_sh)^(−1/2). The ion density does NOT go to zero at the
+   wall — it cannot, since the ions carry the current. */
+const PS_FRAC = 0.60, SH_FRAC = 0.30;
+
+function structureNumbers(){
+  const m = mass();
+  const chiF   = chiFloat(m);
+  const phiF   = -(chiF + 0.5) * G.T;
+  const phiW   = G.sFloat ? phiF : G.sBias;
+  const chiTot = Math.max(0.55, -phiW / G.T);      // total drop, in T_e/e
+  const chiSh  = chiTot - 0.5;                     // sheath drop only
+  const ns     = G.n0 * NS_FRAC;
+  const lamDs  = debyeLength(ns, G.T);
+  const cs     = bohmSpeed(G.T, m);
+  const s      = childThickness(lamDs, chiSh);
+  return { m, chiF, phiF, phiW, chiTot, chiSh, ns, lamDs, cs, s };
+}
+
+function drawStructureScene(dt){
+  const ctx = S.ctx, cv = S.cv, W = cv.clientWidth, H = cv.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+  const N = structureNumbers();
+
+  const showN = G.showDens;
+  const padL = W*0.085, padR = W*0.045;
+  const plotW = W - padL - padR;
+  const xEdge = padL + plotW*PS_FRAC;
+  const xWall = padL + plotW*(PS_FRAC + SH_FRAC);
+  const wallR = padL + plotW;
+
+  const yPhi0 = H*0.110;
+  const yPhiB = showN ? H*0.440 : H*0.675;
+  const nTop  = H*0.555, nBase = H*0.845;
+
+  const chiAxis = Math.max(6.6, N.chiTot*1.14);
+  const yPhi = chi => yPhi0 + (chi/chiAxis)*(yPhiB - yPhi0);
+  const yN   = f   => nBase - f*(nBase - nTop)*0.95;
+
+  const botY = showN ? nBase : yPhiB;
+
+  /* ── Wall block ───────────────────────────────────────────── */
+  ctx.fillStyle = C_WALL;
+  ctx.fillRect(xWall, yPhi0 - H*0.035, wallR - xWall, botY - yPhi0 + H*0.035);
+  ctx.strokeStyle = '#5a5f66'; ctx.lineWidth = 1.4;
+  ctx.strokeRect(xWall, yPhi0 - H*0.035, wallR - xWall, botY - yPhi0 + H*0.035);
+  ctx.save();
+  ctx.translate((xWall + wallR)/2, (yPhi0 + botY)/2);
+  ctx.rotate(-Math.PI/2);
+  plainText(ctx, 'WALL', 0, 4, 14, '#9aa3b2', 'center', 700);
+  ctx.restore();
+
+  /* ── Sheath shading + the dotted sheath-edge line ─────────── */
+  ctx.fillStyle = 'rgba(245,197,24,0.04)';
+  ctx.fillRect(xEdge, yPhi0 - H*0.035, xWall - xEdge, botY - yPhi0 + H*0.035);
+  ctx.save();
+  ctx.setLineDash([4,4]); ctx.strokeStyle = 'rgba(160,160,160,0.55)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(xEdge, yPhi0 - H*0.035); ctx.lineTo(xEdge, botY); ctx.stroke();
+  ctx.restore();
+
+  /* ── Region captions ──────────────────────────────────────── */
+  const capY = yPhi0 + (yPhiB - yPhi0)*0.30;
+  plainText(ctx, 'pre-sheath', (padL + xEdge)/2, capY, 15, '#9a9a9a', 'center', 600);
+  relCaption(ctx, '≈', (padL + xEdge)/2, capY + 23, 14.5);
+  plainText(ctx, 'sheath', (xEdge + xWall)/2, capY, 15, '#9a9a9a', 'center', 600);
+  relCaption(ctx, '≠', (xEdge + xWall)/2, capY + 23, 14.5);
+
+  /* ── φ axes ───────────────────────────────────────────────── */
+  ctx.strokeStyle = '#5a5a5a'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(padL - W*0.012, yPhi0); ctx.lineTo(wallR + W*0.022, yPhi0); ctx.stroke();
+  ctx.fillStyle = '#5a5a5a'; arrowHead(ctx, wallR + W*0.028, yPhi0, 1, 0, 9, 4);
+  plainText(ctx, 'x', wallR + W*0.034, yPhi0 + 5, 14, '#8a8a8a', 'left', 400);
+  // Vertical φ axis stands on the wall face, as in the textbook figure
+  ctx.strokeStyle = '#5a5a5a';
+  ctx.beginPath(); ctx.moveTo(xWall, yPhiB + H*0.02); ctx.lineTo(xWall, yPhi0 - H*0.055); ctx.stroke();
+  ctx.fillStyle = '#5a5a5a'; arrowHead(ctx, xWall, yPhi0 - H*0.062, 0, -1, 9, 4);
+  plainText(ctx, 'φ', xWall - 6, yPhi0 - H*0.075, 15, '#8a8a8a', 'right', 400);
+  subText(ctx, 'φ', 'p', padL - W*0.016, yPhi0 - 8, 15, C_PHI, 'right');
+
+  /* ── The potential curve ──────────────────────────────────── */
+  ctx.strokeStyle = C_PHI; ctx.lineWidth = 2.8; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  const NPP = 120;
+  for (let i=0;i<=NPP;i++){
+    const M = i/NPP;
+    const xn = (3*M - M*M*M)/2;
+    const x = padL + xn*(xEdge - padL);
+    const y = yPhi(M*M/2);
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  }
+  for (let i=1;i<=NPP;i++){
+    const t = i/NPP;
+    const x = xEdge + t*(xWall - xEdge);
+    const y = yPhi(0.5 + N.chiSh*Math.pow(t, 4/3));
+    ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+
+  /* ── −φ_w level ───────────────────────────────────────────── */
+  const yW = yPhi(N.chiTot);
+  ctx.save();
+  ctx.setLineDash([3,4]); ctx.strokeStyle = 'rgba(245,197,24,0.55)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(padL, yW); ctx.lineTo(wallR, yW); ctx.stroke();
+  ctx.restore();
+  const vTxt = N.phiW.toFixed(1).replace('-', '−') + ' V';
+  plainText(ctx, vTxt, wallR + W*0.006, yW + 4, 13.5, C_PHI, 'left', 700);
+  subText(ctx, 'φ', 'w', padL - W*0.016, yW + 5, 14.5, C_PHI, 'right');
+
+  /* ── Density panel ────────────────────────────────────────── */
+  if (showN){
+    // n axis, drawn at the sheath edge exactly as in the reference figure
+    ctx.strokeStyle = '#5a5a5a'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(padL - W*0.012, nBase); ctx.lineTo(wallR + W*0.022, nBase); ctx.stroke();
+    ctx.fillStyle = '#5a5a5a'; arrowHead(ctx, wallR + W*0.028, nBase, 1, 0, 9, 4);
+    plainText(ctx, 'x', wallR + W*0.034, nBase + 5, 14, '#8a8a8a', 'left', 400);
+    ctx.strokeStyle = '#5a5a5a';
+    ctx.beginPath(); ctx.moveTo(xEdge, nBase); ctx.lineTo(xEdge, nTop - H*0.03); ctx.stroke();
+    ctx.fillStyle = '#5a5a5a'; arrowHead(ctx, xEdge, nTop - H*0.037, 0, -1, 9, 4);
+    plainText(ctx, 'n', xEdge - 7, nTop - H*0.048, 15, '#8a8a8a', 'right', 400);
+
+    const neOf = chi => Math.exp(-chi);
+    const niSheath = chiS => NS_FRAC/Math.sqrt(1 + 2*chiS);
+
+    // n_i first and slightly heavier, so where the two coincide in the
+    // pre-sheath the ion line still shows around the electron line
+    ctx.strokeStyle = C_NI; ctx.lineWidth = 3.4; ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let i=0;i<=NPP;i++){
+      const M = i/NPP, xn = (3*M - M*M*M)/2;
+      const x = padL + xn*(xEdge - padL), y = yN(neOf(M*M/2));
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    for (let i=1;i<=NPP;i++){
+      const t = i/NPP;
+      const x = xEdge + t*(xWall - xEdge);
+      ctx.lineTo(x, yN(niSheath(N.chiSh*Math.pow(t, 4/3))));
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = C_NE; ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    for (let i=0;i<=NPP;i++){
+      const M = i/NPP, xn = (3*M - M*M*M)/2;
+      const x = padL + xn*(xEdge - padL), y = yN(neOf(M*M/2));
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    for (let i=1;i<=NPP;i++){
+      const t = i/NPP;
+      const x = xEdge + t*(xWall - xEdge);
+      ctx.lineTo(x, yN(neOf(0.5 + N.chiSh*Math.pow(t, 4/3))));
+    }
+    ctx.stroke();
+
+    // Curve labels, parked on the curves near the middle of the sheath
+    const tl = 0.45;
+    const xl = xEdge + tl*(xWall - xEdge);
+    subText(ctx, 'n', 'i', xl, yN(niSheath(N.chiSh*Math.pow(tl,4/3))) - 10, 15, C_NI, 'center');
+    const tn = 0.22;
+    const xn2 = xEdge + tn*(xWall - xEdge);
+    subText(ctx, 'n', 'e', xn2 - 4, yN(neOf(0.5 + N.chiSh*Math.pow(tn,4/3))) - 11, 15, C_NE, 'center');
+
+    // Sheath-edge density tick
+    ctx.save();
+    ctx.setLineDash([2,3]); ctx.strokeStyle = 'rgba(160,160,160,0.35)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(padL, yN(NS_FRAC)); ctx.lineTo(xEdge, yN(NS_FRAC)); ctx.stroke();
+    ctx.restore();
+    subText(ctx, 'n', 's', padL - W*0.016, yN(NS_FRAC) + 5, 13.5, '#8a8a8a', 'right');
+    subText(ctx, 'n', '0', padL - W*0.016, yN(1) + 5, 13.5, '#8a8a8a', 'right');
+  }
+
+  /* ── Split-scale note under the axis ─────────────────────── */
+  const magn = 0.5 * G.L / N.s;
+  const Ls = fmtLen(G.L), ss = fmtLen(N.s);
+  const noteY = botY + H*0.058;
+  plainText(ctx, 'pre-sheath  L = ' + Ls.v + ' ' + Ls.u.replace('&micro;','µ'),
+            (padL + xEdge)/2, noteY, 12.5, '#7a7a7a', 'center', 600);
+  plainText(ctx, 'sheath  s = ' + ss.v + ' ' + ss.u.replace('&micro;','µ')
+                 + '   (drawn ×' + (magn >= 10 ? magn.toFixed(0) : magn.toFixed(1)) + ')',
+            (xEdge + xWall)/2, noteY, 12.5, '#7a7a7a', 'center', 600);
+  ctx.save();
+  ctx.setLineDash([2,3]); ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(padL, noteY - H*0.028); ctx.lineTo(xEdge, noteY - H*0.028); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(xEdge, noteY - H*0.028); ctx.lineTo(xWall, noteY - H*0.028); ctx.stroke();
+  ctx.restore();
+
+  if (S._lbl !== 'struct'){
+    S._lbl = 'struct';
+    kx($('lbl-eq'),
+      '\\textcolor{#F5C518}{\\phi_w} - \\textcolor{#F5C518}{\\phi_p} = ' +
+      '-\\frac{kT_e}{2\\textcolor{#C060FF}{e}}\\left[\\ln\\!\\frac{\\textcolor{#FF4400}{m_i}}' +
+      '{2\\pi \\textcolor{#FF4400}{m_e}} + 1\\right]',
+      'phi_w - phi_p = -(kTe/2e)[ln(mi/2 pi me) + 1]');
+  }
+  sLabel('lbl-eq',  true, W*0.5, H*0.965);
+  sLabel('lbl-cap', false);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Readouts
+   ═══════════════════════════════════════════════════════════════════ */
+function updateWallInfo(){
+  const m = mass();
+  const R0   = fluxRatio(m);
+  const chiF = chiFloat(m);
+  const phiF = -(chiF + 0.5) * G.T;
+  const cs   = bohmSpeed(G.T, m);
+  const ve   = vbarE(G.T);
+
+  $('w-R').textContent = (R0*Math.exp(0.5)).toFixed(0);
+  $('w-phif').innerHTML = phiF.toFixed(1).replace('-', '&minus;') + ' <span>V</span>';
+  $('w-chif').innerHTML  = '&minus;' + (chiF + 0.5).toFixed(2) + ' <small>T<sub>e</sub>/e</small>';
+  $('w-chish').innerHTML = '&minus;' + chiF.toFixed(2) + ' <small>T<sub>e</sub>/e</small>';
+
+  const chi = chiOfWall(G.wFloat ? G.phiW : G.wBias);
+  const ratio = R0*Math.exp(-chi);
+  $('w-ratio').textContent = ratio >= 100 ? ratio.toFixed(0) : ratio.toFixed(2);
+  const net = 1 - ratio;
+  $('w-net').innerHTML = (net >= 0 ? '' : '&minus;') + Math.abs(net).toFixed(2) + ' <small>&times;J<sub>B</sub></small>';
+
+  const c = fmtSpeed(cs), v = fmtSpeed(ve);
+  $('w-cs').innerHTML = c.v + ' <small>' + c.u + '</small>';
+  $('w-ve').innerHTML = v.v + ' <small>' + v.u + '</small>';
+
+  $('w-T-val').innerHTML = G.T.toFixed(1) + '&nbsp;eV';
+  $('w-T-sub').innerHTML = '&equiv; ' + Math.round(G.T*EV_K).toLocaleString('en-US') + '&nbsp;K';
+  $('w-bias-row').classList.toggle('dim', G.wFloat);
+}
+
+function updateBohmInfo(){
+  const m = mass();
+  const M = G.M, coef = 1 - 1/(M*M);
+  const cs = bohmSpeed(G.T, m);
+  const lam = debyeLength(G.n0*NS_FRAC, G.T);
+
+  $('b-M-val').textContent = M.toFixed(2);
+  $('b-coef').textContent = (coef >= 0 ? '+' : '−') + Math.abs(coef).toFixed(3);
+
+  const v = $('b-verdict');
+  if (M > 1.005){
+    v.className = 'verdict ok';
+    v.innerHTML = '<b>A sheath exists.</b> The coefficient is positive, so &chi; grows like ' +
+                  'cosh(&radic;(1&minus;1/M&sup2;)&thinsp;&xi;). The potential falls away monotonically ' +
+                  'into the wall, which is exactly what an ion-attracting sheath must do.';
+    const k = Math.sqrt(coef);
+    const L = fmtLen(lam/k);
+    $('b-kl-lbl').textContent = 'e-folding length';
+    $('b-kl').innerHTML = L.v + ' <small>' + L.u + '</small>';
+  } else if (M > 0.995){
+    v.className = 'verdict ok';
+    v.innerHTML = '<b>Marginal &mdash; and this is the case nature picks.</b> The linear term vanishes, ' +
+                  'so the sheath is held up by the next order in &chi;. Real plasmas build a pre-sheath ' +
+                  'that delivers ions at precisely M = 1, no faster.';
+    $('b-kl-lbl').textContent = 'e-folding length';
+    $('b-kl').innerHTML = '&infin;';
+  } else {
+    v.className = 'verdict bad';
+    v.innerHTML = '<b>No sheath.</b> The coefficient is negative, so &chi; oscillates like ' +
+                  'cos(&radic;(1/M&sup2;&minus;1)&thinsp;&xi;) and immediately swings negative &mdash; the ' +
+                  'potential would rise above the plasma and repel the very ions it is supposed to collect.';
+    const L = fmtLen(2*Math.PI*lam/Math.sqrt(-coef));
+    $('b-kl-lbl').textContent = 'oscillation wavelength';
+    $('b-kl').innerHTML = L.v + ' <small>' + L.u + '</small>';
+  }
+
+  const c = fmtSpeed(cs), u = fmtSpeed(M*cs);
+  $('b-cs').innerHTML  = c.v + ' <small>' + c.u + '</small>';
+  $('b-us').innerHTML  = u.v + ' <small>' + u.u + '</small>';
+  $('b-eng').innerHTML = (0.5*M*M*G.T).toFixed(2) + ' <small>eV</small>';
+  const L = fmtLen(lam);
+  $('b-lam').innerHTML = L.v + ' <small>' + L.u + '</small>';
+}
+
+function updateStructureInfo(){
+  const N = structureNumbers();
+
+  const ss = fmtLen(N.s), ls = fmtLen(N.lamDs);
+  $('s-s').innerHTML   = ss.v + ' <span>' + ss.u + '</span>';
+  $('s-lam').innerHTML = ls.v + ' <small>' + ls.u + '</small>';
+  $('s-slam').textContent = (N.s/N.lamDs).toFixed(2);
+  const c = fmtSpeed(N.cs);
+  $('s-cs').innerHTML = c.v + ' <small>' + c.u + '</small>';
+  $('s-Ls').textContent = (G.L/N.s).toFixed(0);
+
+  $('s-dps').innerHTML  = '&minus;' + (0.5*G.T).toFixed(2) + ' <small>V</small>';
+  $('s-dsh').innerHTML  = '&minus;' + (N.chiSh*G.T).toFixed(1) + ' <small>V</small>';
+  $('s-dtot').innerHTML = '&minus;' + (N.chiTot*G.T).toFixed(1) + ' <small>V</small>';
+  $('s-ns').textContent = NS_FRAC.toFixed(2);
+
+  const jb = QE*N.ns*N.cs;
+  $('s-jb').innerHTML = (jb >= 100 ? jb.toFixed(0) : jb.toFixed(1)) + ' <small>A/m&sup2;</small>';
+  const Ei = N.chiTot*G.T;
+  $('s-ei').innerHTML = Ei.toFixed(1) + ' <small>eV</small>';
+
+  const er = $('s-erode');
+  if (Ei > 50){
+    er.innerHTML = 'Above roughly 50&nbsp;eV the arriving ions can sputter boron nitride and ceramics. ' +
+                   'This is why hot-electron devices erode their walls.';
+  } else if (Ei > 25){
+    er.innerHTML = 'Near the sputtering threshold of most wall materials. Every ion that arrives is also ' +
+                   'a lost propellant atom and a lost ionization.';
+  } else {
+    er.innerHTML = 'Below the sputtering threshold of typical wall materials, but the ions are still lost ' +
+                   'to the wall &mdash; energy spent on ionization that produced no thrust.';
+  }
+
+  $('s-T-val').innerHTML = G.T.toFixed(1) + '&nbsp;eV';
+  $('s-T-sub').innerHTML = '&equiv; ' + Math.round(G.T*EV_K).toLocaleString('en-US') + '&nbsp;K';
+  const e = Math.floor(Math.log10(G.n0));
+  $('s-n-val').innerHTML = (G.n0/Math.pow(10,e)).toFixed(1) + '&times;10<sup>' + e + '</sup>';
+  $('s-L-val').innerHTML = (G.L*1e3).toFixed(1) + '&nbsp;mm';
+
+  if (G.sFloat){
+    $('s-bias').value = Math.max(-250, Math.min(-2, N.phiF));
+    $('s-bias-val').innerHTML = N.phiF.toFixed(1).replace('-', '&minus;') + '&nbsp;V';
+  } else {
+    $('s-bias-val').innerHTML = G.sBias.toFixed(0).replace('-', '&minus;') + '&nbsp;V';
+  }
+  $('s-bias-row').classList.toggle('dim', G.sFloat);
+  $('s-s-note').innerHTML = 'Child&ndash;Langmuir: s = (&radic;2/3)&thinsp;&lambda;<sub>Ds</sub>' +
+                            '(2&chi;<sub>w</sub>)<sup>3/4</sup> with &chi;<sub>w</sub> = ' +
+                            N.chiSh.toFixed(2) + '. A floating wall always lands near 3&thinsp;&lambda;<sub>D</sub>.';
+}
+
+function updateAll(){ updateWallInfo(); updateBohmInfo(); updateStructureInfo(); }
+
+/* Keep the duplicated species / temperature widgets in step. */
+function syncWidgets(){
+  $('w-sp').value = G.sp; $('s-sp').value = G.sp;
+  $('w-T').value  = G.T;  $('s-T').value  = G.T;
+}
+
+/* ── Canvas sizing (DPR-aware) ───────────────────────────────────── */
+function sizeCanvas(){
+  const cv = S.cv; if (!cv) return;
+  const vp = $('viewport'), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width  = Math.max(1, Math.round(vp.clientWidth  * dpr));
+  cv.height = Math.max(1, Math.round(vp.clientHeight * dpr));
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  S.ctx = ctx;
+}
+
+/* ── Mode switching ──────────────────────────────────────────────── */
+const MODES = ['wall','bohm','structure'];
+function setMode(mode){
+  if (MODES.indexOf(mode) < 0) mode = 'wall';
+  S.mode = mode; S.t = 0; S._lbl = '';
+  sLabel('lbl-eq', false); sLabel('lbl-cap', false);
+  document.querySelectorAll('.mode-tab').forEach(tb => tb.classList.toggle('active', tb.dataset.mode === mode));
+  $('ix-wall').classList.toggle('active', mode === 'wall');
+  $('ix-bohm').classList.toggle('active', mode === 'bohm');
+  $('ix-structure').classList.toggle('active', mode === 'structure');
+  if (mode === 'wall') G.phiW = 0;     // replay the charging every time
+}
+
+/* ── Render loop ─────────────────────────────────────────────────── */
+let _last = null;
+function animate(ts){
+  requestAnimationFrame(animate);
+  const now = (ts || 0) / 1000;
+  const dt = _last === null ? 0 : Math.min(now - _last, 0.05);
+  _last = now;
+  if (S.mode === 'wall'){ drawWallScene(dt); updateWallInfo(); }
+  else if (S.mode === 'bohm') drawBohmScene(dt);
+  else drawStructureScene(dt);
+}
+
+/* ── Init ────────────────────────────────────────────────────────── */
+function init(){
+  S.cv = $('scene-canvas');
+  sizeCanvas();
+  window.addEventListener('resize', sizeCanvas);
+  seedWall();
+
+  /* Mode 1 */
+  $('w-sp').addEventListener('change', e => {
+    G.sp = e.target.value; G.phiW = 0; syncWidgets(); updateAll();
+  });
+  $('w-T').addEventListener('input', e => { G.T = +e.target.value; syncWidgets(); updateAll(); });
+  $('w-float').addEventListener('change', e => {
+    G.wFloat = e.target.checked;
+    if (!G.wFloat) G.wBias = +$('w-bias').value;
+    updateAll();
+  });
+  $('w-bias').addEventListener('input', e => {
+    G.wBias = +e.target.value;
+    if (G.wFloat){ G.wFloat = false; $('w-float').checked = false; }
+    $('w-bias-val').innerHTML = G.wBias.toFixed(1).replace('-', '&minus;') + '&nbsp;V';
+    updateAll();
+  });
+  $('w-reset').addEventListener('click', () => {
+    G.wFloat = true; $('w-float').checked = true; G.phiW = 0;
+  });
+
+  /* Mode 2 */
+  $('b-M').addEventListener('input', e => { G.M = +e.target.value; updateBohmInfo(); });
+
+  /* Mode 3 */
+  $('s-sp').addEventListener('change', e => { G.sp = e.target.value; syncWidgets(); updateAll(); });
+  $('s-T').addEventListener('input', e => { G.T = +e.target.value; syncWidgets(); updateAll(); });
+  $('s-n').addEventListener('input', e => { G.n0 = Math.pow(10, +e.target.value); updateAll(); });
+  $('s-L').addEventListener('input', e => { G.L = +e.target.value * 1e-3; updateStructureInfo(); });
+  $('s-float').addEventListener('change', e => {
+    G.sFloat = e.target.checked;
+    if (!G.sFloat) G.sBias = +$('s-bias').value;
+    updateStructureInfo();
+  });
+  $('s-bias').addEventListener('input', e => {
+    G.sBias = +e.target.value;
+    if (G.sFloat){ G.sFloat = false; $('s-float').checked = false; }
+    updateStructureInfo();
+  });
+  $('s-dens').addEventListener('change', e => { G.showDens = e.target.checked; });
+
+  /* Mode tabs */
+  document.querySelectorAll('.mode-tab').forEach(tb =>
+    tb.addEventListener('click', () => setMode(tb.dataset.mode)));
+
+  /* Deep-link: ?mode=wall|bohm|structure. When a mode is pinned via the URL
+     (the applet page embeds each mode separately), lock to it and hide the
+     tabs so the reader is not offered a control the page does not expect. */
+  const params = new URLSearchParams(location.search);
+  const q = (params.get('mode') || '').toLowerCase();
+  let startMode = 'wall';
+  if (/^(bohm|criterion|mach)/.test(q))            startMode = 'bohm';
+  else if (/^(struct|profile|sheath|full)/.test(q)) startMode = 'structure';
+  if (params.has('mode')){
+    const tabs = document.querySelector('.mode-tabs');
+    if (tabs) tabs.style.display = 'none';
+  }
+
+  syncWidgets();
+  updateAll();
+  setMode(startMode);
+  requestAnimationFrame(animate);
+}
+
+// Re-render KaTeX call-outs once the library finishes loading (script is deferred).
+window.__onKatex = function(){ S._lbl = ''; };
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+</script>
+</body>
+</html>

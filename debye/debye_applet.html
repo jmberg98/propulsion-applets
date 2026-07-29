@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>What Is a Plasma? &mdash; The Debye Length</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+:root {
+  /* ── Physics colour tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a colour mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-canvas:   #090909;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+.transition-line,
+.demo-blurb,
+footer { width: var(--page-w); }
+
+/* Caption under an embedded demo — tells the reader what to go and try. */
+.demo-blurb {
+  font-size: 18.5px; line-height: 1.65; color: var(--text-muted); margin-bottom: 22px;
+}
+
+.theory-block.applet-host { width: var(--page-w); margin-left: 0; }
+
+/* ── Highlight classes ────────────────────────────────────
+   Colour is the ONLY channel these use — never weight, never
+   size. Colour answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Colour key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.colour-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.colour-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.colour-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+#hdr h1 { font-size: 25px; font-weight: 700; color: var(--text-heading); letter-spacing: .3px; }
+
+.badge {
+  font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  padding: 2px 8px; border: 1px solid var(--c-accent); border-radius: 3px;
+  color: var(--c-accent); background: var(--c-accent-bg); white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro { font-size: 20.5px; line-height: 1.72; color: var(--text-main); margin-bottom: 18px; }
+.page-intro + .page-intro { margin-top: -4px; }
+.page-intro.section-lead {
+  border-top: 1px solid var(--border);
+  padding-top: 20px; margin-top: 4px;
+}
+
+/* ── Transition line ─────────────────────────────────── */
+.transition-line {
+  font-size: 20.5px; line-height: 1.6; color: var(--text-secondary); font-style: italic;
+  margin: 6px 0 20px; padding-top: 18px; border-top: 1px solid var(--border);
+}
+
+/* ══════════ THEORY / APPLET BLOCKS ══════════ */
+.theory-block {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--bg-panel-1); padding: 16px 18px; margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
+  text-transform: uppercase; padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+}
+.th-body { font-size: 20.5px; line-height: 1.70; color: var(--text-main); margin-bottom: 14px; }
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr { margin: 0 18px 12px; }
+
+.applet-frame {
+  display: block; width: 100%; height: 700px; border: 0;
+  border-top: 1px solid var(--border); background: var(--bg-canvas);
+}
+
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
+/* ══════════ DERIVATIONS ══════════ */
+details.deriv-detail { border: 1px solid var(--border); border-radius: 4px; margin: 10px 0 0; }
+details.deriv-detail > summary {
+  cursor: pointer; list-style: none; display: block;
+  background: var(--bg-input); padding: 8px 14px;
+  font-size: 12px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase;
+  color: var(--c-accent); user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6'; font-size: 9px; color: var(--c-accent);
+  display: inline-block; margin-right: 6px; transition: transform .15s ease;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+.deriv-inner { padding: 10px 16px 16px; background: var(--bg-panel-1); border-top: 1px solid var(--border); }
+
+.eq-step-label {
+  display: block; font-size: 11px; letter-spacing: .8px; text-transform: uppercase;
+  color: #8a8b8c; margin-top: 12px;
+}
+.eq-note { display: block; font-size: 17px; line-height: 1.6; color: var(--text-secondary); margin-top: 4px; }
+.eq-caption {
+  display: block; font-size: 14.5px; color: var(--text-muted); text-align: center;
+  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+.eq-callout {
+  background: #141414; border-left: 3px solid #383838;
+  padding: 9px 13px; margin: 10px 0 0; border-radius: 0 3px 3px 0;
+  font-size: 17px; line-height: 1.55; color: var(--text-secondary);
+}
+.eq-callout.highlight-blue  { border-left-color: var(--c-ve); }
+.eq-callout.highlight-green { border-left-color: var(--c-press); }
+
+/* ══════════ QUIZ ══════════ */
+.quiz-section {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--bg-panel-1); margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border); background: var(--bg-panel-1);
+}
+.quiz-block { padding: 14px 18px 16px; background: var(--bg-panel-1); }
+.quiz-block + .quiz-block { border-top: 1px solid var(--border); background: var(--bg-panel-2); }
+.quiz-q { font-size: 20.5px; font-weight: 600; color: var(--text-heading); margin-bottom: 6px; line-height: 1.55; }
+.quiz-options { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+.quiz-opt {
+  display: flex; align-items: center; gap: 12px; padding: 9px 14px;
+  background: var(--bg-panel-4); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-main); font-family: 'Barlow', sans-serif; font-size: 19px; font-weight: 500;
+  cursor: pointer; text-align: left; transition: background 0.15s, border-color 0.15s, color 0.15s; width: 100%;
+}
+.quiz-opt:hover:not(:disabled):not(.selected) { background: #222222; border-color: #3a3a3a; }
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.correct { background: rgba(81,207,102,0.09); border-color: rgba(81,207,102,0.38); color: #51cf66; }
+.quiz-opt.wrong   { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.28); color: #ff8e8e; }
+.quiz-opt-label {
+  font-size: 17px; font-weight: 700; color: #444; flex-shrink: 0; width: 20px; text-align: center; transition: color 0.15s;
+}
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-feedback { font-size: 18px; color: var(--text-muted); min-height: 22px; font-style: italic; margin-top: 8px; }
+
+/* ══════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ══════════ */
+.clarify-section {
+  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  background: var(--bg-panel-1); margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
+  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border);
+}
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer; list-style: none; display: block;
+  padding: 12px 14px 12px 34px; font-size: 20.5px; font-weight: 600;
+  color: var(--text-heading); background: var(--bg-panel-2); user-select: none; line-height: 1.5;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6'; font-size: 10px; color: var(--c-accent); display: inline-block;
+  width: 12px; margin-left: -20px; margin-right: 8px; text-align: center;
+  transition: transform 0.15s ease; transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-accent); outline-offset: -2px; }
+.clarify-body {
+  padding: 12px 18px 15px; border-top: 1px solid var(--border);
+  font-size: 20.5px; line-height: 1.70; color: var(--text-main); background: var(--bg-panel-1);
+}
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.15em !important; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w); display: flex; justify-content: space-between; align-items: center;
+  gap: 10px; margin-bottom: 18px;
+}
+.applet-nav a, .applet-nav .nav-disabled {
+  font-family: inherit; font-size: 16px; font-weight: 600; letter-spacing: 0.3px; text-decoration: none;
+  padding: 8px 14px; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-secondary); background: var(--bg-panel-1); white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover { border-color: var(--c-accent); background: var(--bg-panel-3); color: var(--text-heading); }
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <a class="nav-prev" href="../optimum_isp/optimum_isp_applet.html">&larr; Prev</a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="../electrostatic/electrostatic_applet.html">Next &rarr;</a>
+</nav>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>What Is a Plasma? &mdash; The Debye Length</h1>
+  <span class="badge">Plasma Physics</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  Every electric propulsion device works on a <span class="key">plasma</span>, so it is worth being precise about what
+  that word means. Start with an ordinary gas and add enough energy to knock electrons off some of the atoms. What
+  is left is an <span class="key">ionized gas</span>: a mixture of <span class="hl-neutral">neutral atoms</span> that
+  were never ionized, positively charged <span class="hl-ion">ions</span>, and the negatively charged
+  <span class="hl-electron">electrons</span> that were freed along the way.
+</p>
+
+<div class="colour-key">
+  <span class="ck-lead">Colour key</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion, &lambda;<sub>D</sub>, &omega;<sub>p</sub></span>
+  <span class="ck"><i style="background:var(--c-power)"></i>electron, charge, n<sub>e</sub></span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>potential &phi;</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>mass</span>
+</div>
+
+<p class="page-intro">
+  Ionization never produces a charge out of nothing: pulling one <span class="hl-electron">electron</span> off a
+  <span class="hl-neutral">neutral atom</span> leaves behind exactly one <span class="hl-ion">ion</span>. So however
+  hard we ionize the gas, the free positive and negative charges are created in matched pairs, and their number
+  densities stay equal. That property has a name &mdash; <span class="key">quasineutrality</span> &mdash; and it is the
+  defining feature of a plasma.
+</p>
+
+$$
+\textcolor{#4d9bff}{n_+} \;\approx\; \textcolor{#C060FF}{n_-}
+$$
+
+<!-- ════════════════════ QUIZ 1 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">A neutral gas is heated until a third of its atoms have been ionized. How do the numbers of free
+    positive and negative charges compare?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>There are far more positive charges, because ions are much heavier.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>They are equal, because each ionization makes one ion and one electron.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>There are far more negative charges, because electrons move faster.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DEMO 1 ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 1 &mdash; An Ionized Gas</div>
+  <iframe class="applet-frame" src="debye.html?mode=plasma"
+          title="A box of neutral atoms, ions and electrons — raising the ionization fraction keeps the positive and negative counts equal"
+          loading="lazy"></iframe>
+</div>
+
+<p class="demo-blurb">
+  Drag the ionization fraction from 0&nbsp;% to 100&nbsp;% and watch the census: the ion and electron counts move
+  together, always. Notice too that the <span class="hl-electron">electrons</span> dart around far more quickly than
+  the <span class="hl-ion">ions</span> &mdash; at the same temperature a xenon ion is about 240,000 times heavier, so
+  it moves some 490 times more slowly. That speed difference is what makes the next section work.
+</p>
+
+<!-- ════════════════════ SHIELDING ════════════════════ -->
+<p class="page-intro section-lead">
+  Quasineutrality is not a law that is enforced everywhere at once &mdash; it is a result of the plasma constantly
+  repairing itself. Suppose we drop an excess of positive charge into the middle of the plasma, or push a probe into
+  it, or let a wall charge up. That charge sets up a <span class="hl-phi">potential</span>. The light, mobile
+  <span class="hl-electron">electrons</span> are pulled inwards and crowd around it, while the ions are pushed away.
+  Seen from far enough off, the cloud of extra electrons cancels the intruding charge completely: the
+  <span class="hl-phi">potential</span> is <span class="key">screened</span>.
+</p>
+
+<p class="page-intro">
+  The screening is never perfect, because the electrons are also in thermal motion and refuse to sit still in the
+  potential well. The competition between the electrostatic pull and the thermal energy sets a characteristic
+  distance over which the <span class="hl-phi">potential</span> survives before it is buried. That distance is the
+  <span class="key">Debye length</span>, <span class="hl-ve">&lambda;<sub>D</sub></span>.
+</p>
+
+<div class="theory-block">
+  <div class="th-hdr">The Debye Length</div>
+  <p class="th-body">
+    Balance the electrostatic energy of displacing the electrons over a distance
+    <span class="hl-ve">&lambda;</span> against the thermal energy they carry, and the screening distance falls out
+    directly:
+  </p>
+
+  $$
+  \boxed{\;
+    \textcolor{#3DBFFF}{\lambda_D} \;=\;
+    \sqrt{\dfrac{\varepsilon_0\, k T}
+                {\textcolor{#C060FF}{e}^{2}\, \textcolor{#C060FF}{n_e}}}
+  \;}
+  $$
+
+  <span class="eq-caption">
+    $\varepsilon_0 = 8.854\times10^{-12}\ \mathrm{F/m}$ &nbsp;&middot;&nbsp;
+    $k = 1.38\times10^{-23}\ \mathrm{J/K}$
+  </span>
+
+  <details class="deriv-detail">
+    <summary>Show derivation</summary>
+    <div class="deriv-inner">
+
+      <span class="eq-step-label">Set-up</span>
+      <span class="eq-note">
+        Take a slab of plasma and displace every electron in it by a distance
+        $\textcolor{#3DBFFF}{\lambda}$. That leaves a sheet of uncompensated positive charge behind and a sheet of
+        negative charge ahead, of surface density $\textcolor{#C060FF}{e}\,\textcolor{#C060FF}{n_e}\textcolor{#3DBFFF}{\lambda}$.
+        The work done against the resulting field, per electron, is
+      </span>
+
+      $$
+      W \;=\; -\,\frac{\textcolor{#C060FF}{e}^{2}\textcolor{#C060FF}{n_e}}{\varepsilon_0}\,
+              \frac{\textcolor{#3DBFFF}{\lambda}^{2}}{2}
+      $$
+
+      <div class="eq-divider"></div>
+
+      <span class="eq-step-label">Balance against thermal energy</span>
+      <span class="eq-note">
+        The electrons will keep pushing back out until the electrostatic energy they must climb equals the thermal
+        energy they have to spend &mdash; one degree of freedom's worth, $\tfrac{1}{2}kT$:
+      </span>
+
+      $$
+      |W| \;=\; \frac{\textcolor{#C060FF}{e}^{2}\textcolor{#C060FF}{n_e}}{2\varepsilon_0}\,
+                \textcolor{#3DBFFF}{\lambda}^{2}
+            \;=\; \tfrac{1}{2}\,kT
+      $$
+
+      <div class="eq-divider"></div>
+
+      <span class="eq-step-label">Solve for the screening distance</span>
+      <span class="eq-note">
+        The factors of $\tfrac{1}{2}$ cancel, leaving
+        $\textcolor{#3DBFFF}{\lambda}^{2} = \varepsilon_0 kT / (\textcolor{#C060FF}{e}^2 \textcolor{#C060FF}{n_e})$:
+      </span>
+
+      $$
+      \boxed{\;
+        \textcolor{#3DBFFF}{\lambda_D} \;=\;
+        \sqrt{\dfrac{\varepsilon_0\, k T}
+                    {\textcolor{#C060FF}{e}^{2}\, \textcolor{#C060FF}{n_e}}}
+      \;}
+      $$
+
+      <div class="eq-callout highlight-blue">
+        <b>Hotter is longer.</b> $\textcolor{#3DBFFF}{\lambda_D} \propto \sqrt{T}$. Energetic electrons refuse to be
+        held in the potential well, so the cloud they form is loose and spread out, and the charge reaches further.
+      </div>
+      <div class="eq-callout highlight-green">
+        <b>Denser is shorter.</b> $\textcolor{#3DBFFF}{\lambda_D} \propto 1/\sqrt{\textcolor{#C060FF}{n_e}}$. With more
+        electrons available, fewer of them have to move to cancel the same charge, so the job is finished closer in.
+      </div>
+      <div class="eq-callout">
+        Solving Poisson's equation for the shielded charge rather than arguing by energy gives the same
+        $\textcolor{#3DBFFF}{\lambda_D}$, together with the shape of the decay: in one dimension the potential falls
+        off as $\textcolor{#F5C518}{\phi(x)} = \textcolor{#F5C518}{\phi_0}\,e^{-|x|/\textcolor{#3DBFFF}{\lambda_D}}$,
+        which is the curve plotted in the demo below.
+      </div>
+
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════════ QUIZ 2 ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">You hold the electron density fixed and raise the electron temperature by a factor of four. What
+    happens to the Debye length?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>It shrinks by a factor of two &mdash; hotter electrons screen better.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>It grows by a factor of two &mdash; it scales as the square root of T.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>It grows by a factor of four &mdash; it scales linearly with T.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DEMO 2 ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Demo 2 &mdash; Screening a Charge</div>
+  <iframe class="applet-frame" src="debye.html?mode=shielding"
+          title="The potential of an excess positive charge in a plasma, screened over the Debye length, with temperature and density controls"
+          loading="lazy"></iframe>
+</div>
+
+<p class="demo-blurb">
+  The horizontal axis is fixed at 700&nbsp;&micro;m across, so the curve is the thing that moves. Raise the temperature
+  and the <span class="hl-electron">electron</span> cloud loosens and spreads &mdash; the
+  <span class="hl-phi">potential</span> reaches further out. Raise the density and the cloud tightens until the
+  <span class="hl-phi">potential</span> is cut off almost at the source. The dashed markers sit at
+  <span class="hl-ve">&plusmn;&lambda;<sub>D</sub></span>, where the potential has fallen to
+  <span class="hl-phi">&phi;<sub>0</sub></span>/e of its peak.
+</p>
+
+<!-- ════════════════════ PLASMA FREQUENCY ════════════════════ -->
+<p class="page-intro section-lead">
+  The Debye length answers &ldquo;how far?&rdquo;. The companion question is &ldquo;how fast?&rdquo;. Displace the
+  <span class="hl-electron">electrons</span> in a slab of plasma bodily by a small distance $x$ and let go. The
+  exposed sheets of charge pull them straight back, they overshoot, and the slab rings. That oscillation is the
+  <span class="key">plasma frequency</span>, and it is the rate at which a plasma repairs a charge imbalance.
+</p>
+
+<div class="theory-block">
+  <div class="th-hdr">The Plasma Frequency</div>
+
+  $$
+  \boxed{\;
+    \textcolor{#3DBFFF}{\omega_p} \;=\;
+    \sqrt{\dfrac{\textcolor{#C060FF}{e}^{2}\,\textcolor{#C060FF}{n_e}}
+                {\textcolor{#FF4400}{m_e}\,\varepsilon_0}}
+  \;}
+  $$
+
+  <details class="deriv-detail">
+    <summary>Show derivation</summary>
+    <div class="deriv-inner">
+
+      <span class="eq-step-label">Restoring field</span>
+      <span class="eq-note">
+        Displacing the electron slab by $x$ exposes a surface charge
+        $\sigma = \textcolor{#C060FF}{e}\,\textcolor{#C060FF}{n_e}x$ on each face, which sets up a uniform field
+        $\textcolor{#F5C518}{E} = \sigma/\varepsilon_0$ pulling the electrons back.
+      </span>
+
+      <span class="eq-step-label">Newton's second law for the slab</span>
+      $$
+      \textcolor{#FF4400}{m_e}\,\cancel{\textcolor{#C060FF}{n_e}}\,\frac{d^{2}x}{dt^{2}}
+        \;=\; -\,\textcolor{#C060FF}{e}\,\cancel{\textcolor{#C060FF}{n_e}}
+              \left( \frac{\textcolor{#C060FF}{e}\,\textcolor{#C060FF}{n_e}}{\varepsilon_0}\,x \right)
+      $$
+      <span class="eq-note">
+        The density of oscillating electrons cancels from both sides &mdash; every electron feels the same restoring
+        field, so the frequency does not depend on how many of them are swinging together.
+      </span>
+
+      <div class="eq-divider"></div>
+
+      <span class="eq-step-label">Simple harmonic motion</span>
+      $$
+      \frac{d^{2}x}{dt^{2}}
+        \;+\; \underbrace{\frac{\textcolor{#C060FF}{e}^{2}\textcolor{#C060FF}{n_e}}
+                               {\textcolor{#FF4400}{m_e}\varepsilon_0}}_{\textstyle \textcolor{#3DBFFF}{\omega_p}^{2}}\, x
+        \;=\; 0
+      $$
+      <span class="eq-caption">the equation of a harmonic oscillator, read off directly</span>
+
+      $$
+      \boxed{\;
+        \textcolor{#3DBFFF}{\omega_p} \;=\;
+        \sqrt{\dfrac{\textcolor{#C060FF}{e}^{2}\,\textcolor{#C060FF}{n_e}}
+                    {\textcolor{#FF4400}{m_e}\,\varepsilon_0}}
+      \;}
+      $$
+
+      <div class="eq-callout highlight-blue">
+        Numerically, $\textcolor{#3DBFFF}{\omega_p} \approx 56.4\sqrt{\textcolor{#C060FF}{n_e}}$ rad/s with
+        $\textcolor{#C060FF}{n_e}$ in m<sup>&minus;3</sup>. An ion thruster discharge at
+        $10^{17}$&nbsp;m<sup>&minus;3</sup> rings at about 2.8&nbsp;GHz &mdash; microwave frequencies, which is why
+        plasma density is often measured with a microwave interferometer.
+      </div>
+      <div class="eq-callout highlight-green">
+        The two results are not independent. Multiplying them gives
+        $\textcolor{#3DBFFF}{\lambda_D}\,\textcolor{#3DBFFF}{\omega_p} = \sqrt{kT/\textcolor{#FF4400}{m_e}}$, the
+        electron thermal speed. The Debye length is simply how far a typical electron travels in one plasma period:
+        the plasma screens a charge in the time it takes its electrons to run across one Debye length.
+      </div>
+
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>If a plasma has equal numbers of positive and negative charges, why say &ldquo;quasi&rdquo;neutral rather
+    than just neutral?</summary>
+    <div class="clarify-body">
+      Because the equality only holds when you average over a region larger than
+      <span class="hl-ve">&lambda;<sub>D</sub></span>. Look closer than that &mdash; inside the shielding cloud around
+      an <span class="hl-ion">ion</span>, or within a Debye length of a wall &mdash; and the charge densities are
+      genuinely different, which is exactly what lets a <span class="hl-phi">potential</span> exist there at all. A
+      plasma is neutral on scales large compared to <span class="hl-ve">&lambda;<sub>D</sub></span> and charged on
+      scales small compared to it. That is what &ldquo;quasi&rdquo; is doing.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>Why do the <span class="hl-electron">electrons</span> do the shielding rather than the
+    <span class="hl-ion">ions</span>?</summary>
+    <div class="clarify-body">
+      Both species respond, but not on the same clock. A xenon ion is about 240,000 times more massive than an
+      electron, so at the same temperature it moves roughly 490 times more slowly. By the time the ions have begun to
+      rearrange, the electrons have already been around the perturbation and back many times over. For anything that
+      happens on the timescale of a discharge, the electrons have done the job on their own. The strict expression for
+      the Debye length adds an ion term, but in the plasmas we care about it is a small correction.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>It seems backwards that a <em>hotter</em> plasma shields <em>worse</em>. Shouldn&rsquo;t more energetic
+    electrons respond more strongly?</summary>
+    <div class="clarify-body">
+      They respond faster, but shielding is not about speed &mdash; it is about being <em>held in place</em>. The cloud
+      that cancels an intruding charge has to be a region where electrons pile up and stay piled up. Thermal motion
+      works against that: a hot electron sails straight through the potential well instead of settling into it. The
+      hotter the electrons, the deeper and wider a well has to be before it can hold them, so the
+      <span class="hl-phi">potential</span> reaches further before it is cancelled. Raising
+      <span class="hl-electron">n<sub>e</sub></span> has the opposite effect for the same reason: more electrons per
+      unit volume means the pile-up needed is a smaller fractional change in density, achieved closer in.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>Why does it matter that a device is much bigger than <span class="hl-ve">&lambda;<sub>D</sub></span>?</summary>
+    <div class="clarify-body">
+      That comparison is what earns an ionized gas the name plasma. If the container is smaller than
+      <span class="hl-ve">&lambda;<sub>D</sub></span>, the charges never get the chance to screen anything &mdash; the
+      gas is just a collection of independent particles that happen to be charged, and the walls set the
+      <span class="hl-phi">potential</span> everywhere. If the container is much larger, the bulk of the gas is
+      quasineutral and behaves collectively, and the charged regions are pushed into thin
+      <span class="key">sheaths</span> a few <span class="hl-ve">&lambda;<sub>D</sub></span> thick against the walls
+      and grids. In an ion engine <span class="hl-ve">&lambda;<sub>D</sub></span> is tens of microns while the chamber
+      is tens of centimetres &mdash; four orders of magnitude &mdash; so the plasma description is a very safe one.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>What does the number of particles per Debye sphere tell us?</summary>
+    <div class="clarify-body">
+      Shielding is a <span class="key">collective effect</span>: it takes a crowd of electrons to bury a charge. The
+      count $N_D = \textcolor{#C060FF}{n_e}\cdot\tfrac{4}{3}\pi\textcolor{#3DBFFF}{\lambda_D}^3$ checks that the crowd
+      exists. If $N_D$ were of order one, the "cloud" would be a single electron and the statistical argument behind
+      the Debye length would collapse. In the demo $N_D$ runs into the tens of thousands, which is why the smooth
+      exponential curve is a fair description of what a real plasma does.
+    </div>
+  </details>
+</div>
+
+<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>

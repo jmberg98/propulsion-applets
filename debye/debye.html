@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Debye Length &amp; Plasma Shielding</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"
+  onload="window.__onKatex && window.__onKatex()"></script>
+
+<style>
+  :root {
+    /* Physics-quantity colors */
+    --c-thrust : #FF4400;
+    --c-ve     : #3DBFFF;
+    --c-power  : #C060FF;
+    --c-press  : #00DDB5;
+    --c-efield : #F5C518;
+    --c-neutral: #9aa3b2;
+
+    /* UI chrome */
+    --c-accent      : #a0a0a0;
+    --c-accent-bg   : rgba(160,160,160,0.07);
+    --c-accent-glow : rgba(160,160,160,0.13);
+
+    /* Text */
+    --text-main      : #d6d6d6;
+    --text-secondary : #aaaaaa;
+    --text-muted     : #7a7a7a;
+    --text-heading   : #f0f0f0;
+
+    /* Borders */
+    --border : #282828;
+
+    /* Backgrounds */
+    --bg-page    : #090909;
+    --bg-panel-1 : #0e0e0e;
+    --bg-panel-2 : #121212;
+    --bg-panel-3 : #171717;
+    --bg-panel-4 : #1d1d1d;
+    --bg-input   : #191919;
+    --bg-canvas  : #090909;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Barlow', 'Segoe UI', sans-serif;
+    background : var(--bg-page);
+    color      : var(--text-main);
+    overflow   : hidden;
+  }
+
+  ::-webkit-scrollbar             { width:6px; height:6px; }
+  ::-webkit-scrollbar-track       { background: var(--bg-panel-1); }
+  ::-webkit-scrollbar-thumb       { background:#383838; border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:#d0d0d0; }
+
+  /* ── App shell ───────────────────────────────────────────── */
+  #app { display:flex; flex-direction:row; height:100vh; width:100vw; }
+
+  #viewport {
+    position:relative; flex:1 1 auto; min-width:0;
+    background: var(--bg-canvas);
+  }
+  /* Opaque 2-D scene canvas fills the viewport. */
+  #scene-canvas {
+    position:absolute; inset:0; width:100%; height:100%;
+    display:block; background: var(--bg-canvas); z-index:1;
+  }
+
+  /* ── KaTeX overlay laid over the canvas ──────────────────── */
+  #scene-ui { position:absolute; inset:0; pointer-events:none; z-index:2; }
+  #scene-ui .katex { color:inherit; }
+  /* Scene call-outs — positioned in JS so they track canvas features. */
+  .slbl {
+    position:absolute; transform:translate(-50%,-50%);
+    font-size:15px; color:var(--text-secondary); white-space:nowrap;
+    text-align:center; opacity:0; transition:opacity 0.2s ease;
+  }
+  .slbl.show { opacity:1; }
+  #lbl-eq   { font-size:20px; color:var(--text-heading); }
+  #lbl-cap  { font-size:15px; }
+
+  /* ── Control sidebar ─────────────────────────────────────── */
+  #panel {
+    flex:0 0 360px; width:360px; height:100vh; overflow-y:auto;
+    background: var(--bg-panel-1); border-left:1px solid var(--border);
+    padding:22px 22px 40px;
+  }
+  #panel h1 {
+    font-size:20px; font-weight:700; color:var(--text-heading); letter-spacing:0.2px;
+    margin-bottom:4px;
+  }
+  #panel .sub {
+    font-size:12.5px; color:var(--text-muted); line-height:1.5; margin-bottom:16px;
+  }
+
+  /* Mode tabs — Plasma / Shielding */
+  .mode-tabs { display:flex; gap:8px; margin-bottom:18px; }
+  .mode-tab {
+    flex:1 1 0; font-family:'Barlow',sans-serif; font-size:13.5px; font-weight:700;
+    letter-spacing:0.3px; padding:10px 6px; text-align:center; cursor:pointer;
+    color:var(--text-secondary); background:var(--bg-panel-2);
+    border:1px solid var(--border); border-radius:6px;
+    transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .mode-tab small { display:block; font-size:10.5px; font-weight:600; color:var(--text-muted); letter-spacing:0.4px; }
+  .mode-tab:hover { border-color:var(--c-accent); }
+  .mode-tab.active { color:var(--text-heading); border-color:var(--c-ve); background:var(--c-accent-glow); }
+  .mode-tab.active small { color:var(--c-ve); }
+
+  /* Panels */
+  .ix-panel { display:none; flex-direction:column; }
+  .ix-panel.active { display:flex; }
+  .ix-title { font-size:15px; font-weight:700; color:var(--text-heading); letter-spacing:0.2px; margin-bottom:8px; }
+
+  /* Slider rows are laid out as: [name .... value] / [track] / [sub-caption].
+     The readout is a flex sibling of the name, NOT a float — a floated box
+     stacked against a full-width track sits over the end of the track and
+     swallows the drag. */
+  .ix-slider { display:block; font-size:13px; color:var(--text-secondary); margin-bottom:16px; }
+  .ix-slider .ix-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .ix-slider .ix-val { color:var(--c-ve); font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .ix-slider input[type=range] {
+    display:block; width:100%; accent-color:var(--c-ve); cursor:pointer;
+    /* Height + padding give the thumb a forgiving grab target; without them the
+       track is ~4 px tall and a drag that starts a few pixels off does nothing. */
+    height:22px; margin:4px 0 0; padding:0; position:relative; z-index:1;
+  }
+  .ix-slider .ix-sub { display:block; font-size:11.5px; color:var(--text-muted); text-align:right; }
+
+  .ix-sel-lbl { display:block; font-size:13px; color:var(--text-secondary); margin-bottom:16px; }
+  .ix-select {
+    width:100%; margin-top:7px;
+    font-family:'Barlow',sans-serif; font-size:13.5px; font-weight:600;
+    padding:9px 10px; color:var(--text-heading);
+    background:var(--bg-panel-2); border:1px solid var(--border); border-radius:6px; cursor:pointer;
+  }
+  .ix-select:hover { border-color:var(--c-accent); }
+
+  /* Readout blocks */
+  .ix-mu { margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
+  .ix-mu-lbl { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--c-accent); margin-bottom:6px; }
+  /* Greek symbols must escape the uppercase transform — it turns λ into Λ
+     and ω into Ω, which are different quantities. */
+  .ix-mu-lbl .sym { text-transform:none; }
+  .ix-mu-val { font-size:15px; color:var(--text-secondary); display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+  .ix-mu-val b { color:var(--c-ve); font-variant-numeric:tabular-nums; font-weight:700; }
+
+  .ix-big { font-size:30px; font-weight:700; color:var(--c-ve); font-variant-numeric:tabular-nums; line-height:1.1; }
+  .ix-big span { font-size:17px; font-weight:600; color:var(--text-secondary); }
+  .ix-note { font-size:12.5px; color:var(--text-muted); line-height:1.5; margin-top:6px; }
+
+  /* Logarithmic λ_D meter — keeps the change legible even when the
+     canvas curve has collapsed to a spike or flattened past the view. */
+  .meter { margin-top:10px; }
+  .meter-bar {
+    position:relative; height:8px; border-radius:4px;
+    background:linear-gradient(90deg,#151515,#232323);
+    border:1px solid var(--border);
+  }
+  .meter-pin {
+    position:absolute; top:-4px; width:3px; height:14px; border-radius:2px;
+    background:var(--c-ve); box-shadow:0 0 8px rgba(61,191,255,0.75);
+    transition:left 0.12s linear;
+  }
+  .meter-ticks { display:flex; justify-content:space-between; font-size:10.5px; color:var(--text-muted); margin-top:4px; }
+
+  /* Particle tally rows */
+  .tally { display:flex; flex-direction:column; gap:7px; margin-top:4px; }
+  .tally-row { display:flex; align-items:center; gap:9px; font-size:14px; color:var(--text-secondary); }
+  .tally-row i { width:11px; height:11px; border-radius:50%; flex:0 0 auto; }
+  .tally-row b { margin-left:auto; font-variant-numeric:tabular-nums; font-weight:700; color:var(--text-heading); }
+
+  .katex { color:inherit; }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ── Scene ─────────────────────────────────────────────── -->
+  <div id="viewport">
+    <canvas id="scene-canvas"></canvas>
+    <!-- KaTeX overlay: scene call-outs, governing equation, caption -->
+    <div id="scene-ui" aria-hidden="true">
+      <div class="slbl" id="lbl-eq"></div>
+      <div class="slbl" id="lbl-cap"></div>
+      <div class="slbl" id="lbl-a"></div>
+      <div class="slbl" id="lbl-b"></div>
+      <div class="slbl" id="lbl-c"></div>
+    </div>
+  </div>
+
+  <!-- ── Controls ──────────────────────────────────────────── -->
+  <aside id="panel">
+
+    <div class="mode-tabs">
+      <div class="mode-tab active" data-mode="plasma">What is a Plasma?<small>ionized gas, n₊ ≈ n₋</small></div>
+      <div class="mode-tab" data-mode="shielding">Debye Shielding<small>how far a charge reaches</small></div>
+    </div>
+
+    <!-- ── Mode 1: quasineutral ionized gas ───────────────── -->
+    <div id="ix-plasma" class="ix-panel active">
+      <div class="ix-title">Ionized gas</div>
+      <label class="ix-slider">
+        <span class="ix-head"><span>Ionization fraction&nbsp; &alpha;</span>
+          <span class="ix-val" id="pl-alpha-val">30&nbsp;%</span></span>
+        <input type="range" id="pl-alpha" min="0" max="100" step="1" value="30">
+        <span class="ix-sub">fraction of atoms that have been ionized</span>
+      </label>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Particle census</div>
+        <div class="tally">
+          <div class="tally-row"><i style="background:#4d9bff"></i>Ions (+)<b id="pl-n-ion">24</b></div>
+          <div class="tally-row"><i style="background:#ffe94d"></i>Electrons (&minus;)<b id="pl-n-el">24</b></div>
+          <div class="tally-row"><i style="background:#e6edf8"></i>Neutral atoms<b id="pl-n-neu">56</b></div>
+        </div>
+        <div class="ix-note">
+          Every ionizing event makes one ion <em>and</em> one electron, so the two
+          counts move together no matter where you put &alpha;. A gas that stays
+          balanced this way is a <b style="color:var(--text-heading)">plasma</b>.
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Net charge in the box</div>
+        <div class="ix-mu-val"><b id="pl-net">0 e</b></div>
+        <div class="ix-note">
+          Electrons are drawn moving faster than the ions: at the same temperature
+          a xenon ion is ~240,000&times; heavier, so it moves ~490&times; slower. The
+          light, fast electrons are what do the shielding in the next mode.
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Mode 2: Debye shielding ─────────────────────────── -->
+    <div id="ix-shielding" class="ix-panel">
+      <div class="ix-title">Debye shielding</div>
+
+      <label class="ix-sel-lbl">Preset
+        <select id="sh-preset" class="ix-select">
+          <option value="custom">Custom</option>
+          <option value="ion" selected>Ion thruster discharge chamber</option>
+          <option value="hall">Hall thruster channel</option>
+          <option value="plume">Downstream plume</option>
+          <option value="dense">Dense discharge</option>
+        </select>
+      </label>
+
+      <label class="ix-slider">
+        <span class="ix-head"><span>Electron temperature&nbsp; T<sub>e</sub></span>
+          <span class="ix-val" id="sh-T-val">5.0&nbsp;eV</span></span>
+        <input type="range" id="sh-T" min="1" max="20" step="0.1" value="5">
+        <span class="ix-sub" id="sh-T-sub">&equiv; 58,000&nbsp;K</span>
+      </label>
+
+      <label class="ix-slider">
+        <span class="ix-head"><span>Electron density&nbsp; n<sub>e</sub></span>
+          <span class="ix-val" id="sh-n-val">1.0&times;10<sup>17</sup></span></span>
+        <input type="range" id="sh-n" min="16" max="19" step="0.02" value="17">
+        <span class="ix-sub">m<sup>&minus;3</sup></span>
+      </label>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Debye length <span class="sym">&lambda;<sub>D</sub></span></div>
+        <div class="ix-big" id="sh-lam">52.6 <span>&micro;m</span></div>
+        <div class="meter">
+          <div class="meter-bar"><div class="meter-pin" id="sh-pin" style="left:50%"></div></div>
+          <div class="meter-ticks"><span>1&nbsp;&micro;m</span><span>10&nbsp;&micro;m</span><span>100&nbsp;&micro;m</span><span>1&nbsp;mm</span></div>
+        </div>
+        <div class="ix-note" id="sh-verdict">&nbsp;</div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Plasma frequency <span class="sym">&omega;<sub>p</sub></span></div>
+        <div class="ix-mu-val"><b id="sh-wp">1.78&times;10<sup>10</sup></b> rad/s</div>
+        <div class="ix-mu-val" style="margin-top:3px"><b id="sh-fp">2.83</b> GHz</div>
+        <div class="ix-note">
+          How fast the electrons snap back after being displaced &mdash; the rate at
+          which the plasma repairs a charge imbalance.
+        </div>
+      </div>
+
+      <div class="ix-mu">
+        <div class="ix-mu-lbl">Particles per Debye sphere</div>
+        <div class="ix-mu-val"><b id="sh-nd">6.1&times;10<sup>4</sup></b></div>
+        <div class="ix-note">
+          Shielding is a collective effect, so it only works if there are many
+          particles inside the sphere: N<sub>D</sub> &gg; 1.
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+
+/* ── Physical constants ──────────────────────────────────────────── */
+const EPS0 = 8.8541878128e-12;   // F/m
+const QE   = 1.602176634e-19;    // C
+const ME   = 9.1093837015e-31;   // kg
+const KB   = 1.380649e-23;       // J/K
+const EV_K = QE / KB;            // 1 eV expressed in kelvin (11604.5)
+
+/* ── Scene colours (must agree with the prose palette) ───────────── */
+const C_ION  = '#4d9bff';   // ion disc, white "+"
+const C_EL   = '#ffe94d';   // electron disc, dark "−"
+const C_NEU  = '#e6edf8';   // neutral atom, no glyph
+const C_PHI  = '#F5C518';   // potential φ
+const C_LAM  = '#3DBFFF';   // Debye length λ_D
+
+/* ── Governing equations ─────────────────────────────────────────────
+   λ_D = sqrt( ε₀ kT / (e² n_e) )        Debye length
+   ω_p = sqrt( e² n_e / (m_e ε₀) )       plasma frequency
+   Temperature is entered in eV, so kT = T_eV · e.                     */
+function debyeLength(n_e, T_eV){ return Math.sqrt(EPS0 * (T_eV * QE) / (QE * QE * n_e)); }
+function plasmaFreq(n_e)       { return Math.sqrt(QE * QE * n_e / (ME * EPS0)); }
+function debyeNumber(n_e, lam) { return n_e * (4/3) * Math.PI * lam * lam * lam; }
+
+/* ── View scale for the shielding scene ──────────────────────────────
+   The x-window is FIXED in physical units. That is the whole point of
+   the mode: the axis stays put and λ_D visibly grows or shrinks against
+   it. Both ends of the slider range are instructive — a razor-thin spike
+   means the charge is screened almost instantly, a curve that never comes
+   down means the plasma is too thin and hot to screen it at all.        */
+const VIEW_HALF = 350e-6;        // m — half-width of the plotted window
+
+/* ── Shared 2-D scene state ──────────────────────────────────────── */
+const S = { cv:null, ctx:null, mode:'plasma', t:0, _lbl:'', _lamTex:'' };
+const PL = { alpha:0.30 };
+const SH = { T:5.0, n:1e17 };
+
+/* KaTeX helper: render `tex` into `el`, or fall back to plain text. */
+function kx(el, tex, fallback){
+  if (!el) return;
+  if (window.katex) katex.render(tex, el, { throwOnError:false });
+  else el.textContent = (fallback != null ? fallback : tex);
+}
+/* Position a scene call-out at canvas coords (== viewport px). */
+function sLabel(id, on, x, y){
+  const el = $(id); if (!el) return;
+  el.classList.toggle('show', !!on);
+  if (on){ el.style.left = x + 'px'; el.style.top = y + 'px'; }
+}
+function hideLabels(){ ['lbl-eq','lbl-cap','lbl-a','lbl-b','lbl-c'].forEach(id => sLabel(id,false)); }
+
+/* Format a number as "m.mm×10^ee" HTML. */
+function sci(x, sig){
+  if (!isFinite(x) || x === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(x)));
+  const m = x / Math.pow(10, e);
+  return m.toFixed(sig == null ? 2 : sig) + '&times;10<sup>' + e + '</sup>';
+}
+/* Format a length in the friendliest unit. */
+function fmtLen(m){
+  if (m < 1e-6)  return { v:(m*1e9).toFixed(0),  u:'nm' };
+  if (m < 1e-3)  return { v:(m*1e6).toFixed(m*1e6 < 10 ? 2 : 1), u:'µm' };
+  if (m < 1)     return { v:(m*1e3).toFixed(2),  u:'mm' };
+  return { v:m.toFixed(2), u:'m' };
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODE 1 — an ionized gas: neutrals, ions and electrons in a box
+   ═══════════════════════════════════════════════════════════════════
+   A fixed pool of SITES heavy particles. The first nIon of them are ions
+   and each carries a partner electron, so "+" and "−" counts can never
+   drift apart — quasineutrality is built into how the gas is made, not
+   imposed afterwards. */
+const SITES = 80;
+let heavies = [];   // {x,y,vx,vy} in normalized box coords, 0..1
+let elecs   = [];   // {x,y,vx,vy} — one per ionized site
+
+const V_HEAVY = 0.055;   // box-widths per second
+const V_ELEC  = 0.26;    // electrons are far lighter, so far faster
+
+/* One species convention, both modes: an electron disc is always this fraction
+   of an ion disc. Emphasis is carried by opacity, never by resizing a species —
+   a bigger electron in one scene reads as a different particle. */
+const E_SCALE = 0.66;
+
+function rnd(a,b){ return a + Math.random()*(b-a); }
+function newParticle(speed){
+  const th = rnd(0, 6.283);
+  return { x:rnd(0.03,0.97), y:rnd(0.05,0.95),
+           vx:Math.cos(th)*speed, vy:Math.sin(th)*speed };
+}
+function seedPlasma(){
+  heavies = []; elecs = [];
+  for (let i=0;i<SITES;i++) heavies.push(newParticle(V_HEAVY * rnd(0.6,1.4)));
+  syncElectrons();
+}
+/* Keep one electron per ion. New electrons are born on top of the ion
+   that released them, so raising α reads as ionization, not teleporting. */
+function syncElectrons(){
+  const want = Math.round(PL.alpha * SITES);
+  while (elecs.length > want) elecs.pop();
+  while (elecs.length < want){
+    const host = heavies[elecs.length] || newParticle(V_HEAVY);
+    const th = rnd(0,6.283);
+    elecs.push({ x:host.x, y:host.y,
+                 vx:Math.cos(th)*V_ELEC*rnd(0.7,1.3),
+                 vy:Math.sin(th)*V_ELEC*rnd(0.7,1.3) });
+  }
+}
+function stepBox(p, dt){
+  p.x += p.vx*dt; p.y += p.vy*dt;
+  if (p.x < 0.02){ p.x = 0.02; p.vx = Math.abs(p.vx); }
+  if (p.x > 0.98){ p.x = 0.98; p.vx = -Math.abs(p.vx); }
+  if (p.y < 0.03){ p.y = 0.03; p.vy = Math.abs(p.vy); }
+  if (p.y > 0.97){ p.y = 0.97; p.vy = -Math.abs(p.vy); }
+}
+
+function drawIon(ctx, x, y, r){
+  ctx.fillStyle = C_ION; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '700 ' + (r*1.5) + 'px Barlow, sans-serif';
+  ctx.fillText('+', x, y + r*0.06); ctx.textBaseline = 'alphabetic';
+}
+function drawElec(ctx, x, y, r){
+  ctx.fillStyle = C_EL; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#2a2405'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.font = '700 ' + (r*1.6) + 'px Barlow, sans-serif';
+  ctx.fillText('−', x, y + r*0.06); ctx.textBaseline = 'alphabetic';
+}
+/* Neutrals sit a shade back from the charged species: they take no part in
+   the shielding story, so they must not out-shout the ions and electrons. */
+function drawNeutral(ctx, x, y, r){
+  ctx.fillStyle = 'rgba(230,237,248,0.11)';
+  ctx.beginPath(); ctx.arc(x, y, r*1.35, 0, 6.283); ctx.fill();
+  ctx.fillStyle = 'rgba(230,237,248,0.80)';
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
+}
+
+function drawPlasmaScene(dt){
+  const ctx = S.ctx, cv = S.cv, W = cv.clientWidth, H = cv.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+
+  const bx = W*0.06, by = H*0.07, bw = W*0.88, bh = H*0.66;
+  const R  = Math.max(7, Math.min(15, Math.min(bw, bh)*0.026));
+  const eR = R*E_SCALE;
+
+  // Containing volume — dashed, the same "control volume" grey used elsewhere
+  ctx.save();
+  ctx.setLineDash([7,4]); ctx.strokeStyle = '#404040'; ctx.lineWidth = 1.8;
+  ctx.strokeRect(bx, by, bw, bh); ctx.setLineDash([]);
+  ctx.restore();
+
+  const nIon = elecs.length;
+  for (let i=0;i<heavies.length;i++) stepBox(heavies[i], dt);
+  for (let i=0;i<elecs.length;i++)   stepBox(elecs[i], dt);
+
+  // Neutrals first (they sit behind), then ions, then the quick electrons
+  for (let i=nIon;i<heavies.length;i++){
+    const p = heavies[i]; drawNeutral(ctx, bx+p.x*bw, by+p.y*bh, R*0.8);
+  }
+  for (let i=0;i<nIon;i++){
+    const p = heavies[i]; drawIon(ctx, bx+p.x*bw, by+p.y*bh, R);
+  }
+  for (let i=0;i<elecs.length;i++){
+    const p = elecs[i]; drawElec(ctx, bx+p.x*bw, by+p.y*bh, eR);
+  }
+
+  // Census strip under the box, colour-coded to the particles themselves
+  const ty = by + bh + H*0.065;
+  ctx.textAlign = 'center'; ctx.font = '600 ' + Math.max(13, W*0.0125) + 'px Barlow, sans-serif';
+  const parts = [
+    { t: nIon + ' ions', c: C_ION },
+    { t: nIon + ' electrons', c: C_EL },
+    { t: (SITES - nIon) + ' neutrals', c: C_NEU }
+  ];
+  const gap = ctx.measureText('   ·   ').width;
+  let tot = 0; parts.forEach(p => { tot += ctx.measureText(p.t).width; });
+  tot += gap*(parts.length-1);
+  let cx = W*0.5 - tot/2;
+  ctx.textAlign = 'left';
+  parts.forEach((p,i) => {
+    ctx.fillStyle = p.c; ctx.fillText(p.t, cx, ty);
+    cx += ctx.measureText(p.t).width;
+    if (i < parts.length-1){
+      ctx.fillStyle = '#4a4a4a'; ctx.fillText('   ·   ', cx, ty); cx += gap;
+    }
+  });
+  ctx.textAlign = 'left';
+
+  if (S._lbl !== 'plasma'){
+    S._lbl = 'plasma';
+    kx($('lbl-eq'),
+       '\\textcolor{#4d9bff}{n_+} \\;\\approx\\; \\textcolor{#ffe94d}{n_-}',
+       'n+ ≈ n−');
+    kx($('lbl-cap'), '\\text{quasineutral}', 'quasineutral');
+    $('lbl-cap').style.color = 'var(--text-muted)';
+  }
+  sLabel('lbl-eq',  true, W*0.5, by + bh + H*0.145);
+  sLabel('lbl-cap', true, W*0.5, by + bh + H*0.215);
+  sLabel('lbl-a', false); sLabel('lbl-b', false); sLabel('lbl-c', false);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODE 2 — Debye shielding: φ(x) = φ₀ exp(−|x|/λ_D)
+   ═══════════════════════════════════════════════════════════════════
+   Above the axis: the potential of a positive perturbation at x = 0.
+   Below the axis: the plasma itself, with the excess electrons that do
+   the screening. Each cloud electron holds a fixed quantile of the
+   exponential distribution, so when λ_D changes they slide smoothly in
+   or out instead of flickering to new random spots. */
+const N_BG    = 30;    // background pairs, uniform across the slab
+const N_CLOUD = 22;    // excess electrons drawn into the shielding cloud
+let bg = [], cloud = [];
+
+function seedShielding(){
+  bg = []; cloud = [];
+  for (let i=0;i<N_BG;i++){
+    bg.push({ ux:rnd(-1,1), uy:rnd(0.08,0.92), ph:rnd(0,6.283),
+              ex:rnd(-1,1), ey:rnd(0.08,0.92), eph:rnd(0,6.283) });
+  }
+  for (let i=0;i<N_CLOUD;i++){
+    // q ∈ (0,1) is this electron's fixed quantile; |x| = −λ_D ln(1−q)
+    cloud.push({ q:rnd(0.02,0.97), s:(i%2 ? 1 : -1), uy:rnd(0.10,0.90), ph:rnd(0,6.283) });
+  }
+}
+
+function drawShieldingScene(dt){
+  const ctx = S.ctx, cv = S.cv, W = cv.clientWidth, H = cv.clientHeight;
+  ctx.clearRect(0, 0, W, H);
+  S.t += dt;
+
+  const lam  = debyeLength(SH.n, SH.T);
+  const padL = W*0.07, plotW = W*0.86;
+  const xOf  = m => padL + plotW*0.5 + (m / VIEW_HALF) * (plotW*0.5);
+  const yAx  = H*0.54;                 // the x axis
+  const yTop = H*0.10;                 // peak of φ
+  const amp  = yAx - yTop;
+  const slabT = H*0.66, slabB = H*0.915;
+  const lamPx = Math.min(lam, VIEW_HALF*1.02) / VIEW_HALF * (plotW*0.5);
+  const beyond = lam > VIEW_HALF;
+
+  /* ── Shaded |x| < λ_D band ───────────────────────────────────── */
+  ctx.fillStyle = 'rgba(61,191,255,0.055)';
+  ctx.fillRect(xOf(0) - lamPx, yTop - H*0.02, lamPx*2, slabB - yTop + H*0.02);
+
+  /* ── Plasma slab: background pairs, then the shielding cloud ─── */
+  const slabH = slabB - slabT, pr = Math.max(4.5, Math.min(8, W*0.0068));
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  for (const p of bg){
+    const jy = Math.sin(S.t*0.7 + p.ph)*slabH*0.03;
+    drawIon (ctx, xOf(p.ux*VIEW_HALF), slabT + p.uy*slabH + jy, pr);
+    const jy2 = Math.sin(S.t*1.6 + p.eph)*slabH*0.05;
+    drawElec(ctx, xOf(p.ex*VIEW_HALF), slabT + p.ey*slabH + jy2, pr*E_SCALE);
+  }
+  ctx.restore();
+
+  // Excess electrons: |x| = −λ_D ln(1−q), the exponential screening cloud.
+  // Ones that fall outside the window simply are not drawn — a cloud spread
+  // thinner than the view is exactly what a long λ_D means.
+  for (const c of cloud){
+    const d = -lam * Math.log(1 - c.q);
+    if (d > VIEW_HALF) continue;
+    const jy = Math.sin(S.t*1.9 + c.ph)*slabH*0.05;
+    drawElec(ctx, xOf(d*c.s), slabT + c.uy*slabH + jy, pr*E_SCALE);
+  }
+
+  // The perturbation itself — a column of excess positive charge at x = 0
+  ctx.save();
+  const gx = ctx.createRadialGradient(xOf(0), (slabT+slabB)/2, 0, xOf(0), (slabT+slabB)/2, slabH*0.6);
+  gx.addColorStop(0, 'rgba(77,155,255,0.30)'); gx.addColorStop(1, 'rgba(77,155,255,0)');
+  ctx.fillStyle = gx;
+  ctx.beginPath(); ctx.arc(xOf(0), (slabT+slabB)/2, slabH*0.6, 0, 6.283); ctx.fill();
+  ctx.restore();
+  for (let i=0;i<3;i++) drawIon(ctx, xOf(0), slabT + slabH*(0.22 + i*0.28), pr*1.3);
+
+  /* ── Axis with fixed ticks in µm ─────────────────────────────── */
+  ctx.strokeStyle = '#4a4a4a'; ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(padL, yAx); ctx.lineTo(padL+plotW, yAx); ctx.stroke();
+  ctx.fillStyle = '#6a6a6a'; ctx.font = '400 11.5px "Courier New", monospace';
+  ctx.textAlign = 'center';
+  for (let t=-300;t<=300;t+=100){
+    const x = xOf(t*1e-6);
+    ctx.beginPath(); ctx.moveTo(x, yAx); ctx.lineTo(x, yAx+5); ctx.stroke();
+    if (t !== 0) ctx.fillText(t + '', x, yAx+18);
+  }
+  ctx.fillStyle = '#6a6a6a'; ctx.font = 'italic 12.5px Barlow, sans-serif';
+  // Sits in the margin past the end of the axis, clear of the last tick label
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText('x  [µm]', padL+plotW+8, yAx);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+
+  // Centre line through the perturbation
+  ctx.save();
+  ctx.setLineDash([5,5]); ctx.strokeStyle = 'rgba(150,150,150,0.45)'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(xOf(0), yTop-H*0.02); ctx.lineTo(xOf(0), slabB); ctx.stroke();
+  ctx.restore();
+
+  /* ── Potential curve φ(x) = φ₀ e^{−|x|/λ_D} ──────────────────── */
+  ctx.strokeStyle = C_PHI; ctx.lineWidth = 2.6; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  const NPTS = 260;
+  for (let i=0;i<=NPTS;i++){
+    const xm = -VIEW_HALF + (2*VIEW_HALF)*i/NPTS;
+    const y  = yAx - amp*Math.exp(-Math.abs(xm)/lam);
+    const px = xOf(xm);
+    if (i===0) ctx.moveTo(px,y); else ctx.lineTo(px,y);
+  }
+  ctx.stroke();
+  // soft fill under the curve
+  ctx.lineTo(xOf(VIEW_HALF), yAx); ctx.lineTo(xOf(-VIEW_HALF), yAx); ctx.closePath();
+  ctx.fillStyle = 'rgba(245,197,24,0.09)'; ctx.fill();
+
+  /* ── λ_D markers: verticals at ±λ_D and the φ₀/e level ───────── */
+  const yE = yAx - amp/Math.E;
+  ctx.save();
+  ctx.setLineDash([4,4]); ctx.strokeStyle = C_LAM; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.9;
+  for (const s of [-1,1]){
+    const x = xOf(0) + s*lamPx;
+    ctx.beginPath(); ctx.moveTo(x, yE); ctx.lineTo(x, slabB); ctx.stroke();
+  }
+  // The φ₀/e level runs the full width so it can be labelled clear of the curve
+  ctx.setLineDash([2,4]); ctx.globalAlpha = 0.45;
+  ctx.beginPath(); ctx.moveTo(padL, yE); ctx.lineTo(padL+plotW, yE); ctx.stroke();
+  ctx.restore();
+
+  // Span arrow 0 → λ_D drawn just under the axis
+  const yArr = yAx + H*0.055, xa = xOf(0), xb = xOf(0) + lamPx;
+  ctx.strokeStyle = C_LAM; ctx.fillStyle = C_LAM; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(xa, yArr); ctx.lineTo(xb, yArr); ctx.stroke();
+  // Below ~16 px the two heads collide into a bowtie — draw a plain tick instead
+  if (lamPx >= 16){
+    for (const [xt,dir] of [[xa,1],[xb,-1]]){
+      ctx.beginPath(); ctx.moveTo(xt, yArr);
+      ctx.lineTo(xt + dir*7, yArr-4); ctx.lineTo(xt + dir*7, yArr+4); ctx.closePath(); ctx.fill();
+    }
+  } else {
+    ctx.beginPath(); ctx.moveTo(xb, yArr-4); ctx.lineTo(xb, yArr+4); ctx.stroke();
+  }
+
+  /* ── Call-outs ───────────────────────────────────────────────── */
+  if (S._lbl !== 'shield'){
+    S._lbl = 'shield';
+    kx($('lbl-eq'),
+       '\\textcolor{#F5C518}{\\phi(x)} = \\textcolor{#F5C518}{\\phi_0}\\, e^{-|x| / \\textcolor{#3DBFFF}{\\lambda_D}}',
+       'φ(x) = φ0 e^(−|x|/λD)');
+    kx($('lbl-a'), '\\textcolor{#F5C518}{\\phi_0}/e', 'φ0/e');
+    $('lbl-a').style.color = C_PHI;
+    kx($('lbl-c'), '\\text{excess } \\textcolor{#4d9bff}{+} \\text{ charge}', 'excess + charge');
+  }
+  sLabel('lbl-eq', true, padL + plotW*0.80, yTop + H*0.02);
+  sLabel('lbl-a',  true, padL + 26, yE - 15);
+  sLabel('lbl-c',  true, xOf(0), slabB + H*0.055);
+
+  // λ_D readout rides with the arrow so the number and the span agree.
+  // Re-rendered only when the text actually changes — KaTeX every frame
+  // would be pure waste.
+  const L = fmtLen(lam);
+  // \mu is a math symbol, so it must sit outside \text{} or KaTeX rejects it
+  const unit = (L.u === 'µm') ? '\\mu\\text{m}' : '\\text{' + L.u + '}';
+  const tex = '\\textcolor{#3DBFFF}{\\lambda_D} = ' + L.v + '\\,' + unit
+            + (beyond ? '\\ \\text{(past the view)}' : '');
+  if (tex !== S._lamTex){
+    S._lamTex = tex;
+    kx($('lbl-b'), tex, 'λD = ' + L.v + ' ' + L.u);
+    $('lbl-b').style.color = C_LAM;
+  }
+  // Centred under the span arrow, so the number and the length it names agree
+  sLabel('lbl-b', true, xOf(0) + Math.max(lamPx*0.5, 48), yArr + H*0.045);
+
+  sLabel('lbl-cap', false);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Readouts
+   ═══════════════════════════════════════════════════════════════════ */
+function updatePlasmaInfo(){
+  const nIon = Math.round(PL.alpha * SITES);
+  $('pl-n-ion').textContent = nIon;
+  $('pl-n-el').textContent  = nIon;
+  $('pl-n-neu').textContent = SITES - nIon;
+  $('pl-net').textContent   = '0 e';
+}
+
+function updateShieldInfo(){
+  const lam = debyeLength(SH.n, SH.T);
+  const wp  = plasmaFreq(SH.n);
+  const nd  = debyeNumber(SH.n, lam);
+
+  const L = fmtLen(lam);
+  $('sh-lam').innerHTML = L.v + ' <span>' + (L.u === 'µm' ? '&micro;m' : L.u) + '</span>';
+
+  // Log meter spans 1 µm … 1 mm (three decades)
+  const f = Math.max(0, Math.min(1, (Math.log10(lam) - Math.log10(1e-6)) / 3));
+  $('sh-pin').style.left = (f*100).toFixed(1) + '%';
+
+  $('sh-wp').innerHTML = sci(wp);
+  $('sh-fp').textContent = (wp/(2*Math.PI)/1e9).toFixed(2);
+  $('sh-nd').innerHTML = sci(nd, 1);
+
+  const v = $('sh-verdict');
+  if (lam > VIEW_HALF){
+    v.innerHTML = 'Longer than the 700&nbsp;&micro;m window &mdash; the potential barely ' +
+                  'decays across the whole view. Hot and thin: shielding is weak.';
+  } else if (lam < 8e-6){
+    v.innerHTML = 'A tiny fraction of the window &mdash; the potential is cut off almost ' +
+                  'at the source. Cold and dense: shielding is near perfect.';
+  } else {
+    v.innerHTML = 'The distance over which the potential falls to 1/e of its peak.';
+  }
+
+  $('sh-T-sub').innerHTML = '&equiv; ' + Math.round(SH.T*EV_K).toLocaleString('en-US') + '&nbsp;K';
+  S._lbl = '';   // force the scene call-outs to re-render with new numbers
+}
+
+/* Presets — representative electric-propulsion plasmas. */
+const PRESETS = {
+  ion:   { n:1e17, T:5  },   // gridded ion engine discharge chamber
+  hall:  { n:1e18, T:15 },   // Hall thruster acceleration channel
+  plume: { n:1e16, T:2  },   // downstream plume
+  dense: { n:1e19, T:10 }    // dense discharge / cathode region
+};
+function applyPreset(key){
+  const p = PRESETS[key]; if (!p) return;
+  SH.n = p.n; SH.T = p.T;
+  $('sh-n').value = Math.log10(p.n);
+  $('sh-T').value = p.T;
+  syncShieldLabels();
+  updateShieldInfo();
+}
+function syncShieldLabels(){
+  $('sh-T-val').innerHTML = SH.T.toFixed(1) + '&nbsp;eV';
+  const e = Math.floor(Math.log10(SH.n));
+  $('sh-n-val').innerHTML = (SH.n/Math.pow(10,e)).toFixed(1) + '&times;10<sup>' + e + '</sup>';
+}
+
+/* ── Canvas sizing (DPR-aware) ───────────────────────────────────── */
+function sizeCanvas(){
+  const cv = S.cv; if (!cv) return;
+  const vp = $('viewport'), dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width  = Math.max(1, Math.round(vp.clientWidth  * dpr));
+  cv.height = Math.max(1, Math.round(vp.clientHeight * dpr));
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  S.ctx = ctx;
+}
+
+/* ── Mode switching ──────────────────────────────────────────────── */
+function setMode(mode){
+  if (mode !== 'plasma' && mode !== 'shielding') mode = 'plasma';
+  S.mode = mode; S.t = 0; S._lbl = ''; S._lamTex = '';
+  hideLabels();
+  document.querySelectorAll('.mode-tab').forEach(tb => tb.classList.toggle('active', tb.dataset.mode === mode));
+  $('ix-plasma').classList.toggle('active', mode === 'plasma');
+  $('ix-shielding').classList.toggle('active', mode === 'shielding');
+}
+
+/* ── Render loop ─────────────────────────────────────────────────── */
+let _last = null;
+function animate(ts){
+  requestAnimationFrame(animate);
+  const now = (ts || 0) / 1000;
+  const dt = _last === null ? 0 : Math.min(now - _last, 0.05);
+  _last = now;
+  if (S.mode === 'plasma') drawPlasmaScene(dt); else drawShieldingScene(dt);
+}
+
+/* ── Init ────────────────────────────────────────────────────────── */
+function init(){
+  S.cv = $('scene-canvas');
+  sizeCanvas();
+  window.addEventListener('resize', sizeCanvas);
+  seedPlasma();
+  seedShielding();
+
+  // Mode 1 controls
+  $('pl-alpha').addEventListener('input', e => {
+    PL.alpha = +e.target.value / 100;
+    $('pl-alpha-val').innerHTML = e.target.value + '&nbsp;%';
+    syncElectrons();
+    updatePlasmaInfo();
+  });
+
+  // Mode 2 controls
+  $('sh-T').addEventListener('input', e => {
+    SH.T = +e.target.value; $('sh-preset').value = 'custom';
+    syncShieldLabels(); updateShieldInfo();
+  });
+  $('sh-n').addEventListener('input', e => {
+    SH.n = Math.pow(10, +e.target.value); $('sh-preset').value = 'custom';
+    syncShieldLabels(); updateShieldInfo();
+  });
+  $('sh-preset').addEventListener('change', e => {
+    if (e.target.value !== 'custom') applyPreset(e.target.value);
+  });
+
+  // Mode tabs
+  document.querySelectorAll('.mode-tab').forEach(tb =>
+    tb.addEventListener('click', () => setMode(tb.dataset.mode)));
+
+  // Deep-link: ?mode=shielding|shield|debye  or  plasma|gas
+  // When a mode is pinned via the URL (the applet page embeds each mode
+  // separately), lock to it and hide the tabs.
+  const params = new URLSearchParams(location.search);
+  const q = (params.get('mode') || '').toLowerCase();
+  const startMode = /^(shield|debye)/.test(q) ? 'shielding' : 'plasma';
+  if (params.has('mode')){
+    const tabs = document.querySelector('.mode-tabs');
+    if (tabs) tabs.style.display = 'none';
+  }
+
+  syncShieldLabels();
+  updatePlasmaInfo();
+  updateShieldInfo();
+  setMode(startMode);
+  requestAnimationFrame(animate);
+}
+
+// Re-render KaTeX readouts once the library finishes loading (script is deferred).
+window.__onKatex = function(){ S._lbl = ''; S._lamTex = ''; };
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+else init();
+</script>
+</body>
+</html>

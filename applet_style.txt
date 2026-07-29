@@ -286,15 +286,16 @@ reader a symbol table without printing one.
 
   3D SCENE / CANVAS OBJECT COLORS
 
-  These MUST agree with the prose colours above. A reader told the electrons
-  are violet who then sees yellow dots has been handed two different codes.
+  SPECIES PALETTE — the three particles wear the same three colours in every
+  scene, in-applet legend, panel swatch and canvas call-out, in all 3D and 2D
+  applets. A particle must not change colour between one lesson and the next.
 
   OBJECT                      COLOR     NOTES
   --------------------------  --------  ------------------------------------------
-  Ion particle                #4d9bff   blue disc, white "+"   (reads as --c-ve)
-  Electron                    #C060FF   violet disc, dark "−"  (= --c-power)
+  Ion particle                #4d9bff   blue disc, white "+" ink
+  Electron                    #ffe94d   yellow disc, dark "−" ink (#2a2405)
   Neutral particle            #e6edf8   near-white disc, no glyph
-  Velocity arrow V            #ffd54f
+  Velocity arrow V            #ffd54f   see the WARNING below
   Force arrow F_b             #ef5350   scene arrows ONLY — never for an E field;
                                         #ef5350 is dE 5.3 from thrust #FF4400
   V_par arrow                 #66bb6a   parallel to B
@@ -302,6 +303,21 @@ reader a symbol table without printing one.
   B field line tubes          #1a5272   vibrant blue (NOT the dark prototype value)
   B field arrow heads         #3a9bd5   bright cyan-blue (NOT #37474f)
   Center dashed guideline     #5aafcc
+
+  THE SPECIES PALETTE IS NOT THE PROSE PALETTE
+  An electron is yellow as an OBJECT you point at in a scene, and violet as a
+  QUANTITY in prose and equations (--c-power, shared with charge q and power).
+  Where a canvas label names a particle that is on screen, it takes the SPECIES
+  colour, so the label and the dot it describes agree. Everything set in running
+  text, in a KaTeX equation on the page, or in a webpage legend keeps the
+  quantity palette of Section 4.3.
+
+  WARNING — ELECTRON YELLOW vs VELOCITY-ARROW YELLOW
+  #ffe94d (electron) and #ffd54f (velocity arrow V) are close enough to read as
+  one hue, and in larmor / ECrossB / electrostatic / magnetic_mirror the V arrow
+  is drawn attached to the particle. Those two are the only remaining confusable
+  pair in the scene palette. Before adding a new applet that draws V on an
+  electron, resolve it — do not add a third yellow.
 
 
 4.4  SCROLLBAR
@@ -794,7 +810,7 @@ and "J/T" will be clipped at narrower widths.
 -----------------------------
   <div class="pblock" id="block-A">
     <div class="phead">
-      <span class="dot" style="background:#ff6e40"></span>
+      <span class="dot" style="background:#4d9bff"></span>
       <span id="A-head">Particle</span>
     </div>
 
@@ -917,8 +933,8 @@ Always include at the bottom of the panel. The sw-rect class renders a
 small rectangle instead of a circle (used for the B-field line swatch).
 
   Entries:
-    #ff6e40  Particle (or Ion)
-    #4fc3f7  Electron          (hidden in single-particle modes)
+    #4d9bff  Particle (or Ion)
+    #ffe94d  Electron          (hidden in single-particle modes)
     #ffd54f  V velocity
     #66bb6a  V_par velocity parallel B
     #ab47bc  V_perp velocity perpendicular B
@@ -1488,9 +1504,10 @@ PHYSICS COLORS (use everywhere, always):
   Charge q / electron:  #C060FF
   B field / pressure:   #00DDB5
 
-3D OBJECT COLORS:
-  Ion particle:     #ff6e40
-  Electron:         #4fc3f7
+SCENE / SPECIES COLORS:
+  Ion particle:     #4d9bff  (white "+" ink)
+  Electron:         #ffe94d  (dark "-" ink #2a2405)
+  Neutral particle: #e6edf8  (no glyph)
   Velocity arrow:   #ffd54f
   Force arrow F_b:  #ef5350
   V_par arrow:      #66bb6a

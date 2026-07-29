@@ -462,7 +462,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 
     <!-- ══ single-particle block (Modes 1 & 2) ══ -->
     <div class="pblock" id="block-S">
-      <div class="phead"><span class="dot" style="background:#ff7043"></span><span id="S-head">Particle</span></div>
+      <div class="phead"><span class="dot" style="background:#4d9bff"></span><span id="S-head">Particle</span></div>
       <div class="field">
         <label>Preset</label>
         <select id="S-preset">
@@ -486,7 +486,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 
     <!-- ══ ion block (Mode 3) ══ -->
     <div class="pblock hide" id="block-A">
-      <div class="phead"><span class="dot" style="background:#ff7043"></span><span>Ion</span></div>
+      <div class="phead"><span class="dot" style="background:#4d9bff"></span><span>Ion</span></div>
       <div class="field">
         <label>Preset</label>
         <select id="A-preset">
@@ -509,7 +509,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 
     <!-- ══ electron block (Mode 3) ══ -->
     <div class="pblock hide" id="block-B">
-      <div class="phead"><span class="dot" style="background:#4fc3f7"></span><span>Electron</span></div>
+      <div class="phead"><span class="dot" style="background:#ffe94d"></span><span>Electron</span></div>
       <div class="field">
         <label>Mass <i>m</i> [amu] <input type="number" class="valnum" id="B-mass-v" min="0" step="0.0001" value="5.49e-4"></label>
         <input type="range" id="B-mass" min="-4" max="2.5" step="0.01" value="-3.2609">
@@ -590,8 +590,8 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
       <table id="otable">
         <tr>
           <th></th>
-          <th id="th-A" style="color:#ff7043">Particle</th>
-          <th id="th-B" class="col-B hide" style="color:#4fc3f7">Electron</th>
+          <th id="th-A" style="color:#4d9bff">Particle</th>
+          <th id="th-B" class="col-B hide" style="color:#ffe94d">Electron</th>
         </tr>
         <!-- accel rows -->
         <tr class="r-accel"><td>v<sub>e</sub> [m/s]</td><td id="A-ve">&#x2014;</td><td class="col-B hide">&#x2014;</td></tr>
@@ -611,8 +611,8 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
     <details class="cf-outputs">
       <summary><span class="cf-sect">Legend</span></summary>
     <div id="legend">
-      <div class="row"><span class="sw" style="background:#ff7043"></span><b id="leg-A">Particle</b></div>
-      <div class="row col-B hide"><span class="sw" style="background:#4fc3f7"></span>Electron</div>
+      <div class="row"><span class="sw" style="background:#4d9bff"></span><b id="leg-A">Particle</b></div>
+      <div class="row col-B hide"><span class="sw" style="background:#ffe94d"></span>Electron</div>
       <div class="row"><span class="sw" style="background:#ffd54f"></span>v velocity</div>
       <div class="row drift hide"><span class="sw" style="background:#66bb6a"></span>v<sub>d</sub> E&#215;B drift</div>
       <div class="row"><span class="sw" style="background:#ef5350"></span><b style="color:#ef5350">E</b> field</div>
@@ -802,8 +802,8 @@ const PRESETS = {
 };
 
 const COL = {
-  ion:   0xff7043,
-  elec:  0x4fc3f7,
+  ion:   0x4d9bff,
+  elec:  0xffe94d,
   vel:   0xffd54f,
   drift: 0x66bb6a,
   E:     0xef5350,
