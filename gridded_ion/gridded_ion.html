@@ -201,11 +201,18 @@
   .clbl.pot { pointer-events: auto; cursor: help; }
   .clbl.pot:hover, .clbl.pot.open { background: rgba(255,217,138,0.20); }
   /* The ordinate's name, in the curve's own green so the axis and the trace read as one thing. */
-  .clbl.phi { color: #63e06a; font-size: 21px; }
+  /* The two traces are named in their SPECIES colours — ion blue, electron yellow — the same
+     pair the viewer, the legend and the ⊕/⊖ glyphs use, so a curve and the particle riding it
+     read as one object. φ_ion(z) keeps that blue whether it is the primary stroke (ion trace) or
+     the dotted reference behind φ_electron(z), and both names are set at the same size: on the
+     electron trace they are two peers, not a label and a footnote. */
+  .clbl.phi { color: #4d9bff; font-size: 21px; }
+  .clbl.phi-e { color: #ffe94d; font-size: 21px; }
+  .clbl.phi-ref { color: rgba(77,155,255,0.78); font-size: 21px; }
   .clbl.beam { color: #ffb3e2; font-size: 20.5px; }   /* ion-beam current labels — soft pastel pink */
   /* Voltage & current labels get the same semi-transparent backing chip as the $\vec B$/$\vec E$
      field labels, so they read cleanly over the bright plume instead of leaning on the halo alone. */
-  .clbl.cur, .clbl.volt, .clbl.beam, .clbl.pot, .clbl.phi {
+  .clbl.cur, .clbl.volt, .clbl.beam, .clbl.pot, .clbl.phi, .clbl.phi-e, .clbl.phi-ref {
     background: rgba(10,12,18,0.40);   /* 40% more transparent than the field-label chip (was 0.66) */
     box-shadow: 0 1px 6px rgba(0,0,0,0.5);
     border-radius: 6px;
@@ -252,6 +259,9 @@
     pointer-events: none; user-select: none;
   }
   #app.mode-circuit.pot-on #pot-profile { display: block; }
+  /* The species switch is a sub-choice of the Potential view — it has no meaning in Currents. */
+  #pot-spec-row { display: none; }
+  #app.pot-on #pot-spec-row { display: block; }
   #pot-svg { display: block; width: 100%; height: 100%; }
 
   /* The figure reads in three channels, so it stays legible laid over the hardware:
@@ -290,10 +300,19 @@
   #pot-svg .p-lead  { stroke: rgba(255,217,138,0.85); stroke-width: 2.4; fill: none; }
   #pot-svg .p-ldot  { fill:   rgba(255,217,138,0.98); }   /* where a leader leaves its dimension */
 
-  /* ─ green: the curve ─ */
+  /* ─ the curves, coloured by SPECIES ─
+     φ_ion(z) is ION_COL blue and φ_electron(z) the electron yellow, matching the ⊕/⊖ that ride
+     them and the palette every other stage uses. On the electron trace the ion's curve is kept
+     as a dotted companion rather than dropped: the two agree until the electron leaves through
+     the wire instead of the grids, and seeing where they diverge is the whole figure. */
   #pot-svg .p-curve {
-    fill: none; stroke: #63e06a; stroke-width: 5.0;
+    fill: none; stroke: #4d9bff; stroke-width: 5.0;
     stroke-linejoin: round; stroke-linecap: round;
+  }
+  #pot-svg .p-curve.el { stroke: #ffe94d; }
+  #pot-svg .p-curve-ref {
+    fill: none; stroke: rgba(77,155,255,0.62); stroke-width: 3.2;
+    stroke-linejoin: round; stroke-linecap: round; stroke-dasharray: 11 7;
   }
 
   #pot-svg .p-tk    { font-size: 19px; fill: rgba(240,242,248,0.98); }
@@ -304,6 +323,14 @@
   #pot-svg .p-ion   { fill: #4d9bff; }                      /* the test ion — ION_COL, as everywhere else */
   #pot-svg .p-ionsym{ stroke: rgba(255,255,255,0.95); stroke-width: 1.3; fill: none; }
   #pot-svg .p-glow  { fill: rgba(110,180,255,0.30); }
+
+  /* ─ the electron trace (species = electron) ─
+     The test electron is the SAME yellow the viewer, the legend and the ⊖ glyphs use — and so is
+     the φ_e(z) curve it rides, so particle and trace read as one object and as the same species
+     the 3-D stages draw. */
+  #pot-svg .p-el    { fill: #ffe94d; }
+  #pot-svg .p-elsym { stroke: rgba(42,36,5,0.95); stroke-width: 1.6; fill: none; }
+  #pot-svg .p-elglow{ fill: rgba(255,233,77,0.26); }
 
   /* Explanatory note for a voltage label in the potential view (hover, or tap to pin). */
   #pot-pop {
@@ -566,6 +593,17 @@
     float: right; display: inline-flex; align-items: baseline; gap: 3px;
     color: var(--c-ve); font-weight: 700; font-variant-numeric: tabular-nums;
   }
+  /* A DERIVED slider: shown on a track so its value reads in context with the knobs around it, and
+     so the thumb visibly moves when the knob it depends on is dragged — but not draggable itself.
+     Dimmed and de-accented so it does not invite a drag that would do nothing. */
+  .ix-slider.derived { opacity: 0.58; }
+  .ix-slider.derived input[type=range] { accent-color: var(--text-muted); cursor: default; }
+  /* .ix-num carries its own accent colour and a hover affordance, both of which have to be undone
+     here — this readout is a <span>, not a typeable box, and should not look like one. */
+  .ix-slider.derived .ix-val,
+  .ix-slider.derived .ix-num,
+  .ix-slider.derived .ix-unit { color: var(--text-secondary); }
+  .ix-slider.derived .ix-num:hover { border-color: transparent; background: transparent; }
   /* Typeable value box. Reads as a plain readout until hovered/focused, so the panel doesn't turn
      into a wall of form fields, but it is a real text input at all times. */
   .ix-num {
@@ -881,6 +919,9 @@
         <desc id="pot-desc">Potential versus axial position through a gridded ion engine.</desc>
         <g id="pot-grid"></g>
         <g id="pot-ann" class="p-halo"></g>
+        <!-- Electron trace only: φ(z) itself, dimmed behind the electron's own φ_e(z). Empty on
+             the ion trace, where the primary stroke below IS φ(z). -->
+        <path id="pot-curve-ref" class="p-curve-ref p-halo"></path>
         <path id="pot-curve" class="p-curve p-halo"></path>
         <g id="pot-lbl"></g>
         <g id="pot-ion"></g>
@@ -1158,6 +1199,17 @@
             <button data-cview="currents" class="active">Currents</button>
             <button data-cview="potential">Potential</button>
           </div>
+          <!-- Whose journey the potential figure annotates. The CURVE is the same either way —
+               φ(z) is one electrostatic potential, not two — but the spans that mean anything
+               differ by species, and V_neutralizer is the clearest case: the electron crosses it
+               (through the supply), the ion never touches it. Potential view only. -->
+          <div id="pot-spec-row" style="margin-top:10px">
+            <div class="ix-toglabel">Trace</div>
+            <div class="seg" id="pot-spec-seg">
+              <button data-pspec="ion" class="active">Ion</button>
+              <button data-pspec="electron">Electron</button>
+            </div>
+          </div>
           <div class="vtoglist" style="margin-top:4px">
             <button type="button" class="vtog" id="tog-circ-labels" role="switch" aria-checked="false"><span>Show component labels</span><span class="vsw"></span></button>
           </div>
@@ -1192,34 +1244,35 @@
             are the <b>same node</b>. The bus running around the upstream end of the chamber makes
             that explicit: the discharge return and the neutralizer supply land on one anode.</div>
         </details>
-        <label class="ix-slider">Beam (screen-grid) voltage
-          <input type="range" id="pot-vb" min="600" max="1500" step="10" value="1100">
-          <span class="ix-val"><input class="ix-num" id="pot-vb-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1100"><span class="ix-unit">V</span></span>
+        <label class="ix-slider">Total voltage&nbsp; <span class="ck" data-tex="V_{\text{total}}"></span>
+          <input type="range" id="pot-vtot" min="400" max="2000" step="20" value="1280">
+          <span class="ix-val"><input class="ix-num" id="pot-vtot-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1280"><span class="ix-unit">V</span></span>
         </label>
-        <label class="ix-slider">Accel-grid voltage
-          <input type="range" id="pot-va" min="-300" max="-100" step="5" value="-180">
-          <span class="ix-val"><input class="ix-num" id="pot-va-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="-180"><span class="ix-unit">V</span></span>
-        </label>
-        <label class="ix-slider">Discharge voltage
+        <label class="ix-slider">Discharge voltage&nbsp; <span class="ck" data-tex="V_{\text{discharge}}"></span>
           <input type="range" id="pot-vd" min="15" max="40" step="1" value="25">
           <span class="ix-val"><input class="ix-num" id="pot-vd-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="25"><span class="ix-unit">V</span></span>
         </label>
-        <div class="ix-anim">
-          <label class="chk"><input type="checkbox" id="pot-ion-on" checked> Release a test ion</label>
-        </div>
-        <div class="ix-mu">
-          <div class="ix-mu-lbl">Supply voltages</div>
-          <div class="ix-mu-val"><span class="ck" data-tex="V_{\text{total}}"></span> = <b id="pot-vt">—</b>
-            <span style="font-size:11.5px;color:var(--text-muted)">screen − accel; sets the space-charge-limited current</span></div>
-          <div class="ix-mu-val" style="margin-top:6px"><span class="ck" data-tex="V_{\text{neutralizer}}"></span> = <b id="pot-vneu">—</b>
-            <span style="font-size:11.5px;color:var(--text-muted)">anode − neutralizer cathode</span></div>
-          <div class="ix-mu-val" style="margin-top:6px"><span class="ck" data-tex="V_{\text{net}}"></span> = <b id="pot-vnet">—</b>
-            <span style="font-size:11.5px;color:var(--text-muted)">screen − plume; sets the exhaust velocity</span></div>
-        </div>
-        <div class="ix-mu">
-          <div class="ix-mu-lbl">Ion energy in the plume</div>
-          <div class="ix-mu-val"><b id="pot-ke">—</b>
-            <span style="font-size:11.5px;color:var(--text-muted)">chamber plasma → plume, whatever the grids do in between</span></div>
+        <!-- DERIVED, not a knob: V_accel = V_net − V_total − V_D falls out of the two above it and
+             the ratio below. It is still drawn on a track, directly over R, because what R does is
+             most legible as the accel grid sliding down while you drag it — but it is disabled and
+             dimmed so it does not invite a drag that would do nothing. -->
+        <label class="ix-slider derived">Accel-grid voltage&nbsp; <span class="ck" data-tex="V_{\text{accel}}"></span>
+          <input type="range" id="pot-va" min="-460" max="-10" step="1" value="-179" disabled tabindex="-1" aria-readonly="true">
+          <span class="ix-val"><span class="ix-num" id="pot-va-val">-179</span><span class="ix-unit">V</span></span>
+        </label>
+        <!-- Net/total ratio. R, not the accel-grid voltage, is the knob: it is the quantity with the
+             design meaning, and the same control the Child–Langmuir stage exposes. -->
+        <label class="ix-slider">Net/total ratio&nbsp; <span class="ck" data-tex="R"></span>
+          <input type="range" id="pot-r" min="0.80" max="1.00" step="0.01" value="0.88">
+          <span class="ix-val"><input class="ix-num" id="pot-r-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="0.88"><span class="ix-unit"></span></span>
+        </label>
+        <div id="pot-r-status" class="ix-status" style="margin-top:8px"></div>
+        <div class="out-bar" style="margin-top:12px">
+          <div class="out-cell">
+            <div class="out-label">Specific Impulse&nbsp; I<sub>sp</sub></div>
+            <div class="out-val" id="pot-isp" style="color:var(--c-ve)">—</div>
+            <div class="out-sub" id="pot-isp-sub"></div>
+          </div>
         </div>
         <p class="ix-cnote" id="pot-cap"></p>
       </div>
@@ -1620,6 +1673,13 @@ if (EMBED_MODE) document.body.classList.add('embed-locked');
    whole control panel hidden — "just the circuit diagram", no knobs. Applied in the boot block. */
 const EMBED_CIRCUIT = new URLSearchParams(location.search).get('circuit') === '1';
 if (EMBED_CIRCUIT) document.body.classList.add('embed-circuit');
+/* Circuit-stage sub-view deep-link (?mode=circuit&cview=potential, e.g. the potential page's
+   lower embed). The stage boots to "Currents" by default; this picks the other view instead,
+   so a page can embed the two views side by side without the reader having to switch. */
+const EMBED_CVIEW = new URLSearchParams(location.search).get('cview');
+/* Which trace the potential view opens on (?mode=circuit&cview=potential&trace=electron), so a
+   page can embed the ion and electron readings of the same figure as two separate frames. */
+const EMBED_TRACE = new URLSearchParams(location.search).get('trace');
 
 /* ── Base64 typed-array helpers ────────────────────────────── */
 function b64ToBytes(b64){
@@ -4569,9 +4629,10 @@ function setShowTransparent(on){
 const CIRC_VIEW_NOTE = {
   currents: 'Every arrow is a current and every battery a supply, drawn on the part it belongs to. '
           + 'Follow each loop and check it closes. Drag to pan, scroll to zoom.',
-  potential:'The same three supplies, read as the potential an ion falls through. The axial axis '
+  potential:'The same three supplies, read as the potential a charge moves through. The axial axis '
           + '<em>is</em> the thruster’s axis, so each rise and drop sits on the hardware that '
-          + 'causes it. Drag to pan, scroll to zoom.',
+          + 'causes it. <b>Trace</b> picks whose journey is dimensioned: the curve is the same '
+          + 'either way, but the spans that mean anything are not. Drag to pan, scroll to zoom.',
 };
 function setCircuitView(v){
   circuitView = (v === 'potential') ? 'potential' : 'currents';
@@ -4582,24 +4643,43 @@ function setCircuitView(v){
   updateGridsTransparent();          // each view ghosts the hardware to its own depth
   if (potActive()) refreshPotProfile();
 }
+/* Which species' journey the potential figure annotates. The curve does not change — see potAnn
+   for what does, and why. */
+function setPotSpecies(v){
+  POT.species = (v === 'electron') ? 'electron' : 'ion';
+  document.querySelectorAll('#pot-spec-seg button').forEach(b => b.classList.toggle('active', b.dataset.pspec === POT.species));
+  // Restart whichever particle is about to be shown, so a switch always begins at the start of
+  // that species' journey rather than dropping it in mid-flight.
+  POT.ion.x = POT_X0;   POT.ion.wait = 0.25; POT.ion.age = 0;
+  POT.el.x  = POT_E_X0; POT.el.wait = 0.25;  POT.el.age  = 0;
+  POT.pop = null; hidePotPop();
+  if (potActive()) refreshPotProfile();
+}
 /* Component-name callouts. Off by default in both views: with the labels down, the schematic and
    the potential curve each read as one figure instead of competing with a field of chips. */
 function setCircuitLabels(on){
   circuitLabels = on;
   setTogVisual('tog-circ-labels', on);
 }
-function setPotVb(v){ POT.vb = v; const e = $('pot-vb-val'); if (e) e.value = v; potChanged(); }
-function setPotVa(v){ POT.va = Math.min(-1, v); const e = $('pot-va-val'); if (e) e.value = POT.va; potChanged(); }
+function setPotVT(v){ POT.vT = v; const e = $('pot-vtot-val'); if (e) e.value = v; potChanged(); }
 function setPotVd(v){ POT.vd = v; const e = $('pot-vd-val'); if (e) e.value = v; potChanged(); }
-/* Slider ranges already keep the arrangement physical (the accel grid stays below the plume and
-   the neutralizer stays below it too); this just re-derives the readouts and repaints. */
+/* R ≤ 1 always: at R = 1 nothing is given back on the way out and V_net = V_total, the no-decel
+   limit the slider's top end reaches but cannot pass. */
+function setPotR(r){ POT.R = Math.min(1, Math.max(0.01, r)); const e = $('pot-r-val'); if (e) e.value = POT.R.toFixed(2); potChanged(); }
+/* Re-derive every dependent readout and repaint. V_accel is one of those dependents — it is shown
+   on a disabled track, so its slider position has to be written here rather than by a drag. */
 function potChanged(){
   const L = potLevels();
   const put = (id, t) => { const e = $(id); if (e) e.innerHTML = t; };
-  put('pot-vt',    Math.round(L.vT)    + '&nbsp;V');
-  put('pot-vneu',  Math.round(L.vNeu)  + '&nbsp;V');
-  put('pot-vnet',  Math.round(L.vNet)  + '&nbsp;V');
-  put('pot-ke',    Math.round(L.plasma) + '&nbsp;eV');
+  const va = Math.round(L.accel);
+  const vaS = $('pot-va'); if (vaS) vaS.value = Math.max(+vaS.min, Math.min(+vaS.max, va));
+  put('pot-va-val', va);
+  // Exhaust velocity from the NET voltage, V_net = R·V_total — the same q·V_net = ½mv² the
+  // Child–Langmuir stage uses, so I_sp here responds to R exactly as it does there.
+  const { vex, isp } = ionIspFrom(L.vNet);
+  put('pot-isp',     Math.round(isp) + '&nbsp;s');
+  put('pot-isp-sub', 'or ' + (vex/1000).toFixed(1) + '&nbsp;km/s');
+  renderRStatus($('pot-r-status'), POT.R, L.vNet, L.vT);
   refreshPotProfile();
 }
 
@@ -5345,11 +5425,15 @@ function faEquivalent(pa){
    and what lets the gap pull space-charge-limited current at V_T rather than at V_net. That is the
    trade R measures. (q, m match the Child–Langmuir constant CL_K.) */
 function accelVNet(){ return ACCEL.R * ACCEL.vTotal; }
-function accelIsp(){
+/* Exhaust velocity and I_sp for a singly charged xenon ion falling through vNet. Shared by the
+   Child–Langmuir stage and the Circuit Diagram's potential view so the two cannot disagree about
+   what a given net voltage buys. (q, m match the Child–Langmuir constant CL_K.) */
+function ionIspFrom(vNet){
   const q = 1.602e-19, m = 2.18e-25, g0 = 9.80665;   // xenon ion
-  const vex = Math.sqrt(2 * q * accelVNet() / m);
+  const vex = Math.sqrt(2 * q * Math.max(0, vNet) / m);
   return { vex, isp: vex / g0 };
 }
+function accelIsp(){ return ionIspFrom(accelVNet()); }
 function updateChildLangmuir(){
   const j = childLangmuirJ();
   const el = $('acc-jcl');
@@ -5452,6 +5536,24 @@ const ION_SYM  = 'rgba(255,255,255,0.95)';     // the ⊕ bars — white, as in 
 const ION_GLOW = 'rgba(110,180,255,0.34)';
 const ION_LINE = 'rgba(120,180,255,0.65)';     // dotted station line / φ marker
 function emitterFieldVmm(){ return (ACCEL.vTotal / ACCEL.gap) * (1 - ACCEL.charge); }  // E(0), V/mm (signed)
+/* The three-way field decomposition at one station u in the gap, in V/m and signed (+ points right,
+   toward the accel grid):  E_net = E_grid + E_ions.  All three are differenced the same way, so on
+   screen they add exactly. Split out of the draw so the numeric readout can sample it without the
+   test ion being on screen — see accELast. */
+function accelEDecomp(uc, s){
+  const d_m = ACCEL.gap * 1e-3;
+  const uA = Math.max(0, Math.min(1, uc - 0.012)), uB = Math.max(0, Math.min(1, uc + 0.012));
+  const dU = uB - uA;
+  const slope = f => dU > 0 ? -(f(uB) - f(uA)) / (dU * d_m) : 0;   // E = −dφ/dz
+  const Egrid = slope(accelPhiGrid);
+  const Eions = slope(u2 => accelPhiIons(u2, s));
+  return { net:Egrid + Eions, grid:Egrid, ions:Eions };            // net ≡ slope(u2 => accelPhi(u2, s))
+}
+/* Last decomposition the test ion actually read. The numeric table is ALWAYS on, so between one ion
+   leaving and the next being released it shows these held values rather than blanking — the numbers
+   outlive the particle they came from and can be read at leisure. Replaced the moment a fresh ion
+   starts sampling again. */
+let accELast = null;
 // Low-discrepancy (Halton) sequence, used to hand each gap ion a vertical lane so the cloud spreads
 // evenly across the gap instead of clumping the way Math.random() would.
 const _halton = (i, b) => { let f = 1, r = 0; while (i > 0){ f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
@@ -5877,10 +5979,13 @@ function updateAccelStatus(){
        wear-out mechanism of a gridded engine, so this is a lifetime cost, not just an efficiency one.
    Real thrusters sit in between: NSTAR runs ≈1100 V net against ≈1280 V total, R ≈ 0.86. */
 const R_LOW = 0.75, R_HIGH = 0.90;
-function updateAccelRStatus(){
-  const el = $('acc-r-status'); if (!el) return;
-  const R = ACCEL.R, vn = Math.round(accelVNet()), vt = Math.round(ACCEL.vTotal);
-  const tail = '&nbsp; V<sub>net</sub> = ' + vn + '&nbsp;V of ' + vt + '&nbsp;V';
+/* One verdict, shared by both stages that expose R — the Child–Langmuir stage and the potential
+   view — so the same ratio can never be called "typical" on one page and "too weak" on the other.
+   Each caller passes its own V_net/V_total, which differ: the potential view's V_net is measured
+   from the chamber plasma and so includes V_discharge. */
+function renderRStatus(el, R, vNet, vT){
+  if (!el) return;
+  const tail = '&nbsp; V<sub>net</sub> = ' + Math.round(vNet) + '&nbsp;V of ' + Math.round(vT) + '&nbsp;V';
   if (R > R_HIGH){
     el.className = 'ix-status over';
     el.innerHTML = 'Accel grid too weak: electrons backstream from the beam' + tail;
@@ -5892,6 +5997,7 @@ function updateAccelRStatus(){
     el.innerHTML = 'Typical design range' + tail;
   }
 }
+function updateAccelRStatus(){ renderRStatus($('acc-r-status'), ACCEL.R, accelVNet(), ACCEL.vTotal); }
 /* ── Floating KaTeX labels for the space-charge graph ─────────────────────────
    Real LaTeX (φ, z, V_T, E=V_T/d …) laid over the locked overlay canvas — same pooled
    technique as the circuit labels. The accel view disables pan/zoom, so a per-frame pixel
@@ -6238,8 +6344,9 @@ function drawAccelGraph(dt){
   let eDecomp = null;                                              // {net, grid, ions} in V/m, for the readout below
   // accTestAlpha() is 0 through the pause between releases and ramps at the ends of the flight, so
   // the ion and everything hung on it fade in and out together instead of popping.
-  // Keyed on the ION's x, so when it streams off the frame the whole bundle — glyph, arrows and the
-  // numbers under the axis — goes with it, rather than the readout outliving the particle it reads.
+  // Keyed on the ION's x, so when it streams off the frame the glyph, its arrows and its station line
+  // go with it. The NUMBERS under the axis do not: they hold their last reading (accELast) so the
+  // values are still there to be read after the particle that took them has gone.
   const ionA = accTestAlpha() * edgeA(ux(accTestIon.u));
   if (ACCEL.animIon && ionA > 0.004){
     ctx.globalAlpha = ionA;
@@ -6250,15 +6357,11 @@ function drawAccelGraph(dt){
     const xI = ux(uI), yI = Math.round(yMid - rA * 0.55);
     const yPhi = py(accelPhi(uc, s));                             // the ion's potential on the φ(z) curve
 
-    // The three fields at the ion (V/m, signed; + points right, toward the accel grid).
+    // The three fields at the ion (V/m, signed; + points right, toward the accel grid). This is the
+    // live sample, and it is also what the persistent readout holds on to once the ion is gone.
     const d_m = d * 1e-3;
-    const uA = Math.max(0, Math.min(1, uc - 0.012)), uB = Math.max(0, Math.min(1, uc + 0.012));
-    const dU = uB - uA;
-    const slope = f => dU > 0 ? -(f(uB) - f(uA)) / (dU * d_m) : 0;   // E = −dφ/dz
-    const Egrid = slope(accelPhiGrid);
-    const Eions = slope(u2 => accelPhiIons(u2, s));
-    const Enet  = Egrid + Eions;                                  // ≡ slope(u2 => accelPhi(u2, s))
-    eDecomp = { net:Enet, grid:Egrid, ions:Eions };
+    eDecomp = accELast = accelEDecomp(uc, s);
+    const Egrid = eDecomp.grid, Eions = eDecomp.ions, Enet = eDecomp.net;
 
     // Every vector is rooted on the ion's STATION LINE — the dotted vertical dropped to its
     // potential on the φ(z) curve — so the arrows, the ion and the point being read off the graph
@@ -6348,8 +6451,15 @@ function drawAccelGraph(dt){
   // ── Numeric decomposition, laid out as a little table under the z-axis ──────
   //    Painted on the canvas (not KaTeX) because the numbers change every frame — re-rendering
   //    KaTeX at 60 fps would be wasteful. Columns are centred so each value sits under its symbol.
-  if (eDecomp && (ACCEL.showE.net || ACCEL.showE.grid || ACCEL.showE.ions)){
-    ctx.globalAlpha = ionA;                            // the numbers belong to the ion — they fade with it
+  //    Always on, and drawn at full strength: it shows the live sample while a test ion is flying and
+  //    then HOLDS those numbers through the pause, until the next ion is released and starts reading
+  //    again. Fading it out with the ion (as it used to) meant the table blinked away for most of the
+  //    cycle and the numbers were only ever legible mid-flight. With no ion released yet — or with the
+  //    test ion switched off entirely — it seeds itself from the ion's parked station so the row is
+  //    never blank.
+  if (!eDecomp && !accELast) accELast = accelEDecomp(Math.max(0, Math.min(1, accTestIon.u)), s);
+  const eRead = eDecomp || accELast;
+  if (eRead && (ACCEL.showE.net || ACCEL.showE.grid || ACCEL.showE.ions)){
     const yS = yBase + 64, yN = yBase + 86;            // symbol row / value row baselines
     const FS = 16, FSN = 15, GAP = 8, OPW = 20;
     const fItal = px => 'italic ' + px + "px 'KaTeX_Math', 'Cambria Math', 'Times New Roman', serif";
@@ -6366,12 +6476,12 @@ function drawAccelGraph(dt){
     // Only the vectors currently switched on appear, so the readout always matches the arrows.
     // With all three on it reads as the identity E_net = E_grid + E_ions; with any of them off
     // the operators drop to plain spacers, since a partial sum would be a false statement.
-    const ionsTxt = fmtE(eDecomp.ions);
+    const ionsTxt = fmtE(eRead.ions);
     const shown = ACCEL.showE;
     const terms = [];
-    if (shown.net)  terms.push({ sub:'net',  val:fmtE(eDecomp.net),  col:eDecomp.net >= 0 ? E_COL.fwd : E_COL.rev });
-    if (shown.grid) terms.push({ sub:'grid', val:fmtE(eDecomp.grid), col:E_COL.grid });
-    if (shown.ions) terms.push({ sub:'ions', val:eDecomp.ions < 0 ? '(' + ionsTxt + ')' : ionsTxt, col:E_COL.ions });
+    if (shown.net)  terms.push({ sub:'net',  val:fmtE(eRead.net),  col:eRead.net >= 0 ? E_COL.fwd : E_COL.rev });
+    if (shown.grid) terms.push({ sub:'grid', val:fmtE(eRead.grid), col:E_COL.grid });
+    if (shown.ions) terms.push({ sub:'ions', val:eRead.ions < 0 ? '(' + ionsTxt + ')' : ionsTxt, col:E_COL.ions });
     const fullSet = shown.net && shown.grid && shown.ions;
     const items = [];
     terms.forEach((t, i) => {
@@ -6743,8 +6853,20 @@ function drawCircuitSection(P, W, H, wire, node, battery, arrow){
 function drawPotentialLabels(P, L){
   // The curve's own name, sitting just above the trace at the upstream end — the ordinate itself
   // is titled "Voltage (V)" on the axis, so this names the TRACE, not the scale.
-  clbl('phiAxis', '\\phi_{\\text{ion}}(z)', ...P(-45, 80), 'phi');
-  for (const a of POT_ANN){
+  // On the electron trace there are TWO curves and both are named, at the same size and each in
+  // its species colour: φ_electron(z) is the potential along the electron's own path (the bright
+  // yellow stroke), φ_ion(z) the ion's (the dotted blue one). They coincide until the electron
+  // leaves the chamber through the wire instead of the grids; the φ_ion chip therefore sits by the
+  // accel well, which is where they visibly part company.
+  if (POT.species === 'electron'){
+    clbl('phiAxis', '\\phi_{\\text{electron}}(z)', ...P(-45, 80), 'phi-e');
+    // Directly beneath the well bottom — the dotted curve's one unmistakable feature, and (with
+    // V_accel no longer dimensioned on this trace) the clearest space in the figure.
+    clbl('phiRef',  '\\phi_{\\text{ion}}(z)',      ...P(157, -108), 'phi-ref');
+  } else {
+    clbl('phiAxis', '\\phi_{\\text{ion}}(z)', ...P(-45, 80), 'phi');
+  }
+  for (const a of potAnn()){
     // ↑ / ↓ says which way the potential MOVES across this span as you go downstream. It is also
     // what keeps these apart from the identically-named battery labels on the schematic: the
     // battery says "this supply is 1280 V", the curve says "and here is the 1280 V drop it makes".
@@ -6826,7 +6948,9 @@ function drawCircuitNeu(P, W, H, wire, node, battery, arrow){
    NAMING (two conventions are in circulation and they collide — these are the ones used here):
      V_D           discharge voltage    = anode − discharge cathode                     (25 V)
      V_T           TOTAL accel voltage  = screen grid − accel grid                    (1280 V)
-     V_net         NET accel voltage    = screen grid − plume                         (1100 V)
+     V_net         NET accel voltage    = CHAMBER PLASMA − plume                      (1125 V)
+                   ^ measured from where the ion is BORN, so it includes V_D. Taking it from the
+                     screen grid instead gives 1100 V and understates the ion's energy by V_D.
      V_neutralizer COUPLING voltage     = plume − neutralizer cathode                   (12 V)
    The big supply wired from the anode to the neutralizer cathode in the schematic is the BEAM
    supply (≈V_net), NOT V_neutralizer — see the label in drawCircuitSection. Labelling both
@@ -6838,13 +6962,22 @@ function drawCircuitNeu(P, W, H, wire, node, battery, arrow){
    The accel supply does essentially no net work on a transmitted ion: its contribution is a
    localized dip with both ends at the same level. */
 const POT = {
-  vb: 1100,     // beam / NET accelerating voltage — screen grid (= discharge cathode) above plume
-  va: -180,     // accel grid potential — the most negative node in the device
+  /* The two knobs the grids are actually specified by, matching the Child–Langmuir stage exactly:
+        V_net = R · V_total
+     Everything else on the figure is derived from them (see potLevels) — the beam/screen voltage
+     and the accel-grid voltage both follow, rather than being set independently. This is the right
+     way round because V_total and R are what a designer picks: V_total sets the space-charge-limited
+     current the optics can pass, R sets how much of it survives as exhaust velocity. */
+  vT: 1280,     // total accelerating voltage — screen grid minus accel grid
+  R:  0.88,     // net/total ratio
   vd: 25,       // discharge voltage — anode minus discharge cathode
   /* Two small offsets are deliberately set to zero so that EVERY voltage the figure labels
      closes exactly against the others:
-        V_total       = V_net + V_accel
-        V_neutralizer = V_net + V_discharge
+        V_net         = V_discharge + V_total − V_accel
+     With both offsets zero, V_neutralizer (anode − neutralizer cathode) comes out numerically
+     equal to V_net (chamber plasma − plume). They are NOT the same quantity — give either offset
+     a value and they separate — which is exactly why they live on different traces and never
+     appear in the same figure.
      In hardware the neutralizer cathode floats a few volts below plume potential (that is what
      draws its electrons out into the beam) and the chamber plasma sits a few volts above the
      anode (its sheath is electron-collecting). Both are a fraction of a percent of the range;
@@ -6852,7 +6985,18 @@ const POT = {
      The popups say so in words. Give either a non-zero value and the levels follow. */
   vn: 0,        // neutralizer cathode below the plume
   dphi: 0,      // chamber plasma above the anode
-  ion: { x: 10, wait: 0.4, enabled: true },   // x is a MODEL axial position, like everything else here
+  /* Whose journey is annotated. φ(z) itself is species-independent and the curve is IDENTICAL in
+     both — what changes is which spans are a real leg of that species' path, and which particle
+     rides it. V_neutralizer is the case that motivated the split: an electron collected at the
+     anode has to be carried down it, through the supply, before it can join the beam; the ion
+     never crosses it, and drawing it on the ion trace only made it look like the ion's arrival
+     energy (which it equals ONLY because vn and dphi are zeroed above — turn either on and the
+     two numbers separate). */
+  species: 'ion',
+  // x is a MODEL axial position, like everything else here; `age` is seconds since release and
+  // drives the fade-in (see potFade), so a particle is invisible until it is already under way.
+  ion: { x: 10,  wait: 0.4, age: 0, enabled: true },
+  el:  { x: -78, wait: 0.4, age: 0 },   // the test electron — rides potPhiEl, its own φ(z)
   pop: null,    // which rise/drop note is pinned open (hover shows one transiently; click pins it)
   _wsig: '',    // last chip-width signature the figure was laid out against (see positionPotOverlay)
 };
@@ -6868,13 +7012,25 @@ function potActive(){ return appMode === 'circuit' && circuitView === 'potential
    discharge-cathode common, so both sit at V_net; the anode is V_D above that and the chamber
    plasma a few volts above the anode. */
 function potLevels(){
-  const cath = POT.vb, anode = cath + POT.vd;
-  return { cath, anode, plasma: anode + POT.dphi, screen: POT.vb,
-           accel: POT.va, plume: 0, neu: -POT.vn,
+  /* Work DOWN from V_net = R·V_total. The ion is born in the chamber plasma and ends in the plume,
+     so V_net IS the plasma level above plume. Back off V_D to reach the anode and the discharge
+     cathode (which the screen grid is tied to), then V_total below that to reach the accel grid.
+     Dragging R therefore moves the plasma/screen levels AND the well together — which is right:
+     R is a statement about how the same total voltage is split, and both ends of the split move. */
+  const vNet = POT.R * POT.vT;
+  const plasma = vNet, anode = plasma - POT.dphi, cath = anode - POT.vd;
+  const vT = POT.vT;
+  return { cath, anode, plasma, screen: cath,
+           accel: cath - vT, plume: 0, neu: -POT.vn,
            vD: POT.vd,                       // discharge supply:  anode − discharge cathode
-           vT: POT.vb - POT.va,              // total accel:       screen − accel grid
-           vNeu: cath + POT.vd + POT.vn,     // neutralizer:       anode − neutralizer cathode
-           vNet: POT.vb };                   // net accel:         screen − plume
+           vT,                               // total accel:       screen − accel grid
+           vNeu: anode + POT.vn,             // neutralizer:       anode − neutralizer cathode
+           /* NET accel: CHAMBER PLASMA − plume, not screen grid − plume. The ion is born in the
+              plasma, not on the screen grid, so the drop it actually falls through includes the
+              discharge voltage. This is the number that sets exhaust velocity, and taking it from
+              the screen grid instead understates it by V_D. Here it is the INPUT (R·V_total) and
+              the screen level is what follows from it. */
+           vNet };
 }
 /* ── Geometry ─────────────────────────────────────────────────────────────────────────────
    The figure is registered to the HARDWARE. POT_BOX is a fixed rectangle in MODEL space that
@@ -6899,7 +7055,17 @@ function potZones(){
   return {
     sheath0: -45,                                  // cathode sheath begins (upstream of the orifice)
     sheath1: -20,                                  // …and ends in the chamber bulk
-    screen : SCREEN_SLAB.x1,                       // downstream face of the screen grid
+    /* SCREEN SHEATH. The screen grid is tied to discharge-cathode common, so it sits V_D BELOW the
+       chamber plasma, and a sheath stands on its plasma face carrying that drop. The plasma bulk
+       therefore does not reach the grid at plasma potential — it stops at the sheath edge, and the
+       ion falls through the sheath before it ever sees the extraction gap. Real thickness is a few
+       tens of µm (λ_D ≈ 27 µm here — see the ion-optics note above) against a 410 mm span, i.e.
+       invisible; 2.5 model units is the thinnest that still renders as a step rather than as a
+       vertical discontinuity, and it is honest about the direction of the error — the true sheath
+       is far thinner than drawn, like the extraction gap itself. */
+    scrShe0: SCREEN_SLAB.x0 - 2.5,                 // sheath edge, standing off the grid's plasma face
+    scrShe1: SCREEN_SLAB.x0,                       // …meeting the metal
+    screen : SCREEN_SLAB.x1,                       // downstream face — the extraction gap starts here
     accel  : (ACCEL_SLAB.x0 + ACCEL_SLAB.x1) / 2,  // accel grid plane — the curve minimum
     decel  : 215,                                  // beam has climbed back to plume potential
   };
@@ -6918,11 +7084,29 @@ function potZones(){
      V_neutralizer  anode  → neutralizer      the supply's own terminals: it must reach from the
                                               discharge assembly all the way down past the plume
                                               to a cathode sitting BELOW it, or the electrons
-                                              cannot be drawn out into the jet. */
+                                              cannot be drawn out into the jet.
+
+   `who` says which species' trace a span belongs on, and it is a physical claim, not a display
+   preference: a span is drawn only for a species that actually crosses it.
+     ion       vd, vt, va, vn   — every leg of the fall from chamber plasma to plume.
+     electron  vd, va, vnu      — the sheath step that accelerates it, the accel dip that blocks
+                                  it from backstreaming, and the supply span it is carried down.
+   V_neutralizer is deliberately NOT on the ion trace: no ion crosses it, and with vn = dphi = 0
+   it numerically coincides with the ion's total fall, which made it read as an ion quantity.
+   `e` holds per-entry overrides (position, popup text) applied on the electron trace. */
 const POT_ANN = [
   // ── the three transitions, drawn where the curve moves ──
   { key:'vd',  name:'discharge',   val:L => L.vD,     from:L => L.cath,   to:L => L.anode,
     dx: -14, lx: -14, ly:  24,     // RISE, at the cathode sheath
+    who:'both',
+    e:{ why:['Discharge voltage · anode − discharge cathode',
+             'The <b>electron’s own acceleration</b> — the only span on this trace that gives it '
+           + 'energy (the V<sub>neutralizer</sub> drop is work the supply does <em>on</em> it). '
+           + 'It leaves the bombardment cathode and falls <em>up</em> this step through '
+           + 'the cathode sheath, arriving in the chamber with ' + '≈V<sub>D</sub> of energy — about '
+           + 'twice xenon’s 12.1&nbsp;eV ionization threshold, which is what lets one electron make '
+           + 'more than one ion before it is collected. The ion meets the matching step at the far '
+           + 'end of the chamber, on the screen grid, and falls back down it.'] },
     why:['Discharge voltage · anode − discharge cathode',
          'Sets how hard the bombardment electrons hit the propellant, so it sets the <b>cost of '
        + 'making an ion</b>. Below xenon’s 12.1&nbsp;eV ionization energy nothing ionizes at all; '
@@ -6930,55 +7114,127 @@ const POT_ANN = [
        + '(The chamber plasma actually settles a few volts above the anode, too small to draw here.)'] },
   { key:'vt',  name:'total',       val:L => L.vT,     from:L => L.screen, to:L => L.accel,
     dx: 126, lx:  46, ly: -20,     // DROP, hugging the extraction gap (label well clear of the arrow)
+    who:'ion',
     why:['Total accelerating voltage · screen − accel grid',
          'The voltage across the extraction gap itself, so it sets the <b>space-charge limit</b> — '
        + 'the largest beam current the optics can pass, j&nbsp;∝&nbsp;V<sub>total</sub><sup>3/2</sup>/d² '
        + '(Child–Langmuir). It does <em>not</em> set the exhaust speed.'] },
   { key:'va',  name:'accel',       val:L => -L.accel, from:L => L.accel,  to:L => L.plume,
     dx: 176, lx: 196, ly:-118,     // RISE, the energy the ion gives back climbing out
+    // ION TRACE ONLY. The well it measures is still DRAWN on the electron trace — that is what the
+    // dotted φ_ion(z) curve is there for, and the barrier it forms is what keeps plume electrons
+    // out of the optics — but the electron never crosses the span, so it is not dimensioned there.
+    who:'ion',
     why:['Accel-grid voltage · how far the grid sits below the plume',
          'The dip is an <b>electron barrier</b>: plume electrons cannot climb back up it into the '
        + 'grids, which is what stops the beam neutralizing itself before it leaves. A transmitted '
        + 'ion gives every volt of it back on the way out, so the accel supply does no net work.'] },
   // ── the two spans, stacked downstream ──
-  { key:'vn',  name:'net',         val:L => L.vNet,   from:L => L.screen, to:L => L.plume,
+  { key:'vn',  name:'net',         val:L => L.vNet,   from:L => L.plasma, to:L => L.plume,
     dx: 200, lx: 180, ly:  80,
-    // the upper terminal IS the screen grid: run the witness line back along the +V_net level to
-    // the grid plane and mark it there, rather than leaving it floating downstream of the optics
+    who:'ion',
+    // The upper terminal is the CHAMBER PLASMA, where the ion is born — so the witness line runs
+    // back along that level to where the plateau ends at the screen grid plane and marks it there,
+    // rather than leaving the terminal floating downstream of the optics.
     tie: () => [SCREEN_SLAB.x1, null],
-    why:['Net accelerating voltage · screen − plume',
-         'What the ion is really accelerated through, so this is the one that sets '
+    why:['Net accelerating voltage · chamber plasma − plume',
+         'What the ion is really accelerated through — measured from where it is <b>born</b>, in '
+       + 'the chamber plasma, not from the screen grid. That is why it includes the discharge '
+       + 'voltage: V<sub>net</sub>&nbsp;=&nbsp;V<sub>discharge</sub>&nbsp;+&nbsp;V<sub>total</sub>'
+       + '&nbsp;−&nbsp;V<sub>accel</sub>. It is the one that sets '
        + '<b>exhaust velocity and specific impulse</b>: '
        + 'v<sub>ex</sub>&nbsp;=&nbsp;√(2eV<sub>net</sub>/M), I<sub>sp</sub>&nbsp;=&nbsp;v<sub>ex</sub>/g₀. '
        + 'Raise it for more I<sub>sp</sub>; the thrust per unit current follows √V<sub>net</sub>.'] },
+  /* ELECTRON TRACE ONLY. The electron crosses this span through the SUPPLY, not along z — which
+     is precisely why it has no place on the ion trace, where it used to be drawn. Seated over its
+     own bar, like V_accel: reaching the neutralizer cathode with a leader meant a rule clear
+     across the figure, which read as stray geometry rather than a pointer. */
   { key:'vnu', name:'neutralizer', val:L => L.vNeu,   from:L => L.anode,  to:L => L.neu,
-    // Seated directly over the top of its own bar, like V_accel: reaching the neutralizer cathode
-    // meant a leader clear across the figure, which read as a stray rule rather than a pointer.
-    dx: 224, lx: 224, ly: 108,
+    // Offset DOWNSTREAM of the drop it measures (≈146–165): a dimension bar drawn on top of its
+    // own feature reads as part of the curve rather than as a measurement of it.
+    dx: 180, lx: 214, ly: 108,
+    who:'electron',
     why:['Neutralizer supply · anode − neutralizer cathode',
-         'This is the one that <b>references the whole thruster to its own beam</b>. Its lower '
+         'The drop on the electron\u2019s own trace, and it happens <b>in the supply, not in the '
+       + 'thruster</b>. Collected at the anode it sits at the most '
+       + 'positive potential in the device; to join the beam it has to be delivered to the '
+       + 'neutralizer cathode at plume potential, and the supply does that work on every electron '
+       + 'it passes \u2014 which is why the electron gains no energy falling it, unlike every other '
+       + 'span here. No ion crosses it at all, which is why it belongs on this trace and not the '
+       + 'ion\u2019s. It is also the supply that '
+       + '<b>references the whole thruster to its own beam</b>. Its lower '
        + 'terminal is the neutralizer common, tied to the plume \u2014 so that terminal <em>is</em> the '
-       + '0&nbsp;V this figure is measured from, and the other two supplies stack on top of it. It '
-       + 'therefore spans exactly the fall the ion takes, chamber plasma \u2192 plume: the number in '
-       + 'volts here is the ion\u2019s arrival energy in eV. Walk the loop from the plume \u2014 up this, '
+       + '0&nbsp;V this figure is measured from, and the other two supplies stack on top of it. '
+       + 'Walk the loop from the plume \u2014 up this, '
        + 'down V<sub>discharge</sub>, down V<sub>total</sub>, up V<sub>accel</sub> \u2014 and you are back '
        + 'at 0. (In hardware the cathode also floats a few volts under the plume; that is what pulls '
        + 'its electrons out, and it is too small to draw here.)'] },
 ];
+/* The spans active on the current trace, with any electron-mode overrides folded in. EVERYTHING
+   that iterates the annotations goes through this — the dimension bars, the KaTeX chips and the
+   chip-width signature — so a species switch adds and drops spans consistently, and the pooled
+   labels of dropped spans fall out of `_used` and get hidden by the prune at the end of
+   drawCircuit rather than lingering over the figure. */
+function potAnn(){
+  const e = POT.species === 'electron';
+  return POT_ANN
+    .filter(a => a.who === 'both' || a.who === (e ? 'electron' : 'ion'))
+    .map(a => (e && a.e) ? Object.assign({}, a, a.e) : a);
+}
+/* The electron's journey, in MODEL x. Note this is a genuine φ(z) along its path, not a schematic
+   detour: after it is collected on the anode wall the electron travels the neutralizer supply's
+   wire, which physically runs down the OUTSIDE of the thruster to the neutralizer cathode near the
+   exit plane — so over that stretch it really is at those axial positions, and really is held at
+   anode potential the whole way. The supply then drops it the full V_neutralizer span to plume
+   potential, and it joins the beam. It never enters the extraction gap, which is why its trace has
+   no accel-grid well. */
+// Released well upstream of the sheath, on the flat cathode run, so it finishes fading in BEFORE
+// the discharge step accelerates it — that step is the one thing the electron trace must show.
+const POT_E_X0    = -78;
+const POT_E_COLL  =  60;   // collected on the anode wall, mid-chamber — the wire run starts here
+/* The supply drop sits just past the SCREEN grid, upstream of the optics: the electron has to be
+   sitting at plume potential BEFORE the beam it neutralizes gets there, so it must finish falling
+   well ahead of the ion's climb back out of the accel well (which only reaches 0 V at Z.decel).
+   Taken from SCREEN_SLAB rather than written as a number, like potZones(), so it follows the real
+   grid geometry instead of assuming it. Where the drop is placed along z is a graphical choice in
+   any case — it happens inside the supply, which is a lumped element with no axial position — so
+   it is placed where it reads correctly against the ion. */
+function potEDrop(){
+  const x0 = SCREEN_SLAB.x1 + 6;   // just clear of the screen grid
+  return { x0, x1: x0 + 19 };
+}
 const pstep  = t => t*t*(3-2*t);                       // smoothstep  — monotonic, C¹
 const pstep5 = t => t*t*t*(t*(t*6-15)+10);             // smootherstep — C², zero slope at both ends
-/* φ at model axial position x. Plateaus are genuinely flat; the cathode sheath is a short
-   monotonic step; the gap is the steepest feature and is steepest near mid-gap; the minimum sits
-   exactly on the accel grid plane and is SMOOTH (zero slope either side, so it reads as a minimum
-   and not a corner); the decel recovery approaches 0 V and never overshoots. */
+/* φ at model axial position x. Plateaus are genuinely flat; the two sheaths (cathode, screen) are
+   short monotonic steps; the curve runs FLAT at the screen-grid level through the grid body, which
+   is a conductor and therefore an equipotential; the gap is the steepest feature and is steepest
+   near mid-gap; the minimum sits exactly on the accel grid plane and is SMOOTH (zero slope either
+   side, so it reads as a minimum and not a corner); the decel recovery approaches 0 V and never
+   overshoots. Every transition is pstep5 — C², zero first AND second derivative at both ends — so
+   the trace has no curvature jumps at the joins, not merely no corners. */
 function potPhi(x){
   const L = potLevels(), Z = potZones();
   if (x <= Z.sheath0) return L.cath;                                                        // discharge cathode
-  if (x <  Z.sheath1) return L.cath + (L.plasma - L.cath) * pstep((x - Z.sheath0) / (Z.sheath1 - Z.sheath0));
-  if (x <= Z.screen)  return L.plasma;                                                      // chamber plasma
-  if (x <  Z.accel)   return L.plasma + (L.accel - L.plasma) * pstep5((x - Z.screen) / (Z.accel - Z.screen));
+  if (x <  Z.sheath1) return L.cath + (L.plasma - L.cath) * pstep5((x - Z.sheath0) / (Z.sheath1 - Z.sheath0));
+  if (x <= Z.scrShe0) return L.plasma;                                                      // chamber plasma
+  if (x <  Z.scrShe1) return L.plasma + (L.screen - L.plasma) * pstep5((x - Z.scrShe0) / (Z.scrShe1 - Z.scrShe0));   // screen sheath
+  if (x <= Z.screen)  return L.screen;                                                      // through the screen grid — a conductor, so flat
+  if (x <  Z.accel)   return L.screen + (L.accel - L.screen) * pstep5((x - Z.screen) / (Z.accel - Z.screen));
   if (x <  Z.decel)   return L.accel * (1 - pstep5((x - Z.accel) / (Z.decel - Z.accel)));   // decel recovery
   return 0;                                                                                 // plume
+}
+/* φ along the ELECTRON's path at model axial position x. Identical to potPhi through the cathode
+   sheath and the chamber — the electron is in the plasma there, same as the ion — and then it
+   parts company: no extraction gap, no accel-grid well, just a flat run at anode potential along
+   the supply wire and the single V_neutralizer drop to plume potential. That difference IS the
+   electron trace. */
+function potPhiEl(x){
+  const L = potLevels(), Z = potZones(), D = potEDrop();
+  if (x <= Z.sheath0)  return L.cath;
+  if (x <  Z.sheath1)  return L.cath + (L.plasma - L.cath) * pstep((x - Z.sheath0) / (Z.sheath1 - Z.sheath0));
+  if (x <= D.x0)       return L.plasma;
+  if (x <  D.x1)       return L.plasma + (L.neu - L.plasma) * pstep5((x - D.x0) / (D.x1 - D.x0));
+  return L.neu;
 }
 /* 10% headroom either side, so the accel level always lands at the same height in the frame
    however the sliders are set — which is what lets the annotation blocks be laid out once. */
@@ -7033,7 +7289,11 @@ function refreshPotProfile(){
 
   // ── frame, rules, grid planes ──────────────────────────────────────────────────────────
   let g = '';
-  g += '<line class="p-ax" x1="' + pf(X0) + '" y1="' + pf(YT) + '" x2="' + pf(X0) + '" y2="' + pf(YB) + '"/>';
+  // The voltage axis runs all the way DOWN to the +z axis's level (zY, set below) rather than
+  // stopping at the bottom of the data band, so the two axes actually meet at the origin corner
+  // instead of floating apart as two unrelated rules.
+  const zY = mvy(-176);
+  g += '<line class="p-ax" x1="' + pf(X0) + '" y1="' + pf(YT) + '" x2="' + pf(X0) + '" y2="' + pf(zY) + '"/>';
   // 0 V — a light dashed rule across the whole plot, so "above/below plume" reads anywhere
   g += '<line class="p-zero" x1="' + pf(X0) + '" y1="' + pf(yPl) + '" x2="' + pf(X1) + '" y2="' + pf(yPl) + '"/>';
   // vertical gridlines at the two grid planes ONLY — these sit ON the grids in the cross-section
@@ -7060,7 +7320,7 @@ function refreshPotProfile(){
   g += '<text class="p-axt" transform="translate(' + pf(X0 - 88) + ',' + pf((YT + YB) / 2) + ') rotate(-90)" text-anchor="middle">Voltage (V)</text>';
   // +z sits well inside the guaranteed frame (model x ≤ 260 at every viewport aspect) so a narrow
   // window cannot clip it against the viewport's overflow.
-  const zY = mvy(-176), zA = mvx(PT.mx0), zB = mvx(216);
+  const zA = X0, zB = mvx(216);              // starts ON the voltage axis — same x, shared corner
   g += '<line class="p-ax" x1="' + pf(zA) + '" y1="' + pf(zY) + '" x2="' + pf(zB) + '" y2="' + pf(zY) + '"/>'
      + '<path class="p-zhead" d="M' + pf(zB + 13) + ',' + pf(zY) + ' l-13,-6.4 v12.8 z"/>'
      + '<text class="p-axz" x="' + pf(zB + 20) + '" y="' + pf(zY + 6) + '">+z</text>';
@@ -7069,12 +7329,29 @@ function refreshPotProfile(){
   $('pot-grid').innerHTML = g;
 
   // ── measurement dimensions ─────────────────────────────────────────────────────────────
+  const ANN = potAnn(), has = k => ANN.some(e => e.key === k);
   let a = '';
-  // level extensions the V_T / V_net arrows measure from (started clear of the gap descent)
-  a += '<line class="p-ext" x1="' + pf(xScr + 4) + '" y1="' + pf(yScr) + '" x2="' + pf(mvx(246)) + '" y2="' + pf(yScr) + '"/>';
-  a += '<line class="p-ext" x1="' + pf(xAcc) + '" y1="' + pf(yAcc) + '" x2="' + pf(mvx(215)) + '" y2="' + pf(yAcc) + '"/>';
+  // Level extensions the downstream bars measure from (started clear of the gap descent). Drawn
+  // only when a bar actually measures from that level — on the electron trace V_T and V_net are
+  // gone, so an unconditional screen-level extension would be left as a dashed rule to nowhere.
+  // V_total measures from the screen-grid level, which the curve now actually REACHES (the screen
+  // sheath brings it down to the grid before the gap). Run a short witness back from the grid to
+  // the bar so that terminal is visibly anchored to the hardware rather than floating 25 V under
+  // the plasma plateau, which is how it read while the sheath was missing.
+  if (has('vt'))
+    a += '<line class="p-ext" x1="' + pf(mvx(118)) + '" y1="' + pf(yScr) + '" x2="' + pf(xScr) + '" y2="' + pf(yScr) + '"/>';
+  // V_net measures from the CHAMBER PLASMA (where the ion is born), so its upper terminal rides
+  // the plasma plateau: extend that level downstream from where the plateau ends at the screen grid.
+  if (has('vn'))
+    a += '<line class="p-ext" x1="' + pf(xScr) + '" y1="' + pf(yPlasma) + '" x2="' + pf(mvx(246)) + '" y2="' + pf(yPlasma) + '"/>';
+  if (has('va'))
+    a += '<line class="p-ext" x1="' + pf(xAcc) + '" y1="' + pf(yAcc) + '" x2="' + pf(mvx(215)) + '" y2="' + pf(yAcc) + '"/>';
+  // The electron's circuit leg, drawn as a static dotted route so the whole journey reads before
+  // the particle has traversed it: collected at the anode, held at anode potential all the way
+  // through the wire (which is why that stretch is FLAT and sits above the curve rather than on
+  // it), dropped to neutralizer common by the supply, then out into the plume with the beam.
   // one dimension per supply-driven rise/drop, plus the leader that reaches its KaTeX label
-  for (const e of POT_ANN){
+  for (const e of ANN){
     const x = mvx(e.dx), ya = potYv(e.from(L)), yb = potYv(e.to(L));
     a += potDim(x, ya, yb);
     // Elbow leader, drafting-style: leave the dimension at the level the label is at (or, if the
@@ -7115,53 +7392,112 @@ function refreshPotProfile(){
   }
   $('pot-ann').innerHTML = a;
 
-  // ── the curve: one continuous stroke ───────────────────────────────────────────────────
-  // Sampled in model x, densely enough that the near-vertical gap drop stays smooth.
-  let d = '', N = 900;
-  for (let i = 0; i <= N; i++){
-    const mx = PT.mx0 + (PT.mx1 - PT.mx0) * i / N;
-    d += (i ? 'L' : 'M') + pf(mvx(mx)) + ',' + pf(potYv(potPhi(mx)));
-  }
-  $('pot-curve').setAttribute('d', d);
+  /* ── the curve: one continuous stroke ───────────────────────────────────────────────────
+     Sampled at a roughly constant PATH LENGTH per segment, not a constant step in x. Uniform-x
+     sampling spends its vertices where the curve is flat and starves the parts that actually turn:
+     with 900 points across the span only ~40 of them landed on the extraction plunge, which drops
+     the full height of the plot in 18 model units — about 9 viewBox units of vertical travel
+     between consecutive vertices, and that renders as visible faceting down the steepest, most
+     important feature in the figure. Stepping by arc length puts the vertices where the curvature
+     is, and costs FEWER points overall because the long flat runs no longer need 900 of them. */
+  const sample = f => {
+    const SPAN = PT.mx1 - PT.mx0;
+    const SEG = 1.5,                      // target viewBox path length between vertices
+          MINDX = SPAN / 12000, MAXDX = SPAN / 220,
+          h = SPAN / 8000;                // central-difference step for the local slope
+    let d = 'M' + pf(mvx(PT.mx0)) + ',' + pf(potYv(f(PT.mx0)));
+    let x = PT.mx0;
+    for (let i = 0; x < PT.mx1 && i < 4000; i++){
+      const dydx = (potYv(f(x + h)) - potYv(f(x - h))) / (2 * h);
+      const dx = Math.min(MAXDX, Math.max(MINDX, SEG / Math.hypot(POT_K, dydx)));
+      x = Math.min(PT.mx1, x + dx);
+      d += 'L' + pf(mvx(x)) + ',' + pf(potYv(f(x)));
+    }
+    return d;
+  };
+  const isEl = POT.species === 'electron';
+  // Electron trace: the bright stroke is the electron's own φ_e(z) and φ(z) falls back to a dashed
+  // reference behind it. Ion trace: one stroke, φ(z), and no reference (it would be the same line).
+  $('pot-curve').setAttribute('d', sample(isEl ? potPhiEl : potPhi));
+  $('pot-curve').setAttribute('class', 'p-curve p-halo' + (isEl ? ' el' : ''));
+  $('pot-curve-ref').setAttribute('d', isEl ? sample(potPhi) : '');
 
   // Every label in this figure is a KaTeX chip in the schematic's own pool (drawPotentialLabels),
   // so the SVG carries only geometry. The group is left in place as the paint order's anchor.
   $('pot-lbl').innerHTML = '';
 
-  // ── accessible description ─────────────────────────────────────────────────────────────
+  // ── accessible description + caption, per trace ────────────────────────────────────────
   const gain = Math.round(L.plasma), peak = Math.round(L.plasma - L.accel);
-  const dsc = $('pot-desc');
+  const dsc = $('pot-desc'), cap = $('pot-cap');
+  if (POT.species === 'electron'){
+    if (dsc) dsc.textContent =
+      'Potential against axial position, annotated for an electron instead of an ion, with two ' +
+      'curves drawn. The solid yellow one is the electron’s own path, φ_electron: flat across the ' +
+      'discharge cathode, up the discharge step of ' + POT.vd + ' V through the cathode sheath ' +
+      'into the chamber plasma at +' + Math.round(L.plasma) + ' V, then flat at anode potential ' +
+      'while it travels the neutralizer supply’s wire down the outside of the thruster, then ' +
+      'dropping the whole neutralizer span of ' + Math.round(L.vNeu) + ' V to 0 V at the ' +
+      'neutralizer cathode and running flat into the plume. It has no accelerator-grid well, ' +
+      'because the electron never enters the extraction gap. The dotted blue one is φ_ion, the ' +
+      'ion’s path, plunging through that gap to ' + Math.round(L.accel) + ' V at the accelerator ' +
+      'grid before climbing back to the plume; the two cross where the electron drops straight to ' +
+      'plume potential and the ion does not. That well is a barrier no plume electron can climb ' +
+      'back over, which is what prevents electron backstreaming. Two voltages are dimensioned, ' +
+      'the discharge voltage and the neutralizer supply — the only two spans on the electron’s own ' +
+      'path. The total, net and accel-grid voltages are not dimensioned here: the electron crosses ' +
+      'none of them.';
+    if (cap) cap.innerHTML =
+      'Follow one electron all the way round. It leaves the bombardment cathode, is accelerated '
+      + '<b>up V<sub>discharge</sub></b> through the sheath into the chamber — that is the '
+      + POT.vd + '&nbsp;eV that lets it ionize xenon — and is collected on the anode wall. To get '
+      + 'back into the beam it has to be carried <b>down V<sub>neutralizer</sub></b> '
+      + '(' + Math.round(L.vNeu) + '&nbsp;V) to the neutralizer cathode, and the supply does that '
+      + 'work — it gains nothing falling it. Its trace holds at anode potential until then, '
+      + 'because that stretch is the supply’s <em>wire</em> running down the outside of the '
+      + 'thruster, and it has no accel-grid well at all: the electron never enters the gap. '
+      + 'Compare it against the dotted <b>φ<sub>ion</sub>(z)</b> behind — same curve until the '
+      + 'grids, where the ion plunges into the well and the electron drops straight to plume '
+      + 'potential. That well is the barrier keeping plume electrons out of the optics, which is '
+      + 'why the grid is held negative. Only two spans are dimensioned here because only two are '
+      + 'on the electron’s path: <b>V<sub>total</sub></b>, <b>V<sub>net</sub></b> and '
+      + '<b>V<sub>accel</sub></b> are the ion’s. Hover either label for what it is for.';
+    return;
+  }
   if (dsc) dsc.textContent =
     'A single continuous curve of electrostatic potential against axial position, drawn to scale ' +
     'over a cutaway of the thruster so each feature sits on the hardware that causes it. The ' +
     'vertical scale is linear, unbroken, and referenced to the plume at 0 V. The curve starts ' +
     'flat at +' + Math.round(L.cath) + ' V across the discharge cathode, steps up by the ' +
     'discharge voltage V_D = ' + POT.vd + ' V through the cathode sheath to a flat chamber ' +
-    'plasma at +' + Math.round(L.plasma) + ' V, falls almost vertically through the short ' +
+    'plasma at +' + Math.round(L.plasma) + ' V, steps back down by the same ' + POT.vd + ' V ' +
+    'through the thin sheath standing on the screen grid’s plasma face — the screen grid is tied ' +
+    'to discharge-cathode common, so it sits that far below the plasma — runs flat at +' +
+    Math.round(L.screen) + ' V through the grid itself, falls almost vertically through the short ' +
     'extraction gap between the screen and accelerator grids to a smooth minimum of ' +
     Math.round(L.accel) + ' V at the accelerator grid plane, then recovers to 0 V and stays flat ' +
-    'across the plume without overshooting. Five voltages are dimensioned, and they close on one ' +
-    'another: the discharge voltage ' + POT.vd + ' V from the cathode up to the anode; the total ' +
-    'accelerating voltage ' + Math.round(L.vT) + ' V from the screen grid down to the accel grid; ' +
-    'the accel-grid voltage ' + Math.round(-L.accel) + ' V back up from that minimum to the plume; ' +
-    'the net accelerating voltage ' + Math.round(L.vNet) + ' V from the screen grid down to the ' +
-    'plume, which is the total minus the accel-grid voltage; and the neutralizer supply ' +
-    Math.round(L.vNeu) + ' V from the anode down to the neutralizer cathode, which is the net ' +
-    'accelerating voltage plus the discharge voltage. An ion born in the chamber plasma and ' +
-    'ending in the plume gains ' + gain + ' electronvolts, having transiently held ' + peak +
-    ' electronvolts at the accel plane.'
-  const cap = $('pot-cap');
+    'across the plume without overshooting. Four voltages are dimensioned, every one of them a leg ' +
+    'of the ion\u2019s own fall: the discharge voltage ' + POT.vd + ' V from the cathode up to the ' +
+    'anode; the total accelerating voltage ' + Math.round(L.vT) + ' V from the screen grid down to ' +
+    'the accel grid; the accel-grid voltage ' + Math.round(-L.accel) + ' V back up from that ' +
+    'minimum to the plume; and the net accelerating voltage ' + Math.round(L.vNet) + ' V from the ' +
+    'chamber plasma, where the ion is born, down to the plume — the discharge voltage plus the ' +
+    'total minus the accel-grid voltage. An ion born ' +
+    'in the chamber plasma and ending in the plume gains ' + gain + ' electronvolts, having ' +
+    'transiently held ' + peak + ' electronvolts at the accel plane. The neutralizer supply is not ' +
+    'dimensioned here because no ion crosses it; switch the trace to Electron to see it.';
   if (cap) cap.innerHTML =
-    'Start at the plume and walk the labelled voltages round the loop: <b>up V<sub>neutralizer</sub></b> '
-    + 'to the chamber plasma, <b>down V<sub>discharge</sub></b> to the screen grid, <b>down '
-    + 'V<sub>total</sub></b> to the accel grid, <b>up V<sub>accel</sub></b> \u2014 and you are back at '
-    + '0&nbsp;V (' + Math.round(L.vNeu) + ' \u2212 ' + POT.vd + ' \u2212 ' + Math.round(L.vT) + ' + '
-    + Math.round(-L.accel) + ' = 0). That works because the neutralizer cathode is tied to the plume, '
-    + 'so its supply\u2019s lower terminal <em>is</em> the 0&nbsp;V reference everything else stands on. '
-    + '<b>V<sub>net</sub></b> is the shortcut straight across the middle \u2014 screen grid to plume, '
-    + Math.round(L.vT) + '&nbsp;\u2212&nbsp;' + Math.round(-L.accel) + '&nbsp;=&nbsp;'
-    + Math.round(L.vNet) + '&nbsp;V \u2014 and it is what sets the exhaust velocity. Hover any label '
-    + 'for what that one is for.';
+    'Every span drawn here is one the ion actually falls through. It is born in the chamber plasma, '
+    + 'drops <b>V<sub>discharge</sub></b> to the screen grid, plunges <b>V<sub>total</sub></b> '
+    + '(' + Math.round(L.vT) + '&nbsp;V) across the extraction gap, and climbs <b>V<sub>accel</sub></b> '
+    + '(' + Math.round(-L.accel) + '&nbsp;V) back out \u2014 so what it actually gains is '
+    + '<b>V<sub>net</sub></b>, measured from where it was <em>born</em> rather than from the '
+    + 'screen grid: ' + POT.vd + '&nbsp;+&nbsp;' + Math.round(L.vT) + '&nbsp;\u2212&nbsp;'
+    + Math.round(-L.accel) + '&nbsp;=&nbsp;' + Math.round(L.vNet) + '&nbsp;V. That is what sets '
+    + 'the exhaust velocity, and it includes the discharge voltage. '
+    + 'The deepest point it reaches is <em>not</em> what it leaves with. '
+    + '<b>V<sub>neutralizer</sub></b> is deliberately absent: the ion never crosses it \u2014 an '
+    + 'electron does, through the supply. Switch the trace to <b>Electron</b> for that half of the '
+    + 'story. Hover any label for what that one is for.';
 }
 
 /* Pin the SVG over the cross-section. The section camera is orthographic and axis-aligned, so
@@ -7185,8 +7521,8 @@ function positionPotOverlay(){
   // size and the px→viewBox factor only settle once the chips exist AND the host has been sized
   // — which is why this runs AFTER the sizing above, not before. Re-lay the figure whenever
   // either changes (first paint, a camera zoom, or a slider that lengthens a number).
-  let sig = pf(host.clientWidth) + '|';
-  for (const e of POT_ANN){ const c = CIRC.pool['p_' + e.key];
+  let sig = pf(host.clientWidth) + '|' + POT.species + '|';
+  for (const e of potAnn()){ const c = CIRC.pool['p_' + e.key];
     sig += (c ? Math.round(c.getBoundingClientRect().width) : 0) + ','; }
   if (sig !== POT._wsig){ POT._wsig = sig; refreshPotProfile(); }
 }
@@ -7197,24 +7533,108 @@ function positionPotOverlay(){
    (KE = φ_birth − φ); the launch term in the speed only keeps the drift through the field-free
    chamber watchable, since on a true axial scale that leg would otherwise take tens of seconds. */
 const POT_X0 = 10;        // released mid-chamber, where ions are actually born
+
+/* ── Release cadence and fade envelope, shared by both test particles ──────────────────────
+   Neither particle should pop into existence or slam to a halt at the end of the curve. Each
+   ramps up over POT_FADE_IN seconds from release — while ALREADY MOVING, so the ramp is not a
+   disguised pause — runs its own speed law untouched the whole way, and ramps back down over the
+   last `fadeD` model units of its run. It reaches zero opacity exactly at the end of the plotted
+   curve, so it is gone before it would have had to stop: no deceleration is ever applied to make
+   the ending work. POT_GAP is then empty frame, not a frozen particle parked in the plume.
+
+   fadeD is per species because their speeds there differ by ~4×: the ion crosses the plume at
+   roughly four times the electron's drift, so the same fade in MODEL units would flash past. */
+const POT_FADE_IN = 0.45;   // s, release → full opacity
+const POT_GAP     = 0.60;   // s of empty frame between one particle leaving and the next release
+const POT_FADE_ION = 40;    // model units of fade-out — starts once the ion has climbed back to ≈0 V
+const POT_FADE_EL  = 34;    // …and once the electron is clear of the neutralizer drop
+function potFade(p, fadeD){
+  const rise = Math.min(1, p.age / POT_FADE_IN);
+  const fall = (PT.mx1 - p.x) / fadeD;
+  return Math.max(0, Math.min(rise, fall, 1));
+}
 function stepPotIon(dt){
-  const io = POT.ion, L = potLevels(), xEnd = PT.mx1 - 6;
-  if (io.wait > 0){ io.wait -= dt; return; }
-  if (io.x >= xEnd){ io.x = POT_X0; io.wait = 0.45; return; }   // relaunch from the chamber
+  const io = POT.ion, L = potLevels();
+  if (io.wait > 0){ io.wait -= dt; return; }                    // faded out — hold an empty frame
+  if (io.x >= PT.mx1){ io.x = POT_X0; io.age = 0; io.wait = POT_GAP; return; }   // relaunch
+  io.age += dt;
   const ke = Math.max(0, L.plasma - potPhi(io.x));
-  io.x = Math.min(xEnd, io.x + 6.0 * Math.sqrt(ke + 60) * dt);
-  if (io.x >= xEnd) io.wait = 1.3;                              // linger in the plume
+  io.x = Math.min(PT.mx1, io.x + 6.0 * Math.sqrt(ke + 60) * dt);
+}
+/* The test electron, in four legs — the point being that only the FIRST is a path through the
+   thruster. It is born at the discharge cathode and accelerated downstream up the sheath (gaining
+   V_D, which is why it can ionize); drifts the chamber plateau and is collected on the anode wall;
+   is then carried through the WIRE — flat at anode potential, then down the whole V_neutralizer
+   span as the supply does work on it — to the neutralizer cathode at plume potential; and finally
+   is emitted into the plume alongside the beam it neutralizes. The two middle legs leave the curve
+   entirely and follow the dotted route drawn in refreshPotProfile: nothing about them is a
+   traversal in z, which is the single thing this trace exists to say. */
+/* Target speed ALONG THE DRAWN PATH (viewBox units/s) at model x. Two things make this the right
+   quantity to specify rather than dx/dt:
+
+   1. The supply drop is near-vertical. At constant dx/dt a particle crawls into it, whips down the
+      steep middle and crawls out — a ~13× swing in apparent speed across one feature. Holding the
+      path speed steady instead and solving for dx/dt (see stepPotEl) makes the descent read at one
+      even rate, which is also what it physically is: the supply carries the electron at whatever
+      rate the current dictates, and nothing about the drop accelerates it.
+   2. Leg-to-leg changes can then be CROSSFADED. The legs previously switched speed instantaneously
+      (120 → 11 → 55 in x), so the particle jerked at each boundary; each transition now eases over
+      POT_EL_BLEND of model x.
+
+   The chamber leg keeps its √KE shape — that one IS physical, and it is what shows the electron
+   being accelerated through the cathode sheath. The rest are storytelling: in the wire it moves at
+   whatever the current says, and in the plume it drifts with the beam. */
+const POT_EL_BLEND = 9;    // model units of crossfade either side of a leg boundary
+function potElPathSpeed(x, L){
+  const D = potEDrop();
+  const ease = (a, b, t) => a + (b - a) * pstep(Math.min(1, Math.max(0, t)));
+  let s = 30 * Math.sqrt(Math.max(0, potPhiEl(x) - L.cath) + 9);          // chamber: 90 → 175
+  s = ease(s, 230, (x - POT_E_COLL + POT_EL_BLEND) / (2 * POT_EL_BLEND)); // → the wire
+  s = ease(s, 150, (x - D.x0     + POT_EL_BLEND) / (2 * POT_EL_BLEND));   // → carried by the supply
+  s = ease(s, 130, (x - D.x1     + POT_EL_BLEND) / (2 * POT_EL_BLEND));   // → drifting in the plume
+  return s;
+}
+function stepPotEl(dt){
+  const e = POT.el, L = potLevels();
+  if (e.wait > 0){ e.wait -= dt; return; }                      // faded out — hold an empty frame
+  if (e.x >= PT.mx1){ e.x = POT_E_X0; e.age = 0; e.wait = POT_GAP; return; }     // relaunch
+  e.age += dt;
+  /* Arc-length stepping: convert the target path speed into dx/dt through the LOCAL slope of the
+     drawn curve. POT_K is viewBox x per model x; the finite difference gives viewBox y per model x
+     (potPhiEl is C¹ at the sheath and C² through the drop, so the slope is smooth everywhere).
+
+     Sub-stepped, because the slope is sampled at the START of each step and changes by more than
+     an order of magnitude across the drop's shoulders. One 0.05 s frame at flat-run speed covers
+     ~5 model units, which is enough to enter the descent carrying the flat run's slope and land a
+     visible distance down it. Sub-stepping keeps every step short next to the feature it is
+     crossing, and makes the motion frame-rate independent as a side effect. */
+  const h = 0.4, n = Math.min(8, Math.max(1, Math.ceil(dt / 0.016))), sub = dt / n;
+  for (let i = 0; i < n && e.x < PT.mx1; i++){
+    const dydx = (potYv(potPhiEl(e.x + h)) - potYv(potPhiEl(e.x - h))) / (2 * h);
+    e.x = Math.min(PT.mx1, e.x + (potElPathSpeed(e.x, L) / Math.hypot(POT_K, dydx)) * sub);
+  }
 }
 function drawPotIon(dt){
   const gI = $('pot-ion'); if (!gI) return;
-  const ionOn = POT.ion.enabled !== false;
-  if (!potActive() || !ionOn){ if (gI.innerHTML) gI.innerHTML = ''; return; }
-  stepPotIon(dt);
-  const x = mvx(POT.ion.x), y = potYv(potPhi(POT.ion.x));
-  gI.innerHTML =
-    '<circle class="p-glow" cx="' + pf(x) + '" cy="' + pf(y) + '" r="12"/>' +
-    '<circle class="p-ion"  cx="' + pf(x) + '" cy="' + pf(y) + '" r="6"/>' +
-    '<path class="p-ionsym" d="M' + pf(x-3.3) + ',' + pf(y) + ' h6.6 M' + pf(x) + ',' + pf(y-3.3) + ' v6.6"/>';
+  const on = POT.ion.enabled !== false;
+  const clear = () => { if (gI.innerHTML) gI.innerHTML = ''; };
+  if (!potActive() || !on){ clear(); return; }
+  const el = POT.species === 'electron';
+  if (el) stepPotEl(dt); else stepPotIon(dt);
+  const p = el ? POT.el : POT.ion;
+  const a = potFade(p, el ? POT_FADE_EL : POT_FADE_ION);
+  // Opacity rides the GROUP, so the glow, the body and the ⊕/⊖ glyph fade as one object.
+  // NOT pf() here — that rounds to one decimal, which turns a smooth ramp into ten visible steps.
+  gI.setAttribute('opacity', a.toFixed(3));
+  if (a <= 0.004){ clear(); return; }             // fully faded (or waiting between releases)
+  const x = mvx(p.x), y = potYv((el ? potPhiEl : potPhi)(p.x));
+  gI.innerHTML = el
+    ? '<circle class="p-elglow" cx="' + pf(x) + '" cy="' + pf(y) + '" r="12"/>' +
+      '<circle class="p-el"     cx="' + pf(x) + '" cy="' + pf(y) + '" r="6"/>' +
+      '<path class="p-elsym" d="M' + pf(x-3.3) + ',' + pf(y) + ' h6.6"/>'
+    : '<circle class="p-glow" cx="' + pf(x) + '" cy="' + pf(y) + '" r="12"/>' +
+      '<circle class="p-ion"  cx="' + pf(x) + '" cy="' + pf(y) + '" r="6"/>' +
+      '<path class="p-ionsym" d="M' + pf(x-3.3) + ',' + pf(y) + ' h6.6 M' + pf(x) + ',' + pf(y-3.3) + ' v6.6"/>';
 }
 
 /* ── Thrust-density overlay (Acceleration → Thrust Density) ────────────────────
@@ -7670,20 +8090,20 @@ try {
   // Axial potential profile (Circuit Diagram stage): strip toggle, the three supply sliders and
   // the test ion. Ranges keep the arrangement physical — the accel grid never rises to or above
   // the plume, and the neutralizer coupling is fixed below it.
-  wireNumBox('pot-vb', 'pot-vb-val', setPotVb);
-  wireNumBox('pot-va', 'pot-va-val', setPotVa);
+  // V_accel has no wiring: it is a derived readout on a disabled track, written by potChanged().
+  wireNumBox('pot-vtot', 'pot-vtot-val', setPotVT);
+  wireNumBox('pot-r', 'pot-r-val', setPotR);
   wireNumBox('pot-vd', 'pot-vd-val', setPotVd);
-  $('pot-vb').addEventListener('input', e => setPotVb(+e.target.value));
-  $('pot-va').addEventListener('input', e => setPotVa(+e.target.value));
+  $('pot-vtot').addEventListener('input', e => setPotVT(+e.target.value));
+  $('pot-r').addEventListener('input', e => setPotR(+e.target.value));
   $('pot-vd').addEventListener('input', e => setPotVd(+e.target.value));
   document.querySelectorAll('#circ-view-seg button').forEach(b =>
     b.addEventListener('click', () => setCircuitView(b.dataset.cview)));
+  document.querySelectorAll('#pot-spec-seg button').forEach(b =>
+    b.addEventListener('click', () => setPotSpecies(b.dataset.pspec)));
   $('tog-circ-labels').addEventListener('click', () => setCircuitLabels(!circuitLabels));
+  setPotSpecies(POT.species);
   setCircuitView(circuitView);
-  $('pot-ion-on').addEventListener('change', e => {
-    POT.ion.enabled = e.target.checked;
-    if (e.target.checked){ POT.ion.x = POT_X0; POT.ion.wait = 0.2; }
-  });
   potChanged();
   wirePotPopDismiss();
   // Inline KaTeX in the stage circuit notes (V_D / I_B^i / …).
@@ -7729,6 +8149,9 @@ try {
     // Locked circuit embed: drop straight into the cross-section circuit schematic. setShowCircuit
     // brings Overview into section, turns particles off, and paints the opaque circuit overlay.
     if (EMBED_CIRCUIT) setShowCircuit(true);
+    // Circuit stage: honour a ?cview= deep-link (the stage itself defaults to "Currents").
+    if (EMBED_MODE === 'circuit' && EMBED_CVIEW) setCircuitView(EMBED_CVIEW);
+    if (EMBED_MODE === 'circuit' && EMBED_TRACE) setPotSpecies(EMBED_TRACE);
   } else {
     const h = location.hash.slice(1);
     if (location.hash === '#section') jumpToSection();

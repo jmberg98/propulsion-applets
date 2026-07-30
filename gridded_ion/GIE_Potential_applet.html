@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Gridded Ion Engine: Overview</title>
+<title>Gridded Ion Engine IV: Potential Distribution</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -278,6 +278,77 @@ details.clarify-detail > summary:focus-visible {
 }
 .theory-block > .th-body:last-child { margin-bottom: 0; }
 
+/* ── Derivation equation panels ─────────────────────── */
+/* Byte-identical to the Acceleration page's block on purpose: a derivation should look the same
+   wherever it appears in the series, so the reader learns one layout, not one per page. */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+.deriv-inner p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
 /* ── Applet host overrides ──────────────────────────── */
 .theory-block.applet-host {
   padding: 16px 0 0;
@@ -512,33 +583,25 @@ footer {
 .applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
 </style>
 </head>
+</head>
 <body>
 
 <!-- ════════════════════ APPLET NAV ════════════════════ -->
 <nav class="applet-nav">
-  <a class="nav-prev" href="../magnetic_mirror/magnetic_mirror_applet.html">&larr; Prev</a>
+  <a class="nav-prev" href="GIE_Neutralization_applet.html">&larr; Prev</a>
   <a class="nav-home" href="../index.html">Home</a>
-  <a class="nav-next" href="GIE_Ionization_applet.html">Next &rarr;</a>
+  <span class="nav-disabled nav-next">Next &rarr;</span>
 </nav>
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Gridded Ion Engine: Overview</h1>
+  <h1>Gridded Ion Engine IV: Potential Distribution</h1>
   <span class="badge">Electric Propulsion</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  Before we look into the physics, it is important to acknowledge the history under which
-  <span class="key">electrostatic thrusters</span> were developed. Nearly all electric propulsion devices used
-  today are <span class="key">electrostatic devices</span>, meaning they use solely
-  <span class="hl-E">electric fields</span> to accelerate <span class="hl-q">charged particles</span> for
-  thrust. During the Cold War, the United States and Soviet Union began research on two such electrostatic
-  thrusters: the <span class="key">gridded ion engine</span> and the <span class="key">Hall-Effect thruster</span>.
-  While the United States began early theoretical research on the Hall-Effect thruster, it had plasma
-  instabilities that dissuaded further development efforts. The United States would go on to focus on the
-  development of the gridded ion engine, while the Soviet Union would continue to research the Hall-Effect
-  thruster.
+  <!-- TEXT TO BE WRITTEN -->
 </p>
 
 <div class="colour-key">
@@ -549,90 +612,227 @@ footer {
   <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
 </div>
-<p class="page-intro">
-  <span class="key">Gridded ion engines</span> are highly efficient electric propulsion devices used on modern
-  satellite platforms and several high profile missions. These ion engines have three characteristic features: an
-  <span class="key">ionization chamber</span>, <span class="key">accelerator grids</span>, and a
-  <span class="key">neutralizer</span>. While each of these features varies from thruster to thruster, each
-  variation serves the same purpose.
-</p>
 
-<p class="page-intro">
-  Use this 3D model to familiarize yourself with the gridded ion engine. The cross section feature allows you to
-  see the inner components and workings of the thruster. You can also toggle the visibility of
-  <span class="hl-E">electromagnetic fields</span> and <span class="hl-q">particles</span> for greater
-  detail.
-</p>
+<!-- ══════════════ TOP HALF — CIRCUIT DIAGRAM (moved from the Overview page) ══════════════ -->
 
-<!-- ════════════════════ 3D VIEWER ════════════════════ -->
+<!-- ════════════════════ CIRCUIT CROSS-SECTION ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">3D Viewer &amp; Cross Section</div>
-  <iframe id="viewer-frame" class="applet-frame" src="gridded_ion.html?mode=overview&v=16"
-          title="Interactive 3D gridded ion engine — cross-section, fields, and particles"
+  <div class="th-hdr">Cross Section &mdash; Circuit Diagram</div>
+  <iframe id="circuit-frame" class="applet-frame" src="gridded_ion.html?mode=overview&amp;circuit=1&amp;v=19"
+          title="Gridded ion engine cross-section with the circuit diagram overlay"
           loading="lazy"></iframe>
 </div>
 
-<!-- ════════════════════ STAGE — IONIZATION ════════════════════ -->
+<!-- ════════════════════ CIRCUIT DIAGRAMS ════════════════════ -->
 <div class="theory-block">
-  <div class="th-hdr">Ionization</div>
+  <div class="th-hdr">Circuit Diagrams</div>
   <p class="th-body">
-    The first stage of the gridded ion engine involves the <span class="key">ionization chamber</span>, which
-    ionizes <span class="hl-neutral">neutral propellant atoms</span> so that they can be propelled by the
-    upcoming <span class="key">accelerator grids</span>. Because ionization requires a certain amount of energy,
-    ionization chambers are designed to prevent <span class="hl-electron">electrons</span> from being immediately
-    collected by the inside wall, which acts as an <span class="key">anode</span>, so that it has as many
-    opportunities to ionize <span class="hl-neutral">neutral propellant particles</span> as possible.
+    There are several circuits in gridded ion engines. Each circuit must be closed to prevent the spacecraft from
+    accumulating charge. In a given circuit, the current out must equal the current in and the sum of voltage rises
+    must equal the sum of voltage drops. See if you can identify each of the circuits above!
   </p>
 </div>
 
-<!-- ════════════════════ STAGE — ACCELERATION ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Acceleration</div>
-  <p class="th-body">
-    The second stage of the gridded ion engine provides the <span class="hl-thrust">thrust</span> of the engine
-    via multiple <span class="key">accelerating grids</span>. A voltage difference is applied between a
-    <span class="key">screen grid</span> and an <span class="key">accelerating grid</span>, creating an
-    <span class="hl-E">electric field</span> that accelerates an <span class="hl-ion">ion</span> that
-    happens to drift into the grid holes. However, there exists a limit on how many
-    ions can be between the screen and accelerating grid: the more
-    ions that exist there, the more incoming ions
-    are repelled away.
-  </p>
-</div>
-
-<!-- ════════════════════ STAGE — NEUTRALIZATION ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Neutralization</div>
-  <p class="th-body">
-    The third stage of the gridded ion engine neutralizes the <span class="hl-ion">ion beam</span> expelled from
-    the accelerating grids by emitting <span class="hl-electron">electrons</span> that join the beam, creating an
-    overall neutral jet of <span class="hl-ion">ions</span> and electrons: a
-    <span class="key">plasma jet</span>. If the ion beam were not neutralized, the
-    spacecraft would be left negatively charged, since all the positive charge has left via the jet.
-  </p>
-</div>
-
-<!-- ════════════════════ CONCEPTUAL QUESTION ════════════════════ -->
+<!-- ════════════════════ THE CIRCUITS (DROPDOWNS) ════════════════════ -->
 <div class="clarify-section">
-  <div class="clarify-hdr">Conceptual Questions</div>
+  <div class="clarify-hdr">The Circuits</div>
 
   <details class="clarify-detail">
-    <summary>Gridded ion engines have very high specific impulses, in the order of several thousands of seconds,
-    permitting them to be used on very long missions. However, missions are often more limited by their thruster
-    components&rsquo; lifetimes rather than the amount of propellant available to them. What component is generally the
-    most limiting to the lifetime of the thruster?</summary>
+    <summary>Circuit 1</summary>
     <div class="clarify-body">
-      The <span class="key">accelerating grid</span> is often the most lifetime-limiting component in a gridded ion
-      engine. By the time <span class="hl-ion">ions</span> reach the accelerating grid, they have reached their
-      maximum speed. If they collide with the grid instead of passing through the gaps, they
-      &ldquo;<span class="key">sputter</span>&rdquo;, eroding the grid material. Additionally, ionization can occur
-      past the accelerating grids. At this point, the newly created ion is moving
-      slowly and is highly attracted to the negatively charged accelerator grid, causing erosion. Most gridded ion
-      engines implement a &ldquo;<span class="key">decelerator grid</span>&rdquo;, which is
-      <span class="hl-neutral">neutral</span>. Ions that come back toward the
-      accelerator grid thus hit the decelerator instead, extending the operating lifetime of the accelerator grid.
+      The first circuit is between the <span class="hl-electron">electron</span>-emitting
+      &ldquo;<span class="key">bombardment cathode</span>&rdquo; and the inside walls of the ion engine, which serve
+      as the <span class="key">anode</span>. When an electron is emitted from the
+      bombardment cathode, it will travel throughout the chamber until it eventually touches the wall and is
+      collected, completing the circuit. If an electron hits a
+      <span class="hl-neutral">neutral particle</span> and ionizes it, the reaction results in a positively
+      charged <span class="hl-ion">ion</span> and two electrons. The newly
+      added &ldquo;secondary&rdquo; electron can also be collected by the walls.
+      In fact, the ion may hit the walls by chance, losing its charge and becoming
+      <span class="hl-neutral">neutral</span> again.
     </div>
   </details>
+
+  <details class="clarify-detail">
+    <summary>Circuit 2</summary>
+    <div class="clarify-body">
+      The second circuit is between the <span class="key">screen</span> and <span class="key">accelerating grids</span>
+      toward the ion engine exit. The circuit creates a voltage difference between the grids, accelerating any
+      <span class="hl-ion">ions</span> that happen to drift in between the two. However, there is an
+      <span class="hl-ion">ion jet</span>, a form of current, leaving the grids, meaning the circuit isn&rsquo;t
+      quite closed (yet).
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>Circuit 3</summary>
+    <div class="clarify-body">
+      The third circuit is between the <span class="key">neutralizer cathode</span>, <span class="key">anode
+      walls</span>, and outgoing <span class="hl-ion">ion jet</span>. The neutralizer cathode emits the collected
+      <span class="hl-electron">electrons</span> in the ionization chamber, expelling them toward the
+      ion jet and completing Circuit 2.
+    </div>
+  </details>
+</div>
+
+<!-- ══════════════ BOTTOM HALF — POTENTIAL DISTRIBUTION ══════════════ -->
+
+<p class="transition-line">
+  <!-- TEXT TO BE WRITTEN -->
+</p>
+
+<p class="page-intro">
+  <!-- TEXT TO BE WRITTEN -->
+</p>
+
+<!-- ════════════════════ POTENTIAL DISTRIBUTION ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Axial Potential Distribution</div>
+  <iframe id="potential-frame" class="applet-frame" src="gridded_ion.html?mode=circuit&amp;cview=potential&amp;v=19"
+          title="Axial electrostatic potential distribution over the gridded ion engine cross-section"
+          loading="lazy"></iframe>
+</div>
+
+<!-- ════════════════════ POTENTIAL DISTRIBUTION — THEORY ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Potential Distribution</div>
+  <p class="th-body">
+    <!-- TEXT TO BE WRITTEN -->
+  </p>
+</div>
+
+<!-- ════════════════════ FROM POTENTIAL TO FORCE ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">From Potential to Force</div>
+  <p class="th-body">
+    The curve above is a <span class="hl-phi">potential</span>, not a force. To get from one to the other,
+    note that nothing in the plot tells a particle where to go &mdash; what pushes it is the
+    <span class="hl-E">electric field</span>, and the field is the <span class="key">slope</span> of that
+    curve. Where &phi;(z) is flat there is no field and no force; where it plunges through the
+    <span class="key">extraction gap</span> the slope is enormous, and so is the force.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Axial Field and the Force It Exerts</span>
+    $$ \boxed{\;\textcolor{#F5C518}{E_z} = -\frac{d\textcolor{#F5C518}{\phi}}{dz}\;}
+       \qquad\qquad
+       \boxed{\;\textcolor{#FF4400}{F_z} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E_z}
+              = -\,\textcolor{#C060FF}{q}\,\frac{d\textcolor{#F5C518}{\phi}}{dz}\;} $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+        <p>Everything follows from two definitions and the fact that the electrostatic force is
+        <b>conservative</b> &mdash; the work it does moving a charge between two points does not
+        depend on the path taken.</p>
+
+        <span class="eq-step-label">1 &middot; A Conservative Force Has a Potential Energy</span>
+        <p>Because the work is path-independent, it can be booked as a change in a stored energy
+        $\textcolor{#FF4400}{U}$ that depends only on position. Along the thruster axis:</p>
+        $$ \textcolor{#FF4400}{F_z} = -\frac{d\textcolor{#FF4400}{U}}{dz} $$
+        <p>The minus sign is the definition of &ldquo;stored&rdquo;: the force points the way $U$
+        <em>decreases</em>, so moving with the force spends potential energy and moving against it
+        banks more.</p>
+
+        <span class="eq-step-label">2 &middot; Potential Is Energy Per Unit Charge</span>
+        $$ \textcolor{#F5C518}{\phi} \equiv \frac{\textcolor{#FF4400}{U}}{\textcolor{#C060FF}{q}}
+           \qquad\rightarrow\qquad
+           \textcolor{#FF4400}{U} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi} $$
+        <p>This is what makes &phi;(z) worth plotting at all: it is a property of the
+        <em>field</em>, the same curve for every particle, with the charge factored out.</p>
+
+        <span class="eq-step-label">3 &middot; Field Is Force Per Unit Charge</span>
+        $$ \textcolor{#F5C518}{E_z} \equiv \frac{\textcolor{#FF4400}{F_z}}{\textcolor{#C060FF}{q}} $$
+
+        <span class="eq-step-label">4 &middot; Combine</span>
+        $$ \textcolor{#F5C518}{E_z} = \frac{\textcolor{#FF4400}{F_z}}{\textcolor{#C060FF}{q}}
+           = -\frac{1}{\textcolor{#C060FF}{q}}\frac{d\textcolor{#FF4400}{U}}{dz}
+           = -\frac{1}{\textcolor{#C060FF}{q}}\frac{d}{dz}
+             \!\left(\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi}\right) $$
+        <p>A particle carries its charge with it, so $\textcolor{#C060FF}{q}$ is constant along the
+        path and comes straight back out of the derivative, cancelling:</p>
+        $$ \boxed{\;\textcolor{#F5C518}{E_z} = -\frac{d\textcolor{#F5C518}{\phi}}{dz}\;} $$
+
+        <span class="eq-step-label">5 &middot; Back to the Force</span>
+        <p>Multiplying step 3 by the charge returns the force on any particular particle, which is
+        where the charge &mdash; and its <em>sign</em> &mdash; re-enters:</p>
+        $$ \boxed{\;\textcolor{#FF4400}{F_z} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E_z}
+                  = -\,\textcolor{#C060FF}{q}\,\frac{d\textcolor{#F5C518}{\phi}}{dz}\;} $$
+
+        <span class="eq-step-label">Energy Form</span>
+        <p>Integrating $\textcolor{#FF4400}{F_z}$ over the path gives the same statement as an
+        energy bookkeeping, which is how the plot above is read in practice:</p>
+        $$ \Delta\!\left(\tfrac{1}{2}m v^{2}\right) = -\Delta \textcolor{#FF4400}{U}
+           = -\,\textcolor{#C060FF}{q}\left(\textcolor{#F5C518}{\phi_{\text{end}}}
+             - \textcolor{#F5C518}{\phi_{\text{start}}}\right) $$
+        <p>Only the two <b>endpoints</b> appear &mdash; never the route between them, and never the
+        deepest or highest point reached along the way.</p>
+      </div>
+    </details>
+    <span class="eq-caption">The field is the slope of the potential; the force is that slope times the charge.</span>
+  </div>
+</div>
+
+<!-- ════════════════════ WHY THE TWO SPECIES GO OPPOSITE WAYS ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Why Ions Fall and Electrons Climb</div>
+  <p class="th-body">
+    The field $\textcolor{#F5C518}{E_z} = -d\textcolor{#F5C518}{\phi}/dz$ is a property of the thruster
+    alone &mdash; one curve, one slope at every point, identical for every particle in the engine. What
+    differs between an <span class="hl-ion">ion</span> and an <span class="hl-electron">electron</span> is
+    only the <span class="hl-q">charge</span> that slope gets multiplied by, and the two charges have
+    opposite signs. That single sign is the whole difference.
+  </p>
+
+  <p class="th-body">
+    Take a singly charged <span class="hl-ion">xenon ion</span>, $\textcolor{#C060FF}{q} = +e$. Its force
+    is $\textcolor{#FF4400}{F_z} = -e\,d\textcolor{#F5C518}{\phi}/dz$, so wherever the
+    <span class="hl-phi">potential</span> falls as you move downstream the force points downstream too:
+    the ion is pushed toward <span class="key">lower potential</span>. Now take an
+    <span class="hl-electron">electron</span>, $\textcolor{#C060FF}{q} = -e$. The same slope now gives
+    $\textcolor{#FF4400}{F_z} = +e\,d\textcolor{#F5C518}{\phi}/dz$ &mdash; the sign has flipped, and the
+    electron is pushed the other way, toward <span class="key">higher potential</span>. Neither particle
+    &ldquo;wants&rdquo; anything; they are simply being pushed by the same field in opposite directions.
+  </p>
+
+  <p class="th-body">
+    The energy picture is the one worth carrying around. What a particle actually rolls downhill on is not
+    <span class="hl-phi">&phi;</span> but its own potential energy
+    $\textcolor{#FF4400}{U} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi}$, and multiplying by a
+    negative charge <em>turns the graph upside down</em>. For the <span class="hl-ion">ion</span>,
+    $\textcolor{#FF4400}{U} = +e\textcolor{#F5C518}{\phi}$: its energy landscape is the plotted curve
+    itself, so it rolls downhill exactly as drawn. For the <span class="hl-electron">electron</span>,
+    $\textcolor{#FF4400}{U} = -e\textcolor{#F5C518}{\phi}$: its landscape is the mirror image, so every
+    hill on the plot is a valley for it and every valley a hill. Both particles do the same
+    thing &mdash; fall to lower energy. They only look opposed because they are reading opposite copies
+    of one graph.
+  </p>
+
+  <p class="th-body">
+    That is what the two traces in the viewer above are showing, and the
+    <span class="key">accelerator grid</span> is the clearest case. Its well sits
+    $180\ \text{V}$ below the plume, and to an <span class="hl-ion">ion</span> that well is a
+    downhill run &mdash; it dives in, reaching its greatest speed at the grid plane, then gives the
+    $180\ \text{V}$ back climbing out, which is why the accel supply does no net work on an ion that
+    makes it through. Flip the graph and the same well becomes a <span class="key">hill</span>
+    $180\ \text{V}$ tall standing in front of any <span class="hl-electron">electron</span> in the
+    plume. It cannot climb it, and that is precisely the point: the barrier is what stops plume
+    electrons from streaming back upstream into the optics and neutralizing the beam before it ever
+    leaves the engine.
+  </p>
+
+  <p class="th-body">
+    The same reading explains the two <span class="key">sheaths</span> standing at either end of the
+    discharge chamber &mdash; and why both carry the same $25\ \text{V}$, since the bombardment
+    cathode and the screen grid are tied to the same common. The
+    <span class="hl-electron">electron</span> leaving the cathode is accelerated <em>up</em> the
+    step at the upstream end, gaining energy by climbing to higher potential: about
+    $25\ \text{eV}$, roughly twice xenon&rsquo;s $12.1\ \text{eV}$ ionization threshold, which is
+    what lets a single electron make more than one <span class="hl-ion">ion</span> before it is
+    collected. An ion born in that same chamber meets the matching step at the
+    <em>downstream</em> end and does the opposite: it falls <em>down</em> the screen-grid sheath and
+    onward into the gap. One field, one set of slopes, two signs of charge, two opposite journeys.
+  </p>
 </div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
