@@ -535,8 +535,8 @@ footer {
   <span class="hl-E">electric fields</span> to accelerate <span class="hl-q">charged particles</span> for
   thrust. During the Cold War, the United States and Soviet Union began research on two such electrostatic
   thrusters: the <span class="key">gridded ion engine</span> and the <span class="key">Hall-Effect thruster</span>.
-  While the United States began early theoretical research on the Hall-Effect thruster, it had plasma
-  instabilities that dissuaded further development efforts. The United States would go on to focus on the
+  While the United States began early theoretical research on the Hall-Effect thruster, its intrinsic plasma
+  instabilities dissuaded further development efforts. The United States would go on to focus on the
   development of the gridded ion engine, while the Soviet Union would continue to research the Hall-Effect
   thruster.
 </p>
@@ -546,6 +546,7 @@ footer {
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
   <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
   <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
 </div>
@@ -559,9 +560,8 @@ footer {
 
 <p class="page-intro">
   Use this 3D model to familiarize yourself with the gridded ion engine. The cross section feature allows you to
-  see the inner components and workings of the thruster. You can also toggle the visibility of
-  <span class="hl-E">electromagnetic fields</span> and <span class="hl-q">particles</span> for greater
-  detail.
+  see the inner components and workings of the thruster. You can also toggle the visibility of elements such as
+  component labels, <span class="hl-E">electromagnetic fields</span>, and <span class="hl-q">particles</span>.
 </p>
 
 <!-- ════════════════════ 3D VIEWER ════════════════════ -->
@@ -578,10 +578,11 @@ footer {
   <p class="th-body">
     The first stage of the gridded ion engine involves the <span class="key">ionization chamber</span>, which
     ionizes <span class="hl-neutral">neutral propellant atoms</span> so that they can be propelled by the
-    upcoming <span class="key">accelerator grids</span>. Because ionization requires a certain amount of energy,
-    ionization chambers are designed to prevent <span class="hl-electron">electrons</span> from being immediately
-    collected by the inside wall, which acts as an <span class="key">anode</span>, so that it has as many
-    opportunities to ionize <span class="hl-neutral">neutral propellant particles</span> as possible.
+    upcoming <span class="key">accelerator grids</span>. Because ionization requires the
+    <span class="hl-electron">electrons</span> to have a certain amount of energy, ionization chambers are
+    equipped with <span class="hl-B">magnetic cusps</span> that lengthen the path an electron travels before
+    being collected by the inside walls of the thruster. This way, a given electron has more opportunities to
+    ionize <span class="hl-neutral">neutral propellant particles</span> before it leaves the chamber.
   </p>
 </div>
 
@@ -590,12 +591,11 @@ footer {
   <div class="th-hdr">Acceleration</div>
   <p class="th-body">
     The second stage of the gridded ion engine provides the <span class="hl-thrust">thrust</span> of the engine
-    via multiple <span class="key">accelerating grids</span>. A voltage difference is applied between a
-    <span class="key">screen grid</span> and an <span class="key">accelerating grid</span>, creating an
-    <span class="hl-E">electric field</span> that accelerates an <span class="hl-ion">ion</span> that
-    happens to drift into the grid holes. However, there exists a limit on how many
-    ions can be between the screen and accelerating grid: the more
-    ions that exist there, the more incoming ions
+    through a strong <span class="hl-E">electric field</span> between <span class="key">accelerating
+    grids</span>. A voltage difference is applied between a <span class="key">screen grid</span> and an
+    <span class="key">accelerating grid</span> placed a small distance apart, creating a strong electric field
+    that accelerates incoming <span class="hl-ion">ions</span>. However, there exists a limit on how many
+    ions can be between the screen and accelerating grid: the more ions that exist there, the more incoming ions
     are repelled away.
   </p>
 </div>

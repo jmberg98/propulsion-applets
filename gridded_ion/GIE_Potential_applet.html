@@ -97,6 +97,15 @@ footer {
   width: var(--page-w);
 }
 
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 .theory-block.applet-host {
   width: var(--page-w);
   margin-left: 0;
@@ -521,6 +530,27 @@ details.deriv-detail > summary:focus-visible {
   text-align: center;
   transition: color 0.15s;
 }
+/* ── Option with a "dropdown arrow" note ─────────────────
+   The layout doc gives each choice a one-line gloss of what
+   that supply actually does. Rendered as a muted second line
+   inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
 .quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
@@ -593,7 +623,6 @@ footer {
 .applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
 </style>
 </head>
-</head>
 <body>
 
 <!-- ════════════════════ APPLET NAV ════════════════════ -->
@@ -611,7 +640,11 @@ footer {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  <!-- TEXT TO BE WRITTEN -->
+  All electric thrusters have a dedicated <span class="key">power processing unit (PPU)</span> which drives how
+  efficiently electrical energy from the spacecraft is transferred to the thruster&rsquo;s circuits. Gridded ion
+  engines require various <span class="hl-power">power</span> sources to operate due to having several circuits
+  needed for the thruster to operate. Use the circuit diagram and <span class="hl-E">voltage</span> plot to explore
+  where power is required in this device and how it is used.
 </p>
 
 <div class="colour-key">
@@ -625,10 +658,44 @@ footer {
 
 <!-- ══════════════ TOP HALF — CIRCUIT DIAGRAM (moved from the Overview page) ══════════════ -->
 
+<!-- ════════════════════ GUIDING QUESTION ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">Recall that the <span class="hl-power">power</span> required for a circuit is equivalent to the
+    product of its <span class="hl-E">voltage difference</span> and the current it is applied to,
+    $\textcolor{#C060FF}{P} = I\,\textcolor{#F5C518}{V}$. Knowing this, what circuit in the gridded ion engine
+    consumes most of the power?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Discharge Circuit
+          <span class="quiz-opt-note">Provides electrons the required energy to return to the bombardment cathode at
+          lower potential.</span>
+        </span>
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Neutralizer / Beam Circuit
+          <span class="quiz-opt-note">Provides electrons the required energy to join the ion beam downstream at lower
+          potential.</span>
+        </span>
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Cathode Keeper Supplies
+          <span class="quiz-opt-note">Provides the required energy for the cathodes to emit electrons.</span>
+        </span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
 <!-- ════════════════════ CIRCUIT CROSS-SECTION ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Cross Section &mdash; Circuit Diagram</div>
-  <iframe id="circuit-frame" class="applet-frame" src="gridded_ion.html?mode=overview&amp;circuit=1&amp;v=19"
+  <iframe id="circuit-frame" class="applet-frame" src="gridded_ion.html?mode=overview&amp;circuit=1&amp;v=21"
           title="Gridded ion engine cross-section with the circuit diagram overlay"
           loading="lazy"></iframe>
 </div>
@@ -637,9 +704,7 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">Circuit Diagrams</div>
   <p class="th-body">
-    There are several circuits in gridded ion engines. Each circuit must be closed to prevent the spacecraft from
-    accumulating charge. In a given circuit, the current out must equal the current in and the sum of voltage rises
-    must equal the sum of voltage drops. See if you can identify each of the circuits above!
+    There are several circuits in gridded ion engines. See if you can identify each of the circuits above!
   </p>
 </div>
 
@@ -652,14 +717,14 @@ footer {
     <div class="clarify-body">
       The first circuit is between the <span class="hl-electron">electron</span>-emitting
       &ldquo;<span class="key">bombardment cathode</span>&rdquo; and the inside walls of the ion engine, which serve
-      as the <span class="key">anode</span>. When an electron is emitted from the
-      bombardment cathode, it will travel throughout the chamber until it eventually touches the wall and is
-      collected, completing the circuit. If an electron hits a
-      <span class="hl-neutral">neutral particle</span> and ionizes it, the reaction results in a positively
-      charged <span class="hl-ion">ion</span> and two electrons. The newly
-      added &ldquo;secondary&rdquo; electron can also be collected by the walls.
-      In fact, the ion may hit the walls by chance, losing its charge and becoming
-      <span class="hl-neutral">neutral</span> again.
+      as the <span class="key">anode</span>. Electrons emitted from the cathode collide into
+      <span class="hl-neutral">neutral particles</span>, possibly ionizing them, releasing an
+      <span class="hl-ion">ion</span> and a secondary electron. The primary and secondary electrons then travel
+      about the chamber until they are collected by the anode walls, completing the circuit.
+      <span class="hl-power">Power</span> is needed to lower the <span class="hl-E">electric potential</span> of the
+      emitted electrons. This way, when electrons start to enter the plasma of the ionization chamber, they gain
+      electric potential, gaining kinetic energy. This provides more ionization energy to the primary electrons,
+      making it easier to ionize neutral particles.
     </div>
   </details>
 
@@ -667,49 +732,91 @@ footer {
     <summary>Circuit 2</summary>
     <div class="clarify-body">
       The second circuit is between the <span class="key">screen</span> and <span class="key">accelerating grids</span>
-      toward the ion engine exit. The circuit creates a voltage difference between the grids, accelerating any
-      <span class="hl-ion">ions</span> that happen to drift in between the two. However, there is an
-      <span class="hl-ion">ion jet</span>, a form of current, leaving the grids, meaning the circuit isn&rsquo;t
-      quite closed (yet).
+      toward the ion engine exit. The circuit creates a large <span class="hl-E">voltage difference</span> across a
+      very small distance, and thus creates a strong <span class="hl-E">electric field</span>. This strong electric
+      field extracts <span class="hl-ion">ions</span> from the bulk plasma upstream, causing them to accelerate up to
+      tens of kilometers per second. Because no current is collected or emitted, and
+      $\textcolor{#C060FF}{P} = I\,\textcolor{#F5C518}{V}$, no <span class="hl-power">power</span> is consumed by this
+      circuit.
     </div>
   </details>
 
   <details class="clarify-detail">
     <summary>Circuit 3</summary>
     <div class="clarify-body">
-      The third circuit is between the <span class="key">neutralizer cathode</span>, <span class="key">anode
-      walls</span>, and outgoing <span class="hl-ion">ion jet</span>. The neutralizer cathode emits the collected
-      <span class="hl-electron">electrons</span> in the ionization chamber, expelling them toward the
-      ion jet and completing Circuit 2.
+      The third circuit is between the <span class="key">anode walls</span> of the thruster and the
+      <span class="key">neutralizer cathode</span> that emits <span class="hl-electron">electrons</span> to join the
+      outgoing beam of <span class="hl-ion">ions</span>. In order to properly
+      <a class="applet-link" href="GIE_Neutralization_applet.html">neutralize</a> the ion beam, the neutralizer
+      cathode must match the current of the outgoing beam. Additionally, the
+      <span class="hl-E">potential difference</span> must match the net voltage drop of the ions. Because the circuit
+      must apply a large voltage drop to a large electron current, the neutralizer or beam supply consumes most of the
+      <span class="hl-power">power</span> in the gridded ion engine.
     </div>
   </details>
 </div>
 
 <!-- ══════════════ BOTTOM HALF — POTENTIAL DISTRIBUTION ══════════════ -->
 
-<p class="transition-line">
-  <!-- TEXT TO BE WRITTEN -->
-</p>
-
-<p class="page-intro">
-  <!-- TEXT TO BE WRITTEN -->
-</p>
-
 <!-- ════════════════════ POTENTIAL DISTRIBUTION ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Axial Potential Distribution</div>
-  <iframe id="potential-frame" class="applet-frame" src="gridded_ion.html?mode=circuit&amp;cview=potential&amp;v=19"
+  <iframe id="potential-frame" class="applet-frame" src="gridded_ion.html?mode=circuit&amp;cview=potential&amp;v=21"
           title="Axial electrostatic potential distribution over the gridded ion engine cross-section"
           loading="lazy"></iframe>
 </div>
 
 <!-- ════════════════════ POTENTIAL DISTRIBUTION — THEORY ════════════════════ -->
 <div class="theory-block">
-  <div class="th-hdr">Potential Distribution</div>
+  <div class="th-hdr">The Voltages</div>
+
   <p class="th-body">
-    <!-- TEXT TO BE WRITTEN -->
+    <span class="hl-E">$V_{discharge}$</span> &mdash; Provides <span class="hl-electron">electrons</span> the
+    necessary energy to drop in <span class="hl-E">electric potential</span>, allowing them to gain kinetic energy as
+    their potential raises to the bulk plasma potential <span class="hl-E">$V_{net}$</span>.
+    <span class="hl-ion">Ions</span> born from these ionizing electrons are at the bulk plasma potential
+    <span class="hl-E">$V_{net}$</span>.
+  </p>
+
+  <p class="th-body">
+    <span class="hl-E">$V_{neutralizer}$</span> &mdash; Provides <span class="hl-electron">electrons</span> the
+    necessary energy to drop in <span class="hl-E">electric potential</span> to 0&nbsp;V, allowing them to join the
+    <span class="hl-ion">ion jet</span> downstream. Consumes the bulk of the thruster&rsquo;s
+    <span class="hl-power">power</span>, due to needing to provide a large voltage drop to a large current of
+    electrons.
+  </p>
+
+  <p class="th-body">
+    <span class="hl-E">$V_{total}$</span> &mdash; The <span class="hl-E">voltage drop</span> between the
+    <span class="key">screen</span> and <span class="key">accelerator grid</span>. Dictates the
+    <span class="key">space charge limit</span>
+    (<a class="applet-link" href="GIE_Acceleration_applet.html">GIE II: Acceleration</a>) and thus mass flow rate of
+    the thruster.
+  </p>
+
+  <p class="th-body">
+    <span class="hl-E">$V_{accel}$</span> &mdash; Set at (not recommended) or below the plasma beam&rsquo;s
+    <span class="hl-E">potential</span> to prevent <span class="hl-electron">electrons</span> from
+    &ldquo;<span class="key">back-streaming</span>&rdquo; into the grid.
+    <span class="hl-E">$V_{accel}$</span> adversely affects
+    <span class="hl-ve">$I_{sp}$</span> and <span class="hl-thrust">thrust density</span>, so caution how high it is
+    set.
   </p>
 </div>
+
+<p class="transition-line">
+  Notice that both the <span class="hl-ion">ion</span> and <span class="hl-electron">electron</span> start and end at
+  the same <span class="hl-E">potential</span> but go through different paths to do so.
+</p>
+
+<p class="page-intro">
+  Adjust the <span class="hl-E">potentials</span> and ratio <span class="hl-E">$R$</span> to see what
+  <span class="hl-ve">$I_{sp}$</span> is achievable from the thruster and if
+  <span class="key">electron back-streaming</span> will be an issue. In doing so, notice the potential distribution of
+  the ion&rsquo;s path just downstream of the <span class="key">accelerator grid</span>. It either increases or stays
+  constant. Which case might repel <span class="hl-electron">electrons</span> from back-streaming into the grid? Hover
+  over each voltage in the demo to see what its purpose is!
+</p>
 
 <!-- ════════════════════ FROM POTENTIAL TO FORCE ════════════════════ -->
 <div class="theory-block">
@@ -783,5 +890,32 @@ footer {
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
 
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+
+/* ── Single-answer multiple choice ─────────────────────────────── */
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+</script>
 </body>
 </html>

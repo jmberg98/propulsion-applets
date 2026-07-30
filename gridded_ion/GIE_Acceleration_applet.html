@@ -573,7 +573,7 @@ footer {
   <span class="key">screen and accelerator grids</span>, creating a strong <span class="hl-E">electric field</span>
   $E = V_T/d$. Much like chemical rockets, only so many particles can be accelerated at a time via the
   <span class="key">accelerator grid</span>. This means that for a given gridded ion engine size, there is a limit to
-  the amount of the thrust that can be generated. Let&rsquo;s explore what the limit
+  the amount of thrust that can be generated. Let&rsquo;s explore what the limit
   seems to be.
 </p>
 
@@ -590,26 +590,8 @@ footer {
   <div class="quiz-hdr">Stage 2 &mdash; Accelerating Grids</div>
 
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">The second stage of the gridded ion engine is applying an
-    <span class="hl-E">electric field</span> to particles that have drifted past the ionization chamber into the
-    <span class="key">accelerating grids</span>. Why are there (at least) two grids in gridded ion engines?</p>
-    <div class="quiz-options">
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>A single charged grid is not sufficient to provide meaningful thrust. Multiple grids allow for ions to be accelerated multiple times.
-      </button>
-      <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>To apply a voltage difference, and thus create an accelerating electric field, two grids are needed, one at a higher voltage than the other.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>A single charged grid is not sufficient to block incoming ions. Multiple grids more effectively block ions and allow neutrals to pass, generating thrust.
-      </button>
-    </div>
-    <div class="quiz-feedback"></div>
-  </div>
-
-  <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">The more <span class="hl-ion">ions</span> that pass through the accelerator grids, the greater our
-    mass flow rate and thus our <span class="hl-thrust">thrust</span>. What causes the fundamental limit on the amount
+    mass flow rate and thus our <span class="hl-thrust">thrust</span>. What causes the fundamental limit on the number
     of ions that pass through the screen grid into the accelerator grid?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
@@ -620,6 +602,23 @@ footer {
       </button>
       <button class="quiz-opt" data-correct="false">
         <span class="quiz-opt-label">c</span>The grid gap size controls the flow of ions into and out of the set of grids. If the gap size is made small to prevent neutrals from entering/leaving the grids, then there is a limit on how many ions can pass through.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">Just downstream of the accelerator grid, <span class="hl-electron">electrons</span> from the
+    <span class="key">neutralizer</span> join the exhaust jet to neutralize it. These electrons are attracted to the
+    <span class="hl-ion">ions</span> coming out of the accelerator grid openings. Why might we want to implement a
+    small <span class="hl-E">voltage rise</span> just downstream of the accelerator grid, knowing this would lower
+    <span class="hl-thrust">thrust</span> and <span class="hl-ve">$I_{sp}$</span>?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>Electrons will be repelled by an accelerator grid that has lower electric potential than the plasma beam, keeping electrons in the beam and ensuring current isn&rsquo;t wasted damaging grid apertures. This is known as &ldquo;electron back-streaming.&rdquo;
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>Slowing the ions gives neutralizer electrons time to recombine with them, so the exhaust leaves as neutral atoms rather than as a charged plasma.
       </button>
     </div>
     <div class="quiz-feedback"></div>

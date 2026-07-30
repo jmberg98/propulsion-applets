@@ -350,10 +350,14 @@
   #pot-pop .pp-b sub, #pot-pop .pp-b sup { font-size: 0.78em; }
 
   /* Ionization caption — a centered card beneath the thruster explaining the anode flash.
-     Shown only in Ionization mode. */
+     Shown only in Ionization mode.
+     STACKED DIRECTLY ABOVE #hint, which is also bottom-centered. #hint sits at bottom:16px and
+     stands ~48px tall (a 24px glyph + 11px padding either side + border), so its top edge is at
+     64px; 76px puts this card just clear of it with a small gap. The two used to share bottom:16px
+     and overlap. If #hint's padding or glyph size changes, this has to follow. */
   #ion-caption {
     position: absolute;
-    bottom: 16px; left: 50%; transform: translateX(-50%);
+    bottom: 76px; left: 50%; transform: translateX(-50%);
     display: none;
     max-width: 56%; text-align: center;
     background: rgba(8,8,8,0.82);
@@ -1121,6 +1125,24 @@
             prevent electrons from heading directly to the anode walls.</div>
         </details>
         <details class="ix-dd">
+          <summary>Reading an electron's path</summary>
+          <div class="ix-dd-body">An electron crosses the field-free middle of the chamber in a
+            <b>straight line</b>, then meets the band of field along the wall &mdash; the same band
+            the arcs are drawn in. It does <i>not</i> bounce off it. It pushes <b>into</b> the
+            field, <b>slows down</b> as it goes deeper, comes to a <b>complete stop</b> a little
+            <i>past</i> the drawn lines, and swings back out along a curved path &mdash; a
+            slingshot, like a probe rounding a planet, and it leaves with exactly the speed it
+            arrived with. That turning point is the <b>magnetic mirror</b>, and it is the
+            confinement.<br><br>
+            Between the rings the field runs <i>along</i> the wall and rises steeply toward the
+            metal, so there is a barrier to climb. At a <b>ring</b> the field points straight
+            <i>into</i> the wall instead, so there is no barrier at all &mdash; the electron rides
+            the cusp in, spirals down onto the pole face, and is <b>collected</b> while that ring
+            flashes <span class="mag">magenta</span>. Those few narrow strips at the magnets are
+            the <i>only</i> places on the anode an electron can be lost. Switch the magnets off and
+            watch the losses spread over the whole wall instead.</div>
+        </details>
+        <details class="ix-dd">
           <summary>Why only the electrons are held</summary>
           <div class="ix-dd-body">The cusps confine <b>electrons</b> but not <b>ions</b>, and that
             asymmetry is the whole mechanism. A particle's gyroradius grows as
@@ -1196,7 +1218,10 @@
         <div class="ix-title">Circuit Diagram</div>
         <!-- Two views of the same three supplies: how they are WIRED (currents and voltages
              round each loop) and what they DO (the potential an ion falls through). -->
-        <div class="ix-circ-tog" style="margin-top:0; padding-top:0; border-top:none">
+        <!-- margin-bottom: with the explanatory note that used to sit here gone, the Trace buttons
+             would otherwise butt straight into the first slider. Matches the 16px the sliders keep
+             between themselves. -->
+        <div class="ix-circ-tog" style="margin-top:0; padding-top:0; border-top:none; margin-bottom:18px">
           <div class="ix-toglabel">View</div>
           <div class="seg" id="circ-view-seg">
             <button data-cview="currents" class="active">Currents</button>
@@ -1213,40 +1238,8 @@
               <button data-pspec="electron">Electron</button>
             </div>
           </div>
-          <div class="vtoglist" style="margin-top:4px">
-            <button type="button" class="vtog" id="tog-circ-labels" role="switch" aria-checked="false"><span>Show component labels</span><span class="vsw"></span></button>
-          </div>
-          <p class="ix-cnote" id="circ-view-note">The hardware is drawn behind the schematic as a
-            transparent cross-section, so every node sits on the part it belongs to. Drag to pan,
-            scroll to zoom.</p>
         </div>
 
-        <p class="ix-note">Every circuit in the thruster must <b>close</b>, or the spacecraft
-          charges up: the current out has to equal the current back in, and the voltage rises
-          around each loop have to equal the drops. Three supplies do the work, and the
-          <b>anode</b> — the discharge-chamber wall — is the common node two of them share.</p>
-        <ul class="ix-list">
-          <li><b class="c-dis">Discharge</b> <span class="ck" data-tex="V_{\text{discharge}}"></span> —
-            the bombardment cathode emits electrons into the chamber; they are collected (with the
-            ions that reach the wall) at the anode, closing the loop.</li>
-          <li><b class="c-acc">Acceleration</b> <span class="ck" data-tex="V_{\text{total}}"></span> —
-            held across the screen and accelerator grids. It is <em>not</em> tied to the anode; its
-            "return" is the ion beam <span class="ck" data-tex="I_{\text{beam}}^{\text{ion}}"></span>
-            leaving through the optics.</li>
-          <li><b class="c-neu">Neutralizer</b> <span class="ck" data-tex="V_{\text{neutralizer}}"></span> —
-            runs from the same anode node to the external neutralizer cathode, which puts one
-            electron back into the plume for every ion the grids throw out. It has to span the
-            whole way <em>past</em> the plume to a cathode sitting below it, so it is larger than
-            the net accelerating voltage <span class="ck" data-tex="V_{\text{net}}"></span> the ion
-            actually falls through.</li>
-        </ul>
-        <details class="ix-dd">
-          <summary>Why the anode nodes join</summary>
-          <div class="ix-dd-body">The chamber wall is a single conductor, so the top and bottom
-            anode terminals — the wall crossings either side of the axis in the cross-section —
-            are the <b>same node</b>. The bus running around the upstream end of the chamber makes
-            that explicit: the discharge return and the neutralizer supply land on one anode.</div>
-        </details>
         <label class="ix-slider">Total voltage&nbsp; <span class="ck" data-tex="V_{\text{total}}"></span>
           <input type="range" id="pot-vtot" min="400" max="2000" step="20" value="1280">
           <span class="ix-val"><input class="ix-num" id="pot-vtot-val" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="1280"><span class="ix-unit">V</span></span>
@@ -1277,7 +1270,6 @@
             <div class="out-sub" id="pot-isp-sub"></div>
           </div>
         </div>
-        <p class="ix-cnote" id="pot-cap"></p>
       </div>
 
       <!-- Plasma definition: 2-D quasineutrality + Debye-shielding demo. -->
@@ -1412,11 +1404,11 @@ const CALLOUTS = [
 
 /* Magnetic field lines are no longer authored here — they are TRACED from the field itself,
    next to cuspFieldAt (search FIELD_LINE_SEEDS). They used to be hand-placed control points,
-   which is how they drifted out of step with what the electrons actually did: the arcs were
-   anchored on the magnet faces while the sim's field sat on the plasma wall, 13% of the
-   chamber radius away, and electron paths visibly failed to follow the drawn lines. Deriving
-   the polylines from the same field the particles move in makes that class of drift
-   impossible. Ring-cusp topology, for reference (Goebel & Katz, Fundamentals of Electric
+   which is how they drifted out of step with the ring layout: the arcs were anchored on the
+   magnet faces while the sim's field sat on the plasma wall, 13% of the chamber radius away.
+   Deriving the polylines from the field makes that class of drift impossible, and it is what
+   fixes the ENVELOPE the electrons turn inside — the band the arcs occupy is the band B_BAND
+   is set to. Ring-cusp topology, for reference (Goebel & Katz, Fundamentals of Electric
    Propulsion): the ring magnets ALTERNATE polarity (N,S,N …), so each line springs from an N
    face, bows into the chamber, and closes on the adjacent S face — leaving a nearly
    field-free interior. Rings sit at x ≈ −46.5 (N), +33.5 (S), +118.5 (N), plus a back-wall
@@ -2282,44 +2274,41 @@ const fadeAlpha = p => p.x <= BEAM_FADE0 ? 1
 /* ── Electron ⇄ wall interaction (discharge chamber) ───────────────────────────
    TWO DIFFERENT MECHANISMS keep electrons off the wall, and they must not be confused:
 
-     • BETWEEN the rings the field lines run PARALLEL to the wall. An electron's guiding
-       centre is tied to a line that never intersects metal, so it cannot reach the wall
-       except by cross-field diffusion. That is magnetic INSULATION, not a mirror. Modelled
-       as a perfect reflector (the diffusive leak is real but subdominant, and gating it on
-       the cusps is what the stage is teaching).
-     • AT a cusp the lines run INTO the metal and |B| rises steeply toward the pole face.
-       THIS is where the magnetic MIRROR operates: it reflects everything except the loss
-       cone, and only that cone is collected. See the magnetic_mirror applet — for a mirror
-       ratio R the escaping fraction of an isotropic population is 1 − cos θ_max with
-       sin θ_max = √(1/R), i.e. 1 − √(1 − 1/R). CUSP_ABSORB_PROB is that number, not a fit.
+     • BETWEEN the rings the field lines run PARALLEL to the wall, so |B| rises steeply as an
+       electron pushes in toward the metal and there is no way through it. This is where the
+       MIRROR turns the electron around, and it is modelled as the mirror actually is — as a
+       force, not a bounce. See MIRROR_FRAC: the electron decelerates on the way in, comes to a
+       STOP short of the anode, and is pushed back out along a curved path. It does not strike
+       the field and rebound like a wall; it orbits it and leaves. That distinction is the
+       whole visual point of the stage, and it is why this is a potential rather than a
+       reflection coefficient.
+     • AT a cusp the lines run INTO the metal, normal to the wall. There is no rising |B|
+       across the electron's path there — the mirror is switched off (see cuspOpenness) and the
+       electron rides the cusp in to the anode. THESE are the only places on the wall an
+       electron can be collected, which is what the ring cusps buy: loss confined to a few
+       narrow strips at the magnets instead of the whole anode.
 
-   So a cusp band is not "the hole in the confinement" — it is where the mirror is, and the
-   mirror is what makes even the cusp mostly reflective. An electron hitting a wall INSIDE a
-   cusp is collected with probability CUSP_ABSORB_PROB; anywhere else it REFLECTS
-   non-specularly (specular bounce rotated by a random ±45°, clamped to point back into the
-   chamber, speed preserved). The screen grid (right wall) collects electrons that hit its
-   webbing but reflects those aligned with an aperture (the negative accelerator grid repels
-   them — no backstreaming); it has no cusps. The back plate (left wall) reflects like the
-   other walls when BACK_PLATE_PROTECTED is true, otherwise it collects every electron that
-   touches it. A collected PRIMARY electron is re-emitted from the cathode, so cathode
-   emission balances anode collection and the discharge sustains itself at a stable count.
+   So a cusp strip is not "a hole in the confinement" — it is the only place the field lets an
+   electron THROUGH, and everywhere else the mirror turns it. A collected electron is not
+   removed on contact either: it spirals down onto the pole face on a converging helix first
+   (see beginLossCoil), so a loss reads as a loss rather than as a glyph blinking out.
+   The screen grid (right wall) collects electrons that hit its webbing but reflects those
+   aligned with an aperture (the negative accelerator grid repels them — no backstreaming); it
+   has no cusps. The back plate (left wall) reflects like the other walls when
+   BACK_PLATE_PROTECTED is true, otherwise it collects every electron that touches it. A
+   collected PRIMARY electron is re-emitted from the cathode, so cathode emission balances
+   anode collection and the discharge sustains itself at a stable count.
 
    IONS ARE UNAFFECTED BY ALL OF THIS — they are unmagnetised and recombine at any wall they
    reach. See the ion chamber wall branch for the gyroradius numbers. */
-const CUSP_WIDTH = 0.10 * (2 * CH_R);   // band width ≈ 10% of chamber height — wider flicker section
-/* Mirror ratio at a cusp, B_pole/B_bulk. A few hundred G of bulk-band field against ~0.2 T at the
-   pole face puts this in the teens; 17 is the value the collected fraction was previously fitted
-   to, so naming it changes no behaviour while making the constant derived instead of tuned. */
-const CUSP_MIRROR_R = 17;
-// Loss-cone fraction of an isotropic population at that mirror ratio → 0.0303.
-// (Applied per wall contact rather than by sampling pitch angle at the field minimum, so this is
-// the right magnitude by the right formula, not a strict equivalence.)
-const CUSP_ABSORB_PROB = 1 - Math.sqrt(1 - 1 / CUSP_MIRROR_R);
-/* Note on CUSP_WIDTH: the physical leak width at a cusp is of order the hybrid gyroradius
-   2√(r_e·r_i) — millimetres — not 10% of the chamber. The band is deliberately drawn/modelled
-   wide so the loss sites read on screen, and CUSP_ABSORB_PROB is small, so it is the PRODUCT that
-   is calibrated: 3 rings × CUSP_WIDTH ≈ 26% of the side wall × 0.030 ≈ 0.008 effective loss
-   fraction for primaries, which is the right order for cusp loss. Change one and re-check both. */
+/* ── How wide a cusp strip is ──────────────────────────────────────────────────────────────
+   The physical leak width at a ring cusp is of order the hybrid gyroradius 2√(r_e·r_i) — a
+   couple of millimetres on this 180 mm chamber, well under 1% of the 206 mm side wall. A strip
+   drawn that honest is one pixel, so this is that width widened for visibility and no further:
+   12 units is 6.7% of the chamber diameter and 5.8% of the side wall, so all three rings
+   together claim under 18% of it. That is the point of the number — a loss has to read as "it
+   went down THAT magnet", not "it hit the wall somewhere". */
+const CUSP_WIDTH = 12;
 const BACK_PLATE_PROTECTED = true;      // false → the back plate collects EVERY electron
 // Magnet-ring x-positions on the top & bottom anode walls (match the section field lines).
 const CUSP_X = [-46.5, 33.5, 118.5];
@@ -2327,20 +2316,99 @@ const CUSP_X = [-46.5, 33.5, 118.5];
 const CUSP_BACK_Y = [AXY + 51, AXY - 51];
 const inCuspX     = x => CUSP_X.some(cx => Math.abs(x - cx) <= CUSP_WIDTH * 0.5);
 const inCuspBackY = y => CUSP_BACK_Y.some(cy => Math.abs(y - cy) <= CUSP_WIDTH * 0.5);
+/* Nearest strip CENTRE — where the pole face actually is. The loss helix converges onto that
+   rather than onto the contact point, so a collected electron is drawn going down the magnet
+   even when it touched metal a unit or two off-centre. */
+const nearest = (v, list) => list.reduce((b, c) => Math.abs(c - v) < Math.abs(b - v) ? c : b, list[0]);
+const cuspCentreX     = x => nearest(x, CUSP_X);
+const cuspCentreBackY = y => nearest(y, CUSP_BACK_Y);
+/* How OPEN the wall is, along the wall: 0 inside a cusp strip, ramping to 1 between the rings.
+   This scales the mirror potential, and it is where the loss geometry comes from. Between the
+   rings B is TANGENTIAL to the wall, |B| rises toward the metal, and the mirror runs at full
+   strength. At a ring B is RADIAL — along the electron's path into the wall — so there is no
+   barrier and it rides the cusp in. Zero throughout the strip so the strip is genuinely open,
+   then smoothstepping to full over CUSP_OPEN_W. */
+const CUSP_OPEN_W = 9;
+const openRamp = off => {
+  if (off <= 0) return 0;
+  const u = Math.min(1, off / CUSP_OPEN_W);
+  return u * u * (3 - 2 * u);
+};
+function cuspOpenness(x, y){
+  const ry = Math.abs(y - AXY);
+  // Whichever wall is nearest is the one whose ring layout applies.
+  if (CH_R - ry <= x - CH_X0) return openRamp(Math.abs(x - cuspCentreX(x))     - CUSP_WIDTH * 0.5);
+  return                             openRamp(Math.abs(y - cuspCentreBackY(y)) - CUSP_WIDTH * 0.5);
+}
+/* ── The mirror barrier, as a DIMENSIONLESS fraction of the electron's own energy ───────────
+   Φ(x,y) rises from 0 at the band edge to MIRROR_FRAC at the wall surface, and is scaled to zero
+   inside a cusp strip by cuspOpenness. Depth is measured to whichever B-carrying wall is nearest
+   — the top/bottom anode or the back plate. An electron of core energy E sees a potential
+   U = E·Φ, so it turns where Φ = 1 and its speed anywhere is v_core·√(1 − Φ).
+
+   WHY THE BARRIER SCALES WITH THE ELECTRON'S OWN ENERGY, which is both the physics and a bug fix.
+   A magnetic mirror does not care how fast a particle is. Reflection depends on PITCH ANGLE and
+   the mirror ratio only — sin²θ > 1/R reflects — so a 1 eV and a 100 eV electron of the same pitch
+   angle turn at the same place. Making the barrier an absolute energy instead got that wrong in a
+   way that was visible in the viewport: sized for the fastest primary (½·420²), it was a modest
+   hill for a primary but a mountain for a freed secondary carrying only ½·110², i.e. 6% as much.
+   Measured, a 110-unit/s secondary was classically forbidden over 25% of the chamber area — the
+   whole outer 23 units of the 30-unit band — so 21% of secondary births landed somewhere they
+   could not physically be. The energy-shell projection then correctly reported "you cannot be
+   here" and pinned |v| = 0, leaving them to creep out under the force at a mean 13 units/s against
+   their own 110, for up to 0.6 s each. About one electron on screen at any instant was visibly
+   crawling, which is exactly what it looked like.
+   Scaling Φ to each electron's own energy makes the whole band scale-invariant: fast and slow
+   electrons trace the same shapes, turn at the same depths, and nothing is ever stranded deep
+   inside a barrier it cannot climb. The spread in turning depth now comes from the APPROACH ANGLE,
+   which is where it physically comes from — Φ_turn = cos²θ for entry angle θ off the normal.
+   Nothing about the loss cone changes: Φ_max = MIRROR_FRAC > 1 means no electron of any speed or
+   angle reaches wall between the rings (that would need cos²θ > MIRROR_FRAC), and inside a strip
+   Φ → 0 so every electron rides in. */
+function mirrorPhi(x, y){
+  const w = Math.min(CH_R - Math.abs(y - AXY), x - CH_X0);
+  if (w >= B_BAND) return 0;
+  const depth = 1 - Math.max(0, w) / B_BAND;        // 0 at the band edge → 1 at the wall surface
+  const open = cuspOpenness(x, y);                  // 0 inside a strip → the barrier vanishes there
+  return open > 0 ? MIRROR_FRAC * open * Math.pow(depth, MIRROR_P) : 0;
+}
+/* Central-difference half-step for ∇U, in model units. Small enough to resolve the strip edges
+   (CUSP_OPEN_W = 9 units) and large enough not to amplify float noise. */
+const MIRROR_FD = 0.35;
+/* The force and the local swing rate at a point. Returns null out in the field-free core.
+   A plain function of POSITION, not of the particle, because the leapfrog in the electron branch
+   has to evaluate it at two positions per sub-step. Writes into a shared scratch object so the
+   hot loop allocates nothing — callers must copy out what they need before calling again. */
+/* ── An electron's energy shell ─────────────────────────────────────────────────────────────
+   p.eTot is the electron's kinetic energy AS MEASURED IN THE FIELD-FREE CORE, i.e. ½v² with the
+   mirror barrier taken as zero. The band integrator holds it on that shell, so its speed anywhere
+   is √(2·E·(1 − Φ)) and its speed back out in the core is exactly the speed it was born with. Set
+   wherever a speed is legitimately established (cathode emission, an ionization secondary) — NOT
+   after a collision or a wall bounce, which preserve speed at fixed position and so leave E alone.
+   Referencing it to the CORE rather than to the birthplace is what gives the model a hard speed
+   ceiling: no electron anywhere can ever exceed the speed it started with. */
+function setETot(p){ p.eTot = 0.5 * (p.vx*p.vx + p.vy*p.vy); }
+/* The force and the local swing rate at a point, FOR AN ELECTRON OF ENERGY eTot. Returns null out
+   in the field-free core. a = −∇(eTot·Φ) = −eTot·∇Φ, differenced from the one scalar Φ so both
+   components come from the same function and the field stays conservative.
+   Writes into a shared scratch object so the hot loop allocates nothing — callers must copy out
+   what they need before calling again. */
+const MIRROR_SCRATCH = { ax:0, ay:0, om:0, depth:0 };
+function mirrorAt(x, y, eTot){
+  const w = Math.min(CH_R - Math.abs(y - AXY), x - CH_X0);
+  if (w >= B_BAND) return null;                     // field-free core — ballistic
+  MIRROR_SCRATCH.ax = -eTot * (mirrorPhi(x + MIRROR_FD, y) - mirrorPhi(x - MIRROR_FD, y)) / (2 * MIRROR_FD);
+  MIRROR_SCRATCH.ay = -eTot * (mirrorPhi(x, y + MIRROR_FD) - mirrorPhi(x, y - MIRROR_FD)) / (2 * MIRROR_FD);
+  MIRROR_SCRATCH.depth = 1 - Math.max(0, w) / B_BAND;
+  MIRROR_SCRATCH.om = MIRROR_CURL * MIRROR_SCRATCH.depth;
+  return MIRROR_SCRATCH;
+}
 
 /* ── The ring-cusp field, as an actual field ───────────────────────────────────────────
-   Electrons used to be turned by rotating their velocity in the SECTION PLANE at a fixed
-   rate near a wall. Two things were wrong with that, and both were visible:
-     • Circular motion in the section plane implies B is PERPENDICULAR to the section. The
-       overlay draws B as arcs lying IN the section (ring cusps are purely poloidal — an
-       axisymmetric ring magnet has no azimuthal component), so the sim and the picture
-       disagreed about which way the field pointed.
-     • The drawn orbits were ~30 units across against a 90-unit chamber radius. A real
-       magnetised electron has r_Le ≈ 0.7 mm in a 90 mm chamber — about 0.008 of the radius.
-       What a viewer should see is a particle SLIDING ALONG a field line, not looping across
-       a third of the chamber. It also contradicted the magnetic_mirror applet, where
-       particles correctly spiral along the line.
-   So the field is modelled directly. Each magnet ring presents a pole to the plasma at the
+   The field is modelled directly, and it is what the OVERLAY is traced from — see
+   traceFieldLine / FIELD_LINE_SEEDS. (The electrons themselves do not integrate along it;
+   they are turned in the section plane inside a wall band. See B_BAND, and the note there
+   on what that buys and what it costs.) Each magnet ring presents a pole to the plasma at the
    wall, alternating N,S,N along the chamber (MAGNET_RINGS), and in the section plane a pole
    is a 2-D source whose field falls as 1/r:
        B(P) = Σ_i s_i (P − R_i) / |P − R_i|²
@@ -2348,8 +2416,8 @@ const inCuspBackY = y => CUSP_BACK_Y.some(cy => Math.abs(y - cy) <= CUSP_WIDTH *
    from an N face, arcs into the plasma, closes on the adjacent S face, and — because
    neighbouring poles cancel at range — decays away from the wall over roughly the ring
    spacing, leaving the field-free core the design exists to create. Nothing here is fitted
-   to a picture; the arcs the overlay draws and the arcs electrons now follow come from the
-   same ring positions and the same alternating polarity.
+   to a picture; the arcs the overlay draws come from the ring positions and the alternating
+   polarity, and so does the envelope the electrons turn inside.
    WHERE THE POLES SIT MATTERS, and getting it wrong is visible. They belong at the magnet
    faces the viewer can SEE — radius RING_FACE_R from the axis, which is outside the plasma
    boundary CH_R, because real ring magnets sit behind the anode wall. Putting them on the
@@ -2367,12 +2435,96 @@ const inCuspBackY = y => CUSP_BACK_Y.some(cy => Math.abs(y - cy) <= CUSP_WIDTH *
 const RING_FACE_R = 101.5;  // radius of the magnet faces (> CH_R — the magnets are behind the wall)
 const B_FALLOFF = 3;        // |B| ∝ 1/r^B_FALLOFF — chosen for the mirror ratio (see above)
 const B_POLE_R  = 8;        // pole softening — finite magnet, so |B| saturates at the face
-const B_MAG_MIN = 0.16;     // below this fraction of B_REF the electron is effectively unmagnetised
-const GYRO_W    = 90;       // gyro-phase rate (rad/s) — sets how tight the visible spiral reads
-const GYRO_R    = 5.0;      // DRAWN helix radius in model units (see the electron branch)
-const MIRROR_KICK = 0.06;   // v∥ left at a reversal, as a fraction of v² — see the turning-point note
-const B_UNLATCH   = 0.5;    // release the field line only below this FRACTION of B_MAG_MIN (hysteresis)
-const LATCH_MAX_PERP = 0.9; // cap on v⊥²/v² at latch, so a fresh latch is never already mirroring
+/* ── Where the field reaches, and what it does when an electron gets there ─────────────────
+   The ring-cusp field lives in a BAND along the anode walls and the back plate — the overlay
+   draws it hugging those surfaces, and the core it leaves behind is nearly field-free. So a
+   discharge electron runs BALLISTIC STRAIGHT SEGMENTS across the core, and everything below
+   happens only once it is within B_BAND of a wall. B_BAND is not free: the drawn field lines
+   dip to about 28 units in from the wall at mid-gap (see FIELD_LINE_SEEDS), so a band of 30 is
+   the same envelope the overlay draws.
+
+   THE TURN IS A FORCE, NOT A BOUNCE, and that is the whole substance of this block. An electron
+   entering the band must not read as striking the field lines and rebounding off them like a
+   second wall — it has to push INTO the field, be decelerated by it, come to a genuine STOP a
+   little past the drawn lines, and be pushed back out. Visually that is a slingshot: it swings
+   around the field and leaves along a different heading, the way a probe swings past a planet.
+   Two pieces produce it, and they are separable:
+
+     • MIRROR_FRAC — the deceleration. |B| rises steeply toward the wall between the rings, and a
+       magnetic moment μ in a rising field feels a real force F = −μ∇|B| pushing it back down
+       the gradient. That is the magnetic mirror, and it is CONSERVATIVE: modelled as a
+       potential the electron climbs, so ½v² + U is constant. It slows as it climbs, stops where
+       U equals its incoming ½v², and recovers its full speed on the way out — no energy added or
+       removed, which is exactly right because a magnetic field does no work. The stop is the
+       thing to watch for: a bounce has no turning point, a mirror does. The barrier is expressed
+       as a FRACTION of the electron's own energy rather than an absolute one, because a mirror
+       reflects on pitch angle and not on speed — see mirrorPhi for why that matters and what
+       getting it wrong looked like.
+     • MIRROR_CURL — the swing. A slingshot is not a head-on rebound; the outgoing direction
+       differs from the incoming one. A slow rotation of the velocity while inside the band
+       supplies that, so the electron comes about instead of retracing its path.
+
+   HOW DEEP IT GETS follows from the approach ANGLE: the barrier stops the normal component, so an
+   electron turns where Φ = cos²θ for θ measured off the wall normal. MIRROR_FRAC is set so a
+   head-on approach (θ = 0) turns about 8 units from the metal — it crosses the drawn lines at
+   mid-gap (28 units out), keeps going ~20 units past them, stops, and comes back. A glancing
+   approach turns much earlier. Speed does not enter, which is the point: fast and slow electrons
+   trace the same shapes.
+
+   AT A CUSP none of this happens: cuspOpenness scales U to zero inside a strip, because there
+   the field runs along the electron's path into the metal rather than across it, so there is no
+   barrier to climb. The electron rides in and is collected. That is the ONLY way to reach the
+   anode, which is why every loss lands at a magnet ring.
+
+   WHAT IS A STAND-IN, plainly: the curl is in the section plane, which implies a B component
+   normal to the section, while the overlay correctly draws the field as poloidal arcs lying IN
+   it. True gyration here is r_Le ≈ 0.7 mm against a 90 mm chamber radius — invisible at any
+   honest scale — so a section view cannot show gyration as motion regardless. The deceleration
+   and the turning point, though, are the mirror's real behaviour, not a symbol. */
+const B_BAND     = 30;      // reach of the wall field into the chamber — matches the drawn arcs
+/* Peak barrier at the wall surface, as a multiple of the electron's OWN core energy ½v². Above 1.0
+   means no electron of any speed or approach angle reaches wall between the rings — that would
+   need cos²θ > MIRROR_FRAC — so the only route to the anode is a cusp, which is the confinement
+   the stage teaches. 1.85 puts the head-on turning point ~8 units off the metal, which is where a
+   typical primary was already turning, so the reflection a viewer sees is unchanged. */
+const MIRROR_FRAC = 1.85;
+const MIRROR_P   = 2;       // Φ ∝ (1 − w/B_BAND)^MIRROR_P — smooth, and zero-slope at the band edge
+const MIRROR_CURL = 12;     // rad/s of velocity rotation inside the band — the slingshot swing
+/* Deepest an electron can get, as a distance from the wall, for a head-on approach (Φ = 1 where
+   cos²θ = 1). Used to keep a freshly-ionized secondary from being born inside the barrier — see
+   activateFreedElectron. Declared HERE, after the three constants it reads: it is evaluated
+   eagerly at module load, so placing it up beside mirrorPhi (which only reads them when called)
+   threw "Cannot access 'MIRROR_FRAC' before initialization" and blanked the whole applet. */
+const MIRROR_TURN_W = B_BAND * (1 - Math.pow(1 / MIRROR_FRAC, 1 / MIRROR_P));
+/* Integration guards for the band. The force is stiff near the wall, so the band is sub-stepped:
+   no sub-step may advance further than MIRROR_STEP_LEN model units or turn more than
+   MIRROR_STEP_RAD radians. Without this the electron chords straight through the barrier —
+   measured, a single un-substepped frame at 350 units/s overshoots the turning point by ~6
+   units per frame and lands in the metal, which is how a mirror silently becomes a wall. */
+const MIRROR_STEP_LEN = 1.2;
+const MIRROR_STEP_RAD = 0.12;
+/* ── The loss helix ────────────────────────────────────────────────────────────────────────
+   A collected electron is NOT removed the instant it grazes metal — that reads as a glyph
+   blinking out, and the loss is the one event in the chamber worth actually seeing. Instead it
+   spends LOSS_COIL_DUR being drawn down onto the pole face on a helix whose radius closes to
+   nothing, and only then is it absorbed. The contrast is the teaching moment: helix converging
+   in = collected at the magnet, swing coming back out = confined. It stops ionizing and stops
+   touching walls the moment the helix starts, so the delay changes nothing but the picture.
+   COIL_R is a symbol, not a scale drawing (real gyromotion here is ~0.7 mm), the same licence
+   the sprite diameters already take. */
+const COIL_R          = 7;      // starting radius of the converging helix, model units
+const LOSS_COIL_DUR   = 0.30;   // s from cusp contact to the electron actually going out
+const LOSS_COIL_TURNS = 3;      // revolutions on the way down
+/* ── The reflection helix ──────────────────────────────────────────────────────────────────
+   The same idea applied to the electrons that survive: while an electron is inside the wall
+   band its glyph carries a small transverse offset that winds about its own path, so the swing
+   past the field reads as a helix seen edge-on rather than as a bare curve. Amplitude fades in
+   with depth into the band and back out again, so nothing wobbles out in the field-free core.
+   This is a DRAWN offset only — no physics reads it — for the reason set out at MIRROR_FRAC: real
+   gyration is sub-pixel here, and the alternative (a transverse velocity big enough to see) has
+   the electron visibly flying sideways at several times its own speed. */
+const REFL_COIL_R = 3.4;        // model units at full depth
+const REFL_COIL_W = 34;         // rad/s — winding rate of the drawn helix
 /* Poles in SIM space, on the magnet faces. The side rings present a pole on the TOP and the
    BOTTOM wall (the ring is radially magnetised, so both faces point at the plasma); the
    back-wall ring presents its face on the back plate at CUSP_BACK_Y. Polarity alternates with
@@ -2398,11 +2550,13 @@ function cuspFieldAt(x, y){
   return { bx, by, mag: Math.hypot(bx, by) };
 }
 /* Trace a field line by stepping along B̂ until it lands on an S pole (or leaves the frame).
-   This is what makes the overlay and the electrons agree BY CONSTRUCTION rather than by two
-   people drawing the same thing twice: the polylines the section draws are integral curves of
-   the exact field cuspFieldAt returns, so an electron following B is following the drawn line.
-   The arcs used to be hand-authored control points, which is why they could drift out of step
-   with the sim without anything catching it. */
+   The polylines the section draws are integral curves of the exact field cuspFieldAt returns,
+   so the drawn topology — where the arcs spring from, where they close, and how far in from the
+   wall they reach — is the field's own rather than a hand-drawn impression of it. The arcs used
+   to be hand-authored control points, which is why they could drift out of step with the ring
+   layout without anything catching it. What electrons do inside that envelope is a separate
+   choice, made in the electron branch: they are turned in the section plane rather than sliding
+   along these curves, so the lines mark WHERE the field is, not a path any one glyph follows. */
 function traceFieldLine(sx, sy, maxSteps){
   let x = sx, y = sy;
   const raw = [[x, y]];
@@ -2455,10 +2609,6 @@ const FIELD_LINES = (() => {
   });
   return top.concat(top.map(l => l.map(([x, y]) => [x, 2 * AXY - y])));
 })();
-/* Reference magnitude for "fully magnetised", measured from the model itself rather than
-   guessed: |B| at the wall midway between the first two rings. Deriving it means B_POLE_R or
-   the ring layout can change without silently rescaling how magnetised the chamber is. */
-const B_REF = cuspFieldAt((CUSP_X[0] + CUSP_X[1]) / 2, AXY + CH_R).mag;
 
 /* Ion-optics apertures. The grids are perforated on a 16 mm hex pitch, but only the
    holes centred on the cut plane (every other hex row) read as gaps in the section, so
@@ -2675,17 +2825,11 @@ let particleProfile = 'overview';   // the app boots into overview mode
 
 /* Ionization / collection tuning. R_ION is the electron–neutral hit radius (model
    mm); IONIZE_K is the per-second ionization probability while overlapping. A discharge
-   electron is collected only at the walls — see the electron⇄wall rules above (cusp
-   zones + CUSP_ABSORB_PROB); a collected primary is re-emitted from the cathode. */
+   electron is collected only at a cusp strip — see the electron⇄wall rules above; a collected
+   primary is re-emitted from the cathode. */
 const IONIZE_REF_E = 20;            // reference primary-electron count the gates are quoted at
 const R_ION = 15, IONIZE_K = 8.1;   // electron–neutral hit radius + per-collision ionization rate — raised so the
                                     // discharge ionizes readily; confinement still matters (magnets off starves it)
-// Freed secondary electrons are low-energy and poorly confined, so the anode collects them
-// far more readily than the energetic primaries. Raised to 0.8 (Change 6) so a freed electron
-// dies quickly and VISIBLY at the anode walls (anode flash in ion mode) — its wall contact,
-// not a mid-flight timer, is its sink. This also keeps the spare pool cycling so ionization
-// never stalls for lack of a slot. (Part of the ionization charge cycle.)
-const E_COLLECT_FREED = 0.8;
 // Ion kinematics in the chamber. An ion moves EXACTLY like the neutral it came from — an isotropic
 // random walk — everywhere except a thin extraction layer at the downstream end. The bulk discharge
 // plasma is quasineutral: it sustains no interior axial E-field, so nothing should march ions
@@ -2817,9 +2961,6 @@ const CUSP_REFLECT_JITTER = Math.PI / 4;   // ±45° scatter about the specular 
 const CUSP_REFLECT_MAX    = 85 * Math.PI / 180;   // keep the exit within 85° of the inward normal
 function reflectElectronWall(p, nx, ny){
   reflectOffWall(p, nx, ny, CUSP_REFLECT_JITTER, CUSP_REFLECT_MAX);
-  // The bounce gave it a new direction, so its pitch angle relative to B is new too —
-  // drop the latched moment and let it re-latch on the next step.
-  p.mu = undefined; p.spd = Math.hypot(p.vx, p.vy) || p.spd;
 }
 
 /* A neutral atom that misses an aperture strikes the grid's flat upstream (or downstream)
@@ -2954,23 +3095,40 @@ function drawnY(p){
    discharge is sustained — cathode emission balances anode collection). */
 function absorbElectron(p){
   if (appMode === 'ion') anodeFlash = 1;   // the anode wall lights up where the electron is lost
+  p.lossT = 0;
   if (p.freed) recycleFreed(p);
   else spawnEDischarge(p);
 }
-/* Does this electron get collected at the wall it just hit? ONLY inside a cusp zone, and even
-   there only if it falls in the mirror's loss cone (CUSP_ABSORB_PROB). Everywhere else the field
-   lines run parallel to the wall and the electron's guiding centre never intersects metal — that
-   is the entire purpose of the magnet rings, and it is what the field-line overlay draws.
-   Freed secondaries are still collected far more readily than primaries once they DO reach a cusp
-   (they are low-energy and poorly confined), but they used to be collected at E_COLLECT_FREED
-   ANYWHERE on the wall, which was a loss channel the magnets did not gate: measured, most
-   secondaries died on unmagnetised wall between the rings. That both understated the confinement
-   the stage is teaching and put anode flashes all along the wall instead of at the cusps. */
+/* ── Commit an electron to the anode, and draw it going ────────────────────────────────────
+   The electron is finished here — it WILL be absorbed — but it spends LOSS_COIL_DUR spiralling
+   down onto the pole face first, so the loss is something a viewer can see happen and locate.
+   (cx,cy) is the strip CENTRE, i.e. where the magnet is, not where the electron happened to
+   touch, so the helix always converges onto the ring. With the magnets off there is no cusp to
+   spiral into and the lesson is that the electron goes straight out, so it is taken at once. */
+function beginLossCoil(p, nx, ny){
+  if (!magnetsOn){ absorbElectron(p); return; }
+  p.lossT = LOSS_COIL_DUR;
+  p.lx0 = p.x; p.ly0 = p.y;
+  if (Math.abs(nx) > 0.5){ p.lx1 = p.x; p.ly1 = cuspCentreBackY(p.y); }   // back plate: slide in y
+  else { p.lx1 = cuspCentreX(p.x); p.ly1 = p.y; }                         // side wall: slide in x
+  p.lnx = nx; p.lny = ny;
+  p.vx = p.vy = 0;
+  // Start a quarter turn in, so the drawn offset begins along the inward normal rather than
+  // jumping a full radius sideways the instant the electron is committed.
+  p.coilPh = Math.PI / 2;
+}
+/* Does the anode keep this electron? ONLY inside a cusp strip — the few narrow stretches of wall
+   where the field runs INTO the metal, which is also the only place the mirror is switched off
+   (see cuspOpenness) so an electron can arrive at all. Everywhere else |B| rises across its path
+   and the mirror turns it around short of the anode, which is the entire purpose of the rings and
+   what the field-line overlay draws. Most electrons therefore never reach this test at all; the
+   ones that do came down a cusp, and the cusp is where they are lost. That is why every anode
+   flash in the viewport sits on a magnet ring rather than somewhere along the wall.
+   Magnets off: no cusps, no barrier, no confinement — the first wall it touches keeps it, which
+   is the contrast the whole stage is built on. */
 function electronCollected(p, inCusp){
-  // Ionization stage with the magnets OFF: no ring-cusp confinement, so an electron is
-  // collected the instant it reaches ANY anode wall (it flies straight out and is lost).
   if (!magnetsOn && appMode === 'ion') return true;
-  return inCusp && Math.random() < (p.freed ? E_COLLECT_FREED : CUSP_ABSORB_PROB);
+  return inCusp;
 }
 
 function spawnNeutral(p){
@@ -3076,14 +3234,31 @@ function activateFreedElectron(x, y){
   if (!p) return false;
   p.dead=false; p.sp='electron'; p.sub='d'; p.freed=true;
   p.x=x+rnd(-2,2); p.y=y+rnd(-2,2); p.z=chamberZ(p.y);
+  /* Never born INSIDE the mirror barrier. Ionization happens wherever the neutral was, and
+     neutrals fill the whole chamber including the last few units against the anode — but a point
+     with Φ > 1 is somewhere no electron can classically be, so an electron placed there is stuck:
+     the energy-shell projection pins its speed at zero and it can only creep out under the force.
+     That was the visible "very slow electron in the field" (the barrier's absolute scaling made
+     the forbidden zone 23 units deep for a secondary; scaling Φ to its own energy shrank it to
+     MIRROR_TURN_W ≈ 8, and this closes the remainder). Nudged straight out along the wall normal
+     to the turning surface, which is where the field would have put it a few milliseconds later
+     anyway. */
+  const wY = CH_R - Math.abs(p.y - AXY), wX = p.x - CH_X0;
+  if (Math.min(wY, wX) < MIRROR_TURN_W && cuspOpenness(p.x, p.y) > 0){
+    if (wY <= wX) p.y = AXY + Math.sign(p.y - AXY || 1) * (CH_R - MIRROR_TURN_W);
+    else          p.x = CH_X0 + MIRROR_TURN_W;
+  }
   const a=rnd(0,6.283), s=rnd(70,150); p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s; p.age=0;   // low-energy secondary
-  p.spd=s; p.mu=undefined;   // fresh pitch angle — it latches onto a field line on its first step
-  // Freed secondaries die at the ANODE WALLS, not on a timer: they are low-energy and poorly
-  // confined, so E_COLLECT_FREED (raised to 0.8) collects them quickly and VISIBLY the first
-  // few times they reach a wall (anode flash in ion mode). fttl is now only a long fail-safe
-  // (~3 s) so a slot can never stay checked out forever — with the larger spare pools this
-  // almost never fires, so ionization is never starved for a slot.
-  p.fttl=rnd(2.6,3.4);
+  p.lossT=0; p.gx=p.gy=0;   // no decoration left over from whatever ended this slot's last life
+  setETot(p);               // born here, so this is its energy from now until it is collected
+  /* A secondary's sink is a CUSP, not this timer — but the strips are narrow on purpose and a
+     few-eV electron turns early in the wall band, so it can take a while to find one. fttl is
+     the fail-safe that guarantees the slot comes back, and it also stands in for the routes this
+     sim does not resolve (cross-field diffusion, the azimuthal drift around a ring). It is
+     calibrated against the ionization charge cycle: one ion and one electron are born together,
+     so the two populations have to have comparable residence times or the chamber runs
+     electron-rich. */
+  p.fttl=rnd(2.0,2.6);
   return true;
 }
 /* A freed electron absorbed at the anode → hide it and return the slot to the pool. */
@@ -3096,9 +3271,8 @@ function spawnEDischarge(p){
   // cathode — so emission is CONTINUOUS, not just a one-off at start-up.
   p.sp='electron'; p.sub='d'; p.x=BCATH.x+rnd(1,4); p.y=BCATH.y+rnd(-3,3); p.z=chamberZ(p.y);
   const s=rnd(280,420); p.vx=s; p.vy=rnd(-45,45); p.vz=rnd(-30,30); p.age=0; p.ettl=rnd(1.6,3.0);   // fastest species in the chamber
-  // p.spd is the electron's TRUE speed. The drawn (vx,vy) is a guiding-centre direction times
-  // that speed, so it cannot be used to recover the speed once the electron is field-aligned.
-  p.spd=Math.hypot(p.vx,p.vy); p.mu=undefined;
+  p.lossT=0; p.gx=p.gy=0;   // fresh out of the cathode sheath — no helix left over from its last life
+  setETot(p);               // the energy it fell through the cathode sheath with
 }
 function spawnENeutralizer(p){
   p.sp='electron'; p.sub='n'; p.z=pZ();
@@ -3394,102 +3568,150 @@ function stepParticle(p, dt){
     }
   } else {   // electron
     if (p.sub === 'd'){
-      // Occasional collision scatter — this is what DE-MAGNETISES an electron: it forgets the
-      // line it was tied to and gets a fresh pitch angle, which is how it explores the chamber
-      // instead of bouncing on one field line forever. Clearing p.mu re-latches it below.
+      /* ── Already committed to a cusp: wind down the loss helix, then go ──────────────────
+         Everything below is skipped — it no longer ionizes, no longer touches walls, and its
+         velocity is zero. The drawn position slides from the contact point onto the strip
+         centre while the helix radius closes to nothing; when the timer runs out
+         absorbElectron fires and the slot is recycled (a secondary) or re-emitted from the
+         cathode (a primary). */
+      if (p.lossT > 0){
+        p.lossT -= dt;
+        if (p.lossT <= 0){ absorbElectron(p); return; }
+        const u = 1 - p.lossT / LOSS_COIL_DUR;                 // 0 → 1 over the helix
+        p.x = p.lx0 + (p.lx1 - p.lx0) * u;
+        p.y = p.ly0 + (p.ly1 - p.ly0) * u;
+        const r = COIL_R * (1 - u);                            // radius closes on the pole face
+        const th = p.coilPh + LOSS_COIL_TURNS * 6.283 * u;
+        // Helix laid in the plane of the section, long axis along the wall so it never climbs
+        // out of the metal on the inward side.
+        const tx = -p.lny, ty = p.lnx;
+        p.gx = r * (tx * Math.cos(th) + p.lnx * Math.sin(th) * 0.55);
+        p.gy = r * (ty * Math.cos(th) + p.lny * Math.sin(th) * 0.55);
+        p.age += dt;
+        return;
+      }
+      /* Occasional collision scatter — a fresh DIRECTION at the SAME SPEED, which is how an
+         electron explores the chamber instead of retracing one path forever.
+         Speed is preserved on purpose, and it is both better physics and a bug fix. Elastic
+         scattering off a xenon atom is a near-pure direction change: the mass ratio is about
+         1:240000, so the electron keeps essentially all of its energy. The old version redrew the
+         speed from a fixed range, and inside the mirror potential that quietly manufactured
+         energy — an electron scattered deep in the well kept its new speed AND then converted the
+         well's potential energy into more speed on the way out, leaving with ½v² + U. Measured,
+         the fastest electron in the chamber reached 555 against a 420 launch ceiling, a 1.75×
+         energy gain out of nothing. Preserving speed makes the scatter commute with the potential,
+         so ½v² + U is conserved across it and the population cannot heat.
+         It also separates the two populations for free, which the old reset was flattening: a
+         cathode primary stays fast (280–420) and a freed secondary stays slow (70–150), which is
+         what they physically are. */
       if (Math.random() < 3.2*dt){
-        const a=rnd(0,6.283), s=rnd(220,360);
-        p.vx=Math.cos(a)*s; p.vy=Math.sin(a)*s; p.spd=s; p.mu=undefined;
+        const a = rnd(0, 6.283), s = Math.hypot(p.vx, p.vy) || 1;
+        p.vx = Math.cos(a)*s; p.vy = Math.sin(a)*s;
       }
-      /* ── Guiding-centre motion along the cusp field ──────────────────────────────────
-         The electron does NOT loop across the field lines; it follows one. Away from the
-         walls |B| is negligible and it flies straight (the field-free core the ring cusps
-         exist to create). Inside the cusp field it moves along the local line, and the
-         magnetic moment μ = v⊥²/B — the invariant the magnetic_mirror applet derives — is
-         carried with it. As it runs toward a pole the field rises, so v⊥² = μB grows and
-         v∥ = √(v² − μB) falls: the electron slows along the line, and if μB reaches v² it
-         MIRRORS and heads back. Everything a cusp does follows from that one line of algebra.
-         The loss cone is emergent, not imposed: an electron latched with a small enough μ
-         never reaches its turning point and reaches the metal at the ring instead. That is
-         precisely which particles the wall collects, and it is why the loss sites are the
-         magnet rings.
-         The visible zig-zag is the gyration seen edge-on. Real gyration is a circle in the
-         plane perpendicular to B, which for an in-plane field is mostly OUT of the section —
-         so what a section view can honestly show is the in-plane projection: a wiggle about
-         the field line whose width is the pitch angle. Wide wiggle = mostly perpendicular
-         energy = close to mirroring. Speed is preserved exactly, because B does no work. */
-      if (magnetsOn){
-        if (p.spd === undefined) p.spd = Math.hypot(p.vx, p.vy) || 1;
-        const F = cuspFieldAt(p.x, p.y), s = p.spd;
-        /* HYSTERESIS on the magnetised/ballistic boundary. A single threshold let an electron
-           cycle: latch just inside the field, mirror straight back out, unlatch, drift in,
-           re-latch with a fresh (and, having just mirrored, near-perpendicular) pitch, mirror
-           again — hovering at the boundary and going nowhere. That was the second stuck mode,
-           and it survived the turning-point fix because each individual step looked legal.
-           Latching needs a real field (B_MAG_MIN); releasing needs the field to fall well
-           below it, so the two events cannot chase each other. */
-        if (p.mu !== undefined && F.mag < B_MAG_MIN * B_UNLATCH * B_REF){
-          p.mu = undefined;                                   // well out into the field-free core → ballistic
-        }
-        if (p.mu === undefined && F.mag < B_MAG_MIN * B_REF){
-          p.gx = p.gy = 0;                                    // ballistic — no helix to draw
-        } else {
-          const ux = F.bx / F.mag, uy = F.by / F.mag;         // unit vector along B
-          if (p.mu === undefined){                            // just entered the field: latch the pitch
-            const vpar = p.vx*ux + p.vy*uy;
-            // Cap the latched moment so there is always SOME parallel velocity. Latching an
-            // almost purely perpendicular pitch puts the electron at a turning point on the
-            // very first step, which is the other half of the boundary cycle above.
-            p.mu  = Math.min(Math.max(0, s*s - vpar*vpar), LATCH_MAX_PERP * s*s) / F.mag;
-            p.par = vpar >= 0 ? 1 : -1;
-            p.gyroPh = rnd(0, 6.283);
+      /* ── The electron pushes INTO the field, stops, and swings back out ───────────────────
+         Not a bounce. Inside B_BAND of a wall the electron climbs the mirror potential
+         (MIRROR_FRAC): it decelerates as it goes deeper, comes to a genuine stop a little past the
+         drawn field lines, and is pushed back out — recovering its exact incoming speed,
+         because the potential is conservative and a magnetic field does no work. On top of that
+         its velocity rotates slowly (MIRROR_CURL), so it comes about along a curved path rather
+         than retracing the way it came. Together that is the slingshot: in, around, and out on
+         a new heading, with a real turning point in the middle.
+         Inside a cusp strip cuspOpenness scales the potential to ZERO, so there is no barrier,
+         the electron rides the cusp in, and the wall branch below collects it. That is the only
+         route to the anode — which is why the losses are all at the magnets.
+         Magnets off → no potential and no curl anywhere, so electrons fly straight to the wall
+         and are lost. That contrast is the whole point of the toggle.
+         SUB-STEPPED because the force is stiff near the wall: an un-substepped frame overshoots
+         the turning point and lands in the metal, turning the mirror back into a wall. See
+         MIRROR_STEP_LEN / MIRROR_STEP_RAD. */
+      {
+        if (p.eTot === undefined) setETot(p);   // defensive — every spawn path sets it
+        let rem = dt, guard = 0;
+        while (rem > 1e-6 && guard++ < 96){
+          const f0 = magnetsOn ? mirrorAt(p.x, p.y, p.eTot) : null;
+          // Copy out: mirrorAt returns a shared scratch object, and the second evaluation below
+          // overwrites it.
+          const ax0 = f0 ? f0.ax : 0, ay0 = f0 ? f0.ay : 0, om0 = f0 ? f0.om : 0;
+          // Sub-step short enough that neither the advance nor the swing outruns the field.
+          const sp = Math.hypot(p.vx, p.vy) || 1;
+          let h = rem;
+          if (f0){
+            h = Math.min(h, MIRROR_STEP_LEN / sp);
+            if (om0) h = Math.min(h, MIRROR_STEP_RAD / om0);
           }
-          /* Turning point → mirror back. The reversal must leave v∥ NON-ZERO, or the electron
-             parks exactly at its turning point: with v∥ = 0 it stops advancing, |B| therefore
-             never drops, the condition re-fires on the very next step, and p.par flips again —
-             a flip-flop that pins the particle in place, still gyrating but going nowhere and
-             never reaching a wall to be collected. (That was the "stuck electron".) Stepping
-             v⊥² back off the boundary by MIRROR_KICK gives it enough v∥ to move back down the
-             gradient, where μB < v² and normal motion resumes. μ itself is untouched — this
-             clamps only the value used for THIS step, so the invariant still governs where the
-             electron turns. */
-          let vperp2 = p.mu * F.mag;
-          if (vperp2 >= s*s){ p.par = -p.par; vperp2 = s*s * (1 - MIRROR_KICK); }
-          const vpar = p.par * Math.sqrt(Math.max(0, s*s - vperp2));
-          /* The VELOCITY is pure guiding centre — it advances along B̂ at the true v∥, so the
-             slow-down and reversal at a mirror point are exact. The visible helix is a DRAWN
-             OFFSET (p.gx, p.gy) instead of a transverse velocity, and that separation is
-             deliberate: coil width and coil pitch are v⊥/ω and 2πv∥/ω, so with a velocity
-             wobble you cannot have both a tight pitch and a width you can see — at the pitch
-             this reads best the excursion works out sub-pixel, and buying width back means a
-             transverse speed several times the electron's own, which looks like it is flying
-             sideways. Decoupling them is honest about what the helix is: a schematic marker
-             for "this particle is gyrating, tightly, around this line". The true gyroradius
-             here is ~0.008 of the chamber radius — genuinely invisible — so any drawn spiral
-             is a symbol, and it should at least be a legible one. Amplitude still tracks v⊥,
-             so the coil visibly fattens as the electron nears its turning point. */
-          p.vx = vpar*ux; p.vy = vpar*uy;
-          const amp = GYRO_R * Math.sqrt(vperp2) / s;
-          p.gyroPh += GYRO_W * dt;
-          p.gx = -uy * amp * Math.sin(p.gyroPh);
-          p.gy =  ux * amp * Math.sin(p.gyroPh);
+          /* The SWING first, as a pure rotation. A rotation cannot change |v|, so it cannot add
+             or remove energy no matter how coarse the step — which is what keeps the curl from
+             quietly heating the population. */
+          if (om0){
+            const g = om0 * h, cs = Math.cos(g), sn = Math.sin(g);
+            const nvx = p.vx*cs - p.vy*sn, nvy = p.vx*sn + p.vy*cs;
+            p.vx = nvx; p.vy = nvy;
+          }
+          /* Then LEAPFROG on the potential: half kick at the old position, drift, half kick at
+             the NEW one. Using the old acceleration for both halves (the obvious shortcut) is not
+             symplectic and it showed — the electron left the band with 102.5–103% of the speed it
+             arrived with, a few percent of free energy per encounter, which over a couple of
+             seconds of bouncing inflates the whole population. Re-evaluating at the new position
+             is the fix, and it costs one extra field evaluation per sub-step. */
+          if (f0){ p.vx += ax0 * h * 0.5; p.vy += ay0 * h * 0.5; }
+          p.x += p.vx*h; p.y += p.vy*h;
+          const f1 = magnetsOn ? mirrorAt(p.x, p.y, p.eTot) : null;
+          if (f1){ p.vx += f1.ax * h * 0.5; p.vy += f1.ay * h * 0.5; }
+          /* ENERGY SHELL PROJECTION — the thing that makes this exact rather than approximate.
+             The electron carries a conserved total energy p.eTot = ½v² + U, so its speed at any
+             point is fixed by where it is: |v| = √(2(E − U)). Rescaling to that each sub-step
+             pins it to its own energy shell, which does three things no amount of step-size
+             tuning did on its own:
+               • the turning point lands EXACTLY where U = E, so "travels past the lines, stops,
+                 comes back" is enforced rather than hoped for;
+               • an electron cannot reach wall between the rings at all if its E is below the
+                 barrier there — the speed goes to zero first, which is what confinement IS;
+               • no drift, ever. Leapfrog alone left ~2% per encounter, and a reflection at the
+                 wall (the TOP of the potential hill) let an electron convert the whole barrier
+                 into speed on the way out — measured, the fastest electron hit 563 against a 420
+                 launch ceiling. Projection removes that class of bug outright.
+             Direction still comes entirely from the force and the swing above; this only sets the
+             magnitude, so the trajectory shape is untouched. */
+          if (magnetsOn){
+            const want2 = 2 * p.eTot * Math.max(0, 1 - mirrorPhi(p.x, p.y));
+            const have2 = p.vx*p.vx + p.vy*p.vy;
+            if (have2 > 1e-12){
+              const k = Math.sqrt(want2 / have2);
+              p.vx *= k; p.vy *= k;
+            }
+          }
+          rem -= h;
         }
-      } else {
-        p.mu = undefined; p.gx = p.gy = 0;                    // magnets off → nothing is tied to anything
       }
-      p.x += p.vx*dt; p.y += p.vy*dt; p.age += dt;
+      p.age += dt;
+      /* Drawn helix while inside the wall band — the swing past the field reads as a helix seen
+         edge-on rather than as a bare curve. Offset only; no physics sees it. Amplitude tracks
+         depth into the band, so it winds up on the way in and unwinds on the way out. */
+      if (magnetsOn){
+        const ryd = p.y - AXY;
+        const wd = Math.min(CH_R - Math.abs(ryd), p.x - CH_X0);
+        const dep = 1 - Math.min(1, Math.max(0, wd) / B_BAND);
+        if (dep > 0.02){
+          p.coilPh = (p.coilPh || 0) + REFL_COIL_W * dt;
+          const sp = Math.hypot(p.vx, p.vy) || 1;
+          const tx = -p.vy / sp, ty = p.vx / sp;               // across its own path
+          const amp = REFL_COIL_R * dep;
+          p.gx = tx * amp * Math.sin(p.coilPh);
+          p.gy = ty * amp * Math.sin(p.coilPh);
+        } else { p.gx = p.gy = 0; }
+      } else { p.gx = p.gy = 0; }
       // Continuous emission: a primary's lifetime runs out → it is re-emitted from the
       // cathode tip as a fresh jet, so the cathode keeps firing a visible electron stream
       // instead of the population dispersing once and going static.
       if (!p.freed && p.age > p.ettl){ spawnEDischarge(p); return; }
       // Fail-safe only: a freed secondary that somehow never reached a wall recycles after its
-      // long fttl (~3 s) so the slot can't stay checked out forever. The normal sink is anode
-      // collection (E_COLLECT_FREED), not this timer.
+      // long fttl (~3 s) so the slot can't stay checked out forever. The normal sink is
+      // collection at a cusp strip, not this timer.
       if (p.freed && p.age > p.fttl){ recycleFreed(p); return; }
       reflectCathode(p);   // the solid cathode body repels electrons — they can't pass through it
-      // ── Electron ⇄ wall interaction. Cusp zones (magnet rings) collect; every other
-      // wall contact reflects non-specularly. See CUSP_WIDTH / CUSP_ABSORB_PROB /
-      // BACK_PLATE_PROTECTED at the top of the physics section.
+      // ── Electron ⇄ wall interaction. Only a cusp strip collects, and it does so via the loss
+      // helix; every other contact reflects. Most electrons never get here at all — the mirror
+      // above turns them first. See CUSP_WIDTH / MIRROR_FRAC / BACK_PLATE_PROTECTED above.
       const SCREEN_REFLECT = SCREEN_SLAB.x0 - partR;   // the sheath turns it at the grid FACE, disc edge first
       // RIGHT wall — the screen grid sits at CATHODE potential, so its sheath REFLECTS almost
       // every electron (same physics as the protected back plate). Reflection is the main
@@ -3508,21 +3730,24 @@ function stepParticle(p, dt){
         if (p.freed || aligned || Math.random() >= SCREEN_E_COLLECT){ reflectElectronWall(p, -1, 0); }   // reflected by the cathode-potential / accel-grid sheath
         else { spawnEDischarge(p); return; }                                                             // energetic-tail primary collected → re-emit from the cathode
       }
-      // LEFT wall — back plate: protected → reflect (with its back-ring cusp band);
-      // unprotected → it collects every electron that reaches it.
+      /* LEFT wall — back plate. Most electrons never arrive: the mirror turns them in the wall
+         band above. The ones that do came down a back-ring cusp, where the barrier is switched
+         off — so inside a strip they are collected (on the loss helix), and anything else that
+         somehow reaches bare plate is reflected. */
       if (p.x < CH_X0){
         if (!BACK_PLATE_PROTECTED){ absorbElectron(p); return; }
         p.x = CH_X0;
-        if (electronCollected(p, inCuspBackY(p.y))){ absorbElectron(p); return; }
+        if (electronCollected(p, inCuspBackY(p.y))){ beginLossCoil(p, 1, 0); return; }
         reflectElectronWall(p, 1, 0);
       }
-      // TOP / BOTTOM anode walls: inside a magnet-ring cusp the anode collects the
-      // electron, otherwise the ring-cusp field mirrors it back into the chamber.
-      const ry = p.y - AXY;
+      // TOP / BOTTOM anode walls — same rule. Between the rings the mirror turns the electron
+      // before it ever gets here; at a ring the barrier is off, it rides the cusp in, and the
+      // anode keeps it — spiralling down onto the pole face on the loss helix.
+      const ry = p.y - AXY, sgn = ry > 0 ? 1 : -1;
       if (Math.abs(ry) >= CH_R){
-        p.y = AXY + Math.sign(ry) * CH_R;
-        if (electronCollected(p, inCuspX(p.x))){ absorbElectron(p); return; }
-        reflectElectronWall(p, 0, ry > 0 ? -1 : 1);
+        p.y = AXY + sgn * CH_R;
+        if (electronCollected(p, inCuspX(p.x))){ beginLossCoil(p, 0, -sgn); return; }
+        reflectElectronWall(p, 0, -sgn);
       }
     } else {  // neutralizer electron: jet downstream from the orifice, then merge & disperse into the beam
       if (p.phase === 'jet'){
@@ -3781,8 +4006,9 @@ function ionizePass(dt){
     if (p.dead) continue;
     // Only PRIMARY (cathode) electrons ionize — the low-energy freed secondaries
     // don't — which caps the ionization rate at the fixed primary count and keeps
-    // the freed-electron population bounded.
-    if (p.sp === 'electron' && p.sub === 'd' && !p.freed) es.push(p);
+    // the freed-electron population bounded. An electron already committed to a cusp
+    // (p.lossT, winding down the loss helix) is out of the game too.
+    if (p.sp === 'electron' && p.sub === 'd' && !p.freed && !p.lossT) es.push(p);
     else if (p.sp === 'neutral' && p.phase === 'chamber') ns.push(p);   // any chamber atom can ionize
   }
   if (!es.length || !ns.length) return;
@@ -3917,8 +4143,10 @@ function updateParticles(dt){
       if (p.z > zm){ p.z = zm; p.vz = -Math.abs(p.vz)*0.6; }            // bounce off the cylindrical wall (+ĵ)
       else if (p.z < -zm){ p.z = -zm; p.vz = Math.abs(p.vz)*0.6; }      // bounce off the cylindrical wall (−ĵ)
     }
-    // p.gx/p.gy are the drawn gyro-helix offset for a field-aligned electron (zero for
-    // everything else); they are applied HERE only, so no physics sees them.
+    // p.gx/p.gy are the drawn helix offset — the reflection helix inside the wall band, or the
+    // converging loss helix once an electron is committed to a cusp. Zero for everything else,
+    // and applied HERE only, so no physics sees them. The turning point and the swing are in
+    // (p.x, p.y) itself; this only puts the winding on top.
     pPos[i*3]=p.x+(p.gx||0); pPos[i*3+1]=drawnY(p)+(p.gy||0); pPos[i*3+2]=p.z;   // drawnY keeps a glyph crossing a grid inside its bore
     pGlyph[i]=glyphOf(p);
     pAlpha[i]=fadeAlpha(p);                       // dissolve into the plume near the beam end
@@ -4629,19 +4857,10 @@ function setShowTransparent(on){
 }
 
 /* ── Circuit Diagram stage: view switch + panel controls ─────────────────────── */
-const CIRC_VIEW_NOTE = {
-  currents: 'Every arrow is a current and every battery a supply, drawn on the part it belongs to. '
-          + 'Follow each loop and check it closes. Drag to pan, scroll to zoom.',
-  potential:'The same three supplies, read as the potential a charge moves through. The axial axis '
-          + '<em>is</em> the thruster’s axis, so each rise and drop sits on the hardware that '
-          + 'causes it. <b>Trace</b> picks whose journey is dimensioned: the curve is the same '
-          + 'either way, but the spans that mean anything are not. Drag to pan, scroll to zoom.',
-};
 function setCircuitView(v){
   circuitView = (v === 'potential') ? 'potential' : 'currents';
   document.querySelectorAll('#circ-view-seg button').forEach(b => b.classList.toggle('active', b.dataset.cview === circuitView));
   $('app').classList.toggle('pot-on', circuitView === 'potential');
-  const n = $('circ-view-note'); if (n) n.innerHTML = CIRC_VIEW_NOTE[circuitView];
   POT.pop = null; hidePotPop();
   updateGridsTransparent();          // each view ghosts the hardware to its own depth
   if (potActive()) refreshPotProfile();
@@ -4657,12 +4876,6 @@ function setPotSpecies(v){
   POT.el.x  = POT_E_X0; POT.el.wait = 0.25;  POT.el.age  = 0;
   POT.pop = null; hidePotPop();
   if (potActive()) refreshPotProfile();
-}
-/* Component-name callouts. Off by default in both views: with the labels down, the schematic and
-   the potential curve each read as one figure instead of competing with a field of chips. */
-function setCircuitLabels(on){
-  circuitLabels = on;
-  setTogVisual('tog-circ-labels', on);
 }
 function setPotVT(v){ POT.vT = v; const e = $('pot-vtot-val'); if (e) e.value = v; potChanged(); }
 function setPotVd(v){ POT.vd = v; const e = $('pot-vd-val'); if (e) e.value = v; potChanged(); }
@@ -5362,7 +5575,7 @@ const ACC_TEST_U0 = 0;
    before the fade-in had even finished and never once be drawn at full strength.
    All of these run on the same field-following clock as the flight (gapTimeScale), so the whole
    cycle keeps its proportions at every slider setting. */
-const ACC_TEST_HOLD_F = 0.22;    // full strength this far past the accel grid (matches the beam)
+const ACC_TEST_HOLD_F = 0.45;    // full strength this far past the accel grid (matches the beam)
 const ACC_TEST_FADE_F = 0.9;     // then dissolve over this long, out in the plume
 const ACC_TEST_HOLD_B = 0.025;   // still on the sheath this far back — no dissolve yet
 const ACC_TEST_FADE_B = 0.7;     // reabsorbed by the discharge — quicker, and it stays put
@@ -5633,18 +5846,21 @@ const GAP_U_IN = 0;       // injected AT the screen-grid plane, on the sheath me
    sliders say, and because emission speeds up by the same factor as the dissolve, the number of
    ions streaming out there stays put instead of piling up at the fast end of the sliders. */
 /* The two directions get their own numbers, because they are not the same event. DOWNSTREAM the ion
-   is a beam particle on its way out: it stays at full strength for GAP_HOLD_F past the accel grid —
-   the beam does not start thinning the instant it clears the metal — and only then dissolves, over
-   the longer GAP_FADE_F, so the fade happens well out into the plume. UPSTREAM it is a refused ion
-   being reabsorbed by a dense discharge a fraction of a percent behind the sheath, which is quick;
-   its fade stays short so it does not go wandering back across the chamber. */
-const GAP_HOLD_F = 0.22;   // full strength this far past the accel grid before the dissolve starts
-const GAP_FADE_F = 0.7;    // then dissolve over this long (same units as the transit)
+   is a beam particle on its way out: it stays at full strength for GAP_HOLD_F — a DISTANCE, in
+   gap-lengths past the accel grid, because the beam does not start thinning the instant it clears
+   the metal — and only then dissolves, over the time GAP_FADE_F. The hold is deliberately most of a
+   gap-length: everything worth watching out there (the beamlet flaring out of the bore, the
+   neutralizer electrons running up to meet it) happens in the first stretch of plume, and it wants to
+   be at full strength while it does. UPSTREAM it is a refused ion being reabsorbed by a dense
+   discharge a fraction of a percent behind the sheath, which is quick; its fade stays short so it
+   does not go wandering back across the chamber. */
+const GAP_HOLD_F = 0.45;   // full strength this far past the accel grid before the dissolve starts
+const GAP_FADE_F = 0.65;   // then dissolve over this long (the same gap-clock the transit runs on)
 const GAP_HOLD_B = 0.025;  // the sheath field reaches this far upstream; past it the plasma is field-free
 const GAP_FADE_B = 0.5;
-// Hard backstops only. At full speed the fade runs out around u = 2.4 / u = −0.2, well inside
-// these, so they never truncate a dissolve — they just stop a stray ion living forever.
-const GAP_U_OUT  = 3.0;
+// Hard backstops only. At full speed the fade runs out by u ≈ 2.9 / u = −0.2, well inside these, so
+// they never truncate a dissolve — they just stop a stray ion living forever.
+const GAP_U_OUT  = 3.2;
 const GAP_U_BACK = -0.6;
 /* Real grids are perforated plates, and this view is the textbook section through ONE aligned pair of
    holes — a single beamlet. The screen-grid hole is wide (D_S) and its plate thin; the accel-grid
@@ -6384,18 +6600,25 @@ function drawAccelGraph(dt){
   // The real 3-D grids are hidden in this stage (applyStageState); the two electrode combs drawn
   // below at z=0 / z=d ARE the grids, so the gap between them widens and narrows with d.
   const D_MIN = 0.4, D_MAX = 1.6;                    // accel-gap slider range (mm)
-  // The screen grid is inset well to the right of the left edge, and never closer than E_MAX_PX +
-  // a label's width. That margin is not cosmetic: in over-saturation the test ion is pinned AT the
-  // screen grid and its E_ions arrow points LEFT, so without the room it runs off the canvas. Kept
-  // as a floor in px (not just a fraction) so it survives narrow embeds.
-  // …and the band it leaves clear is also where the DISCHARGE-CHAMBER PLASMA is drawn, so it is
-  // sized to hold that block (title, species key) as well as the arrow.
-  const xL = Math.max(158, Math.round(W * 0.19));    // z = 0 : screen grid — leaves room for the plasma + the leftward E_ions arrow
-  // Gap width maps AFFINELY across the slider range (as a fraction of the viewport width). Narrower
-  // than before (the graph now occupies less of the window and sits further right), but still not
-  // proportional to d, so the readout always shows the true d in mm.
+  /* The screen grid is inset from the left edge — but only as far as it has to be. Everything the
+     stage has to show past the gap happens DOWNSTREAM of the accel grid (the beamlet flaring out of
+     the bore, the neutralizer electrons running in to meet it), so px spent on the left margin come
+     straight off the part of the picture that has to stay legible. Two things set the floor, and
+     both are checked against it:
+       • the E_ions arrow, which in over-saturation points LEFT from a station pinned at the screen
+         grid — E_MAX_PX of shaft, with its label parking behind the tail rather than off the canvas
+         when there is no room past the tip (see eRow);
+       • the DISCHARGE-CHAMBER PLASMA block drawn in that band, whose title is the widest thing in
+         it and needs ~115 px of block to sit on.
+     Kept as a floor in px, not just a fraction, so it survives a narrow embed. */
+  const xL = Math.max(142, Math.round(W * 0.115));   // z = 0 : screen grid
+  // Gap width maps AFFINELY across the slider range (as a fraction of the viewport width) — not
+  // proportional to d, so the readout always shows the true d in mm, while 2× d still reads as a
+  // visibly wider gap. The span is deliberately modest: the gap is ONE gap-length of the picture and
+  // the plume past it wants two or three, so a wider map would buy a bigger gap by pushing the
+  // exhaust — the ions and the electron jet both — off the right-hand edge (see GAP_HOLD_F).
   const dFrac = (d - D_MIN) / (D_MAX - D_MIN);       // 0 at min gap … 1 at max gap
-  const xR = Math.round(xL + (0.32 + 0.28 * dFrac) * W);   // z = d : accel grid (moves with the gap)
+  const xR = Math.round(xL + (0.28 + 0.20 * dFrac) * W);   // z = d : accel grid (moves with the gap)
   const yBase = Math.round(H * 0.60);                // φ = 0 baseline — zoomed out, leaves the bottom clear for chrome
   const yTop  = 80;                                  // plot ceiling (clear of the title / tabs)
   const PHI_REF = 2300;                              // volts mapped to the full plot height (V_T max 2000 + overshoot headroom)
@@ -6410,14 +6633,22 @@ function drawAccelGraph(dt){
   const ux = u   => xL + (xR - xL) * u;              // normalized gap position → screen x
   const py = phi => yBase - phi * pxPerV;            // potential (volts) → screen y (FIXED scale)
   const yVT = py(VT);
-  /* Ions keep their speed while they dissolve, so at a wide gap — where the accel grid is already
-     four fifths of the way across — a fast one reaches the edge of the canvas with fade left to
-     run. This dims it over the last EDGE_PX instead of letting the canvas clip it mid-stream. It is
-     a property of the FRAME, not of the ion: nothing here slows anything down. */
-  // Wide enough to blend into the dissolve rather than read as a vignette on top of it, but scaled
-  // down on a narrow embed, where 140 px would be a third of the frame.
-  const EDGE_PX = Math.max(70, Math.min(150, W * 0.13));
-  const edgeA = x => Math.max(0, Math.min(1, (Math.min(x, W - x) - 6) / EDGE_PX));
+  /* Ions keep their speed while they dissolve, so a fast one can reach the edge of the canvas with
+     fade left to run. This dims it over the last stretch instead of letting the canvas clip it
+     mid-stream. It is a property of the FRAME, not of the ion: nothing here slows anything down.
+     The two edges get different widths, because the frame is not symmetric in what leaves through
+     them. The LEFT edge is where a refused ion drifts back into the discharge — deep inside the
+     plasma block, with the whole width of that band to do it in — so it can afford to be generous.
+     The RIGHT edge is the downstream one, and it is the crowded side: the beam, the plume and the
+     neutralizer's electrons all live out there, and the electrons are EMITTED a few px inside it. A
+     falloff wide enough to be comfortable on the left was dimming that whole region — ions were down
+     to half strength before their own dissolve had even started, and an electron spent most of its
+     run-in at a fraction of full alpha. So the downstream one is kept just wide enough to stop a
+     particle popping in or out at the boundary, and the actual fading is left to the things that
+     mean something: the dissolve (GAP_FADE_F) and the electrons' own fade-in ramp. */
+  const EDGE_L = Math.max(60, Math.min(130, W * 0.10));
+  const EDGE_R = Math.max(30, Math.min(56,  W * 0.045));
+  const edgeA = x => Math.max(0, Math.min(1, (x - 6) / EDGE_L, (W - 6 - x) / EDGE_R));
 
   ctx.save();
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
@@ -6602,10 +6833,10 @@ function drawAccelGraph(dt){
   const BEAM_INSET = 0.9;                              // keep the dot off the hole edges
   // Faint envelope, so the focusing through the smaller accel hole reads even where ions are sparse.
   // Drawn to whichever comes first: the point where the last ion has finished dissolving (it leaves
-  // the gap at ≈1.67, holds full strength for GAP_HOLD_F, then fades over GAP_FADE_F), or the edge of
-  // the canvas. Guides running
+  // the gap at ≈1.67 gap-lengths/s, holds full strength for GAP_HOLD_F, then fades over GAP_FADE_F —
+  // so the slowest-dissolving one is gone by u ≈ 2.9), or the edge of the canvas. Guides running
   // on past the last ion would read as beam that isn't there.
-  const U_DRAW = Math.min(2.4, (W - xL) / (xR - xL));
+  const U_DRAW = Math.min(2.9, (W - xL) / (xR - xL));
   ctx.strokeStyle = 'rgba(77,155,255,0.26)'; ctx.lineWidth = 1.2;   // the ION beamlet — ion blue, faint
   for (const sgn of [-1, 1]){
     ctx.beginPath();
@@ -7834,9 +8065,9 @@ function refreshPotProfile(){
   // so the SVG carries only geometry. The group is left in place as the paint order's anchor.
   $('pot-lbl').innerHTML = '';
 
-  // ── accessible description + caption, per trace ────────────────────────────────────────
+  // ── accessible description, per trace ──────────────────────────────────────────────────
   const gain = Math.round(L.plasma), peak = Math.round(L.plasma - L.accel);
-  const dsc = $('pot-desc'), cap = $('pot-cap');
+  const dsc = $('pot-desc');
   if (POT.species === 'electron'){
     if (dsc) dsc.textContent =
       'Potential against axial position, annotated for an electron instead of an ion, with two ' +
@@ -7856,24 +8087,6 @@ function refreshPotProfile(){
       'the discharge voltage and the neutralizer supply — the only two spans on the electron’s own ' +
       'path. The total, net and accel-grid voltages are not dimensioned here: the electron crosses ' +
       'none of them.';
-    if (cap) cap.innerHTML =
-      'Follow one electron all the way round. It leaves the bombardment cathode, is accelerated '
-      + '<b>up V<sub>discharge</sub></b> through the sheath into the chamber — that is the '
-      + POT.vd + '&nbsp;eV that lets it ionize xenon — and is collected on the anode wall. To get '
-      + 'back into the beam it has to be carried <b>down V<sub>neutralizer</sub></b> '
-      + '(' + Math.round(L.vNeu) + '&nbsp;V) to the neutralizer cathode, and the supply does that '
-      + 'work — it gains nothing falling it. Its trace holds at anode potential until then, '
-      + 'because that stretch is the supply’s <em>wire</em> running down the outside of the '
-      + 'thruster, and it has no accel-grid well at all: the electron never enters the gap. '
-      + 'Compare it against the dotted <b>φ<sub>ion</sub>(z)</b> behind. It does not start where '
-      + 'this one does: the ion is born in the chamber, so its trace begins on the plasma plateau '
-      + 'and the discharge step is <em>this</em> particle’s, not the ion’s. From there the two run '
-      + 'together to the '
-      + 'grids, where the ion plunges into the well and the electron drops straight to plume '
-      + 'potential. That well is the barrier keeping plume electrons out of the optics, which is '
-      + 'why the grid is held negative. Only two spans are dimensioned here because only two are '
-      + 'on the electron’s path: <b>V<sub>total</sub></b>, <b>V<sub>net</sub></b> and '
-      + '<b>V<sub>accel</sub></b> are the ion’s. Hover either label for what it is for.';
     return;
   }
   if (dsc) dsc.textContent =
@@ -7897,21 +8110,6 @@ function refreshPotProfile(){
     'nor the neutralizer supply is dimensioned here, because the ion crosses neither. The ' +
     'discharge voltage in particular sits upstream of where the ion is born, so no part of it ends ' +
     'up in the ion’s energy. Switch the trace to Electron to see both.';
-  if (cap) cap.innerHTML =
-    'Every span drawn here is one the ion actually falls through. It is born in the chamber plasma '
-    + 'at <b>V<sub>net</sub></b>, plunges <b>V<sub>total</sub></b> '
-    + '(' + Math.round(L.vT) + '&nbsp;V) across the extraction gap, and climbs <b>V<sub>accel</sub></b> '
-    + '(' + Math.round(-L.accel) + '&nbsp;V) back out \u2014 so what it keeps is '
-    + Math.round(L.vT) + '&nbsp;\u2212&nbsp;' + Math.round(-L.accel) + '&nbsp;=&nbsp;'
-    + Math.round(L.vNet) + '&nbsp;V. That is what sets '
-    + 'the exhaust velocity, and '
-    + 'the deepest point it reaches is <em>not</em> what it leaves with. '
-    + 'Two supplies are deliberately absent, because no ion crosses either. '
-    + '<b>V<sub>discharge</sub></b> is upstream of where the ion is born: it buys the ion, it does '
-    + 'not accelerate it, and none of it is in the fall drawn here. '
-    + '<b>V<sub>neutralizer</sub></b> an electron crosses \u2014 through the supply, not along z. '
-    + 'Switch the trace to <b>Electron</b> for that half of the '
-    + 'story. Hover any label for what that one is for.';
 }
 
 /* Pin the SVG over the cross-section. The section camera is orthographic and axis-aligned, so
@@ -8517,7 +8715,6 @@ try {
     b.addEventListener('click', () => setCircuitView(b.dataset.cview)));
   document.querySelectorAll('#pot-spec-seg button').forEach(b =>
     b.addEventListener('click', () => setPotSpecies(b.dataset.pspec)));
-  $('tog-circ-labels').addEventListener('click', () => setCircuitLabels(!circuitLabels));
   setPotSpecies(POT.species);
   setCircuitView(circuitView);
   potChanged();

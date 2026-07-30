@@ -351,6 +351,24 @@ details.clarify-detail > summary:focus-visible {
   line-height: 1.5;
 }
 
+/* ── Static figure (inline SVG plot) ─────────────────
+   Full-bleed inside an .applet-host block so a figure sits
+   in the same frame as a demo iframe. The SVG carries its own
+   #0e0e0e ground, so it needs no background of its own. */
+.fig-frame {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  background: var(--bg-diagram);
+}
+.fig-frame svg { display: block; width: 100%; height: auto; }
+.fig-caption {
+  padding: 11px 18px 15px;
+  font-size: 17.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+#mx-hit { cursor: crosshair; }
+
 /* ══════════════════════════════════════════════════════
    QUIZ SECTION
    ══════════════════════════════════════════════════════ */
@@ -562,7 +580,7 @@ footer {
   <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">Ionization &amp; Recombination
   Applet</a> that <span class="hl-electron">electrons</span> must have a certain amount of energy in order for a
   collision with a <span class="hl-neutral">neutral particle</span> to ionize it. Because of this, we want to maximize
-  the time that the electron is in the <span class="key">ionization chamber</span>.
+  the path length the electron takes in the <span class="key">ionization chamber</span>.
   This way, an electron has more chances to ionize a
   <span class="hl-neutral">neutral atom</span>. Consider a <span class="key">utilization fraction</span> $\mu_u$: the
   fraction of propellant injected into the <span class="key">ionization chamber</span> that actually gets ionized. The
@@ -604,7 +622,7 @@ footer {
         <span class="quiz-opt-label">a</span>Apply a radial electric field directed toward the walls, which attracts ions and repels electrons, keeping them in the chamber longer.
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Apply a magnetic field along the walls of the thruster. Incoming particles will orbit them and reflect back away from the wall rather than pass through.
+        <span class="quiz-opt-label">b</span>Apply a magnetic field along the walls of the thruster. Incoming electrons will either be reflected by the magnetic field line or escape to the anode via a loss cone helix path (see the magnetic mirror applet) depending on their pitch angle.
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -619,32 +637,268 @@ footer {
           loading="lazy"></iframe>
 </div>
 
+<!-- ════════════════════ UTILIZATION FRACTION ════════════════════ -->
+<p class="transition-line">
+  Something you may have noticed from the simulation: only about 4&ndash;5% of the particles in the
+  <span class="key">ionization chamber</span> are ionized at any given time! However, the mass
+  <span class="key">utilization fraction</span> is fairly high, about 80%. How can this be?
+</p>
+
+<div class="theory-block">
+  <div class="th-hdr">Electron Energy Distribution</div>
+  <p class="th-body">
+    The voltage of the <span class="key">discharge circuit</span> provides primary
+    <span class="hl-electron">electrons</span> the necessary energy to ionize
+    <span class="hl-neutral">neutrals</span>. Recall however, that neutrals produce a positively charged
+    <span class="hl-ion">ion</span> <em>and</em> a secondary thermalized electron. This
+    &ldquo;<span class="key">thermalized</span>&rdquo; secondary electron has lost all of its kinetic energy and
+    shares the thermal energy of its surroundings, following a
+    <span class="key">Maxwellian distribution</span>.
+  </p>
+</div>
+
+<div class="theory-block applet-host">
+  <div class="th-hdr">Maxwellian Electron Energy Distribution</div>
+  <div class="fig-frame">
+    <svg id="mx-svg" viewBox="0 0 900 400" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="Barlow, sans-serif"
+         aria-label="Maxwellian electron energy distribution at an electron temperature of 4 electronvolts.
+                     The distribution peaks at 2 eV and falls off with a long high-energy tail. A dashed line
+                     marks the 12.13 eV first ionization energy of xenon; the 11% of electrons in the tail
+                     beyond it are the only ones that can ionize a xenon atom.">
+
+      <rect width="900" height="400" fill="#0e0e0e"/>
+
+      <!-- Gridlines: solid hairlines. Dashing is reserved for the threshold below,
+           where it actually means "threshold". -->
+      <g stroke="#1c1c1c" stroke-width="1">
+        <line x1="208.7" y1="34" x2="208.7" y2="330"/>
+        <line x1="339.3" y1="34" x2="339.3" y2="330"/>
+        <line x1="470.0" y1="34" x2="470.0" y2="330"/>
+        <line x1="600.7" y1="34" x2="600.7" y2="330"/>
+        <line x1="731.3" y1="34" x2="731.3" y2="330"/>
+      </g>
+
+      <!-- Distribution: one series, so no legend — it is direct-labelled top-right.
+           The two fills are one series split at the threshold, not two categories. -->
+      <path id="mx-bulk" fill="#ffe94d" fill-opacity="0.07" d=""/>
+      <path id="mx-tail" fill="#ffe94d" fill-opacity="0.42" d=""/>
+      <path id="mx-curve" fill="none" stroke="#ffe94d" stroke-width="2"
+            stroke-linejoin="round" d=""/>
+
+      <!-- Axes -->
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="78" y1="330" x2="862" y2="330"/>
+        <line x1="78" y1="330" x2="78" y2="34"/>
+      </g>
+
+      <!-- x ticks -->
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="78.0"  y1="330" x2="78.0"  y2="336"/>
+        <line x1="208.7" y1="330" x2="208.7" y2="336"/>
+        <line x1="339.3" y1="330" x2="339.3" y2="336"/>
+        <line x1="470.0" y1="330" x2="470.0" y2="336"/>
+        <line x1="600.7" y1="330" x2="600.7" y2="336"/>
+        <line x1="731.3" y1="330" x2="731.3" y2="336"/>
+        <line x1="862.0" y1="330" x2="862.0" y2="336"/>
+      </g>
+      <g fill="#7a7a7a" font-size="15" text-anchor="middle">
+        <text x="78.0"  y="354">0</text>
+        <text x="208.7" y="354">5</text>
+        <text x="339.3" y="354">10</text>
+        <text x="470.0" y="354">15</text>
+        <text x="600.7" y="354">20</text>
+        <text x="731.3" y="354">25</text>
+        <text x="862.0" y="354">30</text>
+      </g>
+
+      <!-- Axis titles -->
+      <text x="470" y="384" fill="#9a9a9a" font-size="17" text-anchor="middle">electron energy
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">E</tspan>&#160;&#160;(eV)</text>
+      <text transform="rotate(-90 32 182)" x="32" y="182" fill="#9a9a9a" font-size="17"
+            text-anchor="middle"><tspan font-family="KaTeX_Math, serif" font-style="italic">f</tspan>(<tspan
+            font-family="KaTeX_Math, serif" font-style="italic">E</tspan>)&#160;&#160;(eV<tspan
+            font-size="12" dy="-6">&#8722;1</tspan><tspan dy="6">)</tspan></text>
+
+      <!-- Series direct label -->
+      <text x="850" y="54" fill="#ffe94d" font-size="18" font-weight="600" text-anchor="end">Maxwellian,
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">T</tspan><tspan font-size="13"
+        dy="4">e</tspan><tspan dy="-4"> = 4 eV</tspan></text>
+
+      <!-- Xenon ionization threshold -->
+      <line x1="395" y1="34" x2="395" y2="330" stroke="#3DBFFF" stroke-width="1.8"
+            stroke-dasharray="6 4" opacity="0.9"/>
+      <text x="406" y="52" fill="#3DBFFF" font-size="14.5" opacity="0.8">xenon ionization energy</text>
+      <text x="406" y="74" fill="#3DBFFF" font-size="19" font-weight="600">12.13 eV</text>
+
+      <!-- Area annotations. The area under the curve is the fraction of electrons,
+           so the two shaded regions are the numbers that matter here. -->
+      <text x="150" y="298" fill="#cfc287" font-size="20" font-weight="600">&#8776;&#8201;89%</text>
+      <text x="150" y="318" fill="#8f8a6e" font-size="14">below threshold</text>
+
+      <text x="545" y="146" fill="#ffe94d" font-size="22" font-weight="600">&#8776;&#8201;11%</text>
+      <text x="545" y="170" fill="#a8a08a" font-size="16">have enough energy to ionize xenon</text>
+      <path d="M 551 184 C 528 224 500 262 480 296" fill="none" stroke="#6b6552" stroke-width="1.4"/>
+      <path d="M 480 296 l -1.5 -8.5 l 6 5.5 z" fill="#6b6552"/>
+
+      <!-- Hover layer -->
+      <g id="mx-hover" style="display:none" pointer-events="none">
+        <line id="mx-cross" y1="34" y2="330" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1"/>
+        <circle id="mx-dot" r="5" fill="#ffe94d" stroke="#0e0e0e" stroke-width="2"/>
+        <g id="mx-tip">
+          <rect id="mx-tip-bg" width="216" height="80" rx="4" fill="#171717" stroke="#3a3a3a"
+                stroke-width="1"/>
+          <text id="mx-tip-1" x="12" y="24" fill="#f0f0f0" font-size="16"></text>
+          <text id="mx-tip-2" x="12" y="46" fill="#ffe94d" font-size="16"></text>
+          <text id="mx-tip-3" x="12" y="68" fill="#9a9a9a" font-size="15"></text>
+        </g>
+      </g>
+      <rect id="mx-hit" x="78" y="34" width="784" height="296" fill="transparent"/>
+    </svg>
+  </div>
+  <p class="fig-caption">
+    Area under the curve is the fraction of electrons, so the shaded regions are what to read: the
+    distribution peaks at 2&nbsp;eV and averages 6&nbsp;eV, but ionizing xenon takes 12.13&nbsp;eV, so only the
+    <span class="hl-electron">11% in the tail</span> can do it. Hover the plot to read the fraction above any
+    energy.
+  </p>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Utilization Fraction</div>
+  <p class="th-body">
+    While the high tail of this distribution is able to ionize <span class="hl-neutral">neutrals</span>, the
+    majority cannot. Instead, they travel about the chamber, transferring energy to other
+    <span class="hl-electron">electrons</span> until they are collected by the walls or reach sufficient
+    ionization energy themselves.
+  </p>
+
+  <p class="th-body">
+    High <span class="key">utilization fractions</span> are achieved because the bulk chamber plasma forms a
+    <span class="key">meniscus</span> at each grid opening. From this meniscus (better seen in
+    <a class="applet-link" href="GIE_Acceleration_applet.html">GIE II: Acceleration</a>), the
+    <span class="hl-ion">ions</span> are extracted by the strong <span class="hl-E">electric field</span>. For
+    <span class="hl-neutral">neutrals</span> to drift between the grids, they must do so by chance from their
+    random motion. They may travel past the <span class="key">screen grid</span> but hit the
+    <span class="key">accelerator grid</span> and get reflected back into the chamber. They may end up in the
+    final exhaust jet. However, they are not nearly as favored to do so as the ions being extracted from the
+    chamber plasma.
+  </p>
+</div>
+
 <!-- ════════════════════ CONCEPTUAL QUESTION ════════════════════ -->
 <div class="clarify-section">
-  <div class="clarify-hdr">Conceptual Question</div>
+  <div class="clarify-hdr">Conceptual Questions</div>
 
   <details class="clarify-detail">
-    <summary>Only about 4&ndash;5% of the particles in the <span class="key">ionization chamber</span> are
-    ionized at any given time. Why are there relatively few <span class="hl-ion">ions</span> in the ionization
-    chamber compared to <span class="hl-neutral">neutrals</span>? How are high
-    <span class="key">utilization fractions</span> achieved in spite of this?</summary>
+    <summary>Why are <span class="hl-electron">electrons</span> that travel perpendicular into the
+    <span class="hl-B">magnetic field</span> lines not trapped like in the Magnetic Mirror Applet?</summary>
     <div class="clarify-body">
-      Most <span class="hl-electron">electron</span>&ndash;<span class="hl-neutral">neutral</span> collisions
-      don&rsquo;t result in ionization, but rather an <span class="key">elastic collision</span>. The
-      electron keeps its energy and continues to travel about the chamber. As it does
-      so, it can transfer energy with other electrons, which can then ionize the
-      <span class="hl-neutral">neutral propellant atoms</span>. The <span class="hl-B">magnetic field</span> lines
-      along the chamber walls help retain electrons, promoting ionization further.
-      <span class="hl-neutral">Neutral particles</span> that drift toward the exit often bounce back into the chamber by
-      colliding into either the screen or accelerating grid. Unlike <span class="hl-ion">ions</span> that drift toward
-      these grids, they aren&rsquo;t guided by the high-strength <span class="hl-E">electric field</span>, and have a
-      significant chance to return to the chamber to be ionized. All of these features help enable high
-      <span class="key">utilization fractions</span>, which tend to be 80% or greater for most gridded ion engines.
+      Recall that in the derivation for
+      <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirror</a> trapping, an
+      important assumption
+      was that the <span class="hl-B">magnetic field</span> strength was not changing during a
+      <span class="key">cyclotron orbit</span>. In a gridded ion engine, the magnetic field lines between
+      <span class="key">cusps</span> are not sufficient for this assumption to hold. Thus, incoming
+      <span class="hl-electron">electrons</span> are reflected or lost, not trapped.
     </div>
   </details>
 </div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+
+<!-- ════════════════════ MAXWELLIAN DISTRIBUTION PLOT ════════════════════ -->
+<script>
+"use strict";
+
+/* The curve is drawn from the formula rather than shipped as a baked path, so the
+   figure and the hover readout can never disagree with each other or with the
+   physics. Geometry constants below MUST match the static SVG shell above. */
+(() => {
+  const svg = document.getElementById('mx-svg');
+  if (!svg) return;
+
+  const TE   = 4.0;        // bulk electron temperature, eV
+  const E_IZ = 12.1298;    // xenon first ionization energy, eV
+  const EMAX = 30.0;       // x-axis span, eV
+  const FMAX = 0.135;      // y-axis span, eV^-1 (peak f is 0.1210)
+  const L = 78, R = 862, T = 34, B = 330;
+
+  /* Normalized Maxwellian energy distribution:
+     f(E) = (2/sqrt(pi)) Te^(-3/2) sqrt(E) exp(-E/Te),  with the integral over
+     all E equal to 1, so the area under any span IS a fraction of electrons. */
+  const f = E => 2 / Math.sqrt(Math.PI) * Math.pow(TE, -1.5) * Math.sqrt(E) * Math.exp(-E / TE);
+
+  const X = E => L + (E / EMAX) * (R - L);
+  const Y = v => B - (v / FMAX) * (B - T);
+
+  /* Fraction of electrons above E — Simpson's rule out to 30 Te, where what is
+     left is below 1e-12 of the total. */
+  const fracAbove = E => {
+    const hi = 30 * TE, n = 600, h = (hi - E) / n;
+    let s = f(E) + f(hi);
+    for (let i = 1; i < n; i++) s += f(E + i * h) * (i % 2 ? 4 : 2);
+    return s * h / 3;
+  };
+
+  /* Sampled finely under the peak, coarsely down the tail. */
+  const sample = (a, b, n) => {
+    const out = [];
+    for (let i = 0; i <= n; i++) {
+      const E = a + (b - a) * i / n;
+      out.push(X(E).toFixed(1) + ' ' + Y(f(E)).toFixed(1));
+    }
+    return out;
+  };
+  const head = sample(0, E_IZ, 60);          // 0 -> threshold
+  const tail = sample(E_IZ, EMAX, 44);       // threshold -> right edge
+
+  document.getElementById('mx-curve').setAttribute('d',
+    'M ' + head[0] + ' L ' + head.slice(1).concat(tail.slice(1)).join(' L '));
+  document.getElementById('mx-bulk').setAttribute('d',
+    `M ${X(0).toFixed(1)} ${B} L ` + head.join(' L ') + ` L ${X(E_IZ).toFixed(1)} ${B} Z`);
+  document.getElementById('mx-tail').setAttribute('d',
+    `M ${X(E_IZ).toFixed(1)} ${B} L ` + tail.join(' L ') + ` L ${X(EMAX).toFixed(1)} ${B} Z`);
+
+  /* ── Hover readout ──────────────────────────────────────────── */
+  const hover = document.getElementById('mx-hover');
+  const cross = document.getElementById('mx-cross');
+  const dot   = document.getElementById('mx-dot');
+  const tip   = document.getElementById('mx-tip');
+  const t1    = document.getElementById('mx-tip-1');
+  const t2    = document.getElementById('mx-tip-2');
+  const t3    = document.getElementById('mx-tip-3');
+  const hit   = document.getElementById('mx-hit');
+  const TIP_W = 216, TIP_H = 80;
+
+  const move = ev => {
+    /* Client px -> viewBox units. The SVG scales with the page, so go through
+       the rendered width rather than assuming 1:1. */
+    const box = svg.getBoundingClientRect();
+    const px  = (ev.clientX - box.left) * (900 / box.width);
+    const E   = Math.min(EMAX, Math.max(0, (px - L) / (R - L) * EMAX));
+
+    const cx = X(E), cy = Y(f(E));
+    cross.setAttribute('x1', cx); cross.setAttribute('x2', cx);
+    dot.setAttribute('cx', cx);   dot.setAttribute('cy', cy);
+
+    t1.textContent = `E = ${E.toFixed(1)} eV`;
+    t2.textContent = `${(100 * fracAbove(E)).toFixed(1)}% of electrons above`;
+    t3.textContent = E >= E_IZ ? 'enough to ionize xenon' : 'not enough to ionize xenon';
+
+    /* Keep the box on the plot: flip left near the right edge, clamp vertically. */
+    const tx = cx + 16 + TIP_W > R ? cx - 16 - TIP_W : cx + 16;
+    const ty = Math.min(B - TIP_H - 4, Math.max(T + 4, cy - TIP_H - 14));
+    tip.setAttribute('transform', `translate(${tx.toFixed(1)} ${ty.toFixed(1)})`);
+
+    hover.style.display = '';
+  };
+
+  hit.addEventListener('pointermove', move);
+  hit.addEventListener('pointerdown', move);
+  hit.addEventListener('pointerleave', () => { hover.style.display = 'none'; });
+})();
+</script>
 
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>
