@@ -757,6 +757,21 @@ footer {
     <span class="key">net-to-total voltage ratio</span> (about $0.8$&ndash;$0.9$ in a real engine).
   </p>
 
+  <p class="th-body">
+    So why not simply set <span class="hl-E">$R = 1$</span> and keep every volt? Because that negative bias is doing a
+    second job. A gridded engine throws out nothing but positive charge, so a
+    <span class="key">neutralizer cathode</span> downstream feeds one <span class="hl-electron">electron</span> into the
+    beam for every <span class="hl-ion">ion</span> &mdash; and the un-neutralized beamlet leaving the apertures is a
+    positive hill that pulls those electrons back <em>upstream</em>, toward the grids. The
+    <span class="key">accelerator grid</span>&rsquo;s bias is the only barrier standing in their way. Raise
+    <span class="hl-E">$R$</span> in the applet above and watch it fail: the
+    <span class="hl-electron">electron jet</span> bends further and further into the accelerator grid until it is
+    striking the aperture and <span class="key">backstreaming</span> straight through into the discharge chamber,
+    carrying current the wrong way and dumping power where no <span class="hl-thrust">thrust</span> comes of it. Note
+    that raising <span class="hl-E">$V_T$</span> at the same <span class="hl-E">$R$</span> restores the barrier &mdash;
+    what stops the electrons is $|V_{accel}| = (1-R)\,V_T$ in <em>volts</em>, not the ratio on its own.
+  </p>
+
   <div class="eq-panel">
     <span class="eq-step-label">Maximum Thrust Density</span>
     $$ \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0\,

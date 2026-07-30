@@ -291,6 +291,16 @@ details.clarify-detail > summary:focus-visible {
   margin-top: 10px;
   margin-bottom: 0;
 }
+/* Byte-identical to the same rule in electrostatic_applet.html, whose derivation this page
+   reuses — the shared steps have to read the same on both pages. */
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
 .eq-caption {
   display: block;
   font-size: 18.5px;
@@ -705,11 +715,17 @@ footer {
 <div class="theory-block">
   <div class="th-hdr">From Potential to Force</div>
   <p class="th-body">
-    The curve above is a <span class="hl-phi">potential</span>, not a force. To get from one to the other,
-    note that nothing in the plot tells a particle where to go &mdash; what pushes it is the
-    <span class="hl-E">electric field</span>, and the field is the <span class="key">slope</span> of that
-    curve. Where &phi;(z) is flat there is no field and no force; where it plunges through the
-    <span class="key">extraction gap</span> the slope is enormous, and so is the force.
+    The <span class="hl-E">electric field</span> and <span class="hl-E">potential</span> are related by a
+    work-energy relation. For a given <span class="hl-E">electric potential difference</span> applied over a
+    greater distance, there is a weaker electric field. Likewise, for a given
+    electric potential difference applied over a smaller distance, there is a stronger
+    electric field. Notice that the electric field lines
+    point in the direction of decreasing <span class="hl-E">electric potential</span>.
+    <span class="hl-ion">Ions</span>, which are positively charged are attracted to lower
+    <span class="hl-E">electric potential</span>, while <span class="hl-electron">electrons</span>, which are
+    negatively charged are attracted to higher <span class="hl-E">electric potential</span>. This is because
+    the <span class="hl-F">electric force</span> is the <span class="hl-E">electric field</span> times the
+    particle&rsquo;s <span class="hl-q">charge</span>, both of which are signed quantities.
   </p>
 
   <div class="eq-panel">
@@ -722,117 +738,47 @@ footer {
     <details class="deriv-detail">
       <summary>Show derivation</summary>
       <div class="deriv-inner">
-        <p>Everything follows from two definitions and the fact that the electrostatic force is
-        <b>conservative</b> &mdash; the work it does moving a charge between two points does not
-        depend on the path taken.</p>
 
-        <span class="eq-step-label">1 &middot; A Conservative Force Has a Potential Energy</span>
-        <p>Because the work is path-independent, it can be booked as a change in a stored energy
-        $\textcolor{#FF4400}{U}$ that depends only on position. Along the thruster axis:</p>
-        $$ \textcolor{#FF4400}{F_z} = -\frac{d\textcolor{#FF4400}{U}}{dz} $$
-        <p>The minus sign is the definition of &ldquo;stored&rdquo;: the force points the way $U$
-        <em>decreases</em>, so moving with the force spends potential energy and moving against it
-        banks more.</p>
+        <span class="eq-note">
+          Connect the <span class="hl-E">electric field $\vec{E}$</span> and
+          <span class="hl-E">electric potential $\phi$ or $V$</span> by energy balance.
+        </span>
 
-        <span class="eq-step-label">2 &middot; Potential Is Energy Per Unit Charge</span>
-        $$ \textcolor{#F5C518}{\phi} \equiv \frac{\textcolor{#FF4400}{U}}{\textcolor{#C060FF}{q}}
-           \qquad\rightarrow\qquad
-           \textcolor{#FF4400}{U} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi} $$
-        <p>This is what makes &phi;(z) worth plotting at all: it is a property of the
-        <em>field</em>, the same curve for every particle, with the charge factored out.</p>
+        <span class="eq-step-label">Work done on charge = Change in electric potential energy</span>
+        $$
+        -\!\int \textcolor{#FF4400}{F_e}\,dz = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
+        $$
+        $$
+        -\!\int \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E}\,dz = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
+        $$
 
-        <span class="eq-step-label">3 &middot; Field Is Force Per Unit Charge</span>
-        $$ \textcolor{#F5C518}{E_z} \equiv \frac{\textcolor{#FF4400}{F_z}}{\textcolor{#C060FF}{q}} $$
+        <span class="eq-step-label">Use the Fundamental Theorem of Calculus</span>
+        $$
+        -\cancel{\textcolor{#C060FF}{q}}\,\textcolor{#F5C518}{E} = \cancel{\textcolor{#C060FF}{q}}\,\frac{d\textcolor{#F5C518}{V}}{dz}
+        $$
 
-        <span class="eq-step-label">4 &middot; Combine</span>
-        $$ \textcolor{#F5C518}{E_z} = \frac{\textcolor{#FF4400}{F_z}}{\textcolor{#C060FF}{q}}
-           = -\frac{1}{\textcolor{#C060FF}{q}}\frac{d\textcolor{#FF4400}{U}}{dz}
-           = -\frac{1}{\textcolor{#C060FF}{q}}\frac{d}{dz}
-             \!\left(\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi}\right) $$
-        <p>A particle carries its charge with it, so $\textcolor{#C060FF}{q}$ is constant along the
-        path and comes straight back out of the derivative, cancelling:</p>
-        $$ \boxed{\;\textcolor{#F5C518}{E_z} = -\frac{d\textcolor{#F5C518}{\phi}}{dz}\;} $$
+        <span class="eq-step-label">Solve for $E$</span>
+        $$
+        \boxed{\;
+        \textcolor{#F5C518}{E_z} = -\frac{d\textcolor{#F5C518}{V}}{dz} = -\frac{d\textcolor{#F5C518}{\phi}}{dz}
+        \;}
+        $$
 
-        <span class="eq-step-label">5 &middot; Back to the Force</span>
-        <p>Multiplying step 3 by the charge returns the force on any particular particle, which is
-        where the charge &mdash; and its <em>sign</em> &mdash; re-enters:</p>
-        $$ \boxed{\;\textcolor{#FF4400}{F_z} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E_z}
-                  = -\,\textcolor{#C060FF}{q}\,\frac{d\textcolor{#F5C518}{\phi}}{dz}\;} $$
+        <span class="eq-step-label">Solve for $F$</span>
+        $$
+        \textcolor{#FF4400}{F_e} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E}
+        $$
+        $$
+        \boxed{\;
+        \textcolor{#FF4400}{F_z} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E_z}
+        = -\,\textcolor{#C060FF}{q}\,\frac{d\textcolor{#F5C518}{\phi}}{dz}
+        \;}
+        $$
 
-        <span class="eq-step-label">Energy Form</span>
-        <p>Integrating $\textcolor{#FF4400}{F_z}$ over the path gives the same statement as an
-        energy bookkeeping, which is how the plot above is read in practice:</p>
-        $$ \Delta\!\left(\tfrac{1}{2}m v^{2}\right) = -\Delta \textcolor{#FF4400}{U}
-           = -\,\textcolor{#C060FF}{q}\left(\textcolor{#F5C518}{\phi_{\text{end}}}
-             - \textcolor{#F5C518}{\phi_{\text{start}}}\right) $$
-        <p>Only the two <b>endpoints</b> appear &mdash; never the route between them, and never the
-        deepest or highest point reached along the way.</p>
       </div>
     </details>
     <span class="eq-caption">The field is the slope of the potential; the force is that slope times the charge.</span>
   </div>
-</div>
-
-<!-- ════════════════════ WHY THE TWO SPECIES GO OPPOSITE WAYS ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Why Ions Fall and Electrons Climb</div>
-  <p class="th-body">
-    The field $\textcolor{#F5C518}{E_z} = -d\textcolor{#F5C518}{\phi}/dz$ is a property of the thruster
-    alone &mdash; one curve, one slope at every point, identical for every particle in the engine. What
-    differs between an <span class="hl-ion">ion</span> and an <span class="hl-electron">electron</span> is
-    only the <span class="hl-q">charge</span> that slope gets multiplied by, and the two charges have
-    opposite signs. That single sign is the whole difference.
-  </p>
-
-  <p class="th-body">
-    Take a singly charged <span class="hl-ion">xenon ion</span>, $\textcolor{#C060FF}{q} = +e$. Its force
-    is $\textcolor{#FF4400}{F_z} = -e\,d\textcolor{#F5C518}{\phi}/dz$, so wherever the
-    <span class="hl-phi">potential</span> falls as you move downstream the force points downstream too:
-    the ion is pushed toward <span class="key">lower potential</span>. Now take an
-    <span class="hl-electron">electron</span>, $\textcolor{#C060FF}{q} = -e$. The same slope now gives
-    $\textcolor{#FF4400}{F_z} = +e\,d\textcolor{#F5C518}{\phi}/dz$ &mdash; the sign has flipped, and the
-    electron is pushed the other way, toward <span class="key">higher potential</span>. Neither particle
-    &ldquo;wants&rdquo; anything; they are simply being pushed by the same field in opposite directions.
-  </p>
-
-  <p class="th-body">
-    The energy picture is the one worth carrying around. What a particle actually rolls downhill on is not
-    <span class="hl-phi">&phi;</span> but its own potential energy
-    $\textcolor{#FF4400}{U} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\phi}$, and multiplying by a
-    negative charge <em>turns the graph upside down</em>. For the <span class="hl-ion">ion</span>,
-    $\textcolor{#FF4400}{U} = +e\textcolor{#F5C518}{\phi}$: its energy landscape is the plotted curve
-    itself, so it rolls downhill exactly as drawn. For the <span class="hl-electron">electron</span>,
-    $\textcolor{#FF4400}{U} = -e\textcolor{#F5C518}{\phi}$: its landscape is the mirror image, so every
-    hill on the plot is a valley for it and every valley a hill. Both particles do the same
-    thing &mdash; fall to lower energy. They only look opposed because they are reading opposite copies
-    of one graph.
-  </p>
-
-  <p class="th-body">
-    That is what the two traces in the viewer above are showing, and the
-    <span class="key">accelerator grid</span> is the clearest case. Its well sits
-    $180\ \text{V}$ below the plume, and to an <span class="hl-ion">ion</span> that well is a
-    downhill run &mdash; it dives in, reaching its greatest speed at the grid plane, then gives the
-    $180\ \text{V}$ back climbing out, which is why the accel supply does no net work on an ion that
-    makes it through. Flip the graph and the same well becomes a <span class="key">hill</span>
-    $180\ \text{V}$ tall standing in front of any <span class="hl-electron">electron</span> in the
-    plume. It cannot climb it, and that is precisely the point: the barrier is what stops plume
-    electrons from streaming back upstream into the optics and neutralizing the beam before it ever
-    leaves the engine.
-  </p>
-
-  <p class="th-body">
-    The same reading explains the two <span class="key">sheaths</span> standing at either end of the
-    discharge chamber &mdash; and why both carry the same $25\ \text{V}$, since the bombardment
-    cathode and the screen grid are tied to the same common. The
-    <span class="hl-electron">electron</span> leaving the cathode is accelerated <em>up</em> the
-    step at the upstream end, gaining energy by climbing to higher potential: about
-    $25\ \text{eV}$, roughly twice xenon&rsquo;s $12.1\ \text{eV}$ ionization threshold, which is
-    what lets a single electron make more than one <span class="hl-ion">ion</span> before it is
-    collected. An ion born in that same chamber meets the matching step at the
-    <em>downstream</em> end and does the opposite: it falls <em>down</em> the screen-grid sheath and
-    onward into the gap. One field, one set of slopes, two signs of charge, two opposite journeys.
-  </p>
 </div>
 
 <footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>

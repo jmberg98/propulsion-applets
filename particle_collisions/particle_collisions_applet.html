@@ -190,9 +190,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 /* ══════════ PROPELLANT CARDS ══════════ */
 .propellant-grid { display: flex; flex-direction: column; gap: 12px; }
 .prop-card {
-  /* Propellants are neutral species — they take the neutral token rather
-     than five decorative hues, two of which collided with ion-blue and
-     electron-violet. Identity is carried by the 46px element symbol. */
+  /* Each propellant carries its own neon hue, set per card (see --c-el below).
+     This is IDENTITY colour, not quantity colour: the hue names which element
+     the card is about, the way a spectral line names its gas — it is never
+     read as "this is a velocity" or "this is a charge". The physics tokens
+     above stay reserved for quantities. Fallback only, for a card that sets
+     no hue of its own. */
   --c-el: var(--c-neutral);
   display: flex; align-items: stretch; gap: 20px;
   padding: 16px; border: 1px solid var(--border); border-left: 3px solid var(--c-el);
@@ -446,7 +449,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
   <div class="propellant-grid">
 
     <!-- Xenon -->
-    <div class="prop-card">
+    <div class="prop-card" style="--c-el:#3DBFFF">
       <div class="el-box">
         <span class="el-num">54</span>
         <span class="el-sym">Xe</span>
@@ -462,7 +465,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Argon -->
-    <div class="prop-card">
+    <div class="prop-card" style="--c-el:#B455FF">
       <div class="el-box">
         <span class="el-num">18</span>
         <span class="el-sym">Ar</span>
@@ -478,7 +481,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Iodine -->
-    <div class="prop-card">
+    <div class="prop-card" style="--c-el:#FF4FD8">
       <div class="el-box">
         <span class="el-num">53</span>
         <span class="el-sym">I</span>
@@ -495,7 +498,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Krypton -->
-    <div class="prop-card">
+    <div class="prop-card" style="--c-el:#7B78FF">
       <div class="el-box">
         <span class="el-num">36</span>
         <span class="el-sym">Kr</span>
@@ -511,7 +514,7 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
     </div>
 
     <!-- Lithium -->
-    <div class="prop-card">
+    <div class="prop-card" style="--c-el:#FF5064">
       <div class="el-box">
         <span class="el-num">3</span>
         <span class="el-sym">Li</span>

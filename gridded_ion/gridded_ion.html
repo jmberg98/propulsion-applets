@@ -1084,6 +1084,9 @@
         <div id="acc-status" class="ix-status" style="margin-top:12px"></div>
         <div class="ix-anim">
           <label class="chk" style="display:none"><input type="checkbox" id="acc-anim-ion" checked> Animate test ion</label>
+          <!-- The return current. It is what R is spent on, so it belongs on this panel rather than
+               being held back for the neutralizer stage. -->
+          <label class="chk"><input type="checkbox" id="acc-neu-e" checked style="accent-color:#ffe94d"><span style="color:#ffe94d">Neutralizer electrons</span></label>
         </div>
         <div class="ix-circ-tog" style="display:none">
           <label class="chk"><input type="checkbox" class="chk-circuit" disabled> Show circuit diagram</label>
@@ -5333,6 +5336,7 @@ const ACCEL = {
   R:0.85,           // net-to-total voltage ratio V_net/V_T (slider) — see accelIsp
   charge:1.0,       // space-charge parameter s = ρd²/(2ε₀V_T) ≡ J/J_CL; s=1 is saturation (slider)
   animIon:true,     // Feature 1: animate a test ion riding the potential curve (toggleable)
+  showNeuE:true,    // the neutralizer's electron stream joining the beam — see NEU_E
   showE:{ net:true, grid:true, ions:true },   // which of the three field arrows on the ion are drawn
   showPhi:{ net:true, grid:true, ions:true }, // which of the three potential curves are drawn
 };
@@ -5871,6 +5875,294 @@ function updateGapIons(dtRaw, s){
     if (p.fade >= 1 || p.u > GAP_U_OUT || p.u < GAP_U_BACK) p.alive = false;
   }
 }
+
+/* ── Neutralizer electrons: the return current, and what R is actually buying ──────────────────
+   A gridded engine ejects positive charge and nothing else, so a neutralizer cathode downstream
+   supplies one ⊖ electron for every ⊕ beam ion. Those electrons carry no useful thrust — an
+   electron has 1/240,000 of a xenon ion's momentum at the same energy — but they are what keeps
+   the beam and the spacecraft from charging up, and they are the whole reason the accel grid is
+   biased NEGATIVE, which is the whole reason R < 1.
+
+   What this stream draws is the tug-of-war that sets R:
+
+     • The beamlet leaving the accel bore is still pure ⊕ space charge — it has not met the
+       electrons yet — so it sits φ_exit above the plume. That positive hill is what draws the
+       neutralizer electrons in, and because it decays downstream as the beam neutralizes (over
+       NEU_E.lamN), its gradient points UPSTREAM: the electrons are pulled toward the grid, not
+       just sideways into the beam. Joining the beam and threatening the grid are the same motion.
+     • The accel grid, at V_accel = −(1−R)·V_T below the plume, is the wall that stops them. Its
+       bias LEAKS THROUGH the bore, so on the axis an electron does not meet the full |V_accel| but
+       the saddle in the aperture, a fraction NEU_E.saddleF of it. That factor is why the
+       backstreaming criterion is written on |V_accel| in volts, and why the margin runs out well
+       before R = 1: at V_T = 1450 V the saddle is ~24 V at R = 0.85 but only ~3 V at R = 0.98.
+
+   So each electron is launched with an energy drawn from a Maxwellian at the beam-plasma
+   temperature and simply flies: it is turned back into the beam and swept out with it if it cannot
+   clear the saddle, and crosses if it can. The thermal spread is what makes the onset a gradual
+   lean of the jet toward the grid instead of a switch. Weaken the bias (R → 1) and the saddle
+   drops into the range of ordinary beam electrons: the jet curves further upstream, starts landing
+   on the accel bore wall, and finally streams clear through the gap into the discharge chamber —
+   which is precisely the failure the R > 0.90 verdict names, now visible instead of asserted.
+   Raising V_T at fixed R restores the margin, exactly as the volts-not-ratio criterion says.
+
+   Motion is a = −ke·∇U of the model potential below, differenced numerically so the field is
+   exactly the gradient of a scalar and no energy is invented anywhere. Two liberties, both purely
+   display: the speed is capped (a real electron crosses this frame some 500× faster than the ion
+   it is chasing, which is not watchable), and the emission is a legible stream rather than the
+   true one-per-ion. Neither touches the barrier, which is what the stage is about. */
+const NEU_E = {
+  rate:     55,     // electrons emitted per second — a readable stream, not the true 1:1 per ion
+  te:        4,     // beam-plasma electron temperature, eV — the spread that smears the threshold
+  /* Coupling voltage: the neutralizer cathode floats this far BELOW the plume, so its electrons do
+     not arrive cold — they arrive with that as directed energy, on top of the thermal spread. It
+     is a small number and an easily forgotten one, but it sets a floor under the energy
+     distribution, and a floor is what turns the backstreaming limit into a limit: below it every
+     electron in the stream gets across, not just the tail. */
+  couple:    6,
+  phiExit:  11,     // un-neutralized beamlet potential at the bore exit, V above the plume
+  phiPlume:  1.5,   // what is left of it far downstream, once the beam has gone quasineutral
+  lamN:      0.9,   // neutralization length (that decay), in gap-lengths
+  saddleF:   0.115, // on-axis saddle potential as a fraction of |V_accel| — the bore's field leak
+  /* How far off the axis that leak reaches, in bore radii: the barrier climbs from the saddle to
+     the full electrode bias over roughly the webbing between one hole and the next. It is the
+     TRANSVERSE gradient of that climb that funnels an approaching electron into the aperture, so
+     this number is what decides whether the jet is turned away as if by a flat plate or steered
+     into the hole the way a real aperture steers it. */
+  boreRamp:  2.2,
+  sheath0:   0.35,  // electron-sheath thickness at |V_accel| = 200 V, gap-lengths (Child, ∝ V^{3/4})
+  sheathMax: 0.42,  // …capped: past this the plume plasma screens the grid, not the geometry
+  /* Speed scale: v² = 2·ke·E, so this alone sets the pace and NOT which electrons get across —
+     the barrier test is on energy, and energy is in volts. Chosen so a thermal electron runs about
+     twice the beam's drift. The true ratio is nearer 30, and for the 1450 V fall through the gap it
+     is ~500; both are past the point of being watchable, hence vmax. */
+  ke:        1.2,   // (gap-length/s)² per volt, halved
+  vmax:     14,     // display speed cap, gap-lengths/s
+  /* Capture. An electron cannot be trapped by a static well — it leaves with the energy it fell in
+     with — so what holds the neutralizer's electrons in the beam is the beam plasma itself: they
+     thermalize into it, and from that moment they are no longer test particles in the grids' field
+     but part of a QUASINEUTRAL column that screens it, convected downstream with the ions they are
+     neutralizing. That is the state the model switches an electron into once it has spent long
+     enough in the column, and it is what makes "joins the beam" an end state rather than an
+     electron orbiting the aperture forever in the well between the beamlet hill and the sheath.
+     The rate ramps in over the length the beam actually takes to neutralize: right at the aperture,
+     where the beam is still bare ion charge, it is ~0 — which is exactly the region where the
+     barrier, and nothing else, has to be what decides an electron's fate. */
+  drag:      9,     // entrainment rate deep in the neutralized beam, 1/s
+  dragLam:   0.45,  // how far downstream that rate ramps in, gap-lengths
+  vbeam:     1.67,  // the beam's own drift, gap-lengths/s — the gap ions' exit speed
+  aimX:      1.12,  // where the jet is launched at: the aperture the electrons are drawn toward
+  /* Motion tail. In seconds of travel, so it lengthens with speed and the jet reads as a jet — but
+     capped in PIXELS, because a backstreaming electron does 14 gap-lengths a second and an honest
+     tail at that speed would be longer than the frame and would read as a drawn ray, not a blur. */
+  streak:    0.03,
+  streakMax: 24,
+};
+const ELE_POOL = Array.from({ length: 110 }, () => ({ alive:false, x:0, y:0, vx:0, vy:0, age:0, bound:0 }));
+let eleEmitAcc = 0, eleSeq = 0;
+/* Recent strikes on the electrodes, in GAP UNITS (not pixels) so a slider moving the layout under
+   them does not leave the flashes stranded off the metal they landed on. */
+const ELE_HITS = [];
+const ELE_HIT_T = 0.55;             // how long a strike flash lives, seconds
+const ELE_RATE_TAU = 0.7;           // leak time of the two event counters below
+let eleHitAcc = 0;                  // smoothed strikes on the accel grid, events/ELE_RATE_TAU
+let eleBackAcc = 0;                 // smoothed electrons making it clear through into the discharge
+/* Beamlet space-charge potential, volts above the plume. Highest at the bore exit where the beam is
+   still pure ion charge, falling downstream as the neutralizer electrons mix in. Radially it is the
+   uniform-cylinder solution referenced to zero at a plume boundary Rw — value AND slope continuous
+   at the column edge, so the numeric gradient never sees a step. Inside the bore it is scaled down
+   to nothing across the plate thickness: the surrounding metal is an equipotential and clamps the
+   space-charge potential there, and at X = 1 the gap's own φ (accelPhi) takes over the accounting. */
+function neuPhiBeam(X, Y, g){
+  if (X <= 1) return 0;
+  const bore = Math.min(1, (X - 1) / Math.max(1e-4, g.tA));
+  const phi0 = NEU_E.phiPlume + (NEU_E.phiExit - NEU_E.phiPlume) * Math.exp(-(X - 1) / NEU_E.lamN);
+  const a = Math.max(1e-3, g.rEnvG(X)), Rw = 4 * a, r = Math.abs(Y);
+  if (r >= Rw) return 0;
+  const lnw = Math.log(Rw / a), C = lnw + 0.5;
+  const shape = r <= a ? (lnw + 0.5 * (1 - (r/a)*(r/a))) / C : Math.log(Rw / r) / C;
+  return bore * phi0 * shape;
+}
+/* ── The electrode potential on the beam axis, in the φ(z) plot's own frame (accel grid = 0) ─────
+   The plot above draws the 1-D Child–Langmuir gap and stops at φ = 0 on the accel grid, because
+   that is where the ION's story ends. An electron's story starts on the other side of that plane,
+   in the PLUME — which is not at 0. The accel grid is biased below the plume by exactly
+
+       |V_accel| = V_T − V_net = (1 − R)·V_T                     ≡ Vpl here
+
+   so the plume sits Vpl ABOVE the accel grid, and the potential rises back up across the sheath in
+   front of the grid. That rise is the same deceleration the lesson text says the ion suffers on the
+   way out; read the other way round it is the wall the electrons see, and it is the only thing
+   standing between the beam plasma and the discharge chamber.
+
+   Two departures from the 1-D plot, both required and both in the same place — the aperture:
+
+   • The AXIS never reaches the electrode potential. The bore lets the plume and the gap see each
+     other through the hole, so on the axis the potential only dips a fraction NEU_E.saddleF of the
+     way down from the plume: the saddle. Out on the metal it is the full Vpl, because there the
+     electrode IS the boundary. The transverse gradient between those two is what funnels an
+     approaching electron into the hole instead of onto the webbing — a real aperture is a lens, and
+     the file's own note under the φ stubs already flags that the 1-D picture omits this.
+   • The saddle is floored ONTO the gap profile with a max(): upstream of the aperture the leak dies
+     away and the ordinary Child–Langmuir φ takes over again, which is what makes an electron that
+     does clear the saddle fall the rest of the way at the full extraction voltage.
+
+   Sheath thickness follows the Child scaling, ∝ Vpl^{3/4}, so a harder bias stands the electrons
+   further off — and is capped, because past a point the grid's field is screened by the plume
+   plasma rather than by geometry. */
+function neuPhiElec(X, Y, g, s){
+  const Vpl = (1 - ACCEL.R) * ACCEL.vTotal;
+  // Depth of the dip below the plume at this transverse offset: the saddle on the axis, the whole
+  // of |V_accel| on the metal, and the ramp between them is the field leaking out of the bore.
+  const t = Math.min(1, Math.max(0, (Math.abs(Y) - g.rA) / (NEU_E.boreRamp * g.rA)));
+  const dMax = Vpl * (NEU_E.saddleF + (1 - NEU_E.saddleF) * t * t * (3 - 2 * t));
+  if (X >= g.Xsad){                                     // downstream: the sheath, recovering to the plume
+    const Ls = Math.min(NEU_E.sheathMax,
+                        NEU_E.sheath0 * Math.pow(Math.max(1e-6, Vpl) / 200, 0.75));
+    const d = Math.min(1, (X - g.Xsad) / Math.max(1e-4, Ls));
+    return Vpl - dMax * Math.pow(1 - d, 4/3);
+  }
+  const gapPhi = accelPhi(Math.max(0, Math.min(1, X)), s);
+  const Lu = 1.6 * g.rA;                                // how far the leak reaches back into the gap
+  const Xu = g.Xsad - Lu;
+  if (X <= Xu) return gapPhi;                           // clear of the aperture: the plain 1-D profile
+  const w = (g.Xsad - X) / Lu;                          // 1 at the window edge → 0 at the saddle
+  return Math.max(gapPhi, (Vpl - dMax) + (accelPhi(Math.max(0, Math.min(1, Xu)), s) - (Vpl - dMax)) * w);
+}
+/* Potential ENERGY of an electron, in volts (U = −φ, charge −e): the electrode potential above plus
+   the beamlet's own positive space-charge hill. Everything the stream does follows from −∇U. */
+function neuU(X, Y, g, s){
+  return -(neuPhiElec(X, Y, g, s) + neuPhiBeam(X, Y, g));
+}
+function eleStrike(p, g, kind){
+  p.alive = false;
+  const yc = Math.max(-g.rPlate * 0.98, Math.min(g.rPlate * 0.98, p.y));   // keep the flash on the drawn metal
+  ELE_HITS.push({ x:p.x, y:yc, t:ELE_HIT_T, kind });
+  if (ELE_HITS.length > 40) ELE_HITS.shift();
+  if (kind === 'accel') eleHitAcc += 1;
+}
+function updateNeuElectrons(dt, g, s){
+  const h = Math.min(0.04, dt);
+  const decay = Math.exp(-h / ELE_RATE_TAU);
+  eleHitAcc *= decay; eleBackAcc *= decay;
+  for (let i = ELE_HITS.length - 1; i >= 0; i--){ if ((ELE_HITS[i].t -= h) <= 0) ELE_HITS.splice(i, 1); }
+  // Emission from the neutralizer, off the frame downstream and off the beam axis.
+  eleEmitAcc += NEU_E.rate * h;
+  while (eleEmitAcc >= 1){
+    eleEmitAcc -= 1;
+    const p = ELE_POOL.find(q => !q.alive);
+    if (!p) break;
+    p.alive = true; p.age = 0; p.bound = 0;
+    p.x = g.Xemit;
+    p.y = g.Yemit + (_halton(++eleSeq, 3) - 0.5) * 0.09;          // a little width to the jet
+    /* Energy: the coupling voltage the cathode sits at, plus a Maxwellian tail at the beam-plasma
+       temperature, E ∝ exp(−E/T_e). THIS is the distribution the saddle cuts, and the shape of the
+       cut is the shape of the onset — the tail is what starts crossing first, as a growing minority
+       of the jet, and the floor is what makes the whole stream go once the barrier drops under it. */
+    const E = NEU_E.couple - NEU_E.te * Math.log(1 - 0.999 * Math.random());
+    const sp = Math.sqrt(2 * NEU_E.ke * E);
+    const ang = Math.atan2(-p.y, NEU_E.aimX - p.x) + (Math.random() - 0.5) * 0.45;
+    p.vx = sp * Math.cos(ang); p.vy = sp * Math.sin(ang);
+  }
+  const e = 0.006;                                                // gradient step, gap-lengths
+  for (const p of ELE_POOL){
+    if (!p.alive) continue;
+    p.age += h;
+    /* Substep on the SMALLEST feature the electron has to be able to see, which is the bore: past
+       the saddle it is doing better than ten gap-lengths a second, and a whole frame at that speed
+       is three bore-widths. Integrated in one step it would pass clean through the accel grid
+       without the strike test ever sampling a point inside the metal. The sheath in front of the
+       plate is stiff enough to do the same thing from a standing start, so the acceleration counts
+       toward the step estimate too. */
+    /* Already neutralizing: part of the beam plasma, which screens the grids' field from it. It is
+       simply carried out with the ions from here — no field, and so no way for the well between the
+       beamlet hill and the sheath to hold on to it. */
+    if (p.bound >= 1){
+      const kk = 1 - Math.exp(-7 * h);
+      p.vx += (NEU_E.vbeam - p.vx) * kk; p.vy += (0 - p.vy) * kk;
+      p.x += p.vx * h; p.y += p.vy * h;
+      if (p.x > g.Xmax + 0.06 || p.y < g.Ytop || p.y > g.Ybot || p.age > 14) p.alive = false;
+      continue;
+    }
+    const a0x = -NEU_E.ke * (neuU(p.x + e, p.y, g, s) - neuU(p.x - e, p.y, g, s)) / (2 * e);
+    const a0y = -NEU_E.ke * (neuU(p.x, p.y + e, g, s) - neuU(p.x, p.y - e, g, s)) / (2 * e);
+    const reach = Math.hypot(p.vx, p.vy) * h + 0.5 * Math.hypot(a0x, a0y) * h * h;
+    const nSub = Math.max(1, Math.min(16, Math.ceil(reach / (0.35 * g.rA))));
+    const hs = h / nSub;
+    let dead = false;
+    for (let k = 0; k < nSub && !dead; k++){
+      const ax = -NEU_E.ke * (neuU(p.x + e, p.y, g, s) - neuU(p.x - e, p.y, g, s)) / (2 * e);
+      const ay = -NEU_E.ke * (neuU(p.x, p.y + e, g, s) - neuU(p.x, p.y - e, g, s)) / (2 * e);
+      p.vx += ax * hs; p.vy += ay * hs;
+      // Thermalizing into the beam plasma — the neutralization itself. The velocity relaxation is
+      // the visible merge; `bound` is the clock on it, and reaching 1 is the handover above.
+      if (p.x > g.Xexit && Math.abs(p.y) < g.rEnvG(p.x)){
+        const rate = NEU_E.drag * (1 - Math.exp(-(p.x - 1) / NEU_E.dragLam));
+        const kk = 1 - Math.exp(-rate * hs);
+        p.vx += (NEU_E.vbeam - p.vx) * kk;
+        p.vy += (0 - p.vy) * kk * 0.7;
+        p.bound = Math.min(1, p.bound + rate * hs);
+      }
+      const sp = Math.hypot(p.vx, p.vy);                          // display cap only — see the header note
+      if (sp > NEU_E.vmax){ const c = NEU_E.vmax / sp; p.vx *= c; p.vy *= c; }
+      p.x += p.vx * hs; p.y += p.vy * hs;
+      // Metal. Both grids are solid everywhere but their bores, so an electron that clears the
+      // saddle off-axis lands on the accel bore wall — backstreaming electrons impinging on the
+      // accel grid. (A heat load, not an erosion one: they are far too light to sputter. Ions do
+      // that, and the accel grid's erosion budget is the reason R cannot simply be lowered either.)
+      // (The plates are DRAWN as compact blocks around the aperture, but a real grid is a perforated
+      //  plate: metal everywhere but the holes. The test uses the real thing and the flash is pulled
+      //  back onto the drawn block, which only matters for the odd electron that gets out past the
+      //  webbing — out there it is meeting the whole of |V_accel| and almost never does.)
+      const ry = Math.abs(p.y);
+      if (p.x <= g.Xexit && p.x >= 1 - 0.004 && ry > g.rA){ eleStrike(p, g, 'accel');  dead = true; break; }
+      if (p.x <= 0 && p.x >= -g.tS && ry > g.rS)          { eleStrike(p, g, 'screen'); dead = true; break; }
+      if (p.x < -0.26){ eleBackAcc += 1; p.alive = false; dead = true; break; }   // into the discharge
+    }
+    if (dead) continue;
+    if (p.x > g.Xmax + 0.06 || p.y < g.Ytop || p.y > g.Ybot || p.age > 14) p.alive = false;
+  }
+}
+function drawNeuElectrons(ctx, g, edgeA){
+  const K = NEU_E.streak * g.L;
+  for (const p of ELE_POOL){
+    if (!p.alive) continue;
+    const x = g.sx(p.x), y = g.sy(p.y);
+    // Fade at the frame edge and at the top/bottom of the plot band, so an electron flung out of
+    // the picture by the sheath leaves it rather than blinking out mid-flight.
+    const yEdge = Math.min(y - g.sy(g.Ytop), g.sy(g.Ybot) - y) / 20;
+    const a = edgeA(x) * Math.max(0, Math.min(1, yEdge)) * Math.min(1, p.age / 0.16);
+    if (a <= 0.01) continue;
+    let tx = p.vx * K, ty = p.vy * K;                             // motion tail — see NEU_E.streak
+    const tl = Math.hypot(tx, ty);
+    if (tl > NEU_E.streakMax){ const c = NEU_E.streakMax / tl; tx *= c; ty *= c; }
+    ctx.globalAlpha = a * 0.4;
+    ctx.strokeStyle = DP_COL.e; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - tx, y - ty); ctx.stroke();
+    ctx.globalAlpha = a;
+    dpGlyph(ctx, x, y, 'e', 2.9);                                 // the same ⊖ glyph as the chamber soup
+  }
+  ctx.globalAlpha = 1;
+  // Where the stream comes from. The cathode itself is off the frame, downstream and to the side of
+  // the beam — this is only the doorway it comes in through, so the yellow dots are not mistaken for
+  // discharge electrons that have somehow got out.
+  const ex = g.sx(g.Xemit), ey = g.sy(g.Yemit);
+  ctx.strokeStyle = 'rgba(255,233,77,0.5)'; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(ex + 8, ey - 8); ctx.lineTo(ex + 8, ey + 8); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,233,77,0.9)'; ctx.textAlign = 'right';
+  ctx.font = '700 10.5px Barlow, sans-serif';
+  ctx.fillText('neutralizer e⁻', ex + 3, ey - 14);
+}
+// Strike flashes, painted AFTER the plates so they sit on the metal that stopped the electron.
+function drawEleHits(ctx, g){
+  for (const hit of ELE_HITS){
+    const a = hit.t / ELE_HIT_T;
+    const x = g.sx(hit.x), y = g.sy(hit.y);
+    ctx.globalAlpha = a * 0.85;
+    ctx.strokeStyle = DP_COL.e; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(x, y, 2.5 + (1 - a) * 9, 0, 6.283); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
 // LaTeX (Computer Modern) faces from the loaded KaTeX stylesheet, used for the graph labels so
 // they match the LaTeX math elsewhere. KaTeX_Main = upright text, KaTeX_Math = italic variables.
 const LX_ROM  = "'KaTeX_Main', 'Cambria Math', 'Times New Roman', serif";
@@ -6181,6 +6473,34 @@ function drawAccelGraph(dt){
   // The plates are painted AFTER the gap ions (further down) so the solid metal occludes them —
   // an ion that grazes a hole edge is clipped by the plate, never drawn over it.
 
+  /* ── Neutralizer electrons ────────────────────────────────────────
+     They move in two dimensions, so unlike the gap ions they need a frame in which x and y are the
+     same length: everything below is in GAP-LENGTHS off the beam axis, with X ≡ u so the axial
+     coordinate is still the one the rest of the stage uses. The electrode dimensions are read live
+     from the layout above, which is what keeps the bore, the saddle and the field's reach in step
+     with the gap slider. */
+  const eL = xR - xL;                                       // one gap length, px — the unit
+  const eGeo = {
+    L: eL,
+    sx: X => xL + X * eL,  sy: Y => yMid + Y * eL,
+    rA: rA / eL, rS: rS / eL, rPlate: (rS + PLATE_H) / eL,  // bore radii and the plates' outer edge
+    tA: W_ACC / eL, tS: W_SCR / eL,                         // plate thicknesses
+    Xexit: 1 + W_ACC / eL,                                  // accel grid's DOWNSTREAM face
+    Xsad:  1 + W_ACC / eL * 0.5,                            // the saddle, mid-bore
+    Xmax: (W - xL) / eL, Ytop: (gTop - yMid) / eL, Ybot: (gBot - yMid) / eL,
+    rEnvG: u => rEnv(u) / eL,
+    // The cathode sits off the frame downstream and to the side of the beam — the electrons enter
+    // from the top right, as they do in the neutralizer stage. OUTSIDE the beam envelope: a
+    // neutralizer mounted in its own beam would have nothing to inject into.
+    // High in the frame as well as far downstream: the run in is the whole visible story — the jet
+    // sweeping down onto the beam, and how close to the grid it gets before it is turned — so it is
+    // given the longest diagonal the frame has rather than the shortest hop to the axis.
+    Xemit: (W - 14 - xL) / eL,
+    Yemit: Math.max(gTop + 26 - yMid, -Math.max(rS * 2.6, rEnv((W - 14 - xL) / eL) * 1.35)) / eL,
+  };
+  if (ACCEL.showNeuE) updateNeuElectrons(dt, eGeo, s);
+  else { for (const p of ELE_POOL) p.alive = false; ELE_HITS.length = 0; eleHitAcc = eleBackAcc = 0; }
+
   // ── Discharge-chamber plasma, upstream of the screen grid ─────────
   // Painted first: it is the background the axes, the beam and the field arrows all sit on.
   updateDischargePlasma(dt);
@@ -6317,10 +6637,55 @@ function drawAccelGraph(dt){
   }
   ctx.globalAlpha = 1;
 
+  // ── Neutralizer electrons, drawn with the beam they join (and, at high R, against the grid they
+  //    are trying to get past) — before the plates, so the metal occludes them too ──
+  if (ACCEL.showNeuE) drawNeuElectrons(ctx, eGeo, edgeA);
+
   // ── Grid plates, painted OVER the ions so the solid metal blocks them (the beamlet threads the
   //    holes; anything grazing an edge is occluded) ──
   gridPlates(xL, W_SCR, -1, rS, 'rgba(150,170,255,0.9)', 'rgba(150,170,255,0.17)', 'rgba(150,170,255,0.35)');
   gridPlates(xR, W_ACC, +1, rA, 'rgba(255,138,107,0.9)', 'rgba(255,138,107,0.17)', 'rgba(255,138,107,0.35)');
+
+  /* ── What the electron stream is doing to the grid ────────────────────────────────────────
+     Two readouts, both driven by counted events rather than by the slider: the strike flashes on
+     the metal that stopped an electron, and — when the saddle has dropped far enough that a
+     measurable part of the jet is getting through — a caption naming it. Below the backstreaming
+     limit both are simply absent, which is the correct report: a properly biased accel grid is a
+     wall, and there is nothing to see. */
+  if (ACCEL.showNeuE){
+    drawEleHits(ctx, eGeo);
+    const hitR = eleHitAcc / ELE_RATE_TAU, backR = eleBackAcc / ELE_RATE_TAU;   // events per second
+    // The bore runs hot where the electrons land: a warm halo on the aperture mouth, scaled by the
+    // strike rate. Electrons cannot sputter the grid (the ions do that) — this is a heat load.
+    if (hitR > 0.15){
+      const gl = Math.min(0.5, hitR / 14);
+      const cxh = xR + W_ACC / 2;
+      for (const sgn of [-1, 1]){
+        const gy = yMid + sgn * (rA + 5);
+        const grd = ctx.createRadialGradient(cxh, gy, 0, cxh, gy, 26);
+        grd.addColorStop(0, 'rgba(255,233,77,' + gl.toFixed(3) + ')');
+        grd.addColorStop(1, 'rgba(255,233,77,0)');
+        ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cxh, gy, 26, 0, 6.283); ctx.fill();
+      }
+    }
+    // Named only once it is really happening. The bore glow comes on first, at the first few
+    // strikes; the caption waits until a steady part of the stream is going in, so it agrees with
+    // the panel's verdict instead of crying wolf at the first stray electron.
+    if (backR > 0.6 || hitR > 3){
+      const cxh = xR + W_ACC / 2, cy = yPlateT - 12;
+      ctx.textAlign = 'center'; ctx.font = '700 11px Barlow, sans-serif';
+      const txt = 'ELECTRON BACKSTREAMING';
+      const tw = ctx.measureText(txt).width;
+      ctx.fillStyle = 'rgba(9,9,9,0.85)'; ctx.fillRect(cxh - tw/2 - 5, cy - 11, tw + 10, 15);
+      ctx.fillStyle = DP_COL.e; ctx.fillText(txt, cxh, cy);
+      // A short arrow the way they are going: upstream, into the discharge chamber.
+      ctx.strokeStyle = DP_COL.e; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(cxh + 14, cy + 10); ctx.lineTo(cxh - 14, cy + 10); ctx.stroke();
+      ctx.fillStyle = DP_COL.e;
+      ctx.beginPath(); ctx.moveTo(cxh - 18, cy + 10); ctx.lineTo(cxh - 10, cy + 6.5); ctx.lineTo(cxh - 10, cy + 13.5);
+      ctx.closePath(); ctx.fill();
+    }
+  }
 
   // ── φ_net — the live space-charge profile, drawn last so it reads as the sum ─────────────
   // Green matches the E_net arrow while the field still pulls forward everywhere; past saturation
@@ -6828,8 +7193,9 @@ function drawCircuitSection(P, W, H, wire, node, battery, arrow){
   // ── Neutralizer supply (Overview full): anode ↔ neutralizer cathode + I_beam^electron ──
   //    This supply holds the whole discharge assembly above the plume AND reaches below it, to a
   //    cathode that floats a few volts under plume potential — that last stretch is what lets its
-  //    electrons out into the jet. Its terminal voltage is therefore V_net + V_discharge + those
-  //    few volts, not V_net alone; the potential view dimensions exactly that span.
+  //    electrons out into the jet. Its terminal voltage is therefore V_net plus those few volts,
+  //    not V_net alone; the potential view dimensions exactly that span. (The two coincide here
+  //    only because that float, POT.vn, is zeroed — see the note on POT.)
   if (showNeu){
     const neu = P(130, 135);      // shares the node the "Neutralizer Cathode" callout points to
     node(neu);
@@ -6948,19 +7314,22 @@ function drawCircuitNeu(P, W, H, wire, node, battery, arrow){
    NAMING (two conventions are in circulation and they collide — these are the ones used here):
      V_D           discharge voltage    = anode − discharge cathode                     (25 V)
      V_T           TOTAL accel voltage  = screen grid − accel grid                    (1280 V)
-     V_net         NET accel voltage    = CHAMBER PLASMA − plume                      (1125 V)
-                   ^ measured from where the ion is BORN, so it includes V_D. Taking it from the
-                     screen grid instead gives 1100 V and understates the ion's energy by V_D.
+     V_net         NET accel voltage    = screen grid / chamber plasma − plume        (1126 V)
+                   ^ = R·V_T, and it is the ION'S WHOLE FALL. The discharge voltage is NOT part
+                     of it: V_D lives upstream of where the ion is born, between the discharge
+                     cathode and the chamber, and it is the ELECTRON's leg. See potLevels.
+     V_accel       accel-grid voltage   = plume − accel grid = (1−R)·V_T               (154 V)
      V_neutralizer COUPLING voltage     = plume − neutralizer cathode                   (12 V)
    The big supply wired from the anode to the neutralizer cathode in the schematic is the BEAM
    supply (≈V_net), NOT V_neutralizer — see the label in drawCircuitSection. Labelling both
    "neutralizer" is the single most common way to get this figure wrong.
 
    The one thing this plot exists to say: the ion's energy gain is set by the ENDPOINTS of its
-   journey (chamber plasma → plume ≈ 1128 eV), not by the deepest point it reaches (−180 V at
-   the accel grid, where it transiently holds ≈1308 eV and then gives 180 eV back climbing out).
+   journey (chamber plasma → plume = 1126 eV), not by the deepest point it reaches (−154 V at
+   the accel grid, where it transiently holds 1280 eV and then gives 154 eV back climbing out).
    The accel supply does essentially no net work on a transmitted ion: its contribution is a
-   localized dip with both ends at the same level. */
+   localized dip with both ends at the same level. That is also why the arithmetic on the ion
+   trace closes with three numbers and not four:  V_net = V_T − V_accel. */
 const POT = {
   /* The two knobs the grids are actually specified by, matching the Child–Langmuir stage exactly:
         V_net = R · V_total
@@ -6971,18 +7340,25 @@ const POT = {
   vT: 1280,     // total accelerating voltage — screen grid minus accel grid
   R:  0.88,     // net/total ratio
   vd: 25,       // discharge voltage — anode minus discharge cathode
-  /* Two small offsets are deliberately set to zero so that EVERY voltage the figure labels
-     closes exactly against the others:
-        V_net         = V_discharge + V_total − V_accel
-     With both offsets zero, V_neutralizer (anode − neutralizer cathode) comes out numerically
-     equal to V_net (chamber plasma − plume). They are NOT the same quantity — give either offset
-     a value and they separate — which is exactly why they live on different traces and never
-     appear in the same figure.
-     In hardware the neutralizer cathode floats a few volts below plume potential (that is what
-     draws its electrons out into the beam) and the chamber plasma sits a few volts above the
-     anode (its sheath is electron-collecting). Both are a fraction of a percent of the range;
-     carrying them here only left two unlabelled offsets that made the arithmetic look wrong.
-     The popups say so in words. Give either a non-zero value and the levels follow. */
+  /* Three offsets between named nodes are deliberately set to zero, so that every voltage the
+     figure labels closes exactly against the others and the ION'S FALL IS EXACTLY V_net:
+        V_net = V_total − V_accel
+     `vps` is the one that decides that. In hardware the screen grid is tied to discharge-cathode
+     common and the chamber plasma floats about V_D above it, so an ion born in the plasma really
+     does arrive with a little more than the beam supply gives it — of order 25 V in 1126, ~2%.
+     Carrying it here made the discharge voltage part of the ion's fall, which put this stage at
+     odds with the Child–Langmuir stage next door, where V_net = R·V_T is the whole of what the ion
+     keeps and V_D appears nowhere. One quantity, one meaning: V_net is the same number in both.
+     Set vps = POT.vd to put the hardware offset back — the screen level, the well depth and the
+     ion's trace all follow, and V_net then reads V_D above V_total − V_accel.
+     The other two are the same kind of thing, both a fraction of a percent: in hardware the
+     neutralizer cathode floats a few volts below plume potential (that is what draws its electrons
+     out into the beam) and the chamber plasma sits a few volts above the anode (its sheath is
+     electron-collecting). The popups say all this in words.
+     With them zero, V_neutralizer (anode − neutralizer cathode) comes out numerically equal to
+     V_net. They are NOT the same quantity — give any offset a value and they separate — which is
+     exactly why they live on different traces and never appear in the same figure. */
+  vps: 0,       // chamber plasma above the SCREEN GRID — see above; the ion's fall hangs on this
   vn: 0,        // neutralizer cathode below the plume
   dphi: 0,      // chamber plasma above the anode
   /* Whose journey is annotated. φ(z) itself is species-independent and the curve is IDENTICAL in
@@ -7008,28 +7384,34 @@ const POT = {
 let circuitView   = 'currents';
 let circuitLabels = false;     // component-name callouts — off by default in BOTH views
 function potActive(){ return appMode === 'circuit' && circuitView === 'potential'; }
-/* Every node's potential, referenced to the plume at 0 V. The screen grid is tied to the
-   discharge-cathode common, so both sit at V_net; the anode is V_D above that and the chamber
-   plasma a few volts above the anode. */
+/* Every node's potential, referenced to the plume at 0 V. The chamber plasma is where the ion is
+   born and it sits at V_net; the screen grid sits with it (POT.vps, zero — see the note there);
+   the discharge cathode is V_D BELOW the chamber, which is the electron's leg and no part of the
+   ion's; and the accel grid is V_total below the screen. */
 function potLevels(){
-  /* Work DOWN from V_net = R·V_total. The ion is born in the chamber plasma and ends in the plume,
-     so V_net IS the plasma level above plume. Back off V_D to reach the anode and the discharge
-     cathode (which the screen grid is tied to), then V_total below that to reach the accel grid.
-     Dragging R therefore moves the plasma/screen levels AND the well together — which is right:
+  /* Work OUT from V_net = R·V_total, which is the ion's whole fall: born in the chamber plasma at
+     V_net, delivered to the plume at 0. Everything else hangs off that.
+       • The screen grid sits at the plasma level (vps = 0), so the ion sees no step before the gap
+         and the extraction gap carries the whole of V_total and nothing else.
+       • The accel grid is therefore V_total below V_net, i.e. (1−R)·V_total BELOW THE PLUME — the
+         same |V_accel| the Child–Langmuir stage uses, so the two stages agree about the well.
+       • The discharge cathode hangs V_D under the chamber. The ion is never there; that step is
+         the electron's acceleration and appears only on its trace.
+     Dragging R therefore moves the plasma/screen level AND the well together — which is right:
      R is a statement about how the same total voltage is split, and both ends of the split move. */
   const vNet = POT.R * POT.vT;
-  const plasma = vNet, anode = plasma - POT.dphi, cath = anode - POT.vd;
   const vT = POT.vT;
-  return { cath, anode, plasma, screen: cath,
-           accel: cath - vT, plume: 0, neu: -POT.vn,
+  const plasma = vNet, anode = plasma - POT.dphi, cath = anode - POT.vd;
+  const screen = plasma - POT.vps;
+  return { cath, anode, plasma, screen,
+           accel: screen - vT, plume: 0, neu: -POT.vn,
            vD: POT.vd,                       // discharge supply:  anode − discharge cathode
            vT,                               // total accel:       screen − accel grid
            vNeu: anode + POT.vn,             // neutralizer:       anode − neutralizer cathode
-           /* NET accel: CHAMBER PLASMA − plume, not screen grid − plume. The ion is born in the
-              plasma, not on the screen grid, so the drop it actually falls through includes the
-              discharge voltage. This is the number that sets exhaust velocity, and taking it from
-              the screen grid instead understates it by V_D. Here it is the INPUT (R·V_total) and
-              the screen level is what follows from it. */
+           /* NET accel: where the ion is BORN − plume, which with vps = 0 is both the chamber
+              plasma and the screen grid. It is the INPUT here (R·V_total) and every other level
+              follows from it. It is the number that sets exhaust velocity, and it carries no
+              discharge voltage: V_net = V_total − V_accel. */
            vNet };
 }
 /* ── Geometry ─────────────────────────────────────────────────────────────────────────────
@@ -7055,14 +7437,14 @@ function potZones(){
   return {
     sheath0: -45,                                  // cathode sheath begins (upstream of the orifice)
     sheath1: -20,                                  // …and ends in the chamber bulk
-    /* SCREEN SHEATH. The screen grid is tied to discharge-cathode common, so it sits V_D BELOW the
-       chamber plasma, and a sheath stands on its plasma face carrying that drop. The plasma bulk
-       therefore does not reach the grid at plasma potential — it stops at the sheath edge, and the
-       ion falls through the sheath before it ever sees the extraction gap. Real thickness is a few
-       tens of µm (λ_D ≈ 27 µm here — see the ion-optics note above) against a 410 mm span, i.e.
-       invisible; 2.5 model units is the thinnest that still renders as a step rather than as a
-       vertical discontinuity, and it is honest about the direction of the error — the true sheath
-       is far thinner than drawn, like the extraction gap itself. */
+    /* SCREEN SHEATH. Carries whatever the chamber plasma sits above the screen grid — POT.vps,
+       which is zero by default (see the note there), so by default this is a flat run and the ion
+       meets no step at all before the extraction gap. Set vps and the step appears here, on the
+       grid's plasma face, where the sheath physically stands. Real thickness is a few tens of µm
+       (λ_D ≈ 27 µm here — see the ion-optics note above) against a 410 mm span, i.e. invisible;
+       2.5 model units is the thinnest that still renders as a step rather than as a vertical
+       discontinuity, and it is honest about the direction of the error — the true sheath is far
+       thinner than drawn, like the extraction gap itself. */
     scrShe0: SCREEN_SLAB.x0 - 2.5,                 // sheath edge, standing off the grid's plasma face
     scrShe1: SCREEN_SLAB.x0,                       // …meeting the metal
     screen : SCREEN_SLAB.x1,                       // downstream face — the extraction gap starts here
@@ -7088,30 +7470,36 @@ function potZones(){
 
    `who` says which species' trace a span belongs on, and it is a physical claim, not a display
    preference: a span is drawn only for a species that actually crosses it.
-     ion       vd, vt, va, vn   — every leg of the fall from chamber plasma to plume.
-     electron  vd, va, vnu      — the sheath step that accelerates it, the accel dip that blocks
-                                  it from backstreaming, and the supply span it is carried down.
-   V_neutralizer is deliberately NOT on the ion trace: no ion crosses it, and with vn = dphi = 0
-   it numerically coincides with the ion's total fall, which made it read as an ion quantity.
+     ion       vt, va, vn       — every leg of the fall from chamber plasma to plume, and they
+                                  close on each other exactly: V_net = V_total − V_accel.
+     electron  vd, vnu          — the sheath step that accelerates it, and the supply span it is
+                                  carried down. (The accel dip that blocks it from backstreaming is
+                                  DRAWN on its trace, as the dotted φ_ion reference, but the
+                                  electron does not cross it, so it is not dimensioned there.)
+   Two spans are deliberately NOT on the ion trace. V_discharge, because it is upstream of where
+   the ion is born and no ion crosses it — carrying it here put a supply in the ion's fall that
+   gives the ion nothing. V_neutralizer, because no ion crosses that either, and with the offsets
+   zeroed it numerically coincides with the ion's total fall, which made it read as an ion quantity.
    `e` holds per-entry overrides (position, popup text) applied on the electron trace. */
 const POT_ANN = [
   // ── the three transitions, drawn where the curve moves ──
+  /* ELECTRON TRACE ONLY. V_discharge sits entirely UPSTREAM of where the ion is born, between the
+     discharge cathode and the chamber, so no ion ever crosses it and none of it ends up in the
+     ion's energy. It used to be dimensioned on both traces, which made the ion's trace start a
+     discharge voltage below V_net and put a supply in its fall that has no business there. */
   { key:'vd',  name:'discharge',   val:L => L.vD,     from:L => L.cath,   to:L => L.anode,
     dx: -14, lx: -14, ly:  24,     // RISE, at the cathode sheath
-    who:'both',
-    e:{ why:['Discharge voltage · anode − discharge cathode',
-             'The <b>electron’s own acceleration</b> — the only span on this trace that gives it '
-           + 'energy (the V<sub>neutralizer</sub> drop is work the supply does <em>on</em> it). '
-           + 'It leaves the bombardment cathode and falls <em>up</em> this step through '
-           + 'the cathode sheath, arriving in the chamber with ' + '≈V<sub>D</sub> of energy — about '
-           + 'twice xenon’s 12.1&nbsp;eV ionization threshold, which is what lets one electron make '
-           + 'more than one ion before it is collected. The ion meets the matching step at the far '
-           + 'end of the chamber, on the screen grid, and falls back down it.'] },
+    who:'electron',
     why:['Discharge voltage · anode − discharge cathode',
-         'Sets how hard the bombardment electrons hit the propellant, so it sets the <b>cost of '
-       + 'making an ion</b>. Below xenon’s 12.1&nbsp;eV ionization energy nothing ionizes at all; '
-       + 'far above it the surplus goes into excitation and doubly-charged ions instead of beam. '
-       + '(The chamber plasma actually settles a few volts above the anode, too small to draw here.)'] },
+         'The <b>electron’s own acceleration</b>, and the only span on this trace that gives it '
+       + 'energy (the V<sub>neutralizer</sub> drop is work the supply does <em>on</em> it). '
+       + 'It leaves the bombardment cathode and falls <em>up</em> this step through '
+       + 'the cathode sheath, arriving in the chamber with ≈V<sub>D</sub> of energy — about '
+       + 'twice xenon’s 12.1&nbsp;eV ionization threshold, which is what lets one electron make '
+       + 'more than one ion before it is collected. So this is what sets the <b>cost of making an '
+       + 'ion</b>: below 12.1&nbsp;eV nothing ionizes at all, far above it the surplus goes into '
+       + 'excitation and doubly-charged ions instead of beam. It buys ions — it does not accelerate '
+       + 'them. The ion is born downstream of this step and never sees it.'] },
   { key:'vt',  name:'total',       val:L => L.vT,     from:L => L.screen, to:L => L.accel,
     dx: 126, lx:  46, ly: -20,     // DROP, hugging the extraction gap (label well clear of the arrow)
     who:'ion',
@@ -7138,10 +7526,12 @@ const POT_ANN = [
     // rather than leaving the terminal floating downstream of the optics.
     tie: () => [SCREEN_SLAB.x1, null],
     why:['Net accelerating voltage · chamber plasma − plume',
-         'What the ion is really accelerated through — measured from where it is <b>born</b>, in '
-       + 'the chamber plasma, not from the screen grid. That is why it includes the discharge '
-       + 'voltage: V<sub>net</sub>&nbsp;=&nbsp;V<sub>discharge</sub>&nbsp;+&nbsp;V<sub>total</sub>'
-       + '&nbsp;−&nbsp;V<sub>accel</sub>. It is the one that sets '
+         'What the ion is really accelerated through, end to end: born in the chamber plasma, '
+       + 'delivered to the plume. It is the <b>whole</b> of the ion’s fall — the discharge voltage '
+       + 'is not in it, because V<sub>discharge</sub> sits upstream of where the ion is born and '
+       + 'the ion never crosses it. The two spans on this trace that <em>are</em> the ion’s account '
+       + 'for all of it: V<sub>net</sub>&nbsp;=&nbsp;V<sub>total</sub>&nbsp;−&nbsp;V<sub>accel</sub>, '
+       + 'down the gap and back out of the well. It is the one that sets '
        + '<b>exhaust velocity and specific impulse</b>: '
        + 'v<sub>ex</sub>&nbsp;=&nbsp;√(2eV<sub>net</sub>/M), I<sub>sp</sub>&nbsp;=&nbsp;v<sub>ex</sub>/g₀. '
        + 'Raise it for more I<sub>sp</sub>; the thrust per unit current follows √V<sub>net</sub>.'] },
@@ -7205,18 +7595,22 @@ function potEDrop(){
 }
 const pstep  = t => t*t*(3-2*t);                       // smoothstep  — monotonic, C¹
 const pstep5 = t => t*t*t*(t*(t*6-15)+10);             // smootherstep — C², zero slope at both ends
-/* φ at model axial position x. Plateaus are genuinely flat; the two sheaths (cathode, screen) are
-   short monotonic steps; the curve runs FLAT at the screen-grid level through the grid body, which
-   is a conductor and therefore an equipotential; the gap is the steepest feature and is steepest
-   near mid-gap; the minimum sits exactly on the accel grid plane and is SMOOTH (zero slope either
-   side, so it reads as a minimum and not a corner); the decel recovery approaches 0 V and never
-   overshoots. Every transition is pstep5 — C², zero first AND second derivative at both ends — so
-   the trace has no curvature jumps at the joins, not merely no corners. */
+/* φ along the ION's path at model axial position x. It STARTS AT V_net — the chamber plasma the
+   ion is born in — and never touches the discharge cathode plateau or the cathode-sheath step that
+   climbs out of it. That leg belongs to the electron: it is the electron's own acceleration, the
+   ion is nowhere near it, and drawing it on this trace made φ_ion(z) appear to begin a whole
+   discharge voltage below V_net and made the ion look as though the discharge supply had given it
+   something. It has not. What the ion falls through is V_net, start to finish.
+   Beyond that: plateaus are genuinely flat; the screen sheath is a short monotonic step carrying
+   POT.vps (zero by default, so flat); the curve runs FLAT at the screen-grid level through the grid
+   body, which is a conductor and therefore an equipotential; the gap is the steepest feature and is
+   steepest near mid-gap; the minimum sits exactly on the accel grid plane and is SMOOTH (zero slope
+   either side, so it reads as a minimum and not a corner); the decel recovery approaches 0 V and
+   never overshoots. Every transition is pstep5 — C², zero first AND second derivative at both ends
+   — so the trace has no curvature jumps at the joins, not merely no corners. */
 function potPhi(x){
   const L = potLevels(), Z = potZones();
-  if (x <= Z.sheath0) return L.cath;                                                        // discharge cathode
-  if (x <  Z.sheath1) return L.cath + (L.plasma - L.cath) * pstep5((x - Z.sheath0) / (Z.sheath1 - Z.sheath0));
-  if (x <= Z.scrShe0) return L.plasma;                                                      // chamber plasma
+  if (x <= Z.scrShe0) return L.plasma;                                                      // chamber plasma — where the ion starts
   if (x <  Z.scrShe1) return L.plasma + (L.screen - L.plasma) * pstep5((x - Z.scrShe0) / (Z.scrShe1 - Z.scrShe0));   // screen sheath
   if (x <= Z.screen)  return L.screen;                                                      // through the screen grid — a conductor, so flat
   if (x <  Z.accel)   return L.screen + (L.accel - L.screen) * pstep5((x - Z.screen) / (Z.accel - Z.screen));
@@ -7301,15 +7695,29 @@ function refreshPotProfile(){
   g += '<line class="p-gl scr" x1="' + pf(xScr) + '" y1="' + pf(YT) + '" x2="' + pf(xScr) + '" y2="' + pf(yAcc) + '"/>';
   g += '<line class="p-gl acc" x1="' + pf(xAcc) + '" y1="' + pf(YT) + '" x2="' + pf(xAcc) + '" y2="' + pf(yAcc) + '"/>';
 
-  // y ticks. The plasma and screen levels are only V_D + 3 apart, so their labels are stacked
-  // clear of each other and leadered back to their own tick rather than overprinting.
+  /* y ticks. With the chamber plasma and the screen grid at the same level (POT.vps = 0) there is
+     one tick there, not two — and the ion trace starts on it, which is the point: that number IS
+     V_net. The stacked-and-leadered pair is kept for the case where vps is given a value and the
+     two levels separate; below ~28 viewBox units apart their labels would overprint. The discharge
+     cathode gets a tick only on the electron trace, where the curve actually starts down there. */
   const tick = y => '<line class="p-tick" x1="' + pf(X0-10) + '" y1="' + pf(y) + '" x2="' + pf(X0) + '" y2="' + pf(y) + '"/>';
   const tlab = (y, t) => '<text class="p-tk" x="' + pf(X0-15) + '" y="' + pf(y) + '" text-anchor="end">' + t + '</text>';
-  g += tick(yPlasma) + tick(yScr) + tick(yPl) + tick(yAcc);
-  g += '<polyline class="p-tlead" points="' + pf(X0-12) + ',' + pf(yPlasma - 15) + ' ' + pf(X0-4) + ',' + pf(yPlasma) + '"/>'
-     + tlab(yPlasma - 11, '+' + Math.round(L.plasma) + ' V');
-  g += '<polyline class="p-tlead" points="' + pf(X0-12) + ',' + pf(yScr + 11) + ' ' + pf(X0-4) + ',' + pf(yScr) + '"/>'
-     + tlab(yScr + 17, '+' + Math.round(L.screen) + ' V');
+  g += tick(yPlasma) + tick(yPl) + tick(yAcc);
+  /* Is there a second level tucked just under the plasma tick on THIS trace? The screen grid, if
+     POT.vps has been given a value and separated them; otherwise the discharge cathode, and only
+     on the electron trace — that is where the electron starts, and it is nowhere on the ion's. */
+  const second = Math.abs(yScr - yPlasma) > 1 ? [yScr,  '+' + Math.round(L.screen) + ' V']
+               : POT.species === 'electron'   ? [yCath, '+' + Math.round(L.cath)   + ' V']
+               : null;
+  if (second){
+    g += tick(second[0])
+       + '<polyline class="p-tlead" points="' + pf(X0-12) + ',' + pf(yPlasma - 15) + ' ' + pf(X0-4) + ',' + pf(yPlasma) + '"/>'
+       + tlab(yPlasma - 11, '+' + Math.round(L.plasma) + ' V')
+       + '<polyline class="p-tlead" points="' + pf(X0-12) + ',' + pf(second[0] + 11) + ' ' + pf(X0-4) + ',' + pf(second[0]) + '"/>'
+       + tlab(second[0] + 17, second[1]);
+  } else {
+    g += tlab(yPlasma + 6, '+' + Math.round(L.plasma) + ' V');
+  }
   g += tlab(yPl + 6, '0 V') + tlab(yAcc + 6, Math.round(L.accel) + ' V');
   // The 0 V line is not an arbitrary datum: the neutralizer cathode is tied to it, so it is the
   // reference the other three supplies are stacked on. Saying so is what makes the loop close.
@@ -7334,10 +7742,10 @@ function refreshPotProfile(){
   // Level extensions the downstream bars measure from (started clear of the gap descent). Drawn
   // only when a bar actually measures from that level — on the electron trace V_T and V_net are
   // gone, so an unconditional screen-level extension would be left as a dashed rule to nowhere.
-  // V_total measures from the screen-grid level, which the curve now actually REACHES (the screen
-  // sheath brings it down to the grid before the gap). Run a short witness back from the grid to
-  // the bar so that terminal is visibly anchored to the hardware rather than floating 25 V under
-  // the plasma plateau, which is how it read while the sheath was missing.
+  // V_total measures from the screen-grid level. Run a short witness back from the grid to the bar
+  // so that terminal is visibly anchored to the hardware. With POT.vps = 0 that level IS the plasma
+  // plateau — V_total and V_net share their upper terminal, which is the whole point: the ion
+  // starts its fall at V_net and the gap is the first thing that happens to it.
   if (has('vt'))
     a += '<line class="p-ext" x1="' + pf(mvx(118)) + '" y1="' + pf(yScr) + '" x2="' + pf(xScr) + '" y2="' + pf(yScr) + '"/>';
   // V_net measures from the CHAMBER PLASMA (where the ion is born), so its upper terminal rides
@@ -7439,7 +7847,9 @@ function refreshPotProfile(){
       'dropping the whole neutralizer span of ' + Math.round(L.vNeu) + ' V to 0 V at the ' +
       'neutralizer cathode and running flat into the plume. It has no accelerator-grid well, ' +
       'because the electron never enters the extraction gap. The dotted blue one is φ_ion, the ' +
-      'ion’s path, plunging through that gap to ' + Math.round(L.accel) + ' V at the accelerator ' +
+      'ion’s path. It begins later and higher, in the chamber plasma, because that is where the ' +
+      'ion is born — it is never at the cathode and never climbs the discharge step — and it then ' +
+      'plunges through the gap to ' + Math.round(L.accel) + ' V at the accelerator ' +
       'grid before climbing back to the plume; the two cross where the electron drops straight to ' +
       'plume potential and the ion does not. That well is a barrier no plume electron can climb ' +
       'back over, which is what prevents electron backstreaming. Two voltages are dimensioned, ' +
@@ -7455,7 +7865,10 @@ function refreshPotProfile(){
       + 'work — it gains nothing falling it. Its trace holds at anode potential until then, '
       + 'because that stretch is the supply’s <em>wire</em> running down the outside of the '
       + 'thruster, and it has no accel-grid well at all: the electron never enters the gap. '
-      + 'Compare it against the dotted <b>φ<sub>ion</sub>(z)</b> behind — same curve until the '
+      + 'Compare it against the dotted <b>φ<sub>ion</sub>(z)</b> behind. It does not start where '
+      + 'this one does: the ion is born in the chamber, so its trace begins on the plasma plateau '
+      + 'and the discharge step is <em>this</em> particle’s, not the ion’s. From there the two run '
+      + 'together to the '
       + 'grids, where the ion plunges into the well and the electron drops straight to plume '
       + 'potential. That well is the barrier keeping plume electrons out of the optics, which is '
       + 'why the grid is held negative. Only two spans are dimensioned here because only two are '
@@ -7467,36 +7880,37 @@ function refreshPotProfile(){
     'A single continuous curve of electrostatic potential against axial position, drawn to scale ' +
     'over a cutaway of the thruster so each feature sits on the hardware that causes it. The ' +
     'vertical scale is linear, unbroken, and referenced to the plume at 0 V. The curve starts ' +
-    'flat at +' + Math.round(L.cath) + ' V across the discharge cathode, steps up by the ' +
-    'discharge voltage V_D = ' + POT.vd + ' V through the cathode sheath to a flat chamber ' +
-    'plasma at +' + Math.round(L.plasma) + ' V, steps back down by the same ' + POT.vd + ' V ' +
-    'through the thin sheath standing on the screen grid’s plasma face — the screen grid is tied ' +
-    'to discharge-cathode common, so it sits that far below the plasma — runs flat at +' +
-    Math.round(L.screen) + ' V through the grid itself, falls almost vertically through the short ' +
+    'flat at +' + Math.round(L.plasma) + ' V, the chamber plasma the ion is born in, which is the ' +
+    'net accelerating voltage; holds that level through the screen grid; ' +
+    'falls almost vertically through the short ' +
     'extraction gap between the screen and accelerator grids to a smooth minimum of ' +
     Math.round(L.accel) + ' V at the accelerator grid plane, then recovers to 0 V and stays flat ' +
-    'across the plume without overshooting. Four voltages are dimensioned, every one of them a leg ' +
-    'of the ion\u2019s own fall: the discharge voltage ' + POT.vd + ' V from the cathode up to the ' +
-    'anode; the total accelerating voltage ' + Math.round(L.vT) + ' V from the screen grid down to ' +
+    'across the plume without overshooting. Three voltages are dimensioned, every one of them a leg ' +
+    'of the ion\u2019s own fall: ' +
+    'the total accelerating voltage ' + Math.round(L.vT) + ' V from the screen grid down to ' +
     'the accel grid; the accel-grid voltage ' + Math.round(-L.accel) + ' V back up from that ' +
     'minimum to the plume; and the net accelerating voltage ' + Math.round(L.vNet) + ' V from the ' +
-    'chamber plasma, where the ion is born, down to the plume — the discharge voltage plus the ' +
+    'chamber plasma, where the ion is born, down to the plume — the ' +
     'total minus the accel-grid voltage. An ion born ' +
     'in the chamber plasma and ending in the plume gains ' + gain + ' electronvolts, having ' +
-    'transiently held ' + peak + ' electronvolts at the accel plane. The neutralizer supply is not ' +
-    'dimensioned here because no ion crosses it; switch the trace to Electron to see it.';
+    'transiently held ' + peak + ' electronvolts at the accel plane. Neither the discharge voltage ' +
+    'nor the neutralizer supply is dimensioned here, because the ion crosses neither. The ' +
+    'discharge voltage in particular sits upstream of where the ion is born, so no part of it ends ' +
+    'up in the ion’s energy. Switch the trace to Electron to see both.';
   if (cap) cap.innerHTML =
-    'Every span drawn here is one the ion actually falls through. It is born in the chamber plasma, '
-    + 'drops <b>V<sub>discharge</sub></b> to the screen grid, plunges <b>V<sub>total</sub></b> '
+    'Every span drawn here is one the ion actually falls through. It is born in the chamber plasma '
+    + 'at <b>V<sub>net</sub></b>, plunges <b>V<sub>total</sub></b> '
     + '(' + Math.round(L.vT) + '&nbsp;V) across the extraction gap, and climbs <b>V<sub>accel</sub></b> '
-    + '(' + Math.round(-L.accel) + '&nbsp;V) back out \u2014 so what it actually gains is '
-    + '<b>V<sub>net</sub></b>, measured from where it was <em>born</em> rather than from the '
-    + 'screen grid: ' + POT.vd + '&nbsp;+&nbsp;' + Math.round(L.vT) + '&nbsp;\u2212&nbsp;'
-    + Math.round(-L.accel) + '&nbsp;=&nbsp;' + Math.round(L.vNet) + '&nbsp;V. That is what sets '
-    + 'the exhaust velocity, and it includes the discharge voltage. '
-    + 'The deepest point it reaches is <em>not</em> what it leaves with. '
-    + '<b>V<sub>neutralizer</sub></b> is deliberately absent: the ion never crosses it \u2014 an '
-    + 'electron does, through the supply. Switch the trace to <b>Electron</b> for that half of the '
+    + '(' + Math.round(-L.accel) + '&nbsp;V) back out \u2014 so what it keeps is '
+    + Math.round(L.vT) + '&nbsp;\u2212&nbsp;' + Math.round(-L.accel) + '&nbsp;=&nbsp;'
+    + Math.round(L.vNet) + '&nbsp;V. That is what sets '
+    + 'the exhaust velocity, and '
+    + 'the deepest point it reaches is <em>not</em> what it leaves with. '
+    + 'Two supplies are deliberately absent, because no ion crosses either. '
+    + '<b>V<sub>discharge</sub></b> is upstream of where the ion is born: it buys the ion, it does '
+    + 'not accelerate it, and none of it is in the fall drawn here. '
+    + '<b>V<sub>neutralizer</sub></b> an electron crosses \u2014 through the supply, not along z. '
+    + 'Switch the trace to <b>Electron</b> for that half of the '
     + 'story. Hover any label for what that one is for.';
 }
 
@@ -8072,6 +8486,8 @@ try {
   setAccelGap(ACCEL.gap);
   // Space-charge graph animation toggles (Features 1 & 2 — optional).
   $('acc-anim-ion').addEventListener('change', e => ACCEL.animIon = e.target.checked);
+  { const el = $('acc-neu-e');                                  // the neutralizer's return current
+    if (el) el.addEventListener('change', e => { ACCEL.showNeuE = e.target.checked; }); }
   // Field-arrow toggles: each drops its arrow AND its column from the numeric identity below the
   // graph, so what is read matches what is drawn.
   [['acc-e-net','net'], ['acc-e-grid','grid'], ['acc-e-ions','ions']].forEach(([id, key]) => {
