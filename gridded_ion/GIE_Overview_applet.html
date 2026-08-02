@@ -102,6 +102,15 @@ footer {
   margin-left: 0;
 }
 
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 /* ── Highlight classes ────────────────────────────────────
    Colour is the ONLY channel these use — never weight, never
    size. Colour answers "which quantity is this?".  For a term
@@ -277,6 +286,39 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 14px;
 }
 .theory-block > .th-body:last-child { margin-bottom: 0; }
+
+/* ── Equation panels ────────────────────────────────
+   Same metrics as the stage pages (GIE_Acceleration), so an
+   equation looks identical wherever the reader meets it.  */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+/* Italic prose sitting between a step label and its equation. */
+.eq-note {
+  display: block;
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  margin-top: 3px;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
 
 /* ── Applet host overrides ──────────────────────────── */
 .theory-block.applet-host {
@@ -570,6 +612,104 @@ footer {
   <iframe id="viewer-frame" class="applet-frame" src="gridded_ion.html?mode=overview&v=16"
           title="Interactive 3D gridded ion engine — cross-section, fields, and particles"
           loading="lazy"></iframe>
+</div>
+
+<!-- ════════════════════ GOVERNING EQUATIONS ════════════════════
+     The whole lesson in one panel: what each of the three stages is
+     actually solving, stated before the stages are described. Every
+     relation here is DERIVED on the stage page it belongs to (linked
+     from its note) — this block only states them. -->
+<div class="theory-block">
+  <div class="th-hdr">Governing Equations</div>
+
+  <p class="th-body">
+    Every gridded ion engine is the same short chain of relations, one stage handing off to the next. The
+    <span class="key">ionization chamber</span> decides what fraction of the propellant becomes
+    <span class="hl-ion">ions</span>; the <span class="key">grids</span> set the
+    <span class="hl-ve">exhaust velocity</span> and cap the <span class="hl-ion">current</span> they can pass; the
+    <span class="key">neutralizer</span> keeps the charge books balanced. Read them once here, then watch each stage
+    build its own.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Thrust</span>
+    <span class="eq-note">Thrust is momentum flux &mdash; the <span class="hl-thrust">mass flow rate</span> leaving the
+      engine times the <span class="hl-ve">speed</span> it leaves at. Nothing about the thruster being electric
+      changes this.</span>
+    $$ \boxed{\;\textcolor{#FF4400}{F} = \textcolor{#FF4400}{\dot m}\,\textcolor{#3DBFFF}{c}\;}
+       \qquad
+       \textcolor{#3DBFFF}{I_{sp}} = \frac{\textcolor{#3DBFFF}{c}}{g_0} $$
+
+    <div class="eq-divider"></div>
+
+    <span class="eq-step-label">Exhaust Velocity</span>
+    <span class="eq-note">An <span class="hl-ion">ion</span> falling through the
+      <span class="hl-E">net voltage</span> converts all of it into kinetic energy. This is the one equation that makes
+      the engine <em>electrostatic</em>: pick a voltage, and you have picked an
+      <a class="applet-link" href="../optimum_isp/optimum_isp_applet.html">exhaust velocity</a>.</span>
+    $$ \textcolor{#C060FF}{q}\textcolor{#F5C518}{V_{net}} = \tfrac12\,\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{c}^{2}
+       \;\;\rightarrow\;\;
+       \boxed{\;\textcolor{#3DBFFF}{c} = \sqrt{\frac{2\,\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V_{net}}}
+       {\textcolor{#FF4400}{m}}}\;} $$
+    <span class="eq-note">Heavier propellant is slower at the same volts &mdash;
+      <span class="hl-neutral">xenon</span> is chosen precisely because a large
+      <span class="hl-thrust">$m$</span> buys <span class="hl-thrust">thrust</span> per unit of
+      <span class="hl-power">power</span>.</span>
+
+    <div class="eq-divider"></div>
+
+    <span class="eq-step-label">Propellant Utilization</span>
+    <span class="eq-note">The fraction of injected propellant that actually leaves as
+      <span class="hl-ion">ions</span> rather than escaping <span class="hl-neutral">neutral</span>. Everything the
+      <span class="hl-B">magnetic cusps</span> do is in service of this one number.</span>
+    $$ \textcolor{#C060FF}{\mu_u} = \frac{\textcolor{#FF4400}{\dot m_i}}{\textcolor{#FF4400}{\dot m}} $$
+
+    <div class="eq-divider"></div>
+
+    <span class="eq-step-label">Electrostatic Field</span>
+    <span class="eq-note">The grids do not push on the <span class="hl-ion">ions</span> directly; they impose a
+      <span class="hl-phi">potential</span>, and its <em>slope</em> is the force per unit charge. Across a gap $d$ held
+      at <span class="hl-E">$V_T$</span>, that slope is just $V_T/d$.</span>
+    $$ \textcolor{#F5C518}{\vec E} = -\nabla\textcolor{#F5C518}{\phi}
+       \;\;\xrightarrow{\;\text{1-D gap}\;}\;\;
+       \textcolor{#F5C518}{E} = -\frac{d\textcolor{#F5C518}{\phi}}{dx}
+       \;\;\rightarrow\;\; \frac{\textcolor{#F5C518}{V_T}}{d} $$
+
+    <div class="eq-divider"></div>
+
+    <span class="eq-step-label">Space-Charge Limit &mdash; Child&ndash;Langmuir</span>
+    <span class="eq-note">The <span class="hl-ion">ions</span> already in the gap carry their own charge, which
+      flattens the very <span class="hl-phi">potential</span> pulling the next ones in. Solving Poisson&rsquo;s equation for
+      that self-consistent field caps the <span class="hl-ion">current density</span> the gap can pass &mdash; and with
+      it the <span class="hl-thrust">thrust density</span>. Derived on the
+      <a class="applet-link" href="GIE_Acceleration_applet.html">acceleration</a> page.</span>
+    $$ \boxed{\;\textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0
+       \sqrt{\frac{2\,\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}}\,
+       \frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}\;}
+       \qquad
+       \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0
+       \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\sqrt{\textcolor{#F5C518}{R}}\;} $$
+    <span class="eq-note">Note the $1/d^{2}$: closing the grids buys current far faster than raising the voltage does.
+      <span class="hl-E">$R = V_{net}/V_T$</span> is the fraction of the total voltage the ion keeps after the
+      accelerator grid decelerates it back on the way out.</span>
+
+    <div class="eq-divider"></div>
+
+    <span class="eq-step-label">Charge Balance</span>
+    <span class="eq-note">The beam is a current of <span class="hl-ion">ions</span>, so the
+      <span class="key">neutralizer</span> must emit exactly one <span class="hl-electron">electron</span> per ion.
+      Fail this and the spacecraft charges negative until it drags its own beam back.</span>
+    $$ \textcolor{#3DBFFF}{I_b} = \frac{\textcolor{#C060FF}{q}\,\textcolor{#FF4400}{\dot m_i}}{\textcolor{#FF4400}{m}}
+       = \textcolor{#ffe94d}{I_e}
+       \qquad
+       \textcolor{#FF4400}{F} = \textcolor{#3DBFFF}{I_b}
+       \sqrt{\frac{2\,\textcolor{#FF4400}{m}\,\textcolor{#F5C518}{V_{net}}}{\textcolor{#C060FF}{q}}} $$
+    <span class="eq-note">That last form is just $F = \dot m c$ rewritten in the quantities an engineer actually sets on
+      the power supplies &mdash; <span class="hl-ion">beam current</span> and
+      <span class="hl-E">voltage</span>.</span>
+
+    <span class="eq-caption">Each stage below takes one of these apart.</span>
+  </div>
 </div>
 
 <!-- ════════════════════ STAGE — IONIZATION ════════════════════ -->
