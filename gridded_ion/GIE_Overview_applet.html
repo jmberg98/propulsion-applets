@@ -626,11 +626,23 @@ details.clarify-detail > summary:focus-visible {
 .refs > summary.refs-hdr:hover { color: var(--text-heading); }
 .refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
 .refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
 .refs li { margin-left: 30px; margin-bottom: 3px; }
 .refs li::marker { color: var(--c-accent); }
 /* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
 .refs li:target { color: var(--text-main); }
 .refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
 
 /* ── KaTeX font sizing ──────────────────────────────── */
 .katex { font-size: 1.15em !important; }
@@ -758,6 +770,9 @@ footer .foot-cred {
   Use this 3D model to familiarize yourself with the gridded ion engine. The cross section feature allows you to
   see the inner components and workings of the thruster. You can also toggle the visibility of elements such as
   component labels, <span class="hl-E">electromagnetic fields</span>, and <span class="hl-q">particles</span>.
+  The model itself was generated from a
+  <a class="applet-link" href="#ref-model">published schematic</a>, and is proportioned after it rather than
+  after any flown thruster.
 </p>
 
 <!-- ════════════════════ 3D VIEWER ════════════════════ -->
@@ -952,7 +967,28 @@ footer .foot-cred {
   </details>
 </div>
 
-<!-- ════════════════════ REFERENCES ════════════════════
+<!-- ════════════════════ MODEL REFERENCE ════════════════════
+     Where the 3-D asset came from, kept apart from the citation chain below.
+     It supports no claim in the prose, so it carries no number: it is a credit
+     for the model, and the CC BY license it is used under makes that credit an
+     obligation rather than a courtesy. UNNUMBERED on purpose, so pulling it out
+     of the <ol> left every superscript in the prose pointing where it did. -->
+<details class="refs" id="model-ref">
+  <summary class="refs-hdr">Model reference</summary>
+  <ul>
+    <li id="ref-model">F. Alifano, M. Panelli &amp; F. Battista, &ldquo;Preliminary Design Tool for Medium-Low-Power
+      Gridded Ion Thrusters,&rdquo; <em>Applied Sciences</em> <b>13</b>(9), 5600 (2023),
+      <a href="https://doi.org/10.3390/app13095600" target="_blank" rel="noopener">doi:10.3390/app13095600</a>.
+      The source of the 3-D thruster used throughout this lesson. Its geometry was built by generative AI as
+      parametric CAD, adapted from Figure 1 of this paper (&ldquo;Gridded ion thruster main components and
+      working principle&rdquo;) and used under CC BY 4.0. That figure is a labeled schematic rather than a
+      drawing, so the model follows its layout and proportions only: the millimeter dimensions belong to no
+      flown thruster, and the grids are deliberately thicker than scale so the extraction gap stays legible
+      at lesson size.</li>
+  </ul>
+</details>
+
+<!-- ════════════════════ SOURCES ════════════════════
      Ordered to track the page: general texts, then the Cold War history in the
      intro, then one entry per stage, then the lifetime claim in the conceptual
      question, closing with the flown systems (14-16). New entries APPEND here
@@ -960,7 +996,7 @@ footer .foot-cred {
      put. An <ol>, so the printed numbers ARE the superscript numbers, so
      do not reorder these entries without moving the .cite markers with them. -->
 <details class="refs" id="sources">
-  <summary class="refs-hdr">Sources &amp; further reading</summary>
+  <summary class="refs-hdr">Sources</summary>
   <ol>
     <li id="ref-1">D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion: Ion and Hall Thrusters</em>, JPL Space
       Science and Technology Series, Wiley, 2008. The standing reference for this lesson: ch. 2 (thrust,
@@ -1010,6 +1046,41 @@ footer .foot-cred {
   </ol>
 </details>
 
+<!-- ════════════════════ FURTHER READING ════════════════════
+     Where to go next, NOT support for anything argued above: every claim in the
+     prose is carried by a numbered entry in Sources. So these are unnumbered and
+     carry no .cite marker, which is also what keeps them out of the numbered
+     chain: adding one here can never renumber a superscript. If one of these is
+     ever cited for a specific claim, move it into Sources (appending, per the
+     note there) rather than pointing a marker into this list. Ordered from the
+     most accessible to the most forward-looking. -->
+<details class="refs" id="further-reading">
+  <summary class="refs-hdr">Further reading</summary>
+  <ul>
+    <li>NASA, &ldquo;Ion Propulsion,&rdquo; NASA Facts, Glenn Research Center, PS-01628-1215 (2015).
+      <a href="https://www.nasa.gov/wp-content/uploads/2015/08/ionpropfact_sheet_ps-01628.pdf" target="_blank" rel="noopener">nasa.gov</a>.
+      Two pages, no equations: the same three stages as this lesson, told through NASA&rsquo;s own flight
+      program from SERT I to NEXT. The gentlest place to start.</li>
+    <li>S. Mazouffre, &ldquo;Electric propulsion for satellites and spacecraft: established technologies and
+      novel approaches,&rdquo; <em>Plasma Sources Sci. Technol.</em> <b>25</b>(3), 033002 (2016),
+      <a href="https://doi.org/10.1088/0963-0252/25/3/033002" target="_blank" rel="noopener">doi:10.1088/0963-0252/25/3/033002</a>.
+      A survey of the whole field sorted by how thrust is produced (electrothermal, electrostatic,
+      electromagnetic), which places the gridded engine among its neighbors instead of on its own.</li>
+    <li>D. Lev, R. M. Myers, K. M. Lemmer, J. Kolbeck, H. Koizumi &amp; K. Polzin, &ldquo;The technological and
+      commercial expansion of electric propulsion,&rdquo; <em>Acta Astronautica</em> <b>159</b>,
+      213&ndash;227 (2019),
+      <a href="https://doi.org/10.1016/j.actaastro.2019.03.058" target="_blank" rel="noopener">doi:10.1016/j.actaastro.2019.03.058</a>.
+      Why electric propulsion went from a handful of experiments to standard equipment on commercial
+      satellites, with the flight record that came of it.</li>
+    <li>I. Levchenko, S. Xu, S. Mazouffre, D. Lev, D. Pedrini, D. Goebel, L. Garrigues, F. Taccogna &amp;
+      K. Bazaka, &ldquo;Perspectives, frontiers, and new horizons for plasma-based space electric
+      propulsion,&rdquo; <em>Phys. Plasmas</em> <b>27</b>(2), 020601 (2020),
+      <a href="https://doi.org/10.1063/1.5109141" target="_blank" rel="noopener">doi:10.1063/1.5109141</a>.
+      What is still unsolved: alternative propellants, magnetic shielding, air-breathing thrusters, and
+      the scaling problems between them.</li>
+  </ul>
+</details>
+
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
     <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
@@ -1019,27 +1090,32 @@ footer .foot-cred {
 </footer>
 
 <!-- ════════════════════ CITATION JUMP ════════════════════
-     The source list is collapsed by default, so a #ref-N target is inside a
-     hidden subtree and the browser has nothing to scroll to. Open the list
-     first, on click (synchronously, before the default jump runs) and on any
-     hash change, which also covers arriving with a #ref-N URL already set. -->
+     Every list is collapsed by default, so a #ref-* target sits inside a hidden
+     subtree and the browser has nothing to scroll to. Find the entry, open the
+     list that CONTAINS it (there is more than one now, so a fixed id will not
+     do), on click (synchronously, before the default jump runs) and on any hash
+     change, which also covers arriving with a #ref-* URL already set. -->
 <script>
 "use strict";
 (function () {
-  const box = document.getElementById('sources');
-  if (!box) return;
+  if (!document.querySelector('details.refs')) return;
 
-  function revealFromHash() {
-    if (location.hash.indexOf('#ref-') === 0) box.open = true;
+  function reveal(hash) {
+    if (!hash || hash.indexOf('#ref-') !== 0) return;
+    let entry;
+    try { entry = document.querySelector(hash); } catch (err) { return; }   // malformed hash
+    if (!entry || !entry.closest) return;
+    const box = entry.closest('details.refs');
+    if (box) box.open = true;
   }
 
   document.addEventListener('click', function (e) {
     const a = e.target.closest && e.target.closest('a[href^="#ref-"]');
-    if (a) box.open = true;
+    if (a) reveal(a.getAttribute('href'));
   });
 
-  window.addEventListener('hashchange', revealFromHash);
-  revealFromHash();
+  window.addEventListener('hashchange', function () { reveal(location.hash); });
+  reveal(location.hash);
 })();
 </script>
 
