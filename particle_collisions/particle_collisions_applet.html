@@ -286,8 +286,6 @@ details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-acce
 /* ── KaTeX font sizing ──────────────────────────────── */
 .katex { font-size: 1.15em !important; }
 
-/* ── Footer ─────────────────────────────────────────── */
-footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
 
 /* ── Applet navigation ─────────────────────────────── */
 .applet-nav {
@@ -303,6 +301,40 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
 .applet-nav a:hover { border-color: var(--c-accent); background: var(--bg-panel-3); color: var(--text-heading); }
 .applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
 .applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  width          : var(--page-w);
+  margin-top     : 34px;
+  padding-top    : 26px;
+  border-top     : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 12px;
+  text-align     : center;
+  color          : var(--text-muted);
+}
+
+footer .foot-logo {
+  display   : block;
+  height    : 54px;
+  width     : auto;
+  opacity   : 0.88;
+  transition: opacity 0.15s ease;
+}
+footer a:hover .foot-logo { opacity: 1; }
+
+footer .foot-title {
+  font-size     : 17px;
+  letter-spacing: 0.3px;
+  color         : var(--text-secondary);
+}
+
+footer .foot-cred {
+  font-size: 15px;
+  color    : var(--text-muted);
+}
 </style>
 </head>
 <body>
@@ -565,7 +597,13 @@ footer { margin-top: 10px; font-size: 18.5px; color: var(--text-muted); }
   </details>
 </div>
 
-<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+<footer>
+  <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+    <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+  </a>
+  <div class="foot-title">Propulsion Applets 2026</div>
+  <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
+</footer>
 
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>

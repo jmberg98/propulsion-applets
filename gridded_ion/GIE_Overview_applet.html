@@ -302,6 +302,82 @@ details.clarify-detail > summary:focus-visible {
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
 
+/* ── Exemplary engines ──────────────────────────────────
+   Outbound links. The engine name is NOT given a physics
+   colour (a link is not a quantity), so it reads in the
+   heading colour and signals itself with the underline and
+   the ↗ glyph instead.                                   */
+.ex-list { list-style: none; }
+.ex-item { padding: 12px 0 2px; border-top: 1px solid var(--border); }
+.ex-item:first-child { padding-top: 0; border-top: none; }
+.ex-name {
+  font-size: 20.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+.ex-name a {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid #3a3a3a;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ex-name a:hover { color: #ffffff; border-bottom-color: var(--c-accent); }
+.ex-name a:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 3px; }
+.ex-name .ext {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 5px;
+  vertical-align: 1px;
+}
+/* Spec strip: the numbers this lesson's equations actually predict. */
+.ex-specs {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .2px;
+  margin-bottom: 5px;
+}
+.ex-specs .sep { color: #3a3a3a; margin: 0 7px; }
+/* Hardware photo. The two NASA shots are landscape and portrait respectively,
+   so bound them by HEIGHT; matching widths would make the portrait tower over
+   the landscape one. */
+.ex-fig {
+  margin: 10px 0 4px;
+  /* Caption beside the photo, not under it: the page is up to 1500px wide and a
+     height-bounded photo leaves most of that empty. Stacks below 900px. */
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+.ex-fig img {
+  display: block;
+  max-height: 300px;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-canvas);
+}
+.ex-fig figcaption {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 460px;
+  padding-bottom: 2px;
+}
+@media (max-width: 900px) {
+  .ex-fig { display: block; }
+  .ex-fig figcaption { margin-top: 6px; max-width: none; }
+}
+.ex-fig .credit {
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: .3px;
+  color: #5f5f5f;
+}
+
 /* ── Applet host overrides ──────────────────────────── */
 .theory-block.applet-host {
   padding: 16px 0 0;
@@ -398,7 +474,7 @@ details.clarify-detail > summary:focus-visible {
   font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
-  margin-bottom: 6px;
+  margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
@@ -490,18 +566,67 @@ details.clarify-detail > summary:focus-visible {
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
-  margin-top: 8px;
+  margin-top: 6px;
 }
+
+/* ── Citation markers ───────────────────────────────────
+   Deliberately NOT a physics colour. Every hl-* token means
+   "which quantity is this?"; a source number is not a
+   quantity, so it takes the neutral chrome accent instead.
+   Otherwise a blue marker would read as a velocity.       */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Reference list ─────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 16px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
 
 /* ── KaTeX font sizing ──────────────────────────────── */
 .katex { font-size: 1.15em !important; }
 
-/* ── Footer ─────────────────────────────────────────── */
-footer {
-  margin-top: 10px;
-  font-size: 18.5px;
-  color: var(--text-muted);
-}
 
 /* ── Applet navigation ─────────────────────────────── */
 .applet-nav {
@@ -534,6 +659,40 @@ footer {
 }
 .applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
 .applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  width          : var(--page-w);
+  margin-top     : 34px;
+  padding-top    : 26px;
+  border-top     : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 12px;
+  text-align     : center;
+  color          : var(--text-muted);
+}
+
+footer .foot-logo {
+  display   : block;
+  height    : 54px;
+  width     : auto;
+  opacity   : 0.88;
+  transition: opacity 0.15s ease;
+}
+footer a:hover .foot-logo { opacity: 1; }
+
+footer .foot-title {
+  font-size     : 17px;
+  letter-spacing: 0.3px;
+  color         : var(--text-secondary);
+}
+
+footer .foot-cred {
+  font-size: 15px;
+  color    : var(--text-muted);
+}
 </style>
 </head>
 <body>
@@ -557,12 +716,15 @@ footer {
   <span class="key">electrostatic thrusters</span> were developed. Nearly all electric propulsion devices used
   today are <span class="key">electrostatic devices</span>, meaning they use solely
   <span class="hl-E">electric fields</span> to accelerate <span class="hl-q">charged particles</span> for
-  thrust. During the Cold War, the United States and Soviet Union began research on two such electrostatic
-  thrusters: the <span class="key">gridded ion engine</span> and the <span class="key">Hall-Effect thruster</span>.
+  thrust.<sup class="cite"><a href="#ref-3">3</a></sup> During the Cold War, the United States and Soviet Union
+  began research on two such electrostatic
+  thrusters: the <span class="key">gridded ion engine</span> and the <span class="key">Hall-Effect
+  thruster</span>.<sup class="cite"><a href="#ref-4">4</a>,<a href="#ref-5">5</a></sup>
   While the United States began early theoretical research on the Hall-Effect thruster, its intrinsic plasma
-  instabilities dissuaded further development efforts. The United States would go on to focus on the
+  instabilities dissuaded further development efforts.<sup class="cite"><a href="#ref-7">7</a></sup> The United
+  States would go on to focus on the
   development of the gridded ion engine, while the Soviet Union would continue to research the Hall-Effect
-  thruster.
+  thruster.<sup class="cite"><a href="#ref-6">6</a></sup>
 </p>
 
 <div class="colour-key">
@@ -576,9 +738,11 @@ footer {
 </div>
 <p class="page-intro">
   <span class="key">Gridded ion engines</span> are highly efficient electric propulsion devices used on modern
-  satellite platforms and several high profile missions. These ion engines have three characteristic features: an
+  satellite platforms and several high profile missions.<sup class="cite"><a href="#ref-5">5</a>,<a href="#ref-14">14</a></sup>
+  These ion engines have three characteristic features: an
   <span class="key">ionization chamber</span>, <span class="key">accelerator grids</span>, and a
-  <span class="key">neutralizer</span>. While each of these features varies from thruster to thruster, each
+  <span class="key">neutralizer</span>.<sup class="cite"><a href="#ref-1">1</a></sup> While each of these features
+  varies from thruster to thruster, each
   variation serves the same purpose.
 </p>
 
@@ -596,12 +760,59 @@ footer {
           loading="lazy"></iframe>
 </div>
 
+<!-- ════════════════════ EXEMPLARY ENGINES ════════════════════
+     Two flown gridded ion engines, so the abstraction above has hardware
+     attached to it before the equations start. Both links are outbound to the
+     operator's own page; specs are quoted at the throttle extremes because the
+     Isp/thrust trade in the next section is exactly what the range shows. -->
+<div class="theory-block">
+  <div class="th-hdr">Exemplary Gridded Ion Engines</div>
+
+  <ul class="ex-list">
+    <li class="ex-item">
+      <div class="ex-name">
+        <a href="https://www1.grc.nasa.gov/wp-content/uploads/NEXT-C_FactSheet_11_1_21_rev4.pdf"
+           target="_blank" rel="noopener noreferrer">NEXT ion engine<span class="ext">&#8599;&nbsp;NASA&nbsp;fact&nbsp;sheet (PDF)</span></a>
+      </div>
+      <div class="ex-specs">
+        NASA Glenn &amp; Aerojet Rocketdyne<span class="sep">|</span>36&nbsp;cm beam, two grids<span class="sep">|</span>0.5&ndash;6.9&nbsp;kW<span class="sep">|</span>26&ndash;236&nbsp;mN<span class="sep">|</span><span class="hl-ve">I<sub>sp</sub></span> 1400&ndash;4190&nbsp;s<sup class="cite"><a href="#ref-16">16</a></sup>
+      </div>
+      <figure class="ex-fig">
+        <img src="img/next_c_firing.jpg" loading="lazy"
+             alt="A NEXT-C engineering model firing inside a vacuum chamber. The perforated
+                  circular grid glows blue and a beam of ionized xenon streams out to the right."/>
+        <figcaption>NEXT-C firing in a vacuum chamber at NASA Glenn. The perforated
+          <span class="key">grid</span> and the <span class="hl-ion">ion beam</span> leaving it are both
+          visible. <span class="credit">NASA / Rami Daud, Alcyon Technical Services</span></figcaption>
+      </figure>
+    </li>
+
+    <li class="ex-item">
+      <div class="ex-name">
+        <a href="https://science.nasa.gov/mission/dawn/technology/ion-propulsion/"
+           target="_blank" rel="noopener noreferrer">Dawn&rsquo;s gridded ion engine<span class="ext">&#8599;&nbsp;NASA&nbsp;mission&nbsp;page</span></a>
+      </div>
+      <div class="ex-specs">
+        NASA JPL, NSTAR<span class="sep">|</span>30&nbsp;cm beam, two grids<span class="sep">|</span>0.5&ndash;2.3&nbsp;kW<span class="sep">|</span>19&ndash;91&nbsp;mN<span class="sep">|</span><span class="hl-ve">I<sub>sp</sub></span> 1900&ndash;3100&nbsp;s<sup class="cite"><a href="#ref-15">15</a></sup>
+      </div>
+      <figure class="ex-fig">
+        <img src="img/dawn_blue_glow.jpg" loading="lazy"
+             alt="Artist's concept of NASA's Dawn spacecraft arriving at Ceres with an ion engine
+                  firing, a broad blue beam of xenon ions streaming away to the left."/>
+        <figcaption>Artist&rsquo;s concept of Dawn arriving at Ceres with an <span class="key">NSTAR</span>
+          thruster firing. The blue is the <span class="hl-ion">xenon ions</span> themselves, leaving the
+          grids. <span class="credit">NASA / JPL-Caltech</span></figcaption>
+      </figure>
+    </li>
+  </ul>
+</div>
+
 <!-- ════════════════════ GOVERNING EQUATIONS ════════════════════
      Statements only — every one of these is derived on the applet page
      it comes from (specific impulse, electrostatics, potential,
      acceleration), so no derivation is repeated here. -->
 <div class="theory-block">
-  <div class="th-hdr">Governing Equations</div>
+  <div class="th-hdr">Governing Equations<sup class="cite"><a href="#ref-1">1</a>,<a href="#ref-2">2</a></sup></div>
 
   <div class="eq-panel">
     <span class="eq-step-label">Thrust</span>
@@ -632,7 +843,7 @@ footer {
 
     <div class="eq-divider"></div>
 
-    <span class="eq-step-label">Space-Charge-Limited Current Density</span>
+    <span class="eq-step-label">Space-Charge-Limited Current Density<sup class="cite"><a href="#ref-11">11</a></sup></span>
     $$ \boxed{\;\textcolor{#3DBFFF}{j} = \frac{4}{9}\,\varepsilon_0 \sqrt{\frac{2q}{m}}\,
        \frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}\;} $$
 
@@ -669,11 +880,13 @@ footer {
   <p class="th-body">
     The first stage of the gridded ion engine involves the <span class="key">ionization chamber</span>, which
     ionizes <span class="hl-neutral">neutral propellant atoms</span> so that they can be propelled by the
-    upcoming <span class="key">accelerator grids</span>. Because ionization requires the
+    upcoming <span class="key">accelerator grids</span>.<sup class="cite"><a href="#ref-8">8</a>,<a href="#ref-9">9</a></sup>
+    Because ionization requires the
     <span class="hl-electron">electrons</span> to have a certain amount of energy, ionization chambers are
     equipped with <span class="hl-B">magnetic cusps</span> that lengthen the path an electron travels before
     being collected by the inside walls of the thruster. This way, a given electron has more opportunities to
-    ionize <span class="hl-neutral">neutral propellant particles</span> before it leaves the chamber.
+    ionize <span class="hl-neutral">neutral propellant particles</span> before it leaves the
+    chamber.<sup class="cite"><a href="#ref-10">10</a></sup>
   </p>
 </div>
 
@@ -685,9 +898,10 @@ footer {
     through a strong <span class="hl-E">electric field</span> between <span class="key">accelerating
     grids</span>. A voltage difference is applied between a <span class="key">screen grid</span> and an
     <span class="key">accelerating grid</span> placed a small distance apart, creating a strong electric field
-    that accelerates incoming <span class="hl-ion">ions</span>. However, there exists a limit on how many
+    that accelerates incoming <span class="hl-ion">ions</span>.<sup class="cite"><a href="#ref-1">1</a></sup>
+    However, there exists a limit on how many
     ions can be between the screen and accelerating grid: the more ions that exist there, the more incoming ions
-    are repelled away.
+    are repelled away.<sup class="cite"><a href="#ref-2">2</a>,<a href="#ref-11">11</a></sup>
   </p>
 </div>
 
@@ -698,8 +912,10 @@ footer {
     The third stage of the gridded ion engine neutralizes the <span class="hl-ion">ion beam</span> expelled from
     the accelerating grids by emitting <span class="hl-electron">electrons</span> that join the beam, creating an
     overall neutral jet of <span class="hl-ion">ions</span> and electrons: a
-    <span class="key">plasma jet</span>. If the ion beam were not neutralized, the
-    spacecraft would be left negatively charged, since all the positive charge has left via the jet.
+    <span class="key">plasma jet</span>.<sup class="cite"><a href="#ref-1">1</a></sup> If the ion beam were not
+    neutralized, the
+    spacecraft would be left negatively charged, since all the positive charge has left via the
+    jet.<sup class="cite"><a href="#ref-14">14</a></sup>
   </p>
 </div>
 
@@ -716,17 +932,108 @@ footer {
       The <span class="key">accelerating grid</span> is often the most lifetime-limiting component in a gridded ion
       engine. By the time <span class="hl-ion">ions</span> reach the accelerating grid, they have reached their
       maximum speed. If they collide with the grid instead of passing through the gaps, they
-      &ldquo;<span class="key">sputter</span>&rdquo;, eroding the grid material. Additionally, ionization can occur
+      &ldquo;<span class="key">sputter</span>&rdquo;, eroding the grid
+      material.<sup class="cite"><a href="#ref-13">13</a></sup> Additionally, ionization can occur
       past the accelerating grids. At this point, the newly created ion is moving
       slowly and is highly attracted to the negatively charged accelerator grid, causing erosion. Most gridded ion
       engines implement a &ldquo;<span class="key">decelerator grid</span>&rdquo;, which is
       <span class="hl-neutral">neutral</span>. Ions that come back toward the
-      accelerator grid thus hit the decelerator instead, extending the operating lifetime of the accelerator grid.
+      accelerator grid thus hit the decelerator instead, extending the operating lifetime of the accelerator
+      grid.<sup class="cite"><a href="#ref-12">12</a></sup>
     </div>
   </details>
 </div>
 
-<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+<!-- ════════════════════ REFERENCES ════════════════════
+     Ordered to track the page: general texts, then the Cold War history in the
+     intro, then one entry per stage, then the lifetime claim in the conceptual
+     question, closing with the flown systems (14-16). New entries APPEND here
+     rather than slot into page order, so the numbers already in the prose stay
+     put. An <ol>, so the printed numbers ARE the superscript numbers, so
+     do not reorder these entries without moving the .cite markers with them. -->
+<details class="refs" id="sources">
+  <summary class="refs-hdr">Sources &amp; further reading</summary>
+  <ol>
+    <li id="ref-1">D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion: Ion and Hall Thrusters</em>, JPL Space
+      Science and Technology Series, Wiley, 2008. The standing reference for this lesson: ch. 2 (thrust,
+      specific impulse, propellant utilization), ch. 4 (ring-cusp discharge chambers), ch. 5 (grid optics, the
+      space-charge limit and thrust density) and ch. 6 (hollow-cathode neutralizers).</li>
+    <li id="ref-2">R. G. Jahn, <em>Physics of Electric Propulsion</em>, McGraw-Hill, 1968 (Dover reprint, 2006).
+      Electrostatic acceleration and the space-charge-limited current from first principles.</li>
+    <li id="ref-3">M. Mart&iacute;nez-S&aacute;nchez &amp; J. E. Pollard, &ldquo;Spacecraft Electric Propulsion - An
+      Overview,&rdquo; <em>J. Propulsion and Power</em> <b>14</b>(5), 688&ndash;699 (1998). Where the gridded
+      ion engine sits among the other electric propulsion families.</li>
+    <li id="ref-4">E. Y. Choueiri, &ldquo;A Critical History of Electric Propulsion: The First 50 Years
+      (1906&ndash;1956),&rdquo; <em>J. Propulsion and Power</em> <b>20</b>(2), 193&ndash;203 (2004). The
+      origins of the field before the Cold War programs described above.</li>
+    <li id="ref-5">J. S. Sovey, V. K. Rawlin &amp; M. J. Patterson, &ldquo;Ion Propulsion Development Projects in U.S.: Space
+      Electric Rocket Test I to Deep Space 1,&rdquo; <em>J. Propulsion and Power</em> <b>17</b>(3), 517&ndash;526
+      (2001). The American gridded-ion line, SERT I through DS1.</li>
+    <li id="ref-6">V. Kim et al., &ldquo;History of the Hall Thrusters Development in USSR,&rdquo; IEPC-2007-142, 30th
+      International Electric Propulsion Conference, Florence (2007). The Soviet side of the split.</li>
+    <li id="ref-7">V. V. Zhurin, H. R. Kaufman &amp; R. S. Robinson, &ldquo;Physics of closed drift thrusters,&rdquo;
+      <em>Plasma Sources Sci. Technol.</em> <b>8</b>, R1&ndash;R20 (1999). Hall-thruster physics, including
+      the instabilities that turned early U.S. effort toward the gridded engine.</li>
+    <li id="ref-8">H. R. Kaufman, &ldquo;An Ion Rocket with an Electron-Bombardment Ion Source,&rdquo; NASA TN D-585 (1961)
+     . The original electron-bombardment thruster.</li>
+    <li id="ref-9">H. R. Kaufman, &ldquo;Technology of Electron-Bombardment Ion Thrusters,&rdquo; <em>Advances in Electronics
+      and Electron Physics</em> <b>36</b>, 265&ndash;373 (1974). Discharge-chamber and grid design as a
+      single system.</li>
+    <li id="ref-10">J. S. Sovey, &ldquo;Improved Ion Containment Using a Ring-Cusp Ion Thruster,&rdquo; <em>J. Spacecraft and
+      Rockets</em> <b>21</b>(5), 488&ndash;495 (1984). The cusp field that lengthens the electron path
+      before wall collection, as in the ionization stage.</li>
+    <li id="ref-11">C. D. Child, &ldquo;Discharge from Hot CaO,&rdquo; <em>Phys. Rev.</em> (Series I) <b>32</b>, 492 (1911), and
+      I. Langmuir, &ldquo;The Effect of Space Charge and Residual Gases on Thermionic Currents in High
+      Vacuum,&rdquo; <em>Phys. Rev.</em> <b>2</b>, 450 (1913). The space-charge-limited current density
+      quoted above.</li>
+    <li id="ref-12">R. E. Wirz, J. R. Anderson, D. M. Goebel &amp; I. Katz, &ldquo;Decel Grid Effects on Ion Thruster Grid
+      Erosion,&rdquo; <em>IEEE Trans. Plasma Sci.</em> <b>36</b>(5), 2122&ndash;2129 (2008). Why a third,
+      neutral grid shields the accelerator from charge-exchange erosion.</li>
+    <li id="ref-13">A. Sengupta et al., &ldquo;An Overview of the Results from the 30,000 Hr Life Test of Deep Space 1 Flight
+      Spare Ion Engine,&rdquo; AIAA-2004-3608, 40th Joint Propulsion Conference (2004). Measured grid
+      erosion as the life-limiting mechanism.</li>
+    <li id="ref-14">J. R. Brophy, &ldquo;NASA&rsquo;s Deep Space 1 ion engine,&rdquo; <em>Rev. Sci. Instrum.</em>
+      <b>73</b>(2), 1071&ndash;1078 (2002). The flight system end to end, neutralizer included.</li>
+    <li id="ref-15">J. R. Brophy, &ldquo;The Dawn Ion Propulsion System,&rdquo; <em>Space Sci. Rev.</em> <b>163</b>,
+      251&ndash;261 (2011). The three 30&nbsp;cm NSTAR thrusters and the throttle range quoted above.</li>
+    <li id="ref-16">M. J. Patterson &amp; S. W. Benson, &ldquo;NEXT Ion Propulsion System Development Status and
+      Performance,&rdquo; AIAA-2007-5199, 43rd Joint Propulsion Conference, Cincinnati (2007). The NEXT
+      thruster and its measured throttle table.</li>
+  </ol>
+</details>
+
+<footer>
+  <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+    <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+  </a>
+  <div class="foot-title">Propulsion Applets 2026</div>
+  <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
+</footer>
+
+<!-- ════════════════════ CITATION JUMP ════════════════════
+     The source list is collapsed by default, so a #ref-N target is inside a
+     hidden subtree and the browser has nothing to scroll to. Open the list
+     first, on click (synchronously, before the default jump runs) and on any
+     hash change, which also covers arriving with a #ref-N URL already set. -->
+<script>
+"use strict";
+(function () {
+  const box = document.getElementById('sources');
+  if (!box) return;
+
+  function revealFromHash() {
+    if (location.hash.indexOf('#ref-') === 0) box.open = true;
+  }
+
+  document.addEventListener('click', function (e) {
+    const a = e.target.closest && e.target.closest('a[href^="#ref-"]');
+    if (a) box.open = true;
+  });
+
+  window.addEventListener('hashchange', revealFromHash);
+  revealFromHash();
+})();
+</script>
 
 </body>
 </html>

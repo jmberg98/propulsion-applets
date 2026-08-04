@@ -214,17 +214,36 @@
 
     /* ── Footer ────────────────────────────────────────────────── */
     footer {
-      width      : var(--page-w);
-      margin-top : auto;
-      padding-top: 16px;
-      border-top : 1px solid var(--border);
-      font-size  : 18.5px; /* 16.5px → 18.5px */
-      color      : var(--text-muted);
-      display    : flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap  : wrap;
-      gap        : 8px;
+      width          : var(--page-w);
+      margin-top     : 34px;
+      padding-top    : 26px;
+      border-top     : 1px solid var(--border);
+      display        : flex;
+      flex-direction : column;
+      align-items    : center;
+      gap            : 12px;
+      text-align     : center;
+      color          : var(--text-muted);
+    }
+
+    footer .foot-logo {
+      display   : block;
+      height    : 54px;
+      width     : auto;
+      opacity   : 0.88;
+      transition: opacity 0.15s ease;
+    }
+    footer a:hover .foot-logo { opacity: 1; }
+
+    footer .foot-title {
+      font-size     : 17px;
+      letter-spacing: 0.3px;
+      color         : var(--text-secondary);
+    }
+
+    footer .foot-cred {
+      font-size: 15px;
+      color    : var(--text-muted);
     }
   </style>
 </head>
@@ -465,8 +484,11 @@
 
   <!-- ── Footer ──────────────────────────────────────────────── -->
   <footer>
-    <span>Jordan Bergmann &nbsp;·&nbsp; MIT &nbsp;·&nbsp; 2026</span>
-    <span>MIT Propulsion Applets</span>
+    <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+      <img class="foot-logo" src="assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+    </a>
+    <div class="foot-title">Propulsion Applets 2026</div>
+    <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
   </footer>
 
   <!-- ── KaTeX ───────────────────────────────────────────────── -->

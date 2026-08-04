@@ -412,7 +412,7 @@ details.deriv-detail > summary:focus-visible {
   font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
-  margin-bottom: 6px;
+  margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
@@ -504,18 +504,12 @@ details.deriv-detail > summary:focus-visible {
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 /* ── KaTeX font sizing ──────────────────────────────── */
 .katex { font-size: 1.15em !important; }
 
-/* ── Footer ─────────────────────────────────────────── */
-footer {
-  margin-top: 10px;
-  font-size: 18.5px;
-  color: var(--text-muted);
-}
 
 /* ── Applet navigation ─────────────────────────────── */
 .applet-nav {
@@ -548,6 +542,40 @@ footer {
 }
 .applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
 .applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  width          : var(--page-w);
+  margin-top     : 34px;
+  padding-top    : 26px;
+  border-top     : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 12px;
+  text-align     : center;
+  color          : var(--text-muted);
+}
+
+footer .foot-logo {
+  display   : block;
+  height    : 54px;
+  width     : auto;
+  opacity   : 0.88;
+  transition: opacity 0.15s ease;
+}
+footer a:hover .foot-logo { opacity: 1; }
+
+footer .foot-title {
+  font-size     : 17px;
+  letter-spacing: 0.3px;
+  color         : var(--text-secondary);
+}
+
+footer .foot-cred {
+  font-size: 15px;
+  color    : var(--text-muted);
+}
 </style>
 </head>
 <body>
@@ -587,7 +615,7 @@ footer {
 </div>
 <!-- ════════════════════ STAGE 2 — ACCELERATING GRIDS ════════════════════ -->
 <div class="quiz-section">
-  <div class="quiz-hdr">Stage 2 &mdash; Accelerating Grids</div>
+  <div class="quiz-hdr">Guiding Questions</div>
 
   <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">The more <span class="hl-ion">ions</span> that pass through the accelerator grids, the greater our
@@ -671,11 +699,11 @@ footer {
   <div class="th-hdr">Child&ndash;Langmuir Law</div>
 
   <p class="th-body">
-    In steady state, the <span class="hl-ion">ions</span> streaming between the grids carry their own positive
-    <span class="hl-phi">space charge</span>, which bends the <span class="hl-phi">potential</span> &phi;(x) set up by
-    the grids. Solving Poisson&rsquo;s equation for this self-consistent field gives the maximum
-    <span class="hl-ion">current density</span> the gap can transmit &mdash; the
-    <span class="key">Child&ndash;Langmuir law</span>.
+    The <span class="hl-ion">current density</span> in between the screen and accelerator grid is limited by the
+    <span class="key">Child&ndash;Langmuir Law</span>. If too many positively charged
+    <span class="hl-ion">ions</span> exist between the two grids, the next <span class="hl-ion">ion</span> to be
+    extracted by the <span class="hl-E">grid field</span> would be repelled by the amount of ions in between the
+    grids.
   </p>
 
   <div class="eq-panel">
@@ -743,32 +771,10 @@ footer {
   <div class="th-hdr">Thrust Density</div>
 
   <p class="th-body">
-    The <span class="hl-thrust">thrust</span> the grids can produce per unit area is the
-    <span class="hl-E">electric pressure</span> pulling on the accelerator grid. Evaluating the Maxwell stress tensor at
-    space-charge saturation caps the <span class="hl-thrust">thrust density</span> of a gridded ion engine.
-  </p>
-
-  <p class="th-body">
-    An ion does not keep every volt it falls through. The accelerator grid is biased <em>below</em> the potential of the
-    beam plasma downstream, so the ion is pulled down through the full <span class="hl-E">total voltage $V_T$</span> and
-    then <span class="key">decelerated</span> back up on its way out. What it keeps is the
-    <span class="hl-E">net voltage $V_{net}$</span>, and <span class="hl-E">$R = V_{net}/V_T$</span> is the
-    <span class="key">net-to-total voltage ratio</span> (about $0.8$&ndash;$0.9$ in a real engine).
-  </p>
-
-  <p class="th-body">
-    So why not simply set <span class="hl-E">$R = 1$</span> and keep every volt? Because that negative bias is doing a
-    second job. A gridded engine throws out nothing but positive charge, so a
-    <span class="key">neutralizer cathode</span> downstream feeds one <span class="hl-electron">electron</span> into the
-    beam for every <span class="hl-ion">ion</span> &mdash; and the un-neutralized beamlet leaving the apertures is a
-    positive hill that pulls those electrons back <em>upstream</em>, toward the grids. The
-    <span class="key">accelerator grid</span>&rsquo;s bias is the only barrier standing in their way. Raise
-    <span class="hl-E">$R$</span> in the applet above and watch it fail: the
-    <span class="hl-electron">electron jet</span> bends further and further into the accelerator grid until it is
-    striking the aperture and <span class="key">backstreaming</span> straight through into the discharge chamber,
-    carrying current the wrong way and dumping power where no <span class="hl-thrust">thrust</span> comes of it. Note
-    that raising <span class="hl-E">$V_T$</span> at the same <span class="hl-E">$R$</span> restores the barrier &mdash;
-    what stops the electrons is $|V_{accel}| = (1-R)\,V_T$ in <em>volts</em>, not the ratio on its own.
+    The <span class="hl-thrust">thrust density</span> is important because it helps us determine the approximate
+    <span class="hl-thrust">thrust</span> of our device and approximate how well the device would perform at
+    different sizes. For example, a large <span class="hl-thrust">thrust density</span> is optimal for a miniature
+    thruster, as these thrusters have smaller exit areas.
   </p>
 
   <div class="eq-panel">
@@ -818,7 +824,13 @@ footer {
   </div>
 </div>
 
-<footer>Created by Jordan Bergmann &mdash; MIT Propulsion &mdash; 2026</footer>
+<footer>
+  <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+    <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+  </a>
+  <div class="foot-title">Propulsion Applets 2026</div>
+  <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
+</footer>
 
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>

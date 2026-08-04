@@ -359,25 +359,28 @@
   #app.mode-ion #ion-caption { display: block; }
   #app.circuit-on #ion-caption { display: none; }   /* the circuit overlay needs the space */
 
-  /* Spacecraft-charge indicator — a "−" sign that sits over the thruster body in
-     Neutralizer mode and GROWS toward a maximum as the craft charges negative (JS sets
-     its position/size/opacity each frame). Hidden when the plume is neutralized. */
+  /* Spacecraft-charge indicator — a ⊖ that sits over the thruster body in Neutralizer mode
+     and GROWS toward a maximum as the craft charges negative (JS sets its position/size/
+     opacity each frame). Hidden when the plume is neutralized.
+     It is the SAME glyph the particles are drawn with (see dpAtlasCanvas): a soft disc in the
+     electron's yellow carrying a dark minus bar. It used to be a bare red text "−", which
+     matched nothing in the palette and read as a sticker laid over the render rather than as
+     charge on the hull. */
   #sc-minus {
     position: absolute;
     display: none;
     z-index: 8;
     pointer-events: none;
-    /* -62% (vs −50%) lifts the thin minus bar — which renders low in a line-height:1 box at
-       this size — up so it reads centred vertically on the thruster body. Proportional to the
-       glyph, so it stays centred as the sign grows with charge. */
-    transform: translate(-50%, -62%);
-    line-height: 1;
-    font-weight: 800;
-    color: #ff5a46;
+    /* The glyph is symmetric about its own centre, so a plain −50%/−50% centres it. The old
+       −62% fudge existed only because a text "−" sits low in its line box. */
+    transform: translate(-50%, -50%);
     opacity: 0;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.35);
     transition: opacity 0.2s ease;
+    /* The same soft halo the plume and the particle sprites carry, so the sign sits IN the
+       scene instead of on top of it. */
+    filter: drop-shadow(0 0 16px rgba(255,233,77,0.30));
   }
+  #sc-minus svg { display: block; width: 100%; height: 100%; }
   #app.mode-neu #sc-minus { display: block; }
 
   /* Loading overlay */
@@ -918,7 +921,23 @@
 
     <!-- Spacecraft-charge indicator — a "−" over the thruster that grows as it charges
          negative (Neutralizer mode; positioned/sized by JS). -->
-    <div id="sc-minus" aria-hidden="true">&minus;</div>
+    <!-- Geometry is the atlas glyph's, in a 100-box: disc r = 100·DP_DISC = 44, bar half-length
+         r·0.46 = 20.24, bar width r·0.24 = 10.56, ink = DP_SYM.e. Keep these in step with
+         dpAtlasCanvas() so the hull's charge and the particles stay the same object. -->
+    <div id="sc-minus" aria-hidden="true">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="sc-disc" cx="50%" cy="50%" r="50%">
+            <stop offset="0"    stop-color="#ffe94d"/>
+            <stop offset="0.82" stop-color="#ffe94d"/>
+            <stop offset="1"    stop-color="#ffe94d" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <circle cx="50" cy="50" r="44" fill="url(#sc-disc)"/>
+        <line x1="29.76" y1="50" x2="70.24" y2="50"
+              stroke="#2a2405" stroke-width="10.56" stroke-linecap="round"/>
+      </svg>
+    </div>
 
     <!-- Ionization caption — sits under the thruster; explains the anode-wall flash. -->
     <div id="ion-caption">Each time an electron is collected, the anode walls will light up <span class="mag">magenta</span>.</div>
@@ -1493,6 +1512,8 @@ let anodeComp = null;          // the discharge-chamber wall (flashes when an el
 let injectorComp = null;       // propellant injector (section-overlay so its hollow bore shows through the body)
 let cathodeComp  = null;        // bombardment cathode (same feed-through-over-body treatment as the injector)
 let shellComp    = null;        // outer housing/rear plate (its cut-face cap is extended to fill the feed-through bores)
+let shellCorners = null;        // …and its 8 world-space bbox corners, projected each frame to find
+                                //    where the hull's centre falls ON SCREEN (see updateChargeBar)
 const borePlugs = [];          // stencil-only cylinders that add the bore columns to the SHELL cap, so the wall reads solid (no separate object)
 let gridBoreLiner = null;      // ghost-only bore sleeve across the grid stack (built in buildModel) — transparent-view tone match
 let gridBoreLinerMat = null;   // its shared material (styled with the body ghosts in setGridsTransparent)
@@ -1850,6 +1871,16 @@ function buildModel(data){
   // disabled so it draws unconditionally) so the cross-section reads as SOLID wall; the feed tube
   // still draws over it (renderOrder 45). Spans the rear plate; hidden in the opaque 3-D view.
   shellComp = comps.find(c => c.name === 'Outer_Shell_Housing');
+  /* Where the hull's charge indicator sits, measured off the mesh rather than written down, so a
+     regenerated model (build_model.py → JSON) carries it along instead of stranding the sign off
+     to one side. The corners are kept, not the centre: see updateChargeBar for why. */
+  if (shellComp){
+    const hb = new THREE.Box3().setFromObject(shellComp.mesh);
+    shellCorners = [];
+    for (const x of [hb.min.x, hb.max.x])
+      for (const y of [hb.min.y, hb.max.y])
+        for (const z of [hb.min.z, hb.max.z]) shellCorners.push(new THREE.Vector3(x, y, z));
+  }
   if (shellComp){
     // Fill the rear-plate bores by adding each bore column to the SHELL's OWN stencil, so the shell's
     // existing cut-face cap paints them solid (wall colour, seamless) — NOT a separate capped object,
@@ -4848,7 +4879,7 @@ function applyStageState(){
   if (nst){
     const ok = neuOn;
     nst.className = 'ix-status ' + (ok ? 'ok' : 'warn');
-    nst.textContent = ok ? 'Quasineutral · ' : 'Not quasineutral · ';
+    nst.textContent = ok ? 'Quasineutral Beam · ' : 'Not Quasineutral Beam · ';
     const eq = document.createElement('span');
     nst.appendChild(eq);
     const tex = ok ? 'n_\\text{ion} \\approx n_\\text{electron}'
@@ -5946,16 +5977,16 @@ function gapTimeScale(){
 /* Height of the virtual-anode hump above V_T, in units of V_T, and the speed needed to clear it.
    Zero at or below saturation (the profile never rises above the emitter). */
 function gapBarrier(s){
-  if (s <= 1) return { uStar:0, vBar:0 };
+  if (s <= 1) return { uStar:0, phiMax:1, vBar:0 };      // no hump: φ(0) = V_T is the highest point
   // dφ/du = 0 ⇒ (4/3)s·u^{1/3} = s − 1, so the peak of φ (and the zero of E_net) sits at:
   const r = 3 * (s - 1) / (4 * s);                       // = u*^{1/3}
   const uStar = r * r * r;
   const phiMax = (1 - uStar) + s * (uStar - Math.pow(uStar, 4/3));   // in units of V_T
-  return { uStar, vBar: Math.sqrt(2 * GAP_A * Math.max(0, phiMax - 1)) };
+  return { uStar, phiMax, vBar: Math.sqrt(2 * GAP_A * Math.max(0, phiMax - 1)) };
 }
 function updateGapIons(dtRaw, s){
   const dt = Math.min(GAP_DT_MAX, dtRaw * gapTimeScale());   // transit time follows the field (see gapTimeScale)
-  const { vBar } = gapBarrier(s);
+  const { uStar, phiMax, vBar } = gapBarrier(s);
   const refusedFrac = s > 1 ? 1 - 1 / s : 0;             // surplus over the limit, which cannot be transmitted
   // Inject at a rate ∝ s: turning the slider up draws more current at the emitter, whether or not
   // the gap can carry it.
@@ -5986,13 +6017,37 @@ function updateGapIons(dtRaw, s){
     // ion clear of the grid. Past GAP_HOLD_B it is in the quasineutral plasma, where there is no
     // field left to push it: it simply coasts to a stop, which is also what stops it running out to
     // the backstop before it has finished dissolving.
+    /* Taken ANALYTICALLY, not sampled. φ/V_T = (1−u) + s(u − u^{4/3}), so the slope is
+       −1 + s(1 − (4/3)u^{1/3}) — exact everywhere in the gap, and the one line below.
+       It used to be a central difference of half-width 0.008 in u, and that quietly broke the one
+       thing this stage exists to show. Past saturation the surplus is refused by the virtual anode,
+       whose peak sits at u* = (3(s−1)/4s)³ — that is 3.2e-6 at s = 1.02, and it does not grow as
+       wide as the 0.008 stencil until s ≈ 1.36. Below that the difference straddled the peak and
+       reported the DOWNHILL side of it: at s = 1.02 it returned −0.184 where the true slope is
+       +0.02. Every refused ion was therefore launched into a forward-accelerating field and sailed
+       through the gap it had just been refused by. Swept over the refused launch band, 100% of them
+       crossed at s = 1.02 … 1.20 against 0% now; by s ≈ 1.6 the hump was wide enough for the stencil
+       to resolve and the two agreed, which is why this only ever showed up near 100%.
+       The exact form also restores E(0) = 0 at saturation — the stencil read −0.2 there, a forward
+       field at the emitter, contradicting the E(0) = 0 flash this same stage draws on the crossing. */
     if (p.u >= -GAP_HOLD_B && p.u < 1){
       const uc = Math.max(0, p.u);
-      const a = Math.max(0, uc - 0.008), b = Math.min(1, uc + 0.008);
-      slope = (accelPhi(b, s) - accelPhi(a, s)) / ((b - a) * ACCEL.vTotal);
+      slope = -1 + s * (1 - (4 / 3) * Math.cbrt(uc));
     }
     p.v += (-GAP_A * slope) * dt;
     p.u += p.v * dt;
+    /* Is this ion STILL being turned back? The ring has to answer that from the ion's current
+       energy against the current barrier, because the sliders move under ions already in flight.
+       It used to be the coin flip made at launch and never revisited: drag the space charge back
+       below saturation and ringed ions accelerated out of the exit anyway — ions marked refused in
+       a gap that was by then refusing nothing.
+       An ion clears the crest when its energy reaches the crest's potential, and energy is
+       conserved along the trajectory, so this is a stable label rather than a per-frame flicker —
+       it moves only when the slider does. Past the crest there is nothing left to climb; below
+       saturation there is no crest at all. Upstream of the screen grid the flag is left alone: an
+       ion out there has already been turned back and is on its way into the discharge. */
+    if (phiMax <= 1 || p.u >= uStar) p.refused = false;
+    else if (p.u >= 0) p.refused = (p.v * p.v) / (2 * GAP_A) + accelPhi(p.u, s) / ACCEL.vTotal < phiMax;
     // Clear of the gap and past the grace on that side: dissolve on the timer, at unchanged speed.
     if (p.u > 1 + GAP_HOLD_F)   p.fade += (dt / GAP_FADE_F) * p.fadeK;
     else if (p.u < -GAP_HOLD_B) p.fade += (dt / GAP_FADE_B) * p.fadeK;
@@ -6113,6 +6168,21 @@ const NEU_E = {
      tail at that speed would be longer than the frame and would read as a drawn ray, not a blur. */
   streak:    0.03,
   streakMax: 24,
+  /* Thin-stream compensation, applied from the narrowest gap (0) to the widest (1).
+     Emission is metered off the beam — one electron per ion — and the beam's own rate falls as
+     1/d, so a wide gap genuinely runs a small fraction of the stream a narrow one does. Measured
+     live at d = 0.4 / 0.8 / 1.2 / 1.6 mm: 126 / 63 / 42 / 31.5 emitted per second, and 156 / 56 /
+     27 / 15 electrons actually on the frame. The population falls faster than the rate because the
+     frame spans fewer gap-lengths as d grows, so each electron also crosses it in less time — and
+     those last 15 are spread over a LONGER run-in, which is what made the jet read as a few stray
+     dots rather than a stream.
+     That count is the current balance and it does not move. Only the weight each electron is drawn
+     with does: heavier glyph, brighter and longer tail, so the eye still joins them into a jet.
+     Everything here is display-only — no threshold, trajectory or verdict reads any of it. */
+  thinGlyph: 0.34,  // glyph radius, ×(1 + this) at the widest gap:   2.9 px → 3.9
+  thinAlpha: 0.35,  // tail alpha, + this at the widest gap:          0.40 → 0.75
+  thinWidth: 0.70,  // tail width, + this px at the widest gap:       1.5 px → 2.2
+  thinStreak: 0.45, // tail length cap, ×(1 + this) at the widest:    24 px → 35
 };
 /* Sized for the busiest corner of the sliders. Now that emission tracks the beam (NEU_E.perIon), the
    stream runs at ~148/s at the widest V_T on the narrowest gap, and an electron lives about 0.8 s
@@ -6130,9 +6200,8 @@ let eleEmitRate = 0;
    them does not leave the flashes stranded off the metal they landed on. */
 const ELE_HITS = [];
 const ELE_HIT_T = 0.55;             // how long a strike flash lives, seconds
-const ELE_RATE_TAU = 0.7;           // leak time of the two event counters below
+const ELE_RATE_TAU = 0.7;           // leak time of the event counter below
 let eleHitAcc = 0;                  // smoothed strikes on the accel grid, events/ELE_RATE_TAU
-let eleBackAcc = 0;                 // smoothed electrons making it clear through into the discharge
 /* Beamlet space-charge potential, volts above the plume. Highest at the bore exit where the beam is
    still pure ion charge, falling downstream as the neutralizer electrons mix in. Radially it is the
    uniform-cylinder solution referenced to zero at a plume boundary Rw — value AND slope continuous
@@ -6219,7 +6288,7 @@ function eleStrike(p, g, kind){
 function updateNeuElectrons(dt, g, s){
   const h = Math.min(0.04, dt);
   const decay = Math.exp(-h / ELE_RATE_TAU);
-  eleHitAcc *= decay; eleBackAcc *= decay;
+  eleHitAcc *= decay;
   for (let i = ELE_HITS.length - 1; i >= 0; i--){ if ((ELE_HITS[i].t -= h) <= 0) ELE_HITS.splice(i, 1); }
   /* Emission from the neutralizer, off the frame downstream and off the beam axis — METERED OFF THE
      BEAM. This is the same count the gap ions are injected at (GAP_RATE·s, paced by gapTimeScale so
@@ -6301,7 +6370,7 @@ function updateNeuElectrons(dt, g, s){
       const ry = Math.abs(p.y);
       if (p.x <= g.Xexit && p.x >= 1 - 0.004 && ry > g.rA){ eleStrike(p, g, 'accel');  dead = true; break; }
       if (p.x <= 0 && p.x >= -g.tS && ry > g.rS)          { eleStrike(p, g, 'screen'); dead = true; break; }
-      if (p.x < -0.26){ eleBackAcc += 1; p.alive = false; dead = true; break; }   // into the discharge
+      if (p.x < -0.26){ p.alive = false; dead = true; break; }   // into the discharge
     }
     if (dead) continue;
     if (p.x > g.Xmax + 0.06 || p.y < g.Ytop || p.y > g.Ybot || p.age > 14) p.alive = false;
@@ -6309,6 +6378,14 @@ function updateNeuElectrons(dt, g, s){
 }
 function drawNeuElectrons(ctx, g, edgeA){
   const K = NEU_E.streak * g.L;
+  // How thin the stream is running, 0 at the narrowest gap → 1 at the widest. See NEU_E.thin*:
+  // the population is metered off the beam and falls ~10× across this span, so the drawing weight
+  // rises to meet it. Nothing below this line feeds back into the simulation.
+  const w = g.dFrac;
+  const rGlyph    = 2.9 * (1 + NEU_E.thinGlyph * w);
+  const aStreak   = 0.4 + NEU_E.thinAlpha * w;
+  const wStreak   = 1.5 + NEU_E.thinWidth * w;
+  const capStreak = NEU_E.streakMax * (1 + NEU_E.thinStreak * w);
   for (const p of ELE_POOL){
     if (!p.alive) continue;
     const x = g.sx(p.x), y = g.sy(p.y);
@@ -6319,12 +6396,12 @@ function drawNeuElectrons(ctx, g, edgeA){
     if (a <= 0.01) continue;
     let tx = p.vx * K, ty = p.vy * K;                             // motion tail — see NEU_E.streak
     const tl = Math.hypot(tx, ty);
-    if (tl > NEU_E.streakMax){ const c = NEU_E.streakMax / tl; tx *= c; ty *= c; }
-    ctx.globalAlpha = a * 0.4;
-    ctx.strokeStyle = DP_COL.e; ctx.lineWidth = 1.5;
+    if (tl > capStreak){ const c = capStreak / tl; tx *= c; ty *= c; }
+    ctx.globalAlpha = a * aStreak;
+    ctx.strokeStyle = DP_COL.e; ctx.lineWidth = wStreak;
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - tx, y - ty); ctx.stroke();
     ctx.globalAlpha = a;
-    dpGlyph(ctx, x, y, 'e', 2.9);                                 // the same ⊖ glyph as the chamber soup
+    dpGlyph(ctx, x, y, 'e', rGlyph);                              // the same ⊖ glyph as the chamber soup
   }
   ctx.globalAlpha = 1;
   // Where the stream comes from. The cathode itself is off the frame, downstream and to the side of
@@ -6720,6 +6797,7 @@ function drawAccelGraph(dt){
                          -Math.max(rS * 2.6 / eLwide, rEnv(Xemit) * 1.35 / eL));
   const eGeo = {
     L: eL,
+    dFrac,                                                  // 0 at the narrowest gap … 1 at the widest
     sx: X => xL + X * eL,  sy: Y => yMid + Y * eL,
     rA: rA / eL, rS: rS / eL, rPlate: (rS + PLATE_H) / eL,  // bore radii and the plates' outer edge
     tA: W_ACC / eL, tS: W_SCR / eL,                         // plate thicknesses
@@ -6734,7 +6812,7 @@ function drawAccelGraph(dt){
   };
   if (ACCEL.showNeuE) updateNeuElectrons(dt, eGeo, s);
   else { for (const p of ELE_POOL) p.alive = false; ELE_HITS.length = 0;
-         eleHitAcc = eleBackAcc = eleEmitRate = 0; }
+         eleHitAcc = eleEmitRate = 0; }
 
   // ── Discharge-chamber plasma, upstream of the screen grid ─────────
   // Painted first: it is the background the axes, the beam and the field arrows all sit on.
@@ -6882,25 +6960,23 @@ function drawAccelGraph(dt){
   gridPlates(xR, W_ACC, +1, rA, 'rgba(255,138,107,0.9)', 'rgba(255,138,107,0.17)', 'rgba(255,138,107,0.35)');
 
   /* ── What the electron stream is doing to the grid ────────────────────────────────────────
-     Two readouts, both driven by counted events rather than by the slider: the strike flashes on
-     the metal that stopped an electron, and — when the saddle has dropped far enough that a
-     measurable part of the jet is getting through — a caption naming it. Below the backstreaming
-     limit both are simply absent, which is the correct report: a properly biased accel grid is a
-     wall, and there is nothing to see.
+     Shown by the strikes themselves — the flash on the metal that stopped an electron, and the
+     heat halo on the bore where they are landing. Below the backstreaming limit both are simply
+     absent, which is the correct report: a properly biased accel grid is a wall, and there is
+     nothing to see.
 
-     Both are thresholded as a FRACTION OF THE STREAM, not as events per second. Now that emission
-     is metered off the beam (NEU_E.perIon), the jet runs at 22/s on the weakest V_T and 148/s in
+     Thresholded as a FRACTION OF THE STREAM, not as events per second. Now that emission is
+     metered off the beam (NEU_E.perIon), the jet runs at 22/s on the weakest V_T and 148/s in
      the opposite corner of the sliders, so a fixed events/second threshold would have named the same
      physical state at one voltage and stayed silent at another. "One electron in fifty is going into
      the grid" means the same thing wherever the sliders are, which is what a verdict has to do. */
   if (ACCEL.showNeuE){
     drawEleHits(ctx, eGeo);
-    const hitR = eleHitAcc / ELE_RATE_TAU, backR = eleBackAcc / ELE_RATE_TAU;   // events per second
+    const hitR = eleHitAcc / ELE_RATE_TAU;                                      // events per second
     // No beam means no stream, and a fraction of nothing is not a verdict: with the beam-current
-    // slider at zero both readouts go quiet rather than dividing the last few decaying strikes by
+    // slider at zero the readout goes quiet rather than dividing the last few decaying strikes by
     // an emission rate that is now zero.
     const hitF = eleEmitRate > 0 ? hitR / eleEmitRate : 0;
-    const backF = eleEmitRate > 0 ? backR / eleEmitRate : 0;
     // The bore runs hot where the electrons land: a warm halo on the aperture mouth, scaled by the
     // strike rate. Electrons cannot sputter the grid (the ions do that) — this is a heat load.
     // Comes on at R ≈ 0.92, just past the point where the panel calls the margin gone.
@@ -6914,28 +6990,6 @@ function drawAccelGraph(dt){
         grd.addColorStop(1, 'rgba(255,233,77,0)');
         ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cxh, gy, 26, 0, 6.283); ctx.fill();
       }
-    }
-    /* Named only once it is really happening. The bore glow comes on first, at the first few
-       strikes; the caption waits until a steady part of the stream is going in, rather than crying
-       wolf at the first stray electron. Measured onset with these thresholds is R ≈ 0.94 — a notch
-       past the R > 0.90 at which the panel calls the margin gone, and deliberately so. The two are
-       answering different questions: the panel's is a DESIGN limit (a real thruster is flown with
-       margin in hand — NSTAR sits at R ≈ 0.86), the caption's is the physical onset, which for this
-       geometry lands in the low 0.9s. Reading them together is the lesson: the warning comes first,
-       and the failure it warns about arrives shortly after. */
-    if (backF > 0.004 || hitF > 0.018){
-      const cxh = xR + W_ACC / 2, cy = yPlateT - 12;
-      ctx.textAlign = 'center'; ctx.font = '700 11px Barlow, sans-serif';
-      const txt = 'ELECTRON BACKSTREAMING';
-      const tw = ctx.measureText(txt).width;
-      ctx.fillStyle = 'rgba(9,9,9,0.85)'; ctx.fillRect(cxh - tw/2 - 5, cy - 11, tw + 10, 15);
-      ctx.fillStyle = DP_COL.e; ctx.fillText(txt, cxh, cy);
-      // A short arrow the way they are going: upstream, into the discharge chamber.
-      ctx.strokeStyle = DP_COL.e; ctx.lineWidth = 1.6;
-      ctx.beginPath(); ctx.moveTo(cxh + 14, cy + 10); ctx.lineTo(cxh - 14, cy + 10); ctx.stroke();
-      ctx.fillStyle = DP_COL.e;
-      ctx.beginPath(); ctx.moveTo(cxh - 18, cy + 10); ctx.lineTo(cxh - 10, cy + 6.5); ctx.lineTo(cxh - 10, cy + 13.5);
-      ctx.closePath(); ctx.fill();
     }
   }
 
@@ -7182,7 +7236,11 @@ function drawAccelGraph(dt){
   agLabel('phi', '\\phi',        xL - 22, yTop + 6,   'axis');
   agLabel('z',   'z',               xR + W_ACC + 26, yBase + 1,  'axis');
   agLabel('d',   'd',               xR, yBase + 18,               'axis');   // marks the accel grid's upstream FACE
-  agLabel('VT',  '\\phi = V_T',  Math.min(xR + W_ACC + 26, W - 30), yVT, 'screen');   // clear of the accel plate, clamped on-screen at wide gaps
+  // φ = V_T rides the dashed level INSIDE the gap, right-aligned just short of the accel plate.
+  // It used to sit past that plate, out in the plume, where it collided with the neutralizer's
+  // "e⁻" label — and it was labelling a level that does not exist out there anyway. The gap is
+  // never narrower than 0.28·W, so the label always clears the screen grid at its left.
+  agLabel('VT',  '\\phi = V_T',  xR - 12, yVT - 14, 'screen e-anchor-r');
   // Grid-field label sits on its own row in the clear band above the profile (semi-transparent black bg).
   agLabel('vac', 'E_{grid} = V_T/d = \\text{' + Egrid_Vm + ' V/m}', ux(0.42), yVT - 56, 'vac');
 }
@@ -7257,16 +7315,33 @@ function updateChargeBar(dt){
   scPot += (target - scPot) * Math.min(1, dt * 1.8);
   if (!minus) return;
   const c = Math.max(0, Math.min(1, -scPot));          // 0 (neutral) … 1 (fully charged)
-  // Pin the "−" over the thruster body — project a body-centre model point to the screen.
+  /* Centre the ⊖ on the hull AS DRAWN: project the housing's bounding box and take the middle of
+     its SCREEN extent. Projecting the box's own centre point is not the same thing — the side
+     view is slightly off-axis, so that lands about 23 px downstream of where the silhouette
+     actually sits, and the old hand-picked (20, 4, 0) was further off again, up and forward of
+     the body's middle. Measured against the rendered hull (its grey pixels), the midpoint below
+     is within 3 px of their centroid. */
   const vp = $('viewport'), w = vp.clientWidth, h = vp.clientHeight;
-  _proj.set(20, 4, 0).project(camera);
-  minus.style.left = ((_proj.x * 0.5 + 0.5) * w) + 'px';
-  minus.style.top  = ((-_proj.y * 0.5 + 0.5) * h) + 'px';
-  // Scale the "−" by how far we've zoomed FROM the default framing, so it keeps a fixed size
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  if (shellCorners){
+    for (const v of shellCorners){
+      _proj.copy(v).project(camera);
+      const sx = (_proj.x * 0.5 + 0.5) * w, sy = (-_proj.y * 0.5 + 0.5) * h;
+      if (sx < x0) x0 = sx;  if (sx > x1) x1 = sx;
+      if (sy < y0) y0 = sy;  if (sy > y1) y1 = sy;
+    }
+  } else {
+    _proj.set(20, 4, 0).project(camera);
+    x0 = x1 = (_proj.x * 0.5 + 0.5) * w;  y0 = y1 = (-_proj.y * 0.5 + 0.5) * h;
+  }
+  minus.style.left = ((x0 + x1) / 2) + 'px';
+  minus.style.top  = ((y0 + y1) / 2) + 'px';
+  // Scale the ⊖ by how far we've zoomed FROM the default framing, so it keeps a fixed size
   // RELATIVE to the spacecraft: at the default zoom the ratio is 1 (unchanged look); zoom out
   // and the sign shrinks with the craft instead of ballooning (its old fixed-pixel behaviour).
   const zoom = neuPxPerWorld0 ? measurePxPerWorld() / neuPxPerWorld0 : 1;
-  minus.style.fontSize = (40 + c * 230) * zoom + 'px';   // grows with charge, fixed vs. the craft
+  const box = (23 + c * 84) * zoom;                      // grows with charge, fixed vs. the craft
+  minus.style.width = box + 'px'; minus.style.height = box + 'px';
   minus.style.opacity  = c < 0.03 ? 0 : Math.min(1, 0.35 + c);
 }
 
