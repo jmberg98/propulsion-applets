@@ -369,16 +369,24 @@ details.deriv-detail > summary:focus-visible {
   margin: 0 18px 12px;
 }
 
-/* ── Embedded viewer / applet iframe ────────────────── */
+/* ── Embedded viewer / applet iframe ──────────────────
+   The frame is sized by ASPECT, not by a pinned pixel height. It is as wide as the page
+   (--page-w, up to 1500px), so a fixed height letterboxed it: the viewer scales its camera
+   to the shorter dimension, and a 2.4:1 slot left the model small with dead bands either
+   side. An aspect ratio keeps the slot proportionate at every window width; max-height
+   keeps a wide window from pushing it past one screen, min-height keeps a narrow one from
+   collapsing it. */
 .applet-frame {
   display: block;
   width: 100%;
-  height: 720px;
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
   border: 0;
   border-top: 1px solid var(--border);
   background: var(--bg-canvas);
 }
-.applet-frame.demo-frame { height: 560px; }
 
 /* ══════════════════════════════════════════════════════
    QUIZ SECTION
@@ -656,7 +664,7 @@ footer .foot-cred {
 <!-- ════════════════════ CHILD–LANGMUIR DEMO ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Child&ndash;Langmuir Space Charge</div>
-  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=acc&v=18"
+  <iframe class="applet-frame" src="gridded_ion.html?mode=acc&v=19"
           title="Child–Langmuir space charge — the potential hill and the space-charge limit"
           loading="lazy"></iframe>
 </div>

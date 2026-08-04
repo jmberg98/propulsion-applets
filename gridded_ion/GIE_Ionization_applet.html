@@ -300,16 +300,29 @@ details.clarify-detail > summary:focus-visible {
   margin: 0 18px 12px;
 }
 
-/* ── Embedded viewer / applet iframe ────────────────── */
+/* ── Embedded viewer / applet iframe ──────────────────
+   The frame is sized by ASPECT, not by a pinned pixel height. It is as wide as the page
+   (--page-w, up to 1500px), so a fixed height letterboxed it: the viewer scales its camera
+   to the shorter dimension, and a 2.4:1 slot left the model small with dead bands either
+   side. An aspect ratio keeps the slot proportionate at every window width; max-height
+   keeps a wide window from pushing it past one screen, min-height keeps a narrow one from
+   collapsing it.
+
+   This stage runs TALLER than the other four. Its view is the discharge chamber in
+   cross-section, standing on end, ringed by magnets and hung with callouts down the left,
+   which is about 1.6:1 rather than the wide, shallow band the acceleration and
+   neutralization stages fill. */
 .applet-frame {
   display: block;
   width: 100%;
-  height: 720px;
+  aspect-ratio: 1.62;
+  height: auto;
+  min-height: 620px;
+  max-height: 88vh;
   border: 0;
   border-top: 1px solid var(--border);
   background: var(--bg-canvas);
 }
-.applet-frame.demo-frame { height: 560px; }
 
 /* ── Demo placeholder ───────────────────────────────── */
 .demo-placeholder {
@@ -708,7 +721,7 @@ footer .foot-cred {
 <!-- ════════════════════ MAGNETIC CONFINEMENT DEMO ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Magnetic Confinement</div>
-  <iframe class="applet-frame demo-frame" src="gridded_ion.html?mode=ion&v=17"
+  <iframe class="applet-frame" src="gridded_ion.html?mode=ion&v=18"
           title="Magnetic confinement — ring-cusp fields reflect electrons off the discharge chamber walls"
           loading="lazy"></iframe>
 </div>

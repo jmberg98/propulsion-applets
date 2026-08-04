@@ -1459,7 +1459,12 @@ let viewFocus = null;          // {cx,cy,hx,hy} zoom window, or null for the ful
 const MODES = {
   overview: { seg:true, focus:null, desc:'', power:true, speed:1.01, particles:'overview' },
   ion: {
-    seg:false, focus:{ cx:10, cy:-8, hx:150, hy:118 },
+    // hx is the real horizontal reach of the stage, which is NOT the hardware: the
+    // "Bombardment Cathode" / "Propellant Injector" callouts hang well to the left of the
+    // chamber. frameOrtho fits whichever of hx/hy the aspect makes binding, so understating
+    // hx stays invisible until the frame is tall enough for hx to bind; at that point the
+    // callouts fall off the left edge. 235 is where their leader boxes end, plus a margin.
+    seg:false, focus:{ cx:10, cy:-8, hx:235, hy:118 },
     labels:['Propellant Injector','Anode','Magnet Ring','Bombardment Cathode','Neutralizer Cathode'],
     B:true, Eanode:false, Egrid:false, panel:true, interactive:'ion',
     power:false,           // discharge stage only — no exhaust beam, so the thruster reads "off"
