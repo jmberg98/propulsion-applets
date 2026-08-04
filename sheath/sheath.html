@@ -484,10 +484,10 @@ const KB   = 1.380649e-23;       // J/K
 const AMU  = 1.66053906660e-27;  // kg
 const EV_K = QE / KB;            // 1 eV expressed in kelvin (11604.5)
 
-/* ── Scene colours ───────────────────────────────────────────────────
+/* ── Scene colors ───────────────────────────────────────────────────
    Two palettes, applied by the rule in the style guide: a PARTICLE drawn
-   on the canvas wears the species colour; a QUANTITY plotted as a curve
-   wears the prose colour. Mode 1 draws particles, modes 2–3 draw curves. */
+   on the canvas wears the species color; a QUANTITY plotted as a curve
+   wears the prose color. Mode 1 draws particles, modes 2–3 draw curves. */
 const C_ION_P = '#4d9bff';   // ion disc, white "+"
 const C_EL_P  = '#ffe94d';   // electron disc, dark "−"
 const C_PHI   = '#F5C518';   // potential φ            (--c-efield)
@@ -600,7 +600,7 @@ function plainText(ctx, txt, x, y, size, color, align, weight){
   ctx.font = (weight || 400) + ' ' + size + 'px Barlow, "Segoe UI", sans-serif';
   ctx.fillText(txt, x, y);
 }
-/* "n_e ≈ n_i" laid out as one centred unit. Measuring first and then placing
+/* "n_e ≈ n_i" laid out as one centered unit. Measuring first and then placing
    is the only way the relation symbol sits evenly between the two terms —
    eyeballed offsets drift the moment the font metrics change. */
 function relCaption(ctx, rel, cx, cy, size){

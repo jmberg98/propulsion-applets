@@ -11,7 +11,7 @@ requested changes vs the original SolidWorks export:
      the housing is filled inward so its inner wall meets the chamber
      wall, keeping the housing grey (#9096a0).
 
-Exports gridded_ion_3D_v2.STEP with per-part colours.
+Exports gridded_ion_3D_v2.STEP with per-part colors.
 """
 import sys, math
 from build123d import (
@@ -47,7 +47,7 @@ Z_SCREEN0     = L_CHAMBER + 2.0            # 202
 # radius r on rows of pitch s, and TWO columns per period P offset by (P/2, s/2):
 #     section along x=0 = 2r/s                     (only the x=0 column is cut)
 #     open area         = 2*pi*r^2 / (P*s)         (two holes per P-by-s cell)
-# Setting both equal to phi gives r = phi*s/2 and P = pi*phi*s/2. The neighbouring
+# Setting both equal to phi gives r = phi*s/2 and P = pi*phi*s/2. The neighboring
 # column sits at P/2 >= r for every phi <= 2/pi, so it never reaches the cut plane
 # and the section stays a clean row of full-diameter bores at pitch s.
 #
@@ -118,7 +118,7 @@ housing += tube(R_HOUSE, R_GRID,        L_CHAMBER, Z_SCREEN0 + SCREEN_T + GRID_G
 housing += tube(R_HOUSE, R_CATH + 4,    Z_REAR_BACK, Z_REAR_INNER)  # THICKER rear plate w/ cathode bore (r=14, snug clearance)
 # clearance bore through the rear plate so the propellant injector isn't intersected —
 # spans the FULL plate depth (Z_REAR_BACK..Z_REAR_INNER) so the injector bore is open all
-# the way through the rear body face (was centred at -16/height 14, which stopped short of
+# the way through the rear body face (was centered at -16/height 14, which stopped short of
 # the -32 back face and left the injector capped by solid plate).
 housing -= Pos(0, INJ_Y, (Z_REAR_BACK + Z_REAR_INNER) / 2) * Cylinder(radius=INJ_CLEAR, height=(Z_REAR_INNER - Z_REAR_BACK) + 6)
 # metal mounting block that ties the neutralizer cathode to the thruster body
@@ -126,7 +126,7 @@ housing += Pos(0, 128.5, 183) * Box(18, 10, 30)
 # neutralizer enclosure (keeper housing): a box wrapping the neutralizer cathode
 # FLUSH to its Ø18 body (no clearance gap), with a bored front plate so the cavity
 # is closed — you cannot see inside in the 3-D view; the snout pokes out the bore.
-# axis = +Z; cathode centred at (0,140), body z 165..202, snout to z 224.
+# axis = +Z; cathode centered at (0,140), body z 165..202, snout to z 224.
 enc_outer  = Pos(0, 140, (162 + 207) / 2) * Box(24, 24, 207 - 162)   # X,Y = 24 (±12), Z 162..207
 enc_cav    = Pos(0, 140, (165 + 204) / 2) * Box(18, 18, 204 - 165)   # hollow interior, flush to the Ø18 cathode
 enclosure  = enc_outer - enc_cav
@@ -203,7 +203,7 @@ neut  = zc(9, 165, 202)                                   # fat cathode body (SO
 neut += Pos(0, NCY, 206) * Cone(bottom_radius=9, top_radius=5, height=8)  # tapered shoulder
 neut += zc(5, 210, 224) - zc(2.4, 214, 226)               # bored snout / keeper-orifice tip only
 
-# ---- assemble, colour, export ------------------------------------------
+# ---- assemble, color, export ------------------------------------------
 parts = [
     (housing, "Outer_Housing",       COL["housing"]),
     (chamber, "Discharge_Chamber",   COL["chamber"]),

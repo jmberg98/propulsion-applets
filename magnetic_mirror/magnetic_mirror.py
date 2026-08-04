@@ -759,7 +759,7 @@ function buildInduced(d) {
 
   // The field of a single moving point charge travels WITH it and is strongest in the
   // transverse plane through the charge. Build a co-moving cluster of B-circles (in
-  // extraGroup) centred on x=0; animateInduced slides it along with the charge.
+  // extraGroup) centered on x=0; animateInduced slides it along with the charge.
   // Circulation sense set by charge sign (right-hand rule about v for +q).
   const sense  = d.sign;
   const radius = SCENE_R * 0.7;

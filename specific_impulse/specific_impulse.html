@@ -495,7 +495,7 @@ function animate(ts) {
     while (spawnTimer >= interval) {
       spawnTimer -= interval;
       if (particles.length < MAX_ORBS) {
-        // Spawn within the nozzle exit gap (GAP_H tall, centred on CY)
+        // Spawn within the nozzle exit gap (GAP_H tall, centered on CY)
         const halfGap = (GAP_H / 2) * 0.80;
         const yOff    = (Math.random() * 2.0 - 1.0) * halfGap;
         particles.push({ x: EX, y: CY + yOff, vx: vPxS, prop: selectedProp });

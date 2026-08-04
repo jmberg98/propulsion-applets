@@ -25,7 +25,7 @@
     --c-bfield : #7f92ff;   /* magnetic field B — bright blue */
     /* The extra field lines flanking each gap's primary one. Same hue, lifted toward white:
        they carry the same meaning, so a different HUE would be a lie, but they are context
-       rather than the labelled line and should sit behind it. */
+       rather than the labeled line and should sit behind it. */
     --c-bfield-soft : #a8b5ff;
     --c-efield : #ff6360;   /* electric field E — bright red */
 
@@ -187,7 +187,7 @@
   .clbl.pot:hover, .clbl.pot.open,
   .clbl.volt:hover, .clbl.volt.open { background: rgba(255,217,138,0.20); }
   /* The ordinate's name, in the curve's own green so the axis and the trace read as one thing. */
-  /* The two traces are named in their SPECIES colours — ion blue, electron yellow — the same
+  /* The two traces are named in their SPECIES colors — ion blue, electron yellow — the same
      pair the viewer, the legend and the ⊕/⊖ glyphs use, so a curve and the particle riding it
      read as one object. φ_ion(z) keeps that blue whether it is the primary stroke (ion trace) or
      the dotted reference behind φ_electron(z), and both names are set at the same size: on the
@@ -219,16 +219,16 @@
   .albl.screen { color: rgba(150,170,255,0.98); }
   .albl.accel  { color: rgba(255,138,107,0.98); }
   .albl.vac    { color: rgba(160,176,255,0.95); font-size: 13px; background: rgba(0,0,0,0.55); padding: 3px 8px; border-radius: 4px; }
-  /* Field-decomposition arrows on the test ion: E_net = E_grid + E_ions. Colours match the
+  /* Field-decomposition arrows on the test ion: E_net = E_grid + E_ions. Colors match the
      canvas arrows — lavender = the field the GRIDS set up, yellow = the field of the gap IONS,
      green/red = the NET field (forward / reversed). All three name FIELDS, so all three are
-     E-field colours; the ⊕ glyphs themselves are ion blue (see ION_COL). "ions" on the yellow
-     arrow says what CAUSES that field, not what colour an ion is. */
+     E-field colors; the ⊕ glyphs themselves are ion blue (see ION_COL). "ions" on the yellow
+     arrow says what CAUSES that field, not what color an ion is. */
   .albl.e-grid { color: #8fa0ff; font-weight: 700; }
   .albl.e-ions { color: #ffd06a; font-weight: 700; }
   .albl.e-fwd  { color: #63e06a; font-weight: 700; }
   .albl.e-rev  { color: #ff5b5b; font-weight: 700; }
-  /* Arrow-tip labels anchor to their tip rather than centring on it, so they never sit on the head. */
+  /* Arrow-tip labels anchor to their tip rather than centering on it, so they never sit on the head. */
   .albl.e-anchor-l { transform: translate(0, -50%); }
   .albl.e-anchor-r { transform: translate(-100%, -50%); }
   .albl.efield     { color: #7fe0a0; font-weight: 700; }   /* |E(0)| readout — matches the green force arrow */
@@ -278,7 +278,7 @@
      the one accent for the curve and the gold the one accent for the measurements. */
   #pot-svg .p-neu   { stroke: rgba(226,226,226,0.85); stroke-width: 2.9; stroke-dasharray: 8 6; }
 
-  /* ─ gold: the measurement system, tied to its labels by colour ─ */
+  /* ─ gold: the measurement system, tied to its labels by color ─ */
   #pot-svg .p-ext   { stroke: rgba(255,217,138,0.6);  stroke-width: 1.9; stroke-dasharray: 5 5; }
   #pot-svg .p-mtick { stroke: rgba(255,217,138,0.9);  stroke-width: 2.6; }
   #pot-svg .p-marr  { stroke: rgba(255,217,138,1);    stroke-width: 3.8; }
@@ -286,7 +286,7 @@
   #pot-svg .p-lead  { stroke: rgba(255,217,138,0.85); stroke-width: 2.4; fill: none; }
   #pot-svg .p-ldot  { fill:   rgba(255,217,138,0.98); }   /* where a leader leaves its dimension */
 
-  /* ─ the curves, coloured by SPECIES ─
+  /* ─ the curves, colored by SPECIES ─
      φ_ion(z) is ION_COL blue and φ_electron(z) the electron yellow, matching the ⊕/⊖ that ride
      them and the palette every other stage uses. On the electron trace the ion's curve is kept
      as a dotted companion rather than dropped: the two agree until the electron leaves through
@@ -589,7 +589,7 @@
      Dimmed and de-accented so it does not invite a drag that would do nothing. */
   .ix-slider.derived { opacity: 0.58; }
   .ix-slider.derived input[type=range] { accent-color: var(--text-muted); cursor: default; }
-  /* .ix-num carries its own accent colour and a hover affordance, both of which have to be undone
+  /* .ix-num carries its own accent color and a hover affordance, both of which have to be undone
      here — this readout is a <span>, not a typeable box, and should not look like one. */
   .ix-slider.derived .ix-val,
   .ix-slider.derived .ix-num,
@@ -649,7 +649,7 @@
   .out-val  { font-size: 19px; font-weight: 600; font-family: 'Courier New', monospace; }
   .out-sub  { font-size: 11.5px; font-family: 'Courier New', monospace; margin-top: 2px; color: var(--text-muted); }
   .out-eq   { font-size: 11.5px; font-style: italic; margin-top: 4px; color: var(--text-secondary); line-height: 1.3; }
-  /* Erosion verdict beneath the F/A cell — same badge format and space-charge colours as the
+  /* Erosion verdict beneath the F/A cell — same badge format and space-charge colors as the
      .ix-status saturation result (below → yellow, at → green, over → red). */
   .out-verdict {
     font-size: 12.5px; font-weight: 700; padding: 8px 10px; border-radius: 6px; text-align: center;
@@ -717,7 +717,7 @@
   .ix-anim .chk { font-size: 13px; padding: 3px 0; }
   /* E-field arrow toggles (Accelerator panel). Kept to a single wrapping row so the stage's
      numeric outputs still clear the fold in the short embedded frame; each box is tinted its
-     arrow's colour, so the group reads as the legend for the decomposition too. */
+     arrow's color, so the group reads as the legend for the decomposition too. */
   .ix-efields { margin-top: 10px; padding-top: 9px; border-top: 1px solid var(--border); }
   .ix-echks { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 11px; }
   .ix-echks + .ix-echks { margin-top: 1px; }
@@ -812,7 +812,7 @@
     /* crisp dark backing so the bright lines pop over the section */
     filter: drop-shadow(0 0 3.4px rgba(10,12,18,0.75));
   }
-  /* One line per gap is the PRIMARY (original) line and keeps the full-strength colour; the
+  /* One line per gap is the PRIMARY (original) line and keeps the full-strength color; the
      two flanking it are drawn lighter and a touch thinner so the family reads as a field
      without three equal-weight lines competing per gap. */
   .fieldline.added  { stroke: var(--c-bfield-soft); stroke-width: 1.7; }
@@ -1047,7 +1047,7 @@
         <div id="acc-r-status" class="ix-status" style="margin-top:8px"></div>
         <!-- Both decompositions share the same three columns, because they ARE the same split:
              φ_net = φ_grid + φ_ions differentiates to E_net = E_grid + E_ions. Row 1 toggles the
-             field arrows on the test ion, row 2 the potential curves; the colours are the ones used
+             field arrows on the test ion, row 2 the potential curves; the colors are the ones used
              on the graph, so this doubles as the legend. Kept to two rows so the stage's numeric
              outputs still clear the fold in the short embedded frame. -->
         <div class="ix-efields">
@@ -1365,7 +1365,7 @@ const CALLOUTS = [
 
 /* Magnet rings. Each ring carries a RADIAL magnetization, so its marker is drawn split
    into two poles: `inner` is the pole on the plasma-facing face (the one that sets the cusp
-   behaviour), the buried outer face being the opposite. Adjacent inner faces ALTERNATE,
+   behavior), the buried outer face being the opposite. Adjacent inner faces ALTERNATE,
    which is what makes the ring cusps (field loops N→S between rings). The three side-wall
    rings show on the top AND bottom anode walls (mirrored about the axis, Y' = −23 − Y); the
    back-wall ring is buried in the rear plate at inner radius (x ≈ −85.5) and shows as the
@@ -1388,7 +1388,7 @@ const POLE_MARKERS = (() => {
   for (const r of MAGNET_RINGS){
     if (r.wall === 'side'){
       // Top wall: inner (plasma) half faces DOWN toward the axis; bottom wall mirrors it (inner half up).
-      // Centred on the ring box (side rings sit at r 102..116 → centre AXY ± 109 = 97.5 / −120.5).
+      // Centered on the ring box (side rings sit at r 102..116 → centre AXY ± 109 = 97.5 / −120.5).
       out.push({ x:r.x, y:  97.5, split:'v', innerHalf:'lo', inner:r.inner });
       out.push({ x:r.x, y:-120.5, split:'v', innerHalf:'hi', inner:r.inner });
     } else {
@@ -1428,7 +1428,7 @@ const EFIELD = [
   // pointing "anode E" arrows were removed as inaccurate. The only E arrows are the grid gap.
   // accelerator-grid gap → strong downstream (+X) extraction field, across the beam radius.
   // Bases scooted downstream (+k̂) to x0=140 so they start at the screen grid, inside the gap.
-  // E_GAP_N arrows spread across the beam radius, spaced and centred by CONSTRUCTION rather than
+  // E_GAP_N arrows spread across the beam radius, spaced and centered by CONSTRUCTION rather than
   // by hand — hand-rounded y's left a 0.01 mm jitter in the gaps. Symmetric about the thrust axis,
   // so an odd count puts one arrow on the axis itself; change E_GAP_N alone to re-space them.
   ...Array.from({ length: E_GAP_N }, (_, i) => {
@@ -1524,7 +1524,7 @@ let gridBoreLiner = null;      // ghost-only bore sleeve across the grid stack (
 let gridBoreLinerMat = null;   // its shared material (styled with the body ghosts in setGridsTransparent)
 let anodeFlash = 0;            // 0…1, pulsed on each electron collection, decays each frame
 const ANODE_FLASH_COL = new THREE.Color(0xff20ff);   // very bright magenta the anode wall flashes when an electron is collected
-const _capC = new THREE.Color();   // scratch colour for ramping the section cut-face fill (applySectionBlend)
+const _capC = new THREE.Color();   // scratch color for ramping the section cut-face fill (applySectionBlend)
 let modelReady = false;
 let plumeGroup = null;         // semi-transparent ion beam + neutralizer jet (3-D view only)
 let beamMat = null;            // the main ion-beam plume material (its uFadeEnd shortens the plume when the neutralizer is off)
@@ -1735,7 +1735,7 @@ function buildModel(data){
     // The housing rear is several SEPARATE, overlapping wall meshes (rear back-plate, shell rear,
     // chamber back wall) with small axial gaps. In transparent mode the depth-write ordering renders
     // the boundary between the rearmost "left face" (the back-plate) and the body as a hard SPLIT
-    // with a colour/shade jump. Fix geometrically (renderer-independent):
+    // with a color/shade jump. Fix geometrically (renderer-independent):
     //   • merge the back-plate INTO the shell so the left face and body are one mesh — no seam
     //   • drop the chamber's redundant back-wall discs (x≈-76.5 & -72) so no inner disc floats behind
     if (c.name === 'Back_Wall_Extension') return;   // its geometry is merged into the shell below
@@ -1757,7 +1757,7 @@ function buildModel(data){
         // rear plate (x -20..-12): the two coincident, axis-facing annuli at raw x=-20 otherwise
         // stack in transparent mode and read as a spurious "thin disc" floating at the rear. Drop
         // any axis-normal triangle sitting on that interface so the rear reads as ONE solid slab.
-        const IF_X = -20 - cx;                 // interface plane in centred coords
+        const IF_X = -20 - cx;                 // interface plane in centered coords
         const kept = [];
         for (let t = 0; t < mIdx.length; t += 3){
           const a = mIdx[t], b = mIdx[t+1], d = mIdx[t+2];
@@ -1818,7 +1818,7 @@ function buildModel(data){
     stencil.visible = false;
     scene.add(stencil);
 
-    // Cap plane — solid coloured face filling the cut, gated by stencil
+    // Cap plane — solid colored face filling the cut, gated by stencil
     const capMat = new THREE.MeshStandardMaterial({
       color: col,
       metalness: tune.metalness,
@@ -1872,7 +1872,7 @@ function buildModel(data){
   // ── Plug the rear-wall bores ──────────────────────────────────────────────────────────
   // The rear plate is drilled with a clearance bore for each feed-through; in section the open
   // bore (the ring around the tube) reads as dark/recessed slots flanking the tube — the "bores"
-  // Jordan wants gone. Fill each bore with a WALL-COLOURED cylinder (the shell cap material, stencil
+  // Jordan wants gone. Fill each bore with a WALL-COLORED cylinder (the shell cap material, stencil
   // disabled so it draws unconditionally) so the cross-section reads as SOLID wall; the feed tube
   // still draws over it (renderOrder 45). Spans the rear plate; hidden in the opaque 3-D view.
   shellComp = comps.find(c => c.name === 'Outer_Shell_Housing');
@@ -1888,7 +1888,7 @@ function buildModel(data){
   }
   if (shellComp){
     // Fill the rear-plate bores by adding each bore column to the SHELL's OWN stencil, so the shell's
-    // existing cut-face cap paints them solid (wall colour, seamless) — NOT a separate capped object,
+    // existing cut-face cap paints them solid (wall color, seamless) — NOT a separate capped object,
     // which would overhang the rear face and read as a plug sticking out. These are STENCIL-ONLY
     // cylinders (no visible surface); they run at renderOrder between the shell stencil (1) and the
     // shell cap (1.1), and are confined to the exact plate thickness so nothing extends past the wall.
@@ -1927,7 +1927,7 @@ function buildModel(data){
   // surface at that opacity is algebraically identical to the pair, with no seam where the second
   // one would have ended. (Two real coaxial cylinders match the tone mid-bore just as well, but
   // the inner one's silhouette falls a wall-thickness short of the outer one's, so the last few
-  // millimetres top and bottom drop to a single coat and read as a darker cap at each end of the
+  // millimeters top and bottom drop to a single coat and read as a darker cap at each end of the
   // column.) It spans strictly BETWEEN the two grids: run it across the grids themselves and it
   // draws in front of their far rims (it sits inside r = 106) and washes the dark optics out. It
   // is styled by setGridsTransparent from the same ghost the body parts get, carries no cap and no
@@ -1952,7 +1952,7 @@ function buildModel(data){
       const x0 = screenComp.mesh.geometry.boundingBox.max.x;   // downstream face of the screen grid
       const x1 = gBB.min.x;                                    // upstream face of the accel grid
       const rGrid = 0.5 * (gBB.max.z - gBB.min.z);             // grid OD = the front ring's bore (106)
-      // The assembly is centred on its FULL bounding box, which the neutralizer stack pulls well off
+      // The assembly is centered on its FULL bounding box, which the neutralizer stack pulls well off
       // to one side, so the thrust axis does NOT sit at y = 0 — it runs ~11.5 mm below it. Take the
       // axis from the grid disc's own bbox centre (the same trick mkPlug uses for the feed-through
       // bores): a liner built about the origin instead hangs ~11.5 mm high, leaving the bottom of the
@@ -2081,7 +2081,7 @@ function diskMaterial(colorHex, flick = 0.15){
    of a gridded-ion thruster. Semi-transparent throughout (additive glow); shown
    only in the 3-D view. */
 function buildPlume(){
-  const exitX  = 158;        // accel-grid exit plane, centred model space (grids sit at the +X end)
+  const exitX  = 158;        // accel-grid exit plane, centered model space (grids sit at the +X end)
   const axisY  = -11.5;      // beam / discharge-chamber axis
   const beamR0 = 102;        // beam radius at the grids
   const beamLen = 540;       // long, well-developed exhaust: fades slowly far downstream (+k̂)
@@ -2114,7 +2114,7 @@ function buildPlume(){
 
   // Neutralizer-cathode plume: a tiny, pale plume puffing straight out of the
   // cathode ORIFICE (front face at X≈159.5, Y≈128.5) in the +X thrust direction and
-  // fading out within a few centimetres — like an external hollow cathode running on
+  // fading out within a few centimeters — like an external hollow cathode running on
   // its own. NO long electron beam hooking into the main plume anymore. Shares the
   // beam shader (bright-core / dim-edge) but is short and quick to fade.
   const nOx = 159.5, nOy = 128.5;                    // orifice centre (cathode front face)
@@ -2254,7 +2254,7 @@ const fadeAlpha = p => p.x <= BEAM_FADE0 ? 1
    reach. See the ion chamber wall branch for the gyroradius numbers. */
 /* ── How wide a cusp strip is ──────────────────────────────────────────────────────────────
    The physical leak width at a ring cusp is of order the hybrid gyroradius 2√(r_e·r_i) — a
-   couple of millimetres on this 180 mm chamber, well under 1% of the 206 mm side wall. A strip
+   couple of millimeters on this 180 mm chamber, well under 1% of the 206 mm side wall. A strip
    drawn that honest is one pixel, so this is that width widened for visibility and no further:
    12 units is 6.7% of the chamber diameter and 5.8% of the side wall, so all three rings
    together claim under 18% of it. That is the point of the number — a loss has to read as "it
@@ -2365,7 +2365,7 @@ function mirrorAt(x, y, eTot){
        B(P) = Σ_i s_i (P − R_i) / |P − R_i|²
    Summing ALTERNATING poles reproduces the whole ring-cusp topology for free: field springs
    from an N face, arcs into the plasma, closes on the adjacent S face, and — because
-   neighbouring poles cancel at range — decays away from the wall over roughly the ring
+   neighboring poles cancel at range — decays away from the wall over roughly the ring
    spacing, leaving the field-free core the design exists to create. Nothing here is fitted
    to a picture; the arcs the overlay draws come from the ring positions and the alternating
    polarity, and so does the envelope the electrons turn inside.
@@ -2431,7 +2431,7 @@ const B_POLE_R  = 8;        // pole softening — finite magnet, so |B| saturate
    normal to the section, while the overlay correctly draws the field as poloidal arcs lying IN
    it. True gyration here is r_Le ≈ 0.7 mm against a 90 mm chamber radius — invisible at any
    honest scale — so a section view cannot show gyration as motion regardless. The deceleration
-   and the turning point, though, are the mirror's real behaviour, not a symbol. */
+   and the turning point, though, are the mirror's real behavior, not a symbol. */
 const B_BAND     = 30;      // reach of the wall field into the chamber — matches the drawn arcs
 /* Peak barrier at the wall surface, as a multiple of the electron's OWN core energy ½v². Above 1.0
    means no electron of any speed or approach angle reaches wall between the rings — that would
@@ -2461,7 +2461,7 @@ const MIRROR_STEP_RAD = 0.12;
    nothing, and only then is it absorbed. The contrast is the teaching moment: helix converging
    in = collected at the magnet, swing coming back out = confined. It stops ionizing and stops
    touching walls the moment the helix starts, so the delay changes nothing but the picture.
-   COIL_R is a symbol, not a scale drawing (real gyromotion here is ~0.7 mm), the same licence
+   COIL_R is a symbol, not a scale drawing (real gyromotion here is ~0.7 mm), the same license
    the sprite diameters already take. */
 const COIL_R          = 7;      // starting radius of the converging helix, model units
 const LOSS_COIL_DUR   = 0.30;   // s from cusp contact to the electron actually going out
@@ -2535,7 +2535,7 @@ function traceFieldLine(sx, sy, maxSteps){
 /* THREE lines per gap, not one. A single arc per gap was the old hand-drawn convention, and it
    is what made the sim look wrong even once the physics was right: an electron rides the field
    line through ITS OWN position, which is almost never one of three sampled curves, so it
-   tracked a neighbouring line and read as "not following the drawn field". Drawing a family
+   tracked a neighboring line and read as "not following the drawn field". Drawing a family
    that spans the magnetised band means whatever line an electron is on, there is a drawn line
    under it. The seeds are angles off each N face, chosen so each route's three lines dip to
    roughly 74 / 62 / 50 in y — i.e. spread across the band rather than stacked. */
@@ -2562,7 +2562,7 @@ const FIELD_LINES = (() => {
 })();
 
 /* Ion-optics apertures. The grids are perforated on a 16 mm hex pitch, but only the
-   holes centred on the cut plane (every other hex row) read as gaps in the section, so
+   holes centered on the cut plane (every other hex row) read as gaps in the section, so
    the beamlets ride channels spaced one FULL hex row apart (16·√3 ≈ 27.7 mm) about the
    axis. Ions snap onto the nearest channel as they cross the grids, so they thread the
    holes rather than smearing through the solid grid webbing (esp. the accel grid). */
@@ -2760,7 +2760,7 @@ const PARTICLE_PROFILES = {
   // out) + a natural, lively playback.
   overview: { counts:{ neutral:500, eD:22, eN:90,  spare:220 }, size:8.4 },
   // Ionization (utilization fraction): the same discharge-chamber plasma as Overview (the
-  // dispersion / injection-from-injector behaviour is shared, ungated), just ~1/3 the particle
+  // dispersion / injection-from-injector behavior is shared, ungated), just ~1/3 the particle
   // count since this view is zoomed in — enough that μ_u reads steady without overcrowding.
   ion:      { counts:{ neutral:230, eD:15, eN:0,   spare:155 }, size:6.6 },
   // Neutralizer side profile: the beam is fed by CONSTANT paired streams — NEU_BEAM_N ions
@@ -2797,7 +2797,7 @@ const PRESHEATH_W = 28;     // depth of the extraction layer upstream of the scr
 const PRESHEATH_A = 1400 * HEAVY_A;   // pull inside it — strong enough to capture an ion that wanders in
 // Utilisation comes from that capture competing with wall recombination, so PRESHEATH_W trades
 // directly against μ_u. Measured, sampling ion vx over a FIXED upstream window (x < 60) so the
-// metric doesn't move with the layer — fraction of chamber ions travelling downstream, and μ_u
+// metric doesn't move with the layer — fraction of chamber ions traveling downstream, and μ_u
 // (μ_u figures are from the OLD, over-leaky grid model; the ratios are what matter here):
 //     W =  26 → 0.53 isotropic, μ_u 61%      W =  70 → 0.68 BIASED, μ_u 78%
 //     W =  40 → 0.53 isotropic, μ_u 73%      W =  90 → 0.63 BIASED, μ_u 75%
@@ -2996,7 +2996,7 @@ function bounceOffGrid(p, xFace, nx){
    the beam, so it was yanked ~59 mm down onto that channel while it overlapped the slab and
    snapped back the moment it left. And latching the channel (rather than re-deriving the nearest
    one each frame) stops a glyph whose y drifts past the midpoint between two channels from flicking
-   a full 27.7 mm pitch across to the neighbour mid-crossing. */
+   a full 27.7 mm pitch across to the neighbor mid-crossing. */
 /* The latch records WHICH grid admitted the particle, because the two bores must not be
    conflated. A neutral let through the SCREEN grid is inside the screen bore; when it later
    reaches the accel grid it has to meet THAT grid's aperture on its own merits. A grid-agnostic
@@ -3252,7 +3252,7 @@ function spawnENeutralizer(p){
 /* Overview shows a real 3-D exhaust PLUME. As a particle enters the downstream beam we
    rotate its in-plane radius (|y − axis|) to a random azimuth in the Y–Z plane and set a
    matching z-divergence, so the beam fans out as a cone about the axis instead of a flat
-   sheet in the cut plane. Only the plume needs this ("behaviour inside the thruster isn't
+   sheet in the cut plane. Only the plume needs this ("behavior inside the thruster isn't
    important") — chamber particles stay near the cut plane, and the section / side-profile
    modes are untouched (this is a no-op unless appMode === 'overview'). */
 function radializeBeam(p){
@@ -3342,7 +3342,7 @@ function stepParticle(p, dt){
         // the gap had no upstream wall at all and an atom rebounding off the accel grid walked
         // straight back through the screen grid's metal. (The old code got away with it by snapping
         // the rebound onto the channel centreline so it always retraced the hole it came in by —
-        // the very behaviour that made every accel-grid bounce fly back along the axis.)
+        // the very behavior that made every accel-grid bounce fly back along the axis.)
         const nb = apertureY(p.y);
         if (Math.abs(p.y - nb) < APER_R_SCREEN){ enterBore(p, nb, 'screen'); }   // re-enters via a hole; leaves 'gtransit' once clear of the slab
         else bounceOffGrid(p, SCREEN_SLAB.x1 + partR, 1);
@@ -3490,7 +3490,7 @@ function stepParticle(p, dt){
     } else if (appMode === 'neu' && !neuOn){
       // Neutralizer OFF: the craft has charged negative, so it retards and REVERSES the
       // positive beam ions — they slow, stop, and boomerang back toward the thruster
-      // instead of escaping (cancelling thrust). Strong pull so they turn in the near field.
+      // instead of escaping (canceling thrust). Strong pull so they turn in the near field.
       p.vx -= 2400 * Math.max(0.4, -scPot) * dt;
       p.x += p.vx*dt; p.y += p.vx*p.slope*dt;
       // Turn the reversed ion around AT the grid exit face — never let it sink back through
@@ -3712,7 +3712,7 @@ function stepParticle(p, dt){
           p.x = u*u*p.p0x + 2*u*p.t*p.p1x + p.t*p.t*p.mergeX;
           p.y = u*u*p.p0y + 2*u*p.t*p.p1y + p.t*p.t*p.targetY;
         }
-      } else {   // travelling downstream WITH the ions — same cone, so the beam reads quasineutral
+      } else {   // traveling downstream WITH the ions — same cone, so the beam reads quasineutral
         if (p.vx < p.vmax) p.vx += 380*dt; p.x += p.vx*dt; p.y += p.vx*p.slope*dt;
         if (p.slopeZ) p.z += p.vx*p.slopeZ*dt;   // overview 3-D plume: diverge in Z too
         // Small ZERO-MEAN transverse wiggle so the beam electrons read HOT against the stiff,
@@ -3740,7 +3740,7 @@ function stepParticle(p, dt){
 
 /* Charge-glyph sprite atlas: three cells side by side — a plain disc (neutral, no
    symbol), a blue disc with a white "+" (ion), and a yellow disc with a dark "−"
-   (electron). Colour is baked per cell so each point just samples its glyph cell.
+   (electron). Color is baked per cell so each point just samples its glyph cell.
    Symbols are vertically symmetric, so the texture's flipY doesn't matter. */
 const GLYPH_CELLS = [
   { core:'#e6edf8', sym:null,  symCol:null       },   // 0 neutral
@@ -3755,7 +3755,7 @@ function makeGlyphAtlas(){
   GLYPH_CELLS.forEach((c, i) => {
     if (!c.core) return;                        // empty cell — left fully transparent
     const cx = i*S + S/2, cy = S/2, r = S*0.44;
-    // Flat-colour disc with a soft transparent edge — no darker rim, so the
+    // Flat-color disc with a soft transparent edge — no darker rim, so the
     // particles have no outline.
     const grd = g.createRadialGradient(cx, cy, r*0.08, cx, cy, r);
     grd.addColorStop(0,    c.core);
@@ -3975,7 +3975,7 @@ function ionizePass(dt){
   // scales with how many primaries are in the chamber — and the stages carry different counts
   // (Overview 22, Ionization 15). That made the ionized fraction a property of the stage rather
   // than of the physics: the same `conf` gave 8.1% in Overview and 6.6% in the Ionization view.
-  // Normalise the electron count out so one gate means one ionization rate in every stage.
+  // Normalize the electron count out so one gate means one ionization rate in every stage.
   const R2 = R_ION*R_ION, prob = IONIZE_K*dt*conf * IONIZE_REF_E / Math.max(1, es.length);
   for (const e of es){
     for (const n of ns){
@@ -4050,7 +4050,7 @@ function balanceNeutralizer(dt){
    (mirrors the initial fill in buildParticles) so it immediately reads as a steady,
    constantly-firing stream. Without this, balanceNeutralizer would re-emit the whole
    deficit from the cathode orifice at once, sending a visible startup BUNCH of electrons
-   travelling down the beam instead of a continuous stream. Steady-state recycle at the
+   traveling down the beam instead of a continuous stream. Steady-state recycle at the
    beam exit keeps it uniform thereafter. */
 function primeNeutralizerBeam(){
   if (particleProfile !== 'neu') return;
@@ -4241,7 +4241,7 @@ function setSectionMode(on){
         onDone: finishSolid,
       };
     } else {
-      // Cancelled mid-entry (still perspective): clean up immediately, then fly home.
+      // Canceled mid-entry (still perspective): clean up immediately, then fly home.
       finishSolid();
       flyTo(solidCamPos(), new THREE.Vector3(0, 0, 0), FOV_SOLID);
     }
@@ -4275,23 +4275,23 @@ function jumpToSection(){
 /* Section shading decouples the two things the cut shows:
      • CAPS  — the flat cut faces (the solid cross-section of the "body"). Rendered
                UNLIT (emissive fill, black base) so every piece of cut metal is ONE
-               uniform colour, identical between the magnet rings, whatever the angle.
+               uniform color, identical between the magnet rings, whatever the angle.
      • MESH  — the receding surfaces behind the cut (the cylindrical bore wall and
                the inter-grid gap). Left lit so the strong hemisphere gradient below
                rounds them into visible 3-D depth.
    Restored to the matte 3-D tuning when section is off. */
-/* CAP styling only (the flat cut faces): unlit emissive flat colour in section, lit
-   body colour in 3-D. Caps only render where the mesh is actually cut, so this can be
+/* CAP styling only (the flat cut faces): unlit emissive flat color in section, lit
+   body color in 3-D. Caps only render where the mesh is actually cut, so this can be
    set once at the start of a transition and left alone while the cut sweeps in. */
 function setCapStyle(on){
   for (const c of comps){
     const cm = c.cap.material;
     if (on){
       cm.color.set(0x000000);               // flat, unlit body cross-section:
-      // Method 3: emphasise the magnet ring cross-sections. These cap squares are drawn emissive-flat and
-      // are NOT veiled, so a darker emissive (than the #3a3f48 body-colour) makes each ring read as a crisp
+      // Method 3: emphasize the magnet ring cross-sections. These cap squares are drawn emissive-flat and
+      // are NOT veiled, so a darker emissive (than the #3a3f48 body-color) makes each ring read as a crisp
       // dark marker at the chamber wall — clearer in both the plain and the transparent cross-section.
-      cm.emissive.set(c.role === 'magnet' ? 0x101318 : c.color);   // shows exactly its colour, no shading
+      cm.emissive.set(c.role === 'magnet' ? 0x101318 : c.color);   // shows exactly its color, no shading
       cm.emissiveIntensity = 1.0;
       cm.metalness = 0; cm.roughness = 1;
     } else {
@@ -4328,18 +4328,18 @@ function applySectionBlend(p){
     const m = c.mesh.material;
     m.metalness = lp(c.tune.metalness, DIAGRAM_MAT.metalness);
     m.roughness = lp(c.tune.roughness, DIAGRAM_MAT.roughness);
-    // Ramp each CUT FACE (cap) from LIT body colour (p=0) to UNLIT flat emissive fill (p=1), in step
+    // Ramp each CUT FACE (cap) from LIT body color (p=0) to UNLIT flat emissive fill (p=1), in step
     // with the cut. The "swap artifact" was a hard bright stripe here: the moment the clip grazed the
     // near wall the cross-section already ballooned to a tall band (fat cylinder), and a full-bright
     // emissive cap flashed it white across the still-solid body AND the cathode/injector (glaring
-    // edge-on; the default ¾ pose hid it). Keeping the cap LIT (emissive≈0, body colour) at low p lets
+    // edge-on; the default ¾ pose hid it). Keeping the cap LIT (emissive≈0, body color) at low p lets
     // that brief cut-face read as the same surface slab it replaces instead of a stripe; paired with
     // the decelerating (1-p)² sweep above (which blows through the solid outer shell fast) the swap
     // shows no band. p=1 is byte-identical to the old flat-emissive cap, so the settled section is
     // unchanged. (color/emissive/intensity/metalness/roughness are plain uniforms — safe per-frame.)
     const cm = c.cap.material;
-    _capC.set(c.role === 'magnet' ? 0x101318 : c.color);   // Method 3: magnets get a darker, emphasised cap fill
-    cm.color.copy(_capC).multiplyScalar(1 - p);   // body colour → black as the fill turns unlit
+    _capC.set(c.role === 'magnet' ? 0x101318 : c.color);   // Method 3: magnets get a darker, emphasized cap fill
+    cm.color.copy(_capC).multiplyScalar(1 - p);   // body color → black as the fill turns unlit
     cm.emissive.copy(_capC);
     cm.emissiveIntensity = p;                      // flat emissive fill fades in with the cut
     cm.metalness = lp(c.tune.metalness, 0);
@@ -4649,8 +4649,8 @@ function setGridsTransparent(on){
     // Everything else ghosts to a uniform translucent shell. depthWrite stays ON (even for the
     // translucent pieces) so overlapping housing parts — outer shell, back-wall extension,
     // propellant injector, neutralizer mount — don't additively STACK into brighter seams: each
-    // pixel shows a single layer, so the whole body reads as one even colour.
-    // Give the ghost an EMISSIVE FLOOR (self-lit fraction of its own colour): the section's single
+    // pixel shows a single layer, so the whole body reads as one even color.
+    // Give the ghost an EMISSIVE FLOOR (self-lit fraction of its own color): the section's single
     // key light leaves edge-on faces — like the outer-shell REAR wall — very dim, so they read as a
     // dark strip disjoint from the body. The floor lifts those dim faces toward the body tone (the
     // lit gradient still rides on top), so the back joins the body instead of splitting off.
@@ -4678,7 +4678,7 @@ function setGridsTransparent(on){
     // The feed tubes are DoubleSide AND depth-test-OFF (they draw over the body), so their front and
     // back walls don't occlude each other. Toggling transparent on→off leaves the GL blend state stale
     // for them, so those overlapping walls blend and the rod reads ~13% DARKER after the swap. Forcing
-    // a material refresh clears the stale state (verified: needsUpdate restores the full opaque colour;
+    // a material refresh clears the stale state (verified: needsUpdate restores the full opaque color;
     // harmless when already correct). Solid parts depth-occlude their own walls, so they're unaffected.
     if (feed) m.needsUpdate = true;
     m.depthTest = true;                                     // injector's is also (re)managed in animate
@@ -5683,14 +5683,14 @@ function accelPhiIons(u, s){
   const uu = Math.max(0, Math.min(1, u));          // the bow lives only inside the gap
   return ACCEL.vTotal * s * (uu - Math.pow(uu, 4/3));
 }
-// Arrow colours for the decomposition (shared with the .albl.e-* label classes).
+// Arrow colors for the decomposition (shared with the .albl.e-* label classes).
 const E_COL = { grid:'#8fa0ff', ions:'#ffd06a', fwd:'#63e06a', rev:'#ff5b5b' };
-/* The ⊕ ION's own colour — the same blue as GLYPH_CELLS, the particle legend and the chamber-plasma
+/* The ⊕ ION's own color — the same blue as GLYPH_CELLS, the particle legend and the chamber-plasma
    block, so an ion looks like an ion in every view of this thruster. Deliberately NOT E_COL.ions:
    that amber belongs to the FIELD the ion cloud sets up (the E_ions arrow, the φ_ions arch and the
    band under it), which is an E/φ quantity and reads yellow through the whole lesson. Particle blue,
    the field it causes amber — the label "ions" on the arrow names the SOURCE of that field, not its
-   colour. Everything hung on the test ion (its glow, station line and φ marker) takes the blue too,
+   color. Everything hung on the test ion (its glow, station line and φ marker) takes the blue too,
    so the particle and its construction lines read as one object. */
 const ION_COL  = '#4d9bff';
 const ION_SYM  = 'rgba(255,255,255,0.95)';     // the ⊕ bars — white, as in the sprite atlas
@@ -5754,7 +5754,7 @@ const MTR_FS   = 3.3;
 const PHI_BOW_GAIN = 3.45;
 /* The arch is drawn at the TRUE Child–Langmuir shape, u − u^{4/3}: peak at 27/64 ≈ 0.42 with a 3:1
    rise-to-fall slope ratio. It used to be warped to a lower exponent to exaggerate the leftward
-   lean, on the grounds that the real skew read as mild — but that licence is now both unnecessary
+   lean, on the grounds that the real skew read as mild — but that license is now both unnecessary
    and wrong. Unnecessary because the single beamlet shows the pile-up directly: the ions visibly
    crowd on the sheath, where they are slowest, and thin out downstream. Wrong because the arch is
    supposed to BE the potential of that beam, and it is not: binning the rendered ions and
@@ -5835,11 +5835,11 @@ const DP_POOL = Array.from({ length: 128 }, (_, i) => {
 });
 const DP_SPD = { i:0.05, e:0.34, n:0.11 };   // box speed per species — electrons fast, ions slow
 /* The applet-wide SPECIES palette — blue ⊕ ion, yellow ⊖ electron, pale ⊙ neutral — the same three
-   colours the 3-D stages and the legend use, so a particle keeps its identity across the lesson.
+   colors the 3-D stages and the legend use, so a particle keeps its identity across the lesson.
    The gap beam past the sheath uses the same ion blue (ION_COL): a plasma ion extracted at the
-   sheath becomes a beam ion and must not change colour on the way through. The amber in the gap is
+   sheath becomes a beam ion and must not change color on the way through. The amber in the gap is
    the E_ions arrow, the φ_ions arch and the band under it — the FIELD that cloud of ions sets up,
-   which is an E/φ quantity. One quantity, one colour: the ions blue, the field they cause amber. */
+   which is an E/φ quantity. One quantity, one color: the ions blue, the field they cause amber. */
 const DP_COL = { i:'#4d9bff', e:'#ffe94d', n:'#e6edf8' };
 const DP_SYM = { i:'#ffffff', e:'#2a2405', n:null };   // symbol ink — matches GLYPH_CELLS exactly
 function updateDischargePlasma(dt){
@@ -5855,7 +5855,7 @@ function updateDischargePlasma(dt){
   }
 }
 /* One ⊕ / ⊖ / ⊙ glyph, drawn from a 2-D copy of the 3-D sprite atlas (makeGlyphAtlas) rather than
-   as its own flat disc + hairline symbol. Same disc profile — flat colour out to 0.82 r, then a soft
+   as its own flat disc + hairline symbol. Same disc profile — flat color out to 0.82 r, then a soft
    transparent edge, no rim — and the same symbol proportions (stroke 0.24 r, arms 0.46 r), so a
    particle in this schematic reads as the SAME OBJECT as the one in the overview cross-section
    instead of a smaller, dimmer shorthand for it. Pre-rendered once and blitted: 90-odd live radial
@@ -5892,7 +5892,7 @@ function dpGlyph(ctx, x, y, sp, r){
   ctx.drawImage(dpAtlasCanvas(), i*DP_CELL, 0, DP_CELL, DP_CELL, x - box/2, y - box/2, box, box);
 }
 /* Paint the plasma block, the sheath meniscus bulging out of the screen hole, and a small key.
-   `x0..x1` is the clear band left of the screen grid; the hole is centred on yMid with radius rHole. */
+   `x0..x1` is the clear band left of the screen grid; the hole is centered on yMid with radius rHole. */
 function drawDischargePlasma(ctx, x0, x1, yT, yB, yMid, rHole, xEmit){
   const w = x1 - x0, h = yB - yT;
   if (w < 60 || h < 40) return;
@@ -5935,7 +5935,7 @@ function drawDischargePlasma(ctx, x0, x1, yT, yB, yMid, rHole, xEmit){
   label('DISCHARGE CHAMBER', cx, yT + 16, 10.5, 'rgba(216,226,246,0.9)');
   label('PLASMA',            cx, yT + 30, 10.5, 'rgba(216,226,246,0.9)');
   /* Species key, bottom-left of the block — same three entries, same order, as the viewer's own
-     particle legend (#part-legend), so the two never disagree about what a colour means. Its swatches
+     particle legend (#part-legend), so the two never disagree about what a color means. Its swatches
      are now the very same glyph the soup is drawn with, which is the point of the key but also means
      a particle drifting past one is indistinguishable from it: so the whole key sits on a dark plate,
      glyphs included, and nothing swims through it. */
@@ -5970,7 +5970,7 @@ function drawDischargePlasma(ctx, x0, x1, yT, yB, yMid, rHole, xEmit){
    time τ ∝ d/√V_T: a stronger field crosses the gap quicker, a wider gap slower. Rather than
    rescale the equation of motion (which would drag the injection and barrier speeds along with it),
    the whole simulation clock is stretched by the matching factor √(a/a_ref) = √(V_T/V_ref)·(d_ref/d).
-   Every relative behaviour — the density pile-up, the barrier split, the u* turnaround — is a pure
+   Every relative behavior — the density pile-up, the barrier split, the u* turnaround — is a pure
    time-rescaling away from before, so all of it is preserved; only the speed changes. Anchored to 1
    at the default (V_T = 1450, d = 1.2) so the tuned pacing there is unchanged. The steady-state ion
    COUNT in the gap stays set by the space-charge slider, not the field: emission rate ∝ scale and
@@ -6722,7 +6722,7 @@ function drawAccelGraph(dt){
      the wide hole D_S, the accel grid thick with the narrower hole D_A. The stream therefore comes
      out of that one aperture and nowhere else. Geometry is hoisted so the gap ions can be placed
      inside the very envelope the two holes define (see rEnv).
-     The plates are hung OFF the axis positions, not centred on them: z = 0 is the screen grid's
+     The plates are hung OFF the axis positions, not centered on them: z = 0 is the screen grid's
      DOWNSTREAM face and z = d the accel grid's UPSTREAM face, so each plate is drawn on its own side
      of the plane it defines. Each grid is a conductor and therefore an equipotential — there is no
      field inside the metal and so no drop across a plate's thickness. The whole of V_T falls across
@@ -6776,7 +6776,7 @@ function drawAccelGraph(dt){
   const eL = xR - xL;                                       // one gap length, px — the unit
   /* ── Where the neutralizer's electrons come in ────────────────────────────────────────────
      The standoff between the cathode's doorway and the accel grid is HARDWARE: the neutralizer is
-     mounted on the thruster body, centimetres downstream, and it neither knows nor cares that the
+     mounted on the thruster body, centimeters downstream, and it neither knows nor cares that the
      grid gap is 0.4 mm rather than 1.6. So the emission point is pinned in GAP-LENGTHS — the unit
      this whole model is written in — and slides upstream in pixels as the gap narrows, keeping
      station with the grids.
@@ -6848,7 +6848,7 @@ function drawAccelGraph(dt){
   ctx.beginPath(); ctx.moveTo(xL - W_SCR, yVT); ctx.lineTo(xR, yVT); ctx.stroke(); ctx.setLineDash([]);
 
   // ── Grid name labels + gap readout ───────────────────────────────
-  // Centred on the PLATES, which straddle their z-planes rather than sitting on them.
+  // Centered on the PLATES, which straddle their z-planes rather than sitting on them.
   ctx.textAlign = 'center';
   ctx.fillStyle = 'rgba(150,170,255,0.95)'; ctx.fillText('screen grid', xL - W_SCR/2, yBase + 36);
   ctx.fillStyle = 'rgba(255,138,107,0.95)'; ctx.fillText('accel grid',  xR + W_ACC/2, yBase + 36);
@@ -6856,7 +6856,7 @@ function drawAccelGraph(dt){
   // ── The potential splits the same way the field does: φ_net = φ_grid + φ_ions ─────────
   // φ_grid = V_T(1−u) is the straight vacuum/Laplace ramp the two grids set up on their own (its
   // constant slope IS E_grid = V_T/d); φ_ions = V_T·s·(u − u^{4/3}) is the arch the gap ions add;
-  // φ_net is what the beam actually sees. Each is toggleable from the panel and carries the colour
+  // φ_net is what the beam actually sees. Each is toggleable from the panel and carries the color
   // of its matching field arrow, so the curve decomposition and the vector decomposition read as
   // one statement. Drawn low-to-high in visual weight so the net curve always lands on top.
   const showPhi = ACCEL.showPhi;
@@ -6943,7 +6943,7 @@ function drawAccelGraph(dt){
     ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
     /* A REFUSED ion is still an ion, so it keeps the blue body and carries its state in a second
        channel: the reversed-field red as a ring around it, the same red the φ_net curve and the
-       E_net arrow turn past saturation. Colour-by-state on the body would have said "different
+       E_net arrow turn past saturation. Color-by-state on the body would have said "different
        species" — and the ion is already distinguishable by what it DOES, turning back at the hump. */
     if (p.refused){
       ctx.strokeStyle = '#ff8a6b'; ctx.lineWidth = 1.4;
@@ -7126,7 +7126,7 @@ function drawAccelGraph(dt){
 
   // ── Numeric decomposition, laid out as a little table under the z-axis ──────
   //    Painted on the canvas (not KaTeX) because the numbers change every frame — re-rendering
-  //    KaTeX at 60 fps would be wasteful. Columns are centred so each value sits under its symbol.
+  //    KaTeX at 60 fps would be wasteful. Columns are centered so each value sits under its symbol.
   //    Always on, and drawn at full strength: it shows the live sample while a test ion is flying and
   //    then HOLDS those numbers through the pause, until the next ion is released and starts reading
   //    again. Fading it out with the ion (as it used to) meant the table blinked away for most of the
@@ -7188,7 +7188,7 @@ function drawAccelGraph(dt){
         ctx.font = Math.round(FS * 0.66) + 'px ' + LX_ROM;
         ctx.fillText(it.sub, sx + aw + 1.5, yS + 3.5);
         ctx.textAlign = 'center'; ctx.font = FSN + 'px ' + LX_ROM;
-        ctx.fillText(it.val, cx, yN);                   // value, centred under its symbol
+        ctx.fillText(it.val, cx, yN);                   // value, centered under its symbol
       }
       x += w + GAP;
     });
@@ -7243,7 +7243,7 @@ function drawAccelGraph(dt){
   agLabel('d',   'd',               xR, yBase + 18,               'axis');   // marks the accel grid's upstream FACE
   // φ = V_T rides the dashed level INSIDE the gap, right-aligned just short of the accel plate.
   // It used to sit past that plate, out in the plume, where it collided with the neutralizer's
-  // "e⁻" label — and it was labelling a level that does not exist out there anyway. The gap is
+  // "e⁻" label — and it was labeling a level that does not exist out there anyway. The gap is
   // never narrower than 0.28·W, so the label always clears the screen grid at its left.
   agLabel('VT',  '\\phi = V_T',  xR - 12, yVT - 14, 'screen e-anchor-r');
   // Grid-field label sits on its own row in the clear band above the profile (semi-transparent black bg).
@@ -7343,7 +7343,7 @@ function updateChargeBar(dt){
   minus.style.top  = ((y0 + y1) / 2) + 'px';
   // Scale the ⊖ by how far we've zoomed FROM the default framing, so it keeps a fixed size
   // RELATIVE to the spacecraft: at the default zoom the ratio is 1 (unchanged look); zoom out
-  // and the sign shrinks with the craft instead of ballooning (its old fixed-pixel behaviour).
+  // and the sign shrinks with the craft instead of ballooning (its old fixed-pixel behavior).
   const zoom = neuPxPerWorld0 ? measurePxPerWorld() / neuPxPerWorld0 : 1;
   const box = (23 + c * 84) * zoom;                      // grows with charge, fixed vs. the craft
   minus.style.width = box + 'px'; minus.style.height = box + 'px';
@@ -7409,7 +7409,7 @@ function drawCircuit(){
     pts.forEach((p,i)=> i ? ctx.lineTo(p[0],p[1]) : ctx.moveTo(p[0],p[1])); ctx.stroke(); };
   const node = (p)=>{ ctx.fillStyle = CIRC_COL.node; ctx.beginPath(); ctx.arc(p[0],p[1],5*g,0,6.283); ctx.fill();
     ctx.lineWidth = 1.4*g; ctx.strokeStyle = 'rgba(6,8,12,0.85)'; ctx.stroke(); };
-  // 2-cell battery symbol centred at (x,y); horiz = plates vertical, laid left→right.
+  // 2-cell battery symbol centered at (x,y); horiz = plates vertical, laid left→right.
   const battery = (x,y,horiz)=>{
     ctx.strokeStyle = CIRC_COL.node; ctx.lineWidth = 2.2*g;
     const offs = [-9,-3,3,9], ext = [11,6,11,6];
@@ -7471,8 +7471,8 @@ function drawCircuitSection(P, W, H, wire, node, battery, arrow){
   const topRow = TOPW + 78;              // neutralizer supply row above the thruster
 
   const cat = P(-120, -11);              // bombardment cathode — shares the node the callout points to
-  const anT = P(CHcx, TOPW);             // top anode — inner wall, centred in k̂
-  const anB = P(CHcx, BOTW);             // bottom anode — inner wall, centred in k̂
+  const anT = P(CHcx, TOPW);             // top anode — inner wall, centered in k̂
+  const anB = P(CHcx, BOTW);             // bottom anode — inner wall, centered in k̂
 
   // ── Discharge loop: cathode (−) → V_discharge → anode (+), beneath the thruster ──
   const dbx = (-120 + CHcx) / 2 + 12;
@@ -7553,7 +7553,7 @@ function drawPotentialLabels(P, L){
   // The curve's own name, sitting just above the trace at the upstream end — the ordinate itself
   // is titled "Voltage (V)" on the axis, so this names the TRACE, not the scale.
   // On the electron trace there are TWO curves and both are named, at the same size and each in
-  // its species colour: φ_electron(z) is the potential along the electron's own path (the bright
+  // its species color: φ_electron(z) is the potential along the electron's own path (the bright
   // yellow stroke), φ_ion(z) the ion's (the dotted blue one). They coincide until the electron
   // leaves the chamber through the wire instead of the grids; the φ_ion chip therefore sits by the
   // accel well, which is where they visibly part company.
@@ -7666,7 +7666,7 @@ function drawCircuitNeu(P, W, H, wire, node, battery, arrow){
      V_accel       accel-grid voltage   = plume − accel grid = (1−R)·V_T               (154 V)
      V_neutralizer COUPLING voltage     = plume − neutralizer cathode                   (12 V)
    The big supply wired from the anode to the neutralizer cathode in the schematic is the BEAM
-   supply (≈V_net), NOT V_neutralizer — see the label in drawCircuitSection. Labelling both
+   supply (≈V_net), NOT V_neutralizer — see the label in drawCircuitSection. Labeling both
    "neutralizer" is the single most common way to get this figure wrong.
 
    The one thing this plot exists to say: the ion's energy gain is set by the ENDPOINTS of its
@@ -7762,7 +7762,7 @@ function potLevels(){
 /* ── Geometry ─────────────────────────────────────────────────────────────────────────────
    The figure is registered to the HARDWARE. POT_BOX is a fixed rectangle in MODEL space that
    positionPotOverlay() projects through the section camera every frame, and the viewBox aspect
-   is derived from it, so one viewBox unit is a fixed number of model millimetres: the axial axis
+   is derived from it, so one viewBox unit is a fixed number of model millimeters: the axial axis
    IS the thruster's axis. The screen/accel gridlines therefore land on the real grids, and the
    drop is drawn across the real extraction gap — 17 mm out of a 410 mm span, which is why it
    comes out very nearly vertical. That steepness is the physics, not a rendering artefact.
@@ -8107,7 +8107,7 @@ function refreshPotProfile(){
     a += potDim(x, ya, yb);
     // Elbow leader, drafting-style: leave the dimension at the level the label is at (or, if the
     // label is off the end of the bar, at that end), run vertically to the label's height, then
-    // across. Straight diagonals here cut across neighbouring bars and callout chips; an elbow
+    // across. Straight diagonals here cut across neighboring bars and callout chips; an elbow
     // stays in the lanes between them.
     const lx = mvx(e.lx), ly = mvy(e.ly);
     const inside = ly > Math.min(ya, yb) && ly < Math.max(ya, yb);
@@ -8491,8 +8491,8 @@ function animate(ts){
   // shaded rod beside the FLAT unlit cut-face caps of their peers — the SAME metal reads as two tones (the
   // bombardment cathode darker than the neutralizer cathode's flat gold; the injector darker than the body).
   // Keep the mesh LIT (so the shading still reveals the hollow tube ANNULUS) but lift it with an emissive
-  // FLOOR toward its flat colour, so the tone matches the caps WITHOUT flattening the bore into a filled rod
-  // (a full unlit fill matched the colour but erased the annulus). In 3-D (no cut) it stays fully lit; when
+  // FLOOR toward its flat color, so the tone matches the caps WITHOUT flattening the bore into a filled rod
+  // (a full unlit fill matched the color but erased the annulus). In 3-D (no cut) it stays fully lit; when
   // the body is ghosted the ghost styling in setGridsTransparent owns it instead.
   const feedFlat = !bodyDimmed && (orthoActive || cutOpen);   // cut open + opaque body ⇒ lift toward the cap tone
   for (const fc of [cathodeComp, injectorComp]){

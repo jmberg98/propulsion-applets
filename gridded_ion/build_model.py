@@ -73,7 +73,7 @@ def build_solids(fix=False):
         # the "ring/anomalous geometry"). Two compact blocks have no hole, so each caps as a
         # clean box at its band (matching the two back-wall POLE_MARKERS at y=39.5 / -62.5) and
         # nothing paints across the axis. Real ring-cusp thrusters carry discrete back-plate
-        # magnets anyway. Bands: r 44..58 -> CAD y +-(44..58), centred y=+-51, at z=-21+-7.
+        # magnets anyway. Bands: r 44..58 -> CAD y +-(44..58), centered y=+-51, at z=-21+-7.
         mag_back = Pos(0, 51, -21) * Box(56, 14, 14) + Pos(0, -51, -21) * Box(56, 14, 14)
     else:
         mag_back = ring(-21, ro=58, ri=44)

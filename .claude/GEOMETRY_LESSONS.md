@@ -8,7 +8,7 @@ engine, what actually happened, and what it cost. The last three sections turn t
 pre-flight checklist for the Hall-effect thruster (HET) applet so the same weeks aren't spent
 twice.
 
-**Headline number:** of the ~35 distinct geometry requests catalogued below, **fewer than a third
+**Headline number:** of the ~35 distinct geometry requests cataloged below, **fewer than a third
 were actually geometry problems.** The rest were render/compositing artifacts that *looked* like
 broken geometry — and several days were lost to fixing solids that were never broken.
 
@@ -33,7 +33,7 @@ broken geometry — and several days were lost to fixing solids that were never 
    stencil caps produce garbage on thin open shells. Model every visible part as a closed solid,
    full stop.
 6. **Every visible surface must be reachable by a single, uniform draw path.** The recurring
-   colour/darkness/banding bugs were all *layer-count* or *stale-GL-state* mismatches, not colour
+   color/darkness/banding bugs were all *layer-count* or *stale-GL-state* mismatches, not color
    values.
 7. **Draw order and depth are geometry.** `renderOrder`, `depthTest`, `depthWrite`, `capless`,
    stencil membership: define these per-role *once* and make symmetric parts symmetric. The
@@ -41,7 +41,7 @@ broken geometry — and several days were lost to fixing solids that were never 
 8. **The physics must read its collision surfaces from the loaded mesh**, never from
    hand-transcribed constants. Hardcoded grid planes drifted ~5.7 units inside the drawn slabs;
    3933 sprites were penetrating metal.
-9. **An open bore renders as the colour behind it.** A clean tunnel through a grey wall reads as
+9. **An open bore renders as the color behind it.** A clean tunnel through a grey wall reads as
    grey — i.e. as *not drilled*. Depth cues must be authored deliberately; they don't fall out of
    correct geometry.
 10. **Confirm the intent before executing a literal instruction.** "Extend the tube" turned out to
@@ -88,7 +88,7 @@ Tessellation tolerance is a knob — set it deliberately.
 
 ---
 
-## 2. Catalogue of geometry requests
+## 2. Catalog of geometry requests
 
 ### Phase 0 — original CAD authoring (separate session, CadQuery)
 
@@ -107,7 +107,7 @@ Tessellation tolerance is a knob — set it deliberately.
 | # | Request | Outcome |
 |---|---|---|
 | 4 | Make a WebGL 3D graphic of the STEP, with a button that moves the camera to a cross-section matching the reference PNG | STEP tessellated **offline** → `gridded_ion_model.json`. **The tessellator was also not committed.** From here the viewer is a baked-mesh viewer with no path back to the solid. |
-| 5 | Make the cross-section an orthographic labelled schematic | Perspective splayed the grid apertures open even dead-on; ortho camera fixed it. Callouts + dashed field lines added. |
+| 5 | Make the cross-section an orthographic labeled schematic | Perspective splayed the grid apertures open even dead-on; ortho camera fixed it. Callouts + dashed field lines added. |
 | 6 | Recolour: grids darker, chamber interior lightest, outer structure unified | Straightforward. |
 | 7 | Uniform body, cylindrical bore/grid depth, ring-cusp field lines | Cut faces (caps) rendered unlit/emissive so all body cross-sections are ONE grey; receding meshes lit by a camera-axis key light. **Grids "fattened along the axis and pulled apart" — implemented as a JS vertex hack at load.** This hack survived into later sessions and had to be hunted down and removed. |
 
@@ -115,11 +115,11 @@ Tessellation tolerance is a knob — set it deliberately.
 
 | # | Request | Outcome |
 |---|---|---|
-| 8 | "Make the shell not hollow… filled with the same colour metal. Grids thicker, same thickness, more space between." | Discovered: baked mesh, no tessellator. **User: "I've spent about 4 hours struggling with the results… The verification process simply doesn't work. It doesn't ever match expectations."** Root cause named: the section is a clip-plane + stencil-cap slice, which only yields clean filled caps from watertight closed solids — `Outer_Shell_Housing` was **a thin open shell** (which is *why* it read as hollow), and the assembly isn't axisymmetric. Proposal: rebuild the section as an authored parametric schematic. Built. → **"Nevermind, revert it."** |
+| 8 | "Make the shell not hollow… filled with the same color metal. Grids thicker, same thickness, more space between." | Discovered: baked mesh, no tessellator. **User: "I've spent about 4 hours struggling with the results… The verification process simply doesn't work. It doesn't ever match expectations."** Root cause named: the section is a clip-plane + stencil-cap slice, which only yields clean filled caps from watertight closed solids — `Outer_Shell_Housing` was **a thin open shell** (which is *why* it read as hollow), and the assembly isn't axisymmetric. Proposal: rebuild the section as an authored parametric schematic. Built. → **"Nevermind, revert it."** |
 | 9 | Same asks, re-scoped: "Only change the STEP file and update the cross-section file" | No CAD kernel present. A new numpy-authored GLB + a fresh headless three.js section render were produced instead. → **"revert changes."** |
 | 10 | Same asks again: attempt everything in the STEP directly | Parsed the B-rep, proved both grids are **100 % X-axial** (148 cylinders, 296 circles, 2 planes, 0 non-axial), so an X-only scale is mathematically safe for thickness/gap. First pass **corrupted the file** — the replacement records dropped the trailing `;`. Restored from backup, redone, validated (0 distorted surfaces). **Gap-fill was still impossible** (needs new solid material) and the PNG couldn't be re-rendered. Net: two of five asks delivered, file put at risk. |
 | 11 | "Are you able to modify a step file?" → "Would you be able to make a new file instead?" → "Claude made the file." | Full git-object scan proved no generator existed. Decision: author a fresh parametric model. Kernel hunt → build123d on Py 3.11; first venv install died on `MAX_PATH` → relocated to `C:\Users\jmatt\.cadenv`. |
-| 12 | **The decisive spec:** "Each grid a bit thicker, more gap between them. There must be no gap between the outermost shell and the ionization chamber — filled by making the outermost shell larger. Same colour as the outermost wall." | `build_thruster.py` written. Screen 2 → 3.5, accel 3 → 5, gap 4 → 8, housing filled inward so its inner wall meets the chamber (`R_CHAMBER_OUT`), housing grey `#9096a0`. → `gridded_ion_3D_v2.STEP`. **The request that had failed three times in a row succeeded on the first try once the model was parametric.** |
+| 12 | **The decisive spec:** "Each grid a bit thicker, more gap between them. There must be no gap between the outermost shell and the ionization chamber — filled by making the outermost shell larger. Same color as the outermost wall." | `build_thruster.py` written. Screen 2 → 3.5, accel 3 → 5, gap 4 → 8, housing filled inward so its inner wall meets the chamber (`R_CHAMBER_OUT`), housing grey `#9096a0`. → `gridded_ion_3D_v2.STEP`. **The request that had failed three times in a row succeeded on the first try once the model was parametric.** |
 
 > **This phase is the whole lesson.** Three reverted deliverables and a corrupted STEP, all
 > attempting to do parametrically-shaped edits without a parametric model.
@@ -128,8 +128,8 @@ Tessellation tolerance is a knob — set it deliberately.
 
 | # | Request | Outcome |
 |---|---|---|
-| 13 | Use v2 STEP as the 3D model and the reference PNG as the cross-section; keep colours consistent | Delivered — the section became a faded-in PNG overlay. |
-| 14 | **"The cross-section should be the actual cross-section of the 3D view, not the png I uploaded. Keep the labels and magnetic field lines."** | PNG approach reverted wholesale. Re-tessellated with a −90° Y rotation so v2's `+Z` thrust axis maps to the viewer's `+X` convention — chosen specifically so `center`/`size` matched the original and **the clip plane, stencil caps, ortho framing, callouts and field lines needed no code changes.** Field-line cusps re-tuned to v2's real ring stations (centred X ≈ −46.5 / +33.5 / +118.5, chamber axis Y ≈ −11.5). |
+| 13 | Use v2 STEP as the 3D model and the reference PNG as the cross-section; keep colors consistent | Delivered — the section became a faded-in PNG overlay. |
+| 14 | **"The cross-section should be the actual cross-section of the 3D view, not the png I uploaded. Keep the labels and magnetic field lines."** | PNG approach reverted wholesale. Re-tessellated with a −90° Y rotation so v2's `+Z` thrust axis maps to the viewer's `+X` convention — chosen specifically so `center`/`size` matched the original and **the clip plane, stencil caps, ortho framing, callouts and field lines needed no code changes.** Field-line cusps re-tuned to v2's real ring stations (centered X ≈ −46.5 / +33.5 / +118.5, chamber axis Y ≈ −11.5). |
 | 15 | Shorter label leaders; rename to "Neutralizer Cathode" / "Bombardment Cathode"; move the anode / neutralizer / magnet-ring anchor nodes | `MAX_LEADER` 240 → 150 plus per-anchor moves. Pure annotation. |
 | 16 | Embed the magnet rings **in the thruster wall**, not the plasma cavity | Rings moved to `r = R_CHAMBER_OUT+2 … R_HOUSE−10`, i.e. buried in wall material, so in section they read as dark boxes embedded in the wall rather than rings protruding into the chamber. |
 
@@ -159,13 +159,13 @@ intersection.** The reports were, in sequence:
 | Tube looks "capped at the chamber" | `Anode_Discharge_Chamber` still depth-writes in the ghost/cut view, occluding the tube's in-chamber length | `drawFeedOverBody`: `material.depthTest = false` whenever the body is cut or ghosted; keep depth ON in the solid 3-D view |
 | A band cuts across one tube at the wall; its bore is disced shut | **Asymmetry.** The injector was `capless:true` + `renderOrder 45`; the cathode was **neither**, so the cut-face caps painted across it | Make the twins symmetric in all three places (rec `capless`, mesh `renderOrder`, the `setGridsTransparent` else-branch) |
 | Gold rim artifact around the injector cut | A `capless` part that still writes stencil leaves the buffer dirty; a later gold cap paints the leftover region | Drop the stencil write together with the cap |
-| Bright white band flashes across the body mid-morph | Cut-face caps were full-bright emissive, and cut-face area balloons like √p as the plane grazes the outer shell | Retime the sweep decelerating (`cutOffset = modelHalfZ·q²`) **and** ramp cap style from lit body colour → unlit emissive. (Dead end: fading cap *opacity* — the buried magnets then show through) |
+| Bright white band flashes across the body mid-morph | Cut-face caps were full-bright emissive, and cut-face area balloons like √p as the plane grazes the outer shell | Retime the sweep decelerating (`cutOffset = modelHalfZ·q²`) **and** ramp cap style from lit body color → unlit emissive. (Dead end: fading cap *opacity* — the buried magnets then show through) |
 | That band "cuts through" the cathode mid-morph | `drawFeedOverBody` didn't cover the morph | Gate on `cutOpen = cutOffset < modelHalfZ − 0.5`. **Required companion fix:** initialise `cutOffset = modelHalfZ` so the fresh 3-D view doesn't x-ray the tubes |
 | Bore "bits"/blobs across the openings | The **back-wall magnet ring's** cap + back half bleeding across the bores — it sits at the same axial station | Diagnosed; a fix was built and then **reverted at the user's request** — the bits were kept |
 | "The hole doesn't go all the way through" (recurring) | Not reproducible on a real GPU in any mode. Initially a **stale-cache** red herring (a 7 MB single HTML caches hard) | Later established as a *look preference*, not a bug |
 | The literal fix made it worse | "Extend it" was honoured — reach 14→45 / 26→55 mm | **The real ask was the opposite: retract.** Final `reach = Hollow_Cathode ? -20 : 0` |
 | Bore still doesn't read as drilled | **An open bore renders as the chamber grey behind it — the same grey as the wall. Zero contrast.** | A dark bore-liner was built to create contrast → rejected ("reads as black void slots"). Preference settled on a clean snug tube, no shadow |
-| "Get rid of the bores" — rear wall should read solid | The clearance bores showed as recessed slots flanking each tube | **`borePlugs`: stencil-only cylinders that feed each bore column into the *shell's own* cut-face cap.** Two earlier attempts failed and are the lesson: (a) a solid wall-coloured cylinder — clipping discards `z>cut` so it never caps the cut *face*; (b) a separate stencil+cap per plug — worked, but the cap object **overhung the rear face** ("hanging out the back") |
+| "Get rid of the bores" — rear wall should read solid | The clearance bores showed as recessed slots flanking each tube | **`borePlugs`: stencil-only cylinders that feed each bore column into the *shell's own* cut-face cap.** Two earlier attempts failed and are the lesson: (a) a solid wall-colored cylinder — clipping discards `z>cut` so it never caps the cut *face*; (b) a separate stencil+cap per plug — worked, but the cap object **overhung the rear face** ("hanging out the back") |
 | Tubes discolour after toggling transparent | Two causes. (1) The injector's role `feed` picked up a ghost **emissive floor** that the later override never cleared → self-lit near-white. (2) Both tubes are `DoubleSide` **and** depth-test-off, so their front/back walls don't occlude each other; toggling leaves **stale GL blend state** and the rod reads ~13 % darker | (1) clear `emissive` in the feed override; (2) `m.needsUpdate = true` to force a material refresh. Material dumps were byte-identical — proving it was render state, not a property |
 
 Only at the very end did the fix land **in the geometry**: `a9d679e` bored the injector and cathode
@@ -178,17 +178,17 @@ seam) and dropped the chamber's redundant back-wall discs.
 | # | Request | Cause & fix |
 |---|---|---|
 | 27 | Cathodes read as a grey shell around a gold bore in transparent view | Thin tube walls go dim edge-on when translucent → keep cathodes opaque |
-| 28 | Body colour mismatch — edges/caps darker than the body; grid/housing corner notch | Ghost rendered as **stacked translucent layers**, so single-layer edges read darker. Fixed with a per-component **depth pre-pass proxy** so every pixel is exactly one layer. Grids stretched radially to close the notch. → **This whole commit was reverted** (`a7f100a`) and re-approached later |
+| 28 | Body color mismatch — edges/caps darker than the body; grid/housing corner notch | Ghost rendered as **stacked translucent layers**, so single-layer edges read darker. Fixed with a per-component **depth pre-pass proxy** so every pixel is exactly one layer. Grids stretched radially to close the notch. → **This whole commit was reverted** (`a7f100a`) and re-approached later |
 | 29 | A dark "slit" band bleeding through the shell at each magnet ring | The ring's **curved half-torus** showing in the cut → hide it, show only the flat cap square, darkened for contrast |
 | 29b | Screen grid buried in the shell rim / visible gap | Pin the grid's upstream face flush to the chamber front wall (`x = 135.5`) — further either way breaks one view or the other |
 | 30 | Bore-fill and anode outlines **flicker while panning** | Every cut-face cap sat exactly at `z = cutOffset`, coincident with the clipped mesh **edges** → depth tie, flickers only while the camera moves. `polygonOffset` was the wrong tool (view-angle dependent). **Fix: `CAP_LIFT = 0.6`** — lift every cap a *constant* amount toward the camera. Invisible in ortho, cap isn't clipped, depth-test-off tubes still draw over |
-| 31 | The inter-grid gap reads as a distinctly darker grey block | **Ghost layer-count mismatch, not colour.** Down the chamber a ray crosses 2 translucent surfaces (chamber bore + shell inner wall); the gap has only 1 (the housing front-ring bore). Fix: carry the chamber wall across the gap as a **ghost-only sleeve** at `1−(1−a)²` opacity — algebraically identical to the two coats, no second silhouette. **Axis taken from the grid-disc bbox centre**, because the assembly is centred on its full bbox and the neutralizer pulls that ~11.5 mm off the thrust axis |
+| 31 | The inter-grid gap reads as a distinctly darker grey block | **Ghost layer-count mismatch, not color.** Down the chamber a ray crosses 2 translucent surfaces (chamber bore + shell inner wall); the gap has only 1 (the housing front-ring bore). Fix: carry the chamber wall across the gap as a **ghost-only sleeve** at `1−(1−a)²` opacity — algebraically identical to the two coats, no second silhouette. **Axis taken from the grid-disc bbox centre**, because the assembly is centered on its full bbox and the neutralizer pulls that ~11.5 mm off the thrust axis |
 | 32 | Magnet spans invisible in the transparent section | The pale shell in front **veils** a near-black span down to ~3/255. Fix: draw the magnet mesh in the transparent pass with `depthTest=false, renderOrder=40` so it paints over the veil |
 | 32b | The dark outer frame can't be lightened | `Outer_Shell_Housing` is **veiled-pinned** to ~78/255 by overlapping ghost layers — unchanged even at `STRUCTURE_GRAY = white`. Un-veiling it lightens it but flattens the frame and chamber into one block. Documented as a known limit |
 
 > **Structural insight from this phase:** in the flat section, the visible surfaces are the **caps**,
 > not the ghost mesh. So `ghostOpacity`/`ghostEmis` have *zero* effect on the section's appearance —
-> hours were spent turning colour knobs that were wired to nothing.
+> hours were spent turning color knobs that were wired to nothing.
 
 ### Phase 7 — collision geometry (Jul 23)
 
@@ -217,7 +217,7 @@ compositing cause. **Prevention:** raycast first — it takes minutes and settle
 
 ### C. Layer-count and veiling mismatches
 Translucent bodies composite by *how many surfaces a ray crosses*. Any span with a different count
-is a different colour, and no colour/opacity knob will equalise them. Cures: depth pre-pass proxy
+is a different color, and no color/opacity knob will equalise them. Cures: depth pre-pass proxy
 (force single layer), or a compensating ghost sleeve at `1−(1−a)ⁿ`.
 
 ### D. Depth ties at the cut plane
@@ -261,7 +261,7 @@ OneDrive can also serve a not-yet-flushed copy right after an edit — always `g
 - [ ] Reuse `C:\Users\jmatt\.cadenv` (Py 3.11 + build123d). Don't rebuild the venv; don't use 3.14.
 - [ ] Fix the axis convention **once**, in the tessellator, and write it in a comment at the top of
       all three files.
-- [ ] Decide the component list (name / label / role / colour) **up front** and have `build_model.py`
+- [ ] Decide the component list (name / label / role / color) **up front** and have `build_model.py`
       emit exactly that list in exactly that order. Roles drive every render decision downstream.
 - [ ] Set the tessellation tolerance deliberately. Target ≲2 MB JSON.
 
@@ -278,8 +278,8 @@ OneDrive can also serve a not-yet-flushed copy right after an edit — always `g
 - [ ] Raycast the mesh along the suspect axis at several radii.
 - [ ] Turn particles off and zoom the ortho camera tight (f ≈ 0.3–0.6).
 - [ ] Dump each component's `renderOrder` / `depthTest` / `cap.visible` and compare twins.
-- [ ] Colour the suspect part bright green — the animate loop overwrites `mesh.visible` every frame,
-      so hiding it from an injected script won't stick, but colour will.
+- [ ] Color the suspect part bright green — the animate loop overwrites `mesh.visible` every frame,
+      so hiding it from an injected script won't stick, but color will.
 - [ ] Check it isn't a **pan-only** flicker (settled frames clean → depth tie).
 - [ ] Confirm the user isn't on a cached copy.
 
@@ -288,7 +288,7 @@ OneDrive can also serve a not-yet-flushed copy right after an edit — always `g
 - [ ] ...hand-edit a STEP.
 - [ ] ...push vertices at load time.
 - [ ] ...hardcode a collision plane.
-- [ ] ...try to fix a layer-count problem with a colour.
+- [ ] ...try to fix a layer-count problem with a color.
 
 ---
 
@@ -307,7 +307,7 @@ depth pre-pass proxy from day one** rather than retrofitting it.
 The inner magnetic core / inner coil / inner pole runs down the middle of the annulus and passes
 through the back plate — exactly the topology that produced the two-week feed-through saga. Apply
 the resolved recipe *pre-emptively*: give the stem the same `capless` + high `renderOrder` +
-depth-test-off-when-cut treatment as its neighbours, symmetric across every part that crosses the
+depth-test-off-when-cut treatment as its neighbors, symmetric across every part that crosses the
 back plate, and use stencil-only `borePlugs` for any clearance bore you want to read as solid wall.
 
 **5.3 The magnetic circuit is mostly buried metal.**
@@ -318,7 +318,7 @@ invisible in the transparent section without an explicit over-veil draw
 **overlay annotation**. Gridded-ion got this right once: N/S magnetisation was drawn as a schematic
 overlay, never modelled.
 
-**5.4 Component list to settle before modelling**
+**5.4 Component list to settle before modeling**
 
 | Part | Solid or overlay | Notes |
 |---|---|---|
@@ -366,7 +366,7 @@ lexically visible), expose `window.__runTest(scenario)`, run a **synchronous** s
 own rAF can't interleave, and `console.log('TEST_RESULT '+JSON.stringify(...))`. Average over the
 last ~4 s — small-count ratios have high run-to-run variance.
 
-**Pan flicker** — real GPU (`headless:false`) plus actual camera motion. Colour two suspect parts
+**Pan flicker** — real GPU (`headless:false`) plus actual camera motion. Color two suspect parts
 differently and right-drag; settled frames are always clean.
 
 **Reproducibility** — `page.setCacheEnabled(false)`; `grep -c "<new string>"` the served copy before

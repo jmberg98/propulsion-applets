@@ -24,10 +24,10 @@
 
 <style>
 :root {
-  /* ── Physics colour tokens ────────────────────────────────
-     ONE QUANTITY, ONE COLOUR — in prose and in equations alike.
+  /* ── Physics color tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOR — in prose and in equations alike.
      This block is byte-identical in every applet on purpose:
-     divergence here is what made a colour mean two different
+     divergence here is what made a color mean two different
      things from one lesson to the next. Ratios vs #0e0e0e.   */
   --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
   --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
@@ -103,8 +103,8 @@ footer {
 }
 
 /* ── Highlight classes ────────────────────────────────────
-   Colour is the ONLY channel these use — never weight, never
-   size. Colour answers "which quantity is this?".  For a term
+   Color is the ONLY channel these use — never weight, never
+   size. Color answers "which quantity is this?".  For a term
    of art that is NOT a quantity, use .key instead.  Never
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
@@ -117,10 +117,10 @@ footer {
 .hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
 
-/* ── Colour key ───────────────────────────────────────────
+/* ── Color key ───────────────────────────────────────────
    States the code instead of leaving it to be inferred.
    Muted and small: it is a reference, not a headline.     */
-.colour-key {
+.color-key {
   width: var(--page-w);
   display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
   margin: 0 0 18px; padding: 7px 12px;
@@ -131,12 +131,12 @@ footer {
      the key can come back by deleting this one line. */
   display: none;
 }
-.colour-key .ck-lead {
+.color-key .ck-lead {
   font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
-.colour-key .ck { display: inline-flex; align-items: center; gap: 6px; }
-.colour-key .ck i {
+.color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.color-key .ck i {
   width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
 }
 
@@ -510,11 +510,11 @@ footer .foot-cred {
   expel a large amount of positive charge from the spacecraft, the spacecraft will be left with a large
   <span class="hl-electron">negative charge</span>. Not only does this pose a risk to on-board electronics, but the
   negatively charged spacecraft attracts the positively charged <span class="hl-ion">exhaust jet</span>,
-  cancelling <span class="hl-thrust">thrust</span>.
+  canceling <span class="hl-thrust">thrust</span>.
 </p>
 
-<div class="colour-key">
-  <span class="ck-lead">Colour key</span>
+<div class="color-key">
+  <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
   <span class="ck"><i style="background:var(--c-power)"></i>electron</span>
@@ -545,7 +545,7 @@ footer .foot-cred {
         <span class="quiz-opt-label">c</span>By conservation of charge, the spacecraft will be left with a net negative charge, which can damage onboard electronics.
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">d</span>Eventually, the expelled ions will travel back to the negatively charged spacecraft, cancelling all generated thrust.
+        <span class="quiz-opt-label">d</span>Eventually, the expelled ions will travel back to the negatively charged spacecraft, canceling all generated thrust.
       </button>
     </div>
     <button class="quiz-submit" type="button">Submit</button>

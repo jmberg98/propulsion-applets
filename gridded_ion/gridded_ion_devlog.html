@@ -329,7 +329,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>Commit created. Now pushing to origin/main:</p>
 <p>Committed and pushed to <code>origin/main</code>.</p>
 <ul>
-<li><strong>Commit</strong> <code>24b854c</code> — &quot;Make gridded-ion cross-section an orthographic labelled schematic&quot;</li>
+<li><strong>Commit</strong> <code>24b854c</code> — &quot;Make gridded-ion cross-section an orthographic labeled schematic&quot;</li>
 <li><strong>Pushed</strong>: <code>64f0865..24b854c  main -&gt; main</code></li>
 <li><strong>Contents</strong>: the reworked <span class=\"ref\">gridded_ion.py</span> plus the three applet assets it needs (<code>gridded_ion_model.json</code>, <code>gridded_ion_3D.STEP</code>, <code>gridded_ion_crosssection.png</code>).</li>
 </ul>
@@ -372,7 +372,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>The script exited (killing its backgrounded child), so the server is likely down. Let me start a dedicated server task that stays alive:</p>
 <p>Both screenshots captured. Let me view them:</p>
 <p>The 3D view looks right — matte, lighter body, medium-gray magnet swatches, no checkboxes (those squares are color swatches). The section shot caught the camera <strong>mid-swing</strong> (&quot;Rotating to cross-section…&quot;), which confirms the rotation animation works but the 13s budget cut off before it settled. Let me re-capture with a longer budget so the ortho section + field-line overlay finish:</p>
-<p>The settled cross-section looks great: clean matte orthographic schematic, lighter body, medium-gray magnet blocks at the cusps, white dashed <strong>ring-cusp field lines</strong> (converging at the rear cathode, scalloping between the magnet rings, cusping at each ring) with a halo for contrast, and all eight callouts placed. This matches the reference schematic&#x27;s character well. The mid-swing shot confirmed the camera rotation works; this one confirms it settles into the labelled ortho view.</p>
+<p>The settled cross-section looks great: clean matte orthographic schematic, lighter body, medium-gray magnet blocks at the cusps, white dashed <strong>ring-cusp field lines</strong> (converging at the rear cathode, scalloping between the magnet rings, cusping at each ring) with a halo for contrast, and all eight callouts placed. This matches the reference schematic&#x27;s character well. The mid-swing shot confirmed the camera rotation works; this one confirms it settles into the labeled ortho view.</p>
 <p>Let me add one robustness guard: if the user clicks &quot;3D View&quot; *mid-swing* (before the ortho has taken over), the exit shouldn&#x27;t read a not-yet-framed ortho camera.</p>
 <p>Let me verify the round-trip (Cross-Section → back to 3D View) works cleanly — that materials restore, clipping clears, and the camera flies back:</p>
 <p>The round-trip is clean: back in 3D view, the model is fully restored (matte, un-clipped, whole), the camera flew back to a solid ¾ framing, and the Section Plane slider re-disabled. All transitions work.</p>
@@ -423,7 +423,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>Generated (1.1 MB, no <code>&lt;/script&gt;</code> breakout). Let me verify the structural edits landed correctly — the inline model anchor and the rewritten boot.</p>
 <p>Structure is correct: the model sits in an inline <code>#model-data</code> block right before the importmap, and the boot reads it. The model JSON is one minified line, so the file is compact at 975 lines. Now let me verify it actually renders — since it&#x27;s self-contained, I can point headless Chrome straight at the <code>file://</code> (no server needed).</p>
 <p>The self-contained file loads and renders correctly straight from <code>file://</code> — model parsed from the inline blob, grids/cathodes/legend all present, loading overlay cleared. Now let me confirm the cross-section mode (stencil caps + annotation overlay) still works, by injecting an auto-click into a scratchpad copy.</p>
-<p>Both modes verified from the self-contained <code>file://</code> — the second shot caught the camera mid-swing into the cut (clip plane + stencil caps filling the sectioned interior, grid apertures visible), which then settles into the labelled ortho schematic. The viewer logic is byte-for-byte the <code>.py</code>&#x27;s; only the data source changed.</p>
+<p>Both modes verified from the self-contained <code>file://</code> — the second shot caught the camera mid-swing into the cut (clip plane + stencil caps filling the sectioned interior, grid apertures visible), which then settles into the labeled ortho schematic. The viewer logic is byte-for-byte the <code>.py</code>&#x27;s; only the data source changed.</p>
 <p>Done. <span class=\"ref\">gridded_ion.html</span> now holds the full 3D viewer.</p>
 <p><strong>What I did</strong></p>
 <ul>
@@ -446,11 +446,11 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>All three changes are in and verified in both views:</p>
 <ul>
 <li><strong>Components legend</strong> — removed (block, <code>buildLegend()</code>, its boot call, and the <code>#legend</code>/<code>.leg-row</code>/<code>.sw</code> CSS).</li>
-<li><strong>Cut-depth slider</strong> — removed (the whole &quot;Section Plane&quot; block, the input listener, the <code>cut-group</code> disable toggle, and the slider CSS). The section now always renders at the default <code>z = 0</code> cut — the clip plane and stencil caps still position there via the untouched <code>cutOffset = 0</code> path, so the labelled cross-section (field lines + all eight callouts) comes up exactly as before.</li>
+<li><strong>Cut-depth slider</strong> — removed (the whole &quot;Section Plane&quot; block, the input listener, the <code>cut-group</code> disable toggle, and the slider CSS). The section now always renders at the default <code>z = 0</code> cut — the clip plane and stencil caps still position there via the untouched <code>cutOffset = 0</code> path, so the labeled cross-section (field lines + all eight callouts) comes up exactly as before.</li>
 <li><strong>Side panel</strong> — narrowed from 400 px → 300 px.</li>
 </ul>
 <p>The panel is now just the View controls (3D / Cross-Section toggle + Reset Camera) and the footer credit.</p>
-<p>Both the source <span class=\"ref\">gridded_ion.py</span> and the regenerated self-contained <span class=\"ref\">gridded_ion.html</span> carry the changes (I edited the <code>.py</code>, then rebuilt the <code>.html</code> with the model re-inlined). Verified headlessly from <code>file://</code>: the 3D view and the settled labelled cross-section both render correctly with the trimmed, narrower panel.</p><div class="actions">⚙ 10&nbsp;edits · 2&nbsp;reads · 3&nbsp;shell</div></div></div>
+<p>Both the source <span class=\"ref\">gridded_ion.py</span> and the regenerated self-contained <span class=\"ref\">gridded_ion.html</span> carry the changes (I edited the <code>.py</code>, then rebuilt the <code>.html</code> with the model re-inlined). Verified headlessly from <code>file://</code>: the 3D view and the settled labeled cross-section both render correctly with the trimmed, narrower panel.</p><div class="actions">⚙ 10&nbsp;edits · 2&nbsp;reads · 3&nbsp;shell</div></div></div>
   </div>
 </section>
 <section class="chapter" id="ch05">
@@ -1073,20 +1073,20 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>So, per your call, I <strong>rebuilt only the cross-section as an authored parametric SVG schematic</strong>. The 3D view is untouched (still the real CAD mesh).</p>
 <p>Your three requests, now just numbers in a <code>SCHEM</code> block:</p>
 <ul>
-<li><strong>Shell not hollow → solid filled metal.</strong> The housing is a single filled chamfered body in one metal colour (no more double-wall/hollow gap).</li>
+<li><strong>Shell not hollow → solid filled metal.</strong> The housing is a single filled chamfered body in one metal color (no more double-wall/hollow gap).</li>
 <li><strong>Magnet rings same metal as the exterior.</strong> Rings share the housing metal tone (a hair darker + a thin outline only so the cross-sections still read against the light bore).</li>
 <li><strong>Grids thicker, equal thickness, wider gap.</strong> Both grids are <code>gridThick: 8</code> with <code>gridGap: 16</code> between them (was ~2–3 mm thick, 4 mm gap), drawn as perforated ion-optics.</li>
 </ul>
 <p class="h">Why verification works now</p>
 <p>The schematic is deterministic SVG, so screenshots are reproducible. One gotcha I hit and fixed: the section fades in via CSS, and headless screenshots were catching it mid-transition (dim, spinner still half-showing — that scared me too). The <code>#section</code> deep-link now suppresses the fade for one frame, so the first painted frame is the finished diagram. That&#x27;s the URL to screenshot for review: <code>gridded_ion.html#section</code>.</p>
 <p class="h">To tweak from here</p>
-<p>Everything is a number in <code>SCHEM</code> / <code>FIELD_LINES</code> / <code>CALLOUTS</code> and the <code>.sch-*</code> CSS. Want a bigger grid gap, a different metal colour, rings that stand out more, flatter field lines? Those are one-line edits now — tell me the direction and I&#x27;ll dial it in.</p>
+<p>Everything is a number in <code>SCHEM</code> / <code>FIELD_LINES</code> / <code>CALLOUTS</code> and the <code>.sch-*</code> CSS. Want a bigger grid gap, a different metal color, rings that stand out more, flatter field lines? Those are one-line edits now — tell me the direction and I&#x27;ll dial it in.</p>
 <p>Two things to flag:</p>
 <ul>
 <li>I <strong>restored <code>gridded_ion.html</code> from HEAD</strong> first — your working copy was 0 bytes (truncated), which is why it looked broken. The real self-contained viewer is back, now with the new section.</li>
 <li>The 3D grids still carry a small leftover &quot;fatten&quot; from the old approach. Harmless, and you said keep 3D as-is — but say the word if you want the 3D grids adjusted too.</li>
 </ul>
-<p>Want me to nudge anything (field-line shape, ring visibility, grid spacing, colours)?</p><div class="actions">⚙ 12&nbsp;edits · 2&nbsp;writes · 15&nbsp;reads · 16&nbsp;shell · 1&nbsp;askuserquestion</div></div></div><div class="prompt"><div class="who">Jordan</div><div class="ptext">Nevermind, revert it</div></div>
+<p>Want me to nudge anything (field-line shape, ring visibility, grid spacing, colors)?</p><div class="actions">⚙ 12&nbsp;edits · 2&nbsp;writes · 15&nbsp;reads · 16&nbsp;shell · 1&nbsp;askuserquestion</div></div></div><div class="prompt"><div class="who">Jordan</div><div class="ptext">Nevermind, revert it</div></div>
 <div class="reply"><div class="who">Claude</div><div class="rtext"><p>Reverted. <code>gridded_ion.html</code> is back to the committed version (the original mesh-slice cross-section), and I removed the memory note about the authored-SVG approach since it no longer applies.</p>
 <p>Note: <code>git status</code> now shows only the pre-existing <code>D gridded_ion.py</code> deletion — that was already there before this session and isn&#x27;t mine to touch. Your working copy of the HTML had been 0 bytes (truncated) at the start; it&#x27;s now the full 1.1 MB committed version rather than that empty file. If you actually wanted it back at 0 bytes, say so and I&#x27;ll set it — but that was almost certainly an accident.</p></div></div><div class="prompt"><div class="who">Jordan</div><div class="ptext">I want to change the referenced 3D vile: in the reference image, there is a gap between the outer shell and the ionization chamber. this material should be filled. The grids should be the same color and thickness. They should both be thicker. They should have a bit more distance between them. Make the outer shell lighter white. Keep the inside of the ionization chamber a light blue. Do not change any html files or python files or whatever. Only change the STEP file and update the cross section file</div></div>
 <div class="reply"><div class="who">Claude</div><div class="rtext"><p>I dug into this before touching anything, and I have to be straight with you about a hard limit — because the honest answer changes what&#x27;s even possible.</p>
@@ -1156,7 +1156,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>Both grids are <strong>100% X-axial</strong> (148 cylinders, 296 circles, 2 planes, zero non-X-axial) — axial scaling is provably safe: hole radii and plate diameter are all perpendicular to X and stay exact. Color map is clean (each body owns its own <code>COLOUR_RGB</code>). Let me check for any X-aligned straight edges (the one remaining risk) before writing the transform.</p>
 <p>148 seam <code>LINE</code>s + <code>VECTOR</code>s per grid — the cylindrical-hole seams running along X. Scaling their endpoints keeps them colinear (safe); I&#x27;ll also scale those X-aligned vector magnitudes so hole depth stays consistent. I now have everything needed. Let me set up tracking and write the transformer.</p>
 <p>Applied. Now validate the modified file — confirm both grids are now 0.26&quot; thick, correctly spaced, still fully X-axial (no corrupted surfaces), and all bodies still closed.</p>
-<p>The re-parse shows broken surface counts and a missing colour link — my replacement records <strong>dropped the trailing <code>;</code> terminator</strong> (the captured span included the semicolon). The file is corrupted. Let me confirm and restore from backup.</p>
+<p>The re-parse shows broken surface counts and a missing color link — my replacement records <strong>dropped the trailing <code>;</code> terminator</strong> (the captured span included the semicolon). The file is corrupted. Let me confirm and restore from backup.</p>
 <p>Confirmed and restored. Fix: each replacement must keep the <code> ;</code> terminator (the captured span included it).</p>
 <p>Now re-run the transform on the clean restored file, then validate.</p>
 <p>Transform applied (backup preserved). The <code>&amp;&amp;</code> chain stopped on a grep with no match — let me run validation independently.</p>
@@ -1502,7 +1502,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 </ul><div class="actions">⚙ 3&nbsp;edits · 2&nbsp;reads · 1&nbsp;shell</div></div></div><div class="prompt"><div class="who">Jordan</div><div class="ptext">Commit and push</div></div>
 <div class="reply"><div class="who">Claude</div><div class="rtext"><p>On <code>main</code> (your established workflow — recent history commits directly here). Let me stage this session&#x27;s deliverables and commit. I&#x27;ll include the core work (applet HTML, regenerated model blob, rebuilt v2 STEP) plus the deletion of the now-superseded Python prototype:</p>
 <p>Committed and pushed to <code>origin/main</code> (<code>78bc966..798f6b5</code>).</p>
-<p>The commit covers this session&#x27;s work: the v2 3D model, wall-embedded magnet rings, the live labelled cross-section with the blue ring-cusp field lines, the cathode renames/callout layout, and removing the obsolete <code>gridded_ion.py</code> prototype.</p>
+<p>The commit covers this session&#x27;s work: the v2 3D model, wall-embedded magnet rings, the live labeled cross-section with the blue ring-cusp field lines, the cathode renames/callout layout, and removing the obsolete <code>gridded_ion.py</code> prototype.</p>
 <p>I intentionally left three unrelated working-tree changes <strong>uncommitted</strong>, since they weren&#x27;t part of this work and I didn&#x27;t create them:</p>
 <ul>
 <li><code>gridded_ion_3D.STEP</code> (the old v1 STEP — modified before this session)</li>
@@ -1544,7 +1544,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>Now let me verify it renders correctly with the headless Chrome workflow from memory.</p>
 <p>The plume renders well — a cyan diverging beam off the grids and a violet neutralizer jet curving in from the golden cathode. One refinement: the per-cell hash turbulence reads as a blocky &quot;carbon-fiber&quot; checker. Let me replace it with smooth axial flow bands.</p>
 <p>Much cleaner — a translucent cyan diverging beam with soft flow bands, a glowing grid exit face, and the violet neutralizer jet arcing from the golden cathode into the beam. Let me confirm the plume is correctly hidden in the cross-section view:</p>
-<p>The cross-section view is untouched — the plume is correctly hidden there, and the labelled schematic renders exactly as before.</p>
+<p>The cross-section view is untouched — the plume is correctly hidden there, and the labeled schematic renders exactly as before.</p>
 <p>Done. In <span class=\"ref\">gridded_ion.html</span> I added a semi-transparent ion plume to the 3-D view:</p>
 <ul>
 <li><strong>Main ion beam</strong> — a diverging (~15° half-angle) cone of additive, fresnel-lit glow emitted from the accelerator grid at the +X exit plane, along the discharge-chamber axis. An outer cyan shell plus a brighter inner cone give it body, and a luminous disk paints the glowing grid exit face. Brightness is seeded at the grids and thins downstream, with smooth flow bands drifting along the beam.</li>
@@ -1565,7 +1565,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <li>The inner secondary cone is gone — there&#x27;s now just the single grid plume plus the neutralizer contribution merging into it.</li>
 </ul>
 <p>The neutralizer jet blends into the beam nicely from this angle. Both remain 3-D-view-only and hidden in the cross-section.</p><div class="actions">⚙ 2&nbsp;edits · 1&nbsp;read · 1&nbsp;shell</div></div></div><div class="prompt"><div class="who">Jordan</div><div class="ptext">Make the central jet/beam more like a jet and less like waves. The central beam should gradient fade at far distances.Make the central beam a bit larger, make the electron neutralizer jet emit from the orifice of the neutralizer.  Make it bend down into the central beam, once it interesects that beam, that neutralizer beam shouldn&#x27;t be visible.</div></div>
-<div class="reply"><div class="who">Claude</div><div class="rtext"><p>Got it — a smoother collimated jet (no travelling waves), a gradient fade to nothing at the far end, a bigger central beam, and the neutralizer emitting from its orifice, bending down into the beam and disappearing once it enters.</p>
+<div class="reply"><div class="who">Claude</div><div class="rtext"><p>Got it — a smoother collimated jet (no traveling waves), a gradient fade to nothing at the far end, a bigger central beam, and the neutralizer emitting from its orifice, bending down into the beam and disappearing once it enters.</p>
 <p>First the shader — remove the wave banding and make the fade gradient out to zero downstream:</p>
 <p>Now enlarge the beam and re-route the neutralizer to emit from the orifice and plunge into the beam:</p>
 <p>All four changes are in and verified:</p>

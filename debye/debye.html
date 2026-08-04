@@ -310,7 +310,7 @@ const ME   = 9.1093837015e-31;   // kg
 const KB   = 1.380649e-23;       // J/K
 const EV_K = QE / KB;            // 1 eV expressed in kelvin (11604.5)
 
-/* ── Scene colours (must agree with the prose palette) ───────────── */
+/* ── Scene colors (must agree with the prose palette) ───────────── */
 const C_ION  = '#4d9bff';   // ion disc, white "+"
 const C_EL   = '#ffe94d';   // electron disc, dark "−"
 const C_NEU  = '#e6edf8';   // neutral atom, no glyph
@@ -468,7 +468,7 @@ function drawPlasmaScene(dt){
     const p = elecs[i]; drawElec(ctx, bx+p.x*bw, by+p.y*bh, eR);
   }
 
-  // Census strip under the box, colour-coded to the particles themselves
+  // Census strip under the box, color-coded to the particles themselves
   const ty = by + bh + H*0.065;
   ctx.textAlign = 'center'; ctx.font = '600 ' + Math.max(13, W*0.0125) + 'px Barlow, sans-serif';
   const parts = [
@@ -622,7 +622,7 @@ function drawShieldingScene(dt){
     const x = xOf(0) + s*lamPx;
     ctx.beginPath(); ctx.moveTo(x, yE); ctx.lineTo(x, slabB); ctx.stroke();
   }
-  // The φ₀/e level runs the full width so it can be labelled clear of the curve
+  // The φ₀/e level runs the full width so it can be labeled clear of the curve
   ctx.setLineDash([2,4]); ctx.globalAlpha = 0.45;
   ctx.beginPath(); ctx.moveTo(padL, yE); ctx.lineTo(padL+plotW, yE); ctx.stroke();
   ctx.restore();
@@ -668,7 +668,7 @@ function drawShieldingScene(dt){
     kx($('lbl-b'), tex, 'λD = ' + L.v + ' ' + L.u);
     $('lbl-b').style.color = C_LAM;
   }
-  // Centred under the span arrow, so the number and the length it names agree
+  // Centered under the span arrow, so the number and the length it names agree
   sLabel('lbl-b', true, xOf(0) + Math.max(lamPx*0.5, 48), yArr + H*0.045);
 
   sLabel('lbl-cap', false);

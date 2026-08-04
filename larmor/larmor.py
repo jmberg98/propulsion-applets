@@ -359,9 +359,9 @@ function makeTextSprite(text, color, height = SCENE_R * 0.28) {
 // ── B-field label: "B" with a hand-drawn vector arrow above it ───────────────
 // Uses Canvas 2D paths so the arrow is guaranteed to render on every platform,
 // unlike Unicode combining diacritics which vary by font/OS.
-// Colour matches the 0x37474f B-field ArrowHelpers in the scene.
+// Color matches the 0x37474f B-field ArrowHelpers in the scene.
 function makeBLabelSprite(height = SCENE_R * 0.38) {
-  const B_COLOR = '#37474f'; // identical to the B-field ArrowHelper colour
+  const B_COLOR = '#37474f'; // identical to the B-field ArrowHelper color
 
   const canvas = document.createElement('canvas');
   const ctx    = canvas.getContext('2d');
@@ -612,7 +612,7 @@ function buildFieldLines() {
 
   // ── B-field label with canvas-drawn vector arrow ───────────────────────────
   // Placed at the far edge of the field grid, well away from the particle paths
-  // (which run near x=0, y=0).  Colour matches the 0x37474f ArrowHelpers above.
+  // (which run near x=0, y=0).  Color matches the 0x37474f ArrowHelpers above.
   const bLabel = makeBLabelSprite(SCENE_R * 0.38);
   bLabel.position.set(SCENE_R * 2.4, SCENE_R * 0.4, zHalf * 0.85);
   guideGroup.add(bLabel);

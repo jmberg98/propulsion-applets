@@ -52,7 +52,7 @@ ORB_COLOR = {
 
 # ── Visual-scaling ceilings ───────────────────────────────────────────────────
 # Max thrust: Ar 10 mol/s, 5000 kW, η=1  →  ~2000 N
-# Max ve:     Li at low flow, 5000 kW    →  capped at 50 000 m/s for colour
+# Max ve:     Li at low flow, 5000 kW    →  capped at 50 000 m/s for color
 MAX_THRUST_VIS = 2000.0
 MAX_VE_VIS     = 50_000.0
 MAX_ORBS       = 200
@@ -147,7 +147,7 @@ sl_eta  .vline.set_visible(False)
 
 # ── Typeable text boxes (one per slider, positioned immediately to the right) ─
 def _textbox(rect, init_str):
-    """Small entry box; no label; text centred."""
+    """Small entry box; no label; text centered."""
     return TextBox(fig.add_axes(rect), '', initial=init_str, textalignment='center')
 
 #                       left   bottom  width  height
