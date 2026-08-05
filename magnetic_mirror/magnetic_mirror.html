@@ -1204,7 +1204,7 @@ function animate() {
 
   // reference-frame gizmo: lower-left inset, orientation locked to the main camera
   const sz = renderer.getSize(new THREE.Vector2());
-  const inset = Math.round(Math.min(190, sz.x*0.30, sz.y*0.38));
+  const inset = Math.round(Math.min(285, sz.x*0.45, sz.y*0.57));
   axisCam.position.set(0,0,1).applyQuaternion(camera.quaternion).multiplyScalar(4.2);
   axisCam.quaternion.copy(camera.quaternion);
   renderer.autoClear = false;
