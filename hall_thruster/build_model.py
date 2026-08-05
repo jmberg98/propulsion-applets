@@ -43,7 +43,7 @@ COMPONENTS = [
     ("Anode_Gas_Distributor", "Anode",                    "anode",     "#3a3f48", "anode"),
     ("Propellant_Feed",       "Propellant Feed",          "structure", "#d5d8e4", "feed"),
     ("Cathode_Neutralizer",   "Cathode-Neutralizer",      "cathode",   "#d8b62e", "cathode"),
-    ("Cathode_Mount",         "Cathode Mount",            "structure", "#d5d8e4", "mount"),
+    ("Neutralizer_Housing",   "Neutralizer Housing",      "structure", "#d5d8e4", "neut_house"),
 ]
 
 # Meshing deflection (linear, angular) per role. The coils are swept circles of

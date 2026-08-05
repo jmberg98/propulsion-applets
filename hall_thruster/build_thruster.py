@@ -14,7 +14,7 @@ gridded-ion model). The parts the reference image labels map to:
   "Magnetic core"          -> Magnetic_Core_Outer + Magnetic_Core_Inner
   "Magnetic coils"         -> Coil_Outer (4 legs) + Coil_Inner (center stem)
   "Anode / gas distributor"-> Anode_Gas_Distributor + Propellant_Feed
-  "Cathode-neutralizer"    -> Cathode_Neutralizer + Cathode_Mount
+  "Cathode-neutralizer"    -> Cathode_Neutralizer + Neutralizer_Housing
 
 The annular ceramic Discharge_Channel between the poles is where the crossed
 E (axial, from anode to exit) and B (radial, across the pole gap) live, so the
@@ -35,15 +35,15 @@ R_CH_OUT   = 50.0    # plasma-side outer radius            -> 15 mm channel widt
 CER_T      = 5.0     # ceramic (BN) wall thickness
 R_CER_IN   = R_CH_IN  - CER_T     # 30 - inner wall inner radius
 R_CER_OUT  = R_CH_OUT + CER_T     # 55 - outer wall outer radius
-Z_CH0      = 20.0    # upstream end of the ceramic, seated on the back plate
-Z_EXIT     = 112.0   # channel exit plane (recessed behind the pole faces)
+Z_CH0      = 20.0   # upstream end of the ceramic, seated on the back plate
+Z_EXIT     = 112.0  # channel exit plane (recessed behind the pole faces)
 
 # ---- magnetic circuit ----------------------------------------------------
-R_YOKE     = 100.0   # outer radius of the back plate / front pole plate
-Z_BACK0    = 0.0     # rear face of the magnetic back plate
-Z_BACK1    = 20.0    # front face of the back plate
-Z_POLE0    = 104.0   # rear face of the front pole plates
-Z_POLE1    = 122.0   # front face of the front pole plates (thruster front face)
+R_YOKE     = 100.0      # outer radius of the back plate / front pole plate
+Z_BACK0    = 0.0    # rear face of the magnetic back plate
+Z_BACK1    = 20.0   # front face of the back plate
+Z_POLE0    = 104.0  # rear face of the front pole plates
+Z_POLE1    = 122.0  # front face of the front pole plates (thruster front face)
 
 R_STEM     = 12.0    # inner magnetic core stem radius
 R_POLE_IN  = 29.0    # inner front pole radius   (1 mm clear of the ceramic ID)
@@ -61,20 +61,15 @@ R_LEG_ROD  = 9.0     # leg radius
 R_SHELL_IN  = R_YOKE     # bore sits exactly on the core OD - no double-modeled wall
 R_SHELL_OUT = 106.0
 
-N_FIN      = 32      # radial cooling ribs around the front rim (the "gear tooth" edge)
-FIN_IN     = 103.0   # ribs bite into the shell wall so they fuse to it
-FIN_OUT    = 112.0   # rib tip radius - the outermost thing on the thruster
-FIN_W      = 4.0     # rib tangential thickness
-
 # ---- coils ---------------------------------------------------------------
 # Wound directly on the stem and on each return leg. Only ~45 mm of radial room
 # exists between the ceramic OD (55) and the yoke (100), so the outer coil pack
-# is sized to sit inside it: pack spans r = 58.5 .. 95.5, clear of both. The
-# inner coil is wound wider than its stem so it fills the bore under the channel.
+# is sized to sit inside it: pack spans r = 60 .. 94, clear of both. The inner
+# coil is wound wider than its stem so it fills the bore under the channel.
 WIRE_R     = 4.0     # conductor radius
 COIL_R_OUT = 14.5    # helix radius about each return leg -> pack r = 10.5 .. 18.5
 COIL_R_IN  = 18.0    # helix radius about the center stem -> pack r = 14 .. 22
-COIL_PITCH = 9.5     # axial pitch -> 7 turns over the 66 mm winding length
+COIL_PITCH = 9.5     # axial pitch
 COIL_Z0    = 28.0
 COIL_Z1    = 94.0
 
@@ -82,44 +77,56 @@ COIL_Z1    = 94.0
 R_AN_IN    = 36.0    # anode ring bore   (1 mm clear of the channel inner wall)
 R_AN_OUT   = 49.0    # anode ring OD     (1 mm clear of the channel outer wall)
 Z_AN0      = 26.0
-Z_AN1      = 48.0    # anode downstream face -> 64 mm of channel to the exit
+Z_AN1      = 48.0   # anode downstream face
 PLENUM_T   = 3.0     # anode wall thickness around the gas plenum
 N_GAS_HOLE = 24
 R_GAS_HOLE = 1.5
 R_FEED     = 42.5    # propellant feed / gas-hole circle radius (channel midline)
 FEED_R     = 4.0     # feed tube outer radius
 FEED_BORE  = 2.0
-Z_FEED0    = -18.0   # feed tube pokes out the back of the thruster
+Z_FEED0    = -18.0   # feed tubes poke out the back of the thruster
+
+# TWO injector lines, diametrically opposed. A single feed into one side of an
+# annular plenum leaves a pressure gradient around the ring, so the neutral flow
+# out of the distributor holes is not azimuthally uniform; opposed feeds halve
+# the path from either inlet to the farthest holes. Both sit in the CAD x = 0
+# plane, which is the viewer's cut plane, so the section shows both.
+INJ_ANGLES = (90.0, 270.0)   # azimuths, degrees
 
 # ---- cathode-neutralizer -------------------------------------------------
-# Mounted outboard on the front pole plate and canted in toward the axis, so its
-# keeper orifice sits just downstream of the channel exit - the geometry the
-# reference image shows spraying electrons across the plume.
-CATH_TILT  = 25.0                       # degrees, toward the axis
-CATH_BASE  = (0.0, 149.0, 78.0)         # where the cathode's local z = 0 lands
-                                        # (set so the body stays clear of the
-                                        # FIN_OUT rim all the way to z = Z_POLE1)
-CATH_R     = 13.0                       # body radius
-CATH_BODY  = 48.0                       # body length (local z)
-CATH_SNOUT = 7.0                        # snout radius
-CATH_LEN   = 72.0                       # overall length (local z)
+# Sized and housed like the gridded-ion thruster's neutralizer: a stepped Ø18
+# hollow cathode inside a boxed keeper enclosure with a bored front plate, on a
+# block that ties it to the thruster body. Axis-parallel, like that one. The
+# dimensions are gridded_ion/build_thruster.py's, shifted by NEUT_DZ.
+NCY        = 124.0   # cathode centreline radius (clears the shell + enclosure wall)
+NEUT_DZ    = -89.0   # axial shift from the gridded-ion layout onto this one
+NEUT_BODY  = (165.0 + NEUT_DZ, 202.0 + NEUT_DZ)
+NEUT_CONE  = 206.0 + NEUT_DZ
+NEUT_SNOUT = (210.0 + NEUT_DZ, 224.0 + NEUT_DZ)
+NEUT_BORE  = (214.0 + NEUT_DZ, 226.0 + NEUT_DZ)
+NEUT_R     = 9.0     # body radius (Ø18)
+NEUT_TIP_R = 5.0     # snout radius
+NEUT_ORF_R = 2.4     # keeper orifice radius
+ENC_OUT    = (162.0 + NEUT_DZ, 207.0 + NEUT_DZ)
+ENC_CAV    = (165.0 + NEUT_DZ, 204.0 + NEUT_DZ)
+ENC_W      = 24.0    # enclosure outside width/height
+ENC_CAV_W  = 18.0    # cavity width/height
+ENC_BORE_R = 8.0     # front-plate bore = the cone's radius where it passes through
 
 # Colors follow the gridded-ion applet's convention: one light gray for every
-# structural body, a dark tone for the magnetic circuit, and gold reserved for
-# hollow cathodes. Each tone keys to what the piece is actually made of, which is
-# what the viewer's Component Materials legend reads off.
-# The gridded-ion applet spends its DARKEST tone on the functional electrodes (the
-# two grids) and keeps the bodies light, so the piece the panel names is the piece
-# that reads on the hardware. Applied here that puts the dark on the ANODE, not on
-# the magnetic core: the core is a soft-iron flux path, i.e. structure, and painting
-# that whole mass dark buried the anode inside it.
+# structural body, and gold reserved for hollow cathodes. That applet spends its
+# DARKEST tone on the functional electrodes (the two grids) and keeps the bodies
+# light, so the piece the panel names is the piece that reads on the hardware.
+# Applied here that puts the dark on the ANODE, not on the magnetic core: the
+# core is a soft-iron flux path, i.e. structure, and painting that whole mass
+# dark buried the anode inside it.
 COL = dict(
-    shell      = "#d5d8e4",   # aluminum: outer shell, cathode mount, feed line
+    shell      = "#d5d8e4",   # aluminum: outer shell, neutralizer housing, feed lines
     core_outer = "#7a808b",   # soft iron: back plate, return legs, outer pole
     core_inner = "#8a9099",   # soft iron, a shade up so the inner circuit reads
     coil       = "#b9773a",   # copper windings
     channel    = "#eef0ea",   # boron nitride: the chalk-white discharge channel
-    anode      = "#3a3f48",   # the electrode — darkest thing in the model
+    anode      = "#3a3f48",   # the electrode - darkest thing in the model
     cathode    = "#d8b62e",   # hollow cathode (same gold the gridded-ion applet uses)
 )
 
@@ -164,21 +171,15 @@ legs = [Rot(Z=k * 360.0 / N_LEG) * cyl(R_LEG_ROD, Z_BACK1, Z_POLE0, x=R_LEG)
         for k in range(N_LEG)]
 
 back_plate = cyl(R_YOKE, Z_BACK0, Z_BACK1)
-# clearance bore for the propellant feed line through the back plate
-back_plate -= cyl(FEED_R + 2.0, Z_BACK0 - 2, Z_BACK1 + 2, y=R_FEED)
+# clearance bore through the back plate for each propellant feed line
+for _a in INJ_ANGLES:
+    back_plate -= Rot(Z=_a) * cyl(FEED_R + 2.0, Z_BACK0 - 2, Z_BACK1 + 2, x=R_FEED)
 
 core_outer = union(back_plate, *legs,
                    tube(R_YOKE, R_POLE_OUT, Z_POLE0, Z_POLE1))
 
 # ---- outer shell --------------------------------------------------------
-# Full-length skin plus a finned collar around the front rim. The ribs start
-# INSIDE the shell wall (FIN_IN < R_SHELL_OUT) so they fuse into it rather than
-# hanging off it as 32 separate tangent blocks.
-fins = [Rot(Z=k * 360.0 / N_FIN)
-        * (Pos((FIN_IN + FIN_OUT) / 2, 0, (Z_POLE0 + Z_POLE1) / 2)
-           * Box(FIN_OUT - FIN_IN, FIN_W, Z_POLE1 - Z_POLE0))
-        for k in range(N_FIN)]
-shell = union(tube(R_SHELL_OUT, R_SHELL_IN, Z_BACK0, Z_POLE1), *fins)
+shell = tube(R_SHELL_OUT, R_SHELL_IN, Z_BACK0, Z_POLE1)
 
 # ---- magnetic core, inner branch ----------------------------------------
 core_inner = union(cyl(R_STEM, Z_BACK1, Z_POLE0),
@@ -196,7 +197,7 @@ channel = union(tube(R_CH_IN, R_CER_IN,  Z_CH0, Z_EXIT),    # inner wall
 
 # ---- anode / gas distributor --------------------------------------------
 # Hollow ring seated at the upstream end of the annulus: gas enters from the feed
-# line, fills the plenum, and meters out through a ring of holes in the
+# lines, fills the plenum, and meters out through a ring of holes in the
 # downstream face, so the neutral flow is uniform in azimuth.
 anode = tube(R_AN_OUT, R_AN_IN, Z_AN0, Z_AN1)
 anode -= tube(R_AN_OUT - PLENUM_T, R_AN_IN + PLENUM_T, Z_AN0 + PLENUM_T, Z_AN1 - PLENUM_T)
@@ -204,25 +205,34 @@ gas_holes = union(*[
     Rot(Z=k * 360.0 / N_GAS_HOLE) * cyl(R_GAS_HOLE, Z_AN1 - PLENUM_T - 1, Z_AN1 + 2, x=R_FEED)
     for k in range(N_GAS_HOLE)])
 anode -= gas_holes
-# open the feed bore through the anode's upstream wall - the tube is a separate
-# solid that merely butts into it, so without this the gas path dead-ends there
-anode -= cyl(FEED_BORE, Z_AN0 - 2, Z_AN0 + PLENUM_T + 1, y=R_FEED)
+# open a feed bore through the anode's upstream wall for each injector - the tubes
+# are separate solids that merely butt into it, so without this the gas path
+# dead-ends against solid material
+for _a in INJ_ANGLES:
+    anode -= Rot(Z=_a) * cyl(FEED_BORE, Z_AN0 - 2, Z_AN0 + PLENUM_T + 1, x=R_FEED)
 
-feed = tube(FEED_R, FEED_BORE, Z_FEED0, Z_AN0 + PLENUM_T + 2, y=R_FEED)
+feed = union(*[Rot(Z=_a) * tube(FEED_R, FEED_BORE, Z_FEED0, Z_AN0 + PLENUM_T + 2, x=R_FEED)
+               for _a in INJ_ANGLES])
 
 # ---- cathode-neutralizer -------------------------------------------------
-# Built along local +Z, then canted toward the axis and translated onto the
-# front pole plate.
-_cath = union(cyl(CATH_R, 0, CATH_BODY),
-              Pos(0, 0, CATH_BODY + 5) * Cone(bottom_radius=CATH_R,
-                                              top_radius=CATH_SNOUT, height=10),
-              cyl(CATH_SNOUT, CATH_BODY + 10, CATH_LEN))
-_cath -= cyl(3.0, CATH_BODY + 14, CATH_LEN + 2)          # keeper orifice / bore
-cathode = Pos(*CATH_BASE) * Rot(X=CATH_TILT) * _cath
+def _nz(r, z0, z1):
+    return cyl(r, z0, z1, y=NCY)
 
-# mount bracket tying the cathode body to the shell's finned front rim
-mount = Pos(0, 124, 112) * Box(18, 46, 16)                # y 101..147, z 104..120
-mount -= cathode                                          # clean saddle around the body
+cathode = union(_nz(NEUT_R, *NEUT_BODY),
+                Pos(0, NCY, NEUT_CONE) * Cone(bottom_radius=NEUT_R,
+                                              top_radius=NEUT_TIP_R, height=8),
+                _nz(NEUT_TIP_R, *NEUT_SNOUT))
+cathode -= _nz(NEUT_ORF_R, *NEUT_BORE)                   # keeper orifice
+
+# ---- neutralizer housing -------------------------------------------------
+# Keeper enclosure wrapping the cathode FLUSH to its Ø18 body (no clearance gap),
+# with a bored front plate so the cavity is closed and you cannot see inside; the
+# snout pokes out through the bore. Plus the block tying it to the outer shell.
+enclosure = (Pos(0, NCY, sum(ENC_OUT) / 2) * Box(ENC_W, ENC_W, ENC_OUT[1] - ENC_OUT[0])
+             - Pos(0, NCY, sum(ENC_CAV) / 2) * Box(ENC_CAV_W, ENC_CAV_W, ENC_CAV[1] - ENC_CAV[0]))
+enclosure -= _nz(ENC_BORE_R, ENC_CAV[1], ENC_OUT[1] + 3)  # front-plate bore
+mount = Pos(0, 108, 95) * Box(18, 12, 30)                  # y 102..114, z 80..110
+neut_house = union(enclosure, mount)
 
 # ---- assemble, color, export --------------------------------------------
 parts = [
@@ -235,7 +245,7 @@ parts = [
     (anode,      "Anode_Gas_Distributor", COL["anode"]),
     (feed,       "Propellant_Feed",       COL["shell"]),
     (cathode,    "Cathode_Neutralizer",   COL["cathode"]),
-    (mount,      "Cathode_Mount",         COL["shell"]),
+    (neut_house, "Neutralizer_Housing",   COL["shell"]),
 ]
 
 solids = []
