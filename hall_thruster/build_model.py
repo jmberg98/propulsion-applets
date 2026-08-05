@@ -47,13 +47,20 @@ COMPONENTS = [
 ]
 
 # Meshing deflection (linear, angular) per role. The coils are swept circles of
-# radius 4 mm and the anode's gas holes are radius 1.5 mm; at the 0.4 used for the
-# big bodies both tessellate to ~7 segments and read as faceted prisms, so they
-# get a finer pass. The ANGULAR term is what actually governs those two - it is
-# also what sets how finely the helical sweep is subdivided along its path, which
-# is where the coils' triangle count comes from, so it is kept only as fine as it
-# needs to be (0.25 rad -> 25 segments around the conductor).
-DEFLECTION = {"coil": (0.25, 0.25), "anode": (0.3, 0.3)}
+# radius 1.04 mm and the anode's gas holes are radius 1.5 mm; at the 0.4 used for
+# the big bodies both tessellate to ~7 segments and read as faceted prisms, so
+# they get a finer pass. The ANGULAR term is what actually governs those two - it
+# is also what sets how finely the helical sweep is subdivided along its path,
+# which is where the coils' triangle count comes from, so it is kept only as fine
+# as it needs to be.
+#
+# 0.4 rad is the coil setting: ~16 segments around the conductor and ~26 steps
+# per turn along the helix. It is finer than a thin wire would justify because
+# turn count moves inversely with WIRE_R (see build_thruster.py) - a fatter
+# conductor means fewer turns, which buys back the triangles the extra roundness
+# spends. Going finer still is what gets expensive: at 0.25 rad the five helices
+# alone tessellate to ~14 MB of embedded mesh.
+DEFLECTION = {"coil": (0.2, 0.4), "anode": (0.3, 0.3)}
 DEFAULT_DEFLECTION = (0.4, 0.4)
 
 

@@ -62,14 +62,29 @@ R_SHELL_IN  = R_YOKE     # bore sits exactly on the core OD - no double-modeled 
 R_SHELL_OUT = 106.0
 
 # ---- coils ---------------------------------------------------------------
-# Wound directly on the stem and on each return leg. Only ~45 mm of radial room
-# exists between the ceramic OD (55) and the yoke (100), so the outer coil pack
-# is sized to sit inside it: pack spans r = 60 .. 94, clear of both. The inner
-# coil is wound wider than its stem so it fills the bore under the channel.
-WIRE_R     = 4.0     # conductor radius
-COIL_R_OUT = 14.5    # helix radius about each return leg -> pack r = 10.5 .. 18.5
-COIL_R_IN  = 18.0    # helix radius about the center stem -> pack r = 14 .. 22
-COIL_PITCH = 9.5     # axial pitch
+# Wound directly on the stem and on each return leg, as magnet wire: a 2.08 mm
+# conductor laid at a 2.47 mm pitch, so consecutive turns very nearly touch and
+# the winding reads as a ribbed copper sleeve rather than a handful of fat rings.
+# Over the 66 mm axial span that is ~27 turns per helix.
+#
+# WIRE_R is the one dial here; everything else follows from it, because a single
+# layer cannot be wound tighter than the wire is wide - do that and consecutive
+# turns interpenetrate and the swept solid self-intersects. So the turn count
+# moves INVERSELY with WIRE_R: this carried ~69 turns at 0.4 mm and ~35 at
+# 0.8 mm. Getting more turns AND a fatter conductor needs a second layer, not a
+# tighter pitch.
+#
+# Likewise the helix radii: a single layer is only as deep as the wire is wide,
+# so they ride COIL_GAP clear of the iron they are wound on (leg r = 9, stem
+# r = 12) rather than standing off it. The packs land at r = 9.6 .. 11.68 about
+# each leg and r = 12.6 .. 14.68 about the stem, both still well clear of the
+# ceramic OD (55) and the yoke (100).
+WIRE_R     = 1.04    # conductor radius (2.08 mm magnet wire)
+COIL_GAP   = 0.6     # clearance between the winding and the iron it sits on
+TURN_GAP   = 0.39    # air between consecutive turns
+COIL_PITCH = 2 * WIRE_R + TURN_GAP        # 2.47 - the tightest a single layer winds
+COIL_R_OUT = R_LEG_ROD + COIL_GAP + WIRE_R  # 10.64, helix radius about each return leg
+COIL_R_IN  = R_STEM   + COIL_GAP + WIRE_R   # 13.64, helix radius about the center stem
 COIL_Z0    = 28.0
 COIL_Z1    = 94.0
 
