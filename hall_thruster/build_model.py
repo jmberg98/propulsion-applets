@@ -34,7 +34,6 @@ import build_thruster as B
 # coils" covers the inner and outer windings) - the same thing gridded_ion does
 # with its two Magnet_Ring_* components.
 COMPONENTS = [
-    ("Outer_Shell",           "Outer Shell",              "structure", "#d5d8e4", "shell"),
     ("Magnetic_Core_Outer",   "Magnetic Core",            "core",      "#7a808b", "core_outer"),
     ("Magnetic_Core_Inner",   "Magnetic Core",            "core",      "#8a9099", "core_inner"),
     ("Coil_Outer",            "Magnetic Coils",           "coil",      "#b9773a", "coil_outer"),
@@ -43,24 +42,19 @@ COMPONENTS = [
     ("Anode_Gas_Distributor", "Anode",                    "anode",     "#3a3f48", "anode"),
     ("Propellant_Feed",       "Propellant Feed",          "structure", "#d5d8e4", "feed"),
     ("Cathode_Neutralizer",   "Cathode-Neutralizer",      "cathode",   "#d8b62e", "cathode"),
-    ("Neutralizer_Housing",   "Neutralizer Housing",      "structure", "#d5d8e4", "neut_house"),
+    ("Neutralizer_Housing",   "Neutralizer Boom",         "structure", "#d5d8e4", "neut_house"),
 ]
 
-# Meshing deflection (linear, angular) per role. The coils are swept circles of
-# radius 1.04 mm and the anode's gas holes are radius 1.5 mm; at the 0.4 used for
-# the big bodies both tessellate to ~7 segments and read as faceted prisms, so
-# they get a finer pass. The ANGULAR term is what actually governs those two - it
-# is also what sets how finely the helical sweep is subdivided along its path,
-# which is where the coils' triangle count comes from, so it is kept only as fine
-# as it needs to be.
+# Meshing deflection (linear, angular) per role. The coils are no longer swept
+# helices but stacks of plain annular turns (see build_thruster.py), so the cost
+# that used to dominate - subdividing a helical path - is gone, and what is left
+# is the turn count times one circle each. They still get a finer LINEAR setting
+# than the big bodies: a turn is only 2.1 mm wide axially, so at the default the
+# silhouette of the stack goes visibly polygonal before the bodies do.
 #
-# 0.4 rad is the coil setting: ~16 segments around the conductor and ~26 steps
-# per turn along the helix. It is finer than a thin wire would justify because
-# turn count moves inversely with WIRE_R (see build_thruster.py) - a fatter
-# conductor means fewer turns, which buys back the triangles the extra roundness
-# spends. Going finer still is what gets expensive: at 0.25 rad the five helices
-# alone tessellate to ~14 MB of embedded mesh.
-DEFLECTION = {"coil": (0.2, 0.4), "anode": (0.3, 0.3)}
+# The anode's eight orifices are radius 2.5 mm; at the 0.4 used for the big
+# bodies they tessellate to ~7 segments and read as faceted prisms.
+DEFLECTION = {"coil": (0.25, 0.35), "anode": (0.3, 0.3)}
 DEFAULT_DEFLECTION = (0.4, 0.4)
 
 

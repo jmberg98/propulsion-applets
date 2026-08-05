@@ -2,8 +2,9 @@
 between two components that are NOT meant to touch is a modeling error."""
 import itertools, build_thruster as B
 
-OK = {("Neutralizer_Housing", "Outer_Shell"),      # mount block bolted to the shell
-      ("Anode_Gas_Distributor", "Propellant_Feed")}  # feed line enters the plenum
+OK = {("Neutralizer_Housing", "Magnetic_Core_Outer"),  # boom bolted to the outer wall
+      ("Neutralizer_Housing", "Cathode_Neutralizer"),  # clamp collar grips the cathode
+      ("Anode_Gas_Distributor", "Propellant_Feed")}    # feed line enters the plenum
 
 parts = [(n, s) for s, n, _ in B.parts]
 bad = 0
