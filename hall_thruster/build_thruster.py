@@ -118,6 +118,26 @@ R_COIL_I   = (14.0, 26.0)   # inner ring pack, radii about the THRUST axis
 R_COIL_O   = (7.5, 15.0)    # outer solenoid, radii about its own LEG axis
                             # -> reaches r 73 .. 103 from the thrust axis
 
+# ---- coil formers --------------------------------------------------------
+# The bobbin each winding is wound onto, filling the space between the winding's
+# bore and the pole it stands off. It exists to fix a shading problem, and it is
+# also simply what holds a coil off its core.
+#
+# That space used to be a VOID, and in section a void reads as whatever the eye
+# finds down it. Either side of a leg it appeared as a band, and the two bands did
+# not match: (127,91,48) on the outer side against (82,50,24) on the inner, 1.7x
+# apart, while the CENTRAL coil's equivalent pair agreed exactly at (82,50,24)
+# because that coil is coaxial with the thrust axis and its two sides are mirror
+# images. Three of the four bands agreed and one was wrong, and it stayed wrong
+# through every attempt to change what lay behind it - the depth fog, an iron pole
+# cup, a copper overwrap - all within 3 of the same 40.
+#
+# Filling the space settles it by construction: a solid's cut face is a flat,
+# unlit cap, so both bands are now one component painted one color and cannot
+# disagree. FORMER_COL is set to the tone the three GOOD bands already had, so
+# what changes is only the band that was wrong.
+FORMER_GAP = 0.1     # clearance to the pole and to the winding; sub-pixel in section
+
 # ---- anode / gas distributor --------------------------------------------
 # ONE part does both jobs, the way the schematic draws it: the anode baseplate
 # seated in the bottom of the ceramic cup IS the propellant injector. There is
@@ -194,6 +214,7 @@ COL = dict(
     core_inner = "#8a9099",   # soft iron, a shade up so the inner branch reads
     coil       = "#b9773a",   # copper windings
     channel    = "#eef0ea",   # boron nitride: the chalk-white discharge channel
+    former     = "#523218",   # coil bobbin - exactly the tone the good bands read
     anode      = "#3a3f48",   # the electrode - darkest thing in the model
     cathode    = "#d8b62e",   # hollow cathode (same gold the gridded-ion applet uses)
 )
@@ -279,6 +300,14 @@ coil_inner = coil_pack(R_COIL_I)
 coil_outer = union(*[Rot(Z=k * 360.0 / N_LEG) * coil_pack(R_COIL_O, x=R_LEG)
                      for k in range(N_LEG)])
 
+# One former per winding, spanning core-surface + gap .. winding-bore - gap.
+former = union(
+    tube(R_COIL_I[0] - FORMER_GAP, R_STEM + FORMER_GAP, COIL_Z0, COIL_Z1),
+    *[Rot(Z=k * 360.0 / N_LEG)
+      * tube(R_COIL_O[0] - FORMER_GAP, R_LEG_ROD + FORMER_GAP,
+             COIL_Z0, COIL_Z1, x=R_LEG)
+      for k in range(N_LEG)])
+
 # ---- ceramic discharge channel ------------------------------------------
 # A CUP, not two loose tubes: the schematic's dielectric walls close across the
 # upstream end, so the ceramic is a U in section and the anode sits in the
@@ -350,6 +379,7 @@ parts = [
     (core_inner, "Magnetic_Core_Inner",   COL["core_inner"]),
     (coil_outer, "Coil_Outer",            COL["coil"]),
     (coil_inner, "Coil_Inner",            COL["coil"]),
+    (former,     "Coil_Former",           COL["former"]),
     (channel,    "Discharge_Channel",     COL["channel"]),
     (anode,      "Anode_Gas_Distributor", COL["anode"]),
     (feed,       "Propellant_Feed",       COL["shell"]),

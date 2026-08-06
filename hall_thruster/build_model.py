@@ -38,6 +38,7 @@ COMPONENTS = [
     ("Magnetic_Core_Inner",   "Magnetic Core",            "core",      "#8a9099", "core_inner"),
     ("Coil_Outer",            "Magnetic Coils",           "coil",      "#b9773a", "coil_outer"),
     ("Coil_Inner",            "Magnetic Coils",           "coil",      "#b9773a", "coil_inner"),
+    ("Coil_Former",           "Coil Formers",             "former",    "#523218", "former"),
     ("Discharge_Channel",     "Discharge Channel",        "channel",   "#eef0ea", "channel"),
     ("Anode_Gas_Distributor", "Anode",                    "anode",     "#3a3f48", "anode"),
     ("Propellant_Feed",       "Propellant Feed",          "structure", "#d5d8e4", "feed"),
