@@ -35,7 +35,7 @@ import build_thruster as B
 # with its two Magnet_Ring_* components.
 COMPONENTS = [
     ("Magnetic_Core_Outer",   "Magnetic Core",            "core",      "#7a808b", "core_outer"),
-    ("Magnetic_Core_Inner",   "Magnetic Core",            "core",      "#8a9099", "core_inner"),
+    ("Magnetic_Core_Inner",   "Magnetic Core",            "core",      "#7a808b", "core_inner"),
     ("Coil_Outer",            "Magnetic Coils",           "coil",      "#b9773a", "coil_outer"),
     ("Coil_Inner",            "Magnetic Coils",           "coil",      "#b9773a", "coil_inner"),
     ("Coil_Former",           "Coil Formers",             "former",    "#523218", "former"),

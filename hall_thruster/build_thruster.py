@@ -211,7 +211,13 @@ BOOM_W     = 16.0
 COL = dict(
     shell      = "#d5d8e4",   # aluminum: feed lines, cathode boom
     core_outer = "#7a808b",   # soft iron: back plate, outer pole and return walls
-    core_inner = "#8a9099",   # soft iron, a shade up so the inner branch reads
+    # The inner branch is the SAME soft iron as the outer one and is continuous with
+    # it through the back plate, so it takes the same tone. It used to be a shade
+    # lighter, to make the inner circuit legible on its own, but that put a hard seam
+    # straight across the back-plate joint at z = 14 - (123,129,140) stepping to
+    # (139,145,154) along the axis - which reads as two materials butted together
+    # rather than one part. The panel calls them one component, so they look like one.
+    core_inner = "#7a808b",
     coil       = "#b9773a",   # copper windings
     channel    = "#eef0ea",   # boron nitride: the chalk-white discharge channel
     former     = "#523218",   # coil bobbin - exactly the tone the good bands read
