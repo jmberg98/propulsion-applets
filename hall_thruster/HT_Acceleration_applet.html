@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hall Thruster II: Acceleration</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+
+:root {
+  /* ── Physics color tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a color mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+.transition-line,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ────────────────────────────────────
+   Color is the ONLY channel these use — never weight, never
+   size. Color answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Color key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.color-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.color-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.color-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 18px;
+}
+.page-intro + .page-intro { margin-top: -4px; }
+
+/* ── Transition line ─────────────────────────────────── */
+.transition-line {
+  font-size: 20.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 6px 0 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY / DROPDOWN SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+/* ── Equation panels ────────────────────────────────
+   Same metrics as the stage pages (GIE_Acceleration), so an
+   equation looks identical wherever the reader meets it.  */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ── Exemplary engines ──────────────────────────────────
+   Outbound links. The engine name is NOT given a physics
+   color (a link is not a quantity), so it reads in the
+   heading color and signals itself with the underline and
+   the ↗ glyph instead.                                   */
+.ex-list { list-style: none; }
+.ex-item { padding: 12px 0 2px; border-top: 1px solid var(--border); }
+.ex-item:first-child { padding-top: 0; border-top: none; }
+.ex-name {
+  font-size: 20.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+.ex-name a {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid #3a3a3a;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ex-name a:hover { color: #ffffff; border-bottom-color: var(--c-accent); }
+.ex-name a:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 3px; }
+.ex-name .ext {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 5px;
+  vertical-align: 1px;
+}
+/* Spec strip: the numbers this lesson's equations actually predict. */
+.ex-specs {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .2px;
+  margin-bottom: 5px;
+}
+.ex-specs .sep { color: #3a3a3a; margin: 0 7px; }
+/* Hardware photo. The two NASA shots are landscape and portrait respectively,
+   so bound them by HEIGHT; matching widths would make the portrait tower over
+   the landscape one. */
+.ex-fig {
+  margin: 10px 0 4px;
+  /* Caption beside the photo, not under it: the page is up to 1500px wide and a
+     height-bounded photo leaves most of that empty. Stacks below 900px. */
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+.ex-fig img {
+  display: block;
+  max-height: 300px;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-canvas);
+}
+.ex-fig figcaption {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 460px;
+  padding-bottom: 2px;
+}
+@media (max-width: 900px) {
+  .ex-fig { display: block; }
+  .ex-fig figcaption { margin-top: 6px; max-width: none; }
+}
+.ex-fig .credit {
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: .3px;
+  color: #5f5f5f;
+}
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Embedded viewer / applet iframe ──────────────────
+   The frame is sized by ASPECT, not by a pinned pixel height. It is as wide as the page
+   (--page-w, up to 1500px), so a fixed height letterboxed it: the viewer scales its camera
+   to the shorter dimension, and a 2.4:1 slot left the model small with dead bands either
+   side. An aspect ratio keeps the slot proportionate at every window width; max-height
+   keeps a wide window from pushing it past one screen, min-height keeps a narrow one from
+   collapsing it. */
+.applet-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
+}
+
+/* ── Demo placeholder ───────────────────────────────── */
+.demo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 460px;
+  border-top: 1px solid var(--border);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.012) 0,
+      rgba(255,255,255,0.012) 12px,
+      transparent 12px,
+      transparent 24px
+    ),
+    var(--bg-canvas);
+  text-align: center;
+  padding: 24px;
+}
+.demo-placeholder-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.demo-placeholder-note {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled):not(.selected) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
+}
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ── Citation markers ───────────────────────────────────
+   Deliberately NOT a physics color. Every hl-* token means
+   "which quantity is this?"; a source number is not a
+   quantity, so it takes the neutral chrome accent instead.
+   Otherwise a blue marker would read as a velocity.       */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Reference list ─────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 16px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.15em !important; }
+
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.applet-nav a,
+.applet-nav .nav-disabled {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: var(--bg-panel-1);
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover {
+  border-color: var(--c-accent);
+  background: var(--bg-panel-3);
+  color: var(--text-heading);
+}
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  width          : var(--page-w);
+  margin-top     : 34px;
+  padding-top    : 26px;
+  border-top     : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 12px;
+  text-align     : center;
+  color          : var(--text-muted);
+}
+
+footer .foot-logo {
+  display   : block;
+  height    : 54px;
+  width     : auto;
+  opacity   : 0.88;
+  transition: opacity 0.15s ease;
+}
+footer a:hover .foot-logo { opacity: 1; }
+
+footer .foot-title {
+  font-size     : 17px;
+  letter-spacing: 0.3px;
+  color         : var(--text-secondary);
+}
+
+footer .foot-cred {
+  font-size: 15px;
+  color    : var(--text-muted);
+}
+
+/* ── Inline applet link ───────────────────────────────
+   Lifted from GIE_Ionization_applet.html: the overview page uses
+   .applet-link in its markup but never styled it. */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
+/* ── Static figure (inline SVG plot) ─────────────────
+   Full-bleed inside an .applet-host block so a figure sits
+   in the same frame as a demo iframe. The SVG carries its own
+   #0e0e0e ground, so it needs no background of its own. */
+.fig-frame {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  background: var(--bg-diagram);
+}
+.fig-frame svg { display: block; width: 100%; height: auto; }
+.fig-caption {
+  padding: 11px 18px 15px;
+  font-size: 17.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <a class="nav-prev" href="HT_Buzzsaw_applet.html">&larr; Prev</a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="HT_Neutralization_applet.html">Next &rarr;</a>
+</nav>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Hall Thruster II: Acceleration</h1>
+  <span class="badge">Electric Propulsion</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  In the <a class="applet-link" href="../gridded_ion/GIE_Acceleration_applet.html">gridded ion engine</a>, the
+  accelerating gap had to be kept empty of <span class="hl-electron">electrons</span>, so the only charge in it
+  was the <span class="hl-ion">ion</span> charge being accelerated. That charge pushes back on the ions still
+  arriving, and the <span class="key">Child&ndash;Langmuir</span> space-charge limit is the ceiling it imposes.
+</p>
+
+<div class="color-key">
+  <span class="ck-lead">Color key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+</div>
+
+<p class="page-intro">
+  A Hall thruster accelerates its <span class="hl-ion">ions</span> in a region that is full of
+  <span class="hl-electron">electrons</span>: the buzzsaw from the previous page sits in the same volume the ions
+  are accelerating through. The plasma there is <span class="key">quasineutral</span>, the net space charge is
+  close to zero, and the limit that capped the gridded engine never
+  appears.<sup class="cite"><a href="HT_Overview_applet.html#ref-1">1</a></sup> This one difference is most of why Hall thrusters
+  displaced gridded engines commercially.
+</p>
+
+<!-- ════════════════════ Q1: WHY NO SPACE-CHARGE LIMIT ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">Why does the <span class="key">Child&ndash;Langmuir</span> limit not cap the
+    <span class="hl-ion">ion</span> current a Hall thruster can accelerate?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>Electrons are present throughout the accelerating region, so the ion space charge is neutralized as fast as it builds up and never sets up a field that blocks the ions behind it.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>The accelerating distance is so much longer than a grid gap that the limit becomes numerically irrelevant.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>The magnetic field carries the ions across the gap, so the ion current is set by the field strength rather than by space charge.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<div class="theory-block applet-host">
+  <div class="th-hdr">Thrust Density: Gridded Against Hall</div>
+  <div class="demo-placeholder">
+    <div class="demo-placeholder-tag">Interactive figure to build</div>
+    <div class="demo-placeholder-note">Thrust per unit area against voltage, for the same aperture area: the Child-Langmuir ceiling for a gridded engine at a realistic gap, against a Hall thruster with no such ceiling. The gap between the two curves is the whole argument of this page.</div>
+  </div>
+  <div class="fig-caption">
+    TODO: build this figure. Reuse the space-charge expression already derived in
+    <a class="applet-link" href="../gridded_ion/GIE_Acceleration_applet.html">GIE II</a> for the gridded curve,
+    so the two pages cannot disagree.
+  </div>
+</div>
+
+<!-- ════════════════════ 3D VIEWER ════════════════════ -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">Acceleration</div>
+  <iframe class="applet-frame" src="hall_thruster.html?mode=acc&amp;v=1"
+          title="Acceleration: ions falling through the axial field near the exit plane"
+          loading="lazy"></iframe>
+</div>
+
+<!-- ════════════════════ WHAT IT COSTS ════════════════════ -->
+<div class="transition-line">
+  Losing the space-charge limit is not free. If it were, nobody would still be flying gridded engines.
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">What the Trade Actually Is</div>
+  <p class="th-body">
+    <!-- TODO: the trade, one paragraph each, with numbers and citations:
+           - thrust density gain, roughly an order of magnitude for the same area
+           - beam divergence, because the accelerating field is not a flat sheet between two
+             flat grids and the ions are born across a range of potentials
+           - lower practical Isp, and the reasons for it
+           - multiply-charged ions and their efficiency cost
+           - no grid to erode, but a channel wall that does erode instead (Overview page's
+             second conceptual question) -->
+    TODO. The claims to make and support here: thrust density up by roughly an order of magnitude for the same
+    area; a <span class="hl-ion">beam</span> that leaves considerably more divergent; a lower practical
+    <span class="hl-ve">specific impulse</span>; and an efficiency penalty from multiply-charged
+    <span class="hl-ion">ions</span>.
+  </p>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Born Across a Range of Potentials</div>
+  <p class="th-body">
+    There is a second consequence worth separating out. In a gridded engine every
+    <span class="hl-ion">ion</span> starts at essentially the same
+    <span class="hl-phi">potential</span>, the screen grid, and falls through essentially the same voltage. In a
+    Hall thruster an ion is created wherever its parent <span class="hl-neutral">neutral</span> happened to be
+    ionized, which is spread over the length of the acceleration region, so different ions fall through
+    different fractions of the total. The exhaust therefore leaves with a
+    <span class="key">spread</span> of speeds rather than one speed.
+    <!-- TODO: connect this to the divergence and Isp claims above, and to the ion energy
+         distribution the potential page will plot. -->
+  </p>
+  <p class="th-body">
+    Which raises the question the next pages answer: where exactly does the
+    <span class="hl-phi">potential</span> fall, if no hardware marks the spot?
+    <a class="applet-link" href="HT_Potential_applet.html">That is the potential distribution &rarr;</a>
+  </p>
+</div>
+
+<!-- ════════════════════ Q2: THE TRADE ════════════════════
+     TODO: write this question once the trade section above has its numbers, so the
+     distractors can be quantitative rather than qualitative. -->
+
+<!-- ════════════════════ SOURCES ════════════════════
+     TODO: same as the buzzsaw page. This page cites ref-1 with no list of its own. -->
+
+<footer>
+  <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+    <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+  </a>
+  <div class="foot-title">Propulsion Applets 2026</div>
+  <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
+</footer>
+
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+
+/* ── Single-answer multiple choice ─────────────────────────────── */
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct on every count.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
+  });
+});
+</script>
+</body>
+</html>

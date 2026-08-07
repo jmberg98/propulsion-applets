@@ -43,7 +43,10 @@ COMPONENTS = [
     ("Anode_Gas_Distributor", "Anode",                    "anode",     "#3a3f48", "anode"),
     ("Propellant_Feed",       "Propellant Feed",          "structure", "#d5d8e4", "feed"),
     ("Cathode_Neutralizer",   "Cathode-Neutralizer",      "cathode",   "#d8b62e", "cathode"),
-    ("Neutralizer_Housing",   "Neutralizer Boom",         "structure", "#d5d8e4", "neut_house"),
+    # Its own material and its own role, so the panel can name it: "structure" was
+    # shared with the feed lines and carried their aluminum. The STEP part name is
+    # left alone - check_clearance.py keys off it.
+    ("Neutralizer_Housing",   "Cathode Housing",          "keeper",    "#a9a6a0", "neut_house"),
 ]
 
 # Meshing deflection (linear, angular) per role. The coils are no longer swept

@@ -59,10 +59,12 @@ schematic draws and what makes the injector plate legible. At 14 mm it was a
 3.4 : 1 slot - 47 mm from the plate face to the mouth on a 14 mm gap - and the
 anode sat at the bottom of it in near-total shadow, so its orifices could not be
 made out from any angle. Widening the annulus is the fix; moving the anode
-downstream is not, because its 23 % share of the channel length is right.
+downstream is not, because it belongs against the upstream end - it is a shallow
+ring taking 14 % of the channel length, its face 12 mm off the chamber floor.
 
 Exports hall_thruster_3D.STEP with per-part colors.
 """
+import math
 import sys
 from build123d import (
     Cylinder, Cone, Box, Pos, Rot, Compound, Color, export_step,
@@ -143,10 +145,19 @@ FORMER_GAP = 0.1     # clearance to the pole and to the winding; sub-pixel in se
 # seated in the bottom of the ceramic cup IS the propellant injector. There is
 # no separate distributor - the supply lines feed its plenum from behind and the
 # neutrals leave through the orifice ring in its downstream face.
+#
+# It is a SHALLOW ring, 10 mm deep on a 70 mm channel, sitting its face 12 mm off
+# the chamber floor. The plenum it carries is not decoration: the orifices choke,
+# so what each one passes is set by the stagnation pressure just behind it, and the
+# cavity is what equalizes that pressure around the azimuth from only two inlets.
+# Drill straight through from feed to orifice instead and the two orifices in line
+# with the feeds pass nearly all the flow. Depth is the one dimension free to come
+# down, though - the cavity only has to be big enough that the azimuthal pressure
+# drop along it stays small next to the critical drop across the orifices.
 R_AN_IN    = 39.0    # anode bore  (1 mm clear of the channel inner wall)
 R_AN_OUT   = 61.0    # anode OD    (1 mm clear of the channel outer wall)
 Z_AN0      = 21.0    # 2 mm off the ceramic floor at Z_CH_FLOOR = 19
-Z_AN1      = 37.0    # anode downstream face
+Z_AN1      = 31.0    # anode downstream face - 12 mm off the chamber floor
 PLENUM_T   = 3.0     # anode wall thickness around the gas plenum
 # EIGHT injector orifices, at 45 deg spacing. At 8 they have to be big to read at
 # all - a 30-odd hole ring can be fine because the holes crowd each other into a
@@ -183,20 +194,103 @@ INJ_ANGLES = (90.0, 270.0)   # azimuths, degrees
 # exit plane. NEUT_TILT is measured off the thrust axis, so the cathode axis
 # points along (0, -sin, +cos) - inward in Y and downstream in Z.
 NEUT_TILT  = 35.0    # degrees off the thrust axis
-NEUT_Y0    = 148.0   # Y of the cathode's back end
+NEUT_Y0    = 156.0   # Y of the cathode's back end - set by the ENCLOSURE, below
 NEUT_Z0    = 53.0    # Z of the cathode's back end
 NEUT_BODY  = (0.0, 40.0)     # local axial stations, measured from the back end
 NEUT_CONE  = 43.0            # Cone is CENTER-placed, so this spans 40 .. 46
-NEUT_SNOUT = (46.0, 54.0)
-NEUT_BORE  = (50.0, 56.0)
+# The snout is what stands PROUD of the keeper housing, so its length is set by how
+# much cathode should read outside the pod, not by the tube itself: at 8 mm only a
+# nub cleared the front plate and the assembly read as a plain box. 16 mm leaves 13
+# outside, i.e. about a quarter of the shell's length, which is the proportion the
+# gridded-ion neutralizer shows.
+NEUT_SNOUT = (46.0, 62.0)
+NEUT_BORE  = (58.0, 64.0)
 NEUT_R     = 9.0     # body radius (Ø18)
 NEUT_TIP_R = 5.5     # snout radius
 NEUT_ORF_R = 2.6     # keeper orifice radius
-COLLAR     = (2.0, 16.0)     # clamp collar, local axial stations
-COLLAR_R   = 12.0
-BOOM_Z     = (40.0, 56.0)
-BOOM_Y     = (104.0, 152.0)  # bites 6 mm into the outer wall, out past the cathode
-BOOM_W     = 16.0
+
+# ---- neutralizer housing -------------------------------------------------
+# A KEEPER ENCLOSURE around the cathode body plus a slab carrying it, in place of
+# the bare tube on an open boom this started as. The cathode is then a snout poking
+# out of a gray pod, not a large exposed gold cylinder hanging off a boom, which is
+# how gridded_ion/build_model.py's `neut_house` presents its neutralizer and is what
+# makes the two applets read as the same hardware family. Proportions are taken from
+# there: Ø24 over the Ø18 body, so 3 mm of wall, a 3 mm rear plate and a 3 mm front
+# plate bored to clear the cone. You cannot see inside it from any angle; only the
+# taper and the snout come out of the bore.
+#
+# The gridded-ion pod is a square BOX and this one started that way too, but Jordan
+# circled it and asked for the pod - and only the pod, not the slab behind it - to
+# be CYLINDRICAL. So the shell and its cavity are turned about the cathode axis
+# while the slab stays prismatic, and the two meet on the pod's rear plate. On that
+# plane the slab's section is exactly the 24 x 24 square that CIRCUMSCRIBES the Ø24
+# rim: tangent on all four faces, with only the four corners standing proud. That
+# tangency is not arranged, it falls out of MOUNT_Y0/MOUNT_Y1 already being the
+# rim's extreme points in y - see `_corner_y`, which is unchanged by the switch
+# because the local x direction contributes nothing to global y.
+#
+# It is built in the CATHODE's canted frame, so the pod is coaxial with the cathode
+# and only the slab is square to the thruster.
+ENC_D      = 24.0            # pod outside diameter - 3 mm of wall on the Ø18 body
+ENC_Z      = (-3.0, 45.0)    # local axial stations of the shell
+ENC_CAV_Z  = (0.0, 42.0)     # cavity: 3 mm rear plate, 3 mm front plate. Its rear
+                             # face is FLUSH on the cathode's back face, as in the
+                             # gridded-ion build - stand it off and the section
+                             # shows a black slot behind the cathode instead of a
+                             # seated part.
+# The cavity can no longer be flush on the body's SIDES. As a box it was tangent
+# along four lines and shared zero volume with the Ø18 cathode, which is what let it
+# sit hard against it; turned, "flush" would mean the cavity's wall and the body's
+# wall are the SAME cylinder - coincident surfaces, which z-fight and which OCC's
+# booleans have no reason to resolve one way or the other. So it takes the same
+# 0.1 mm standoff FORMER_GAP uses a few dozen lines up, for the same reason: nothing
+# shares a surface and the gap stays sub-pixel (0.4 px at the framing the applet
+# opens on).
+ENC_GAP    = 0.1
+ENC_CAV_R  = NEUT_R + ENC_GAP     # 9.1
+ENC_BORE_R = 8.0             # front-plate bore; the cone is r 7.83 at local z 42
+
+# Behind the pod, the housing continues as a plain slab square to the THRUSTER -
+# the piece that reconciles the two frames, the same job gridded_ion's Box(18, 10,
+# 30) does. It began as a slim post under the pod's rear end, which left a large
+# black notch between the pod and the thruster's upstream side and made the pod read
+# as perched on a stalk; Jordan marked that void out and had the housing EXTENDED
+# through it, so it now runs from the thruster's rear face at z = 0 forward to the
+# pod, and stands as tall as the pod's own rear-top corner.
+#
+# THE HOUSING NO LONGER TOUCHES THE THRUSTER. The slab used to run down to r 104,
+# six millimeters inside the outer wall, so the assembly was bolted on. Jordan drew
+# a line across it and asked for the cathode to be cut free - external, as the name
+# says, connecting to the thruster nowhere. Nothing spans the gap, no bracket and no
+# strut, so the whole neutralizer floats, carried by the spacecraft rather than by
+# the thruster. (Real hardware does bracket the cathode to the thruster or to a
+# gimbal plate; this is a presentational choice, and the clearance is what makes the
+# point.) `check_clearance.py` no longer whitelists Neutralizer_Housing against
+# Magnetic_Core_Outer, so a nonzero reading between them is the regression that
+# catches this being undone. A zero interference volume alone is NOT enough, since
+# touching also scores zero - measure the real gap with BRepExtrema_DistShapeShape.
+# It is 10.4 mm, set by the POD's lower front corner rather than by the slab.
+#
+# The slab stops dead on the pod's rear plate, and its own square section is sized
+# from the pod's rear rim, so the two are concentric on that plate and the joint is
+# one clean square-to-round transition.
+#
+# MOUNT_GROW is how much PROUD of the rim the slab stands. It ran through three
+# values, and the history is the reason it is a named factor rather than a number:
+#   0.75  the slab was 18 against the pod's 24, so the POD overhung the SLAB and the
+#         two met in a sliver and a groove down the top face. Jordan circled it.
+#   1.00  exactly circumscribing - tangent on all four faces, only the corners proud.
+#         From the front the base then barely showed behind the tube.
+#   1.30  a square base standing 3.6 mm proud all round, so it reads as a base
+#         rather than as something the tube not quite covers.
+#   1.69  current - another 30 % on top of that, i.e. 1.30 squared. A Ø24 tube on a
+#         40.6 mm square, standing 8.3 mm proud all round.
+# Note that going past 1.0 deliberately reintroduces a step at the joint, including
+# on the underside, where 1.0 had given one continuous line from slab to pod. That is
+# what a flange IS, and "by 30% on ALL sides" asks for it on the bottom too.
+MOUNT_GROW = 1.69
+MOUNT_W    = ENC_D * MOUNT_GROW     # 40.56
+MOUNT_Z    = (0.0, 64.0)     # from the thruster's rear face; the pod's plate trims it
 
 # Colors follow the gridded-ion applet's convention: one light gray for every
 # structural body, and gold reserved for hollow cathodes. That applet spends its
@@ -209,7 +303,25 @@ BOOM_W     = 16.0
 # The schematic's own palette (red coils, blue anode, olive ceramic) is cartoon
 # coding, not materials, and red and blue are both spoken for in this codebase.
 COL = dict(
-    shell      = "#d5d8e4",   # aluminum: feed lines, cathode boom
+    shell      = "#d5d8e4",   # aluminum: the propellant feed lines
+    # The KEEPER HOUSING is its own material, not the feed lines' aluminum. It used
+    # to share that tone, which said the pod was the same stuff as the two Ø8 tubes
+    # it sits nowhere near, and left the panel unable to name either one: a single
+    # swatch cannot caption two unrelated parts, so neither got a legend row.
+    #
+    # Stainless is the honest call for a keeper enclosure and its mount - it runs
+    # hot next to an emitter and gets no structural help from being light, which is
+    # the opposite of the case for feed plumbing. It also has to survive the
+    # cathode's own thermal cycling without an aluminum's expansion mismatch.
+    #
+    # Tonally it is a WARM neutral, on purpose. The three grays already in the model
+    # are all cool - aluminum #d5d8e4 and soft iron #7a808b are blue-cast, the anode
+    # #3a3f48 nearly black - so a fourth cool gray would have read as one of them
+    # under a different light rather than as another material. Luminance separation
+    # is what stops the housing merging into the core it floats beside: 167 here
+    # against the core's 127 and the feed lines' 216, i.e. ~40-50 clear of each,
+    # where the section work upstream in this file treats ~20 as the marginal case.
+    keeper     = "#a9a6a0",   # stainless: cathode keeper enclosure + its mount block
     core_outer = "#7a808b",   # soft iron: back plate, outer pole and return walls
     # The inner branch is the SAME soft iron as the outer one and is continuous with
     # it through the back plate, so it takes the same tone. It used to be a shade
@@ -348,17 +460,25 @@ anode -= union(*[
     * Pos(R_FEED, 0, Z_AN1 - CSINK_D / 2)
     * Cone(bottom_radius=R_GAS_HOLE, top_radius=R_GAS_HOLE + CSINK_D, height=CSINK_D)
     for k in range(N_GAS_HOLE)])
-# open a feed bore through the anode's upstream wall for each injector - the tubes
-# are separate solids that merely butt into it, so without this the gas path
-# dead-ends against solid material
+# Carry each feed bore on through the anode's upstream wall, same radius as the
+# tube's own bore, so the two line up into ONE passage: tube -> wall -> plenum.
 for _a in INJ_ANGLES:
     anode -= Rot(Z=_a) * cyl(FEED_BORE, Z_AN0 - 2, Z_AN0 + PLENUM_T + 1, x=R_FEED)
 
-feed = union(*[Rot(Z=_a) * tube(FEED_R, FEED_BORE, Z_FEED0, Z_AN0 + PLENUM_T + 2, x=R_FEED)
+# The tube stops flush ON the anode's upstream face - butted, not inserted.
+#
+# It used to run to Z_AN0 + PLENUM_T + 2, i.e. 5 mm past that face and out into the
+# plenum, while the bore it passed through was only FEED_BORE. A Ø8 tube through a
+# Ø4 hole buried 226 mm^3 of tube wall inside the anode, which the viewer drew as a
+# z-fighting hatch across the joint, and left the tube's mouth hanging in mid-plenum
+# with a gap between it and the far wall. Ending it on the face fixes both: nothing
+# overlaps, and the tube's bore meets the anode's bore exactly, concentric and
+# tangent, so the gas path reads as one continuous passage.
+feed = union(*[Rot(Z=_a) * tube(FEED_R, FEED_BORE, Z_FEED0, Z_AN0, x=R_FEED)
                for _a in INJ_ANGLES])
 
 # ---- cathode-neutralizer -------------------------------------------------
-# Built along +Z at the origin, then canted and carried out to the boom. `Pos *
+# Built along +Z at the origin, then canted and carried out to the mount. `Pos *
 # Rot * shape` applies the rotation first, so NEUT_PLACE puts local +Z along
 # (0, -sin, +cos) and drops local z = 0 on the cathode's back end.
 NEUT_PLACE = Pos(0, NEUT_Y0, NEUT_Z0) * Rot(X=NEUT_TILT)
@@ -370,14 +490,53 @@ cathode = NEUT_PLACE * union(
 )
 cathode -= NEUT_PLACE * cyl(NEUT_ORF_R, *NEUT_BORE)          # keeper orifice
 
-# ---- neutralizer mount ---------------------------------------------------
-# A radial boom off the outer wall plus a clamp collar around the cathode's back
-# end. What sets NEUT_Y0 is the Ø18 BODY clearing the outer wall over the whole
-# span where the two overlap axially, not the slender snout.
-boom = Pos(0, sum(BOOM_Y) / 2, sum(BOOM_Z) / 2) * Box(
-    BOOM_W, BOOM_Y[1] - BOOM_Y[0], BOOM_Z[1] - BOOM_Z[0])
-collar = NEUT_PLACE * cyl(COLLAR_R, *COLLAR)
-neut_house = union(boom, collar)
+# ---- neutralizer housing -------------------------------------------------
+# Keeper enclosure + mount block, per the note on the constants above.
+#
+# What sets NEUT_Y0 is now the ENCLOSURE clearing the outer wall over the span
+# where the two overlap axially - it used to be the bare Ø18 body, and wrapping
+# that body in a 24 mm shell moved the binding point out by 5.6 mm. The shell's
+# lower front corner is the one that binds: it sits at (y 120.4, z 83.0), i.e.
+# 10.4 mm outboard of the R_YOKE surface and 1 mm shy of the front plane, so it
+# clears the thruster at the last station where the two still overlap.
+# The slab's two horizontal faces are placed off the pod's own rear rim, scaled by
+# MOUNT_GROW, so the square base stays centered on the tube whatever either is sized
+# to. Derived from NEUT_PLACE rather than typed in, so both track the cant.
+#
+# The rim being a CIRCLE rather than the square it once was changes nothing here:
+# local x maps to global x and contributes nothing to global y, so the circle's
+# extreme y is exactly where the old square's corners were. That is also what keeps
+# the base concentric with the tube instead of merely overlapping it - at
+# MOUNT_GROW = 1 it circumscribed the rim tangentially, and above 1 it stands the
+# same amount proud on all four sides.
+def _slab_y(sign):
+    """Y of the slab's top (+1) or bottom (-1) face, off the pod's rear rim."""
+    return (NEUT_Y0 + sign * (ENC_D / 2) * MOUNT_GROW * math.cos(math.radians(NEUT_TILT))
+            - ENC_Z[0] * math.sin(math.radians(NEUT_TILT)))
+
+
+MOUNT_Y1 = _slab_y(+1)       # 170.5 - the highest point on the whole assembly
+MOUNT_Y0 = _slab_y(-1)       # 144.9 - the slab's underside, 35 mm clear of R_YOKE
+
+mount = Pos(0, (MOUNT_Y0 + MOUNT_Y1) / 2, sum(MOUNT_Z) / 2) * Box(
+    MOUNT_W, MOUNT_Y1 - MOUNT_Y0, MOUNT_Z[1] - MOUNT_Z[0])
+
+# Stop the slab dead on the pod's rear plate: cut the WHOLE half-space downstream of
+# it, not just the part level with the pod. Cutting only that part left a wedge of
+# slab hanging below the pod, sloping down to the thruster, which is the material
+# Jordan's second line cut away. It also has to be the whole half-space now that
+# MOUNT_GROW puts the slab OUTSIDE the pod: cut any less and the base's proud edges
+# would run on downstream as fins alongside the tube.
+BIG = 400.0
+mount -= NEUT_PLACE * (Pos(0, 0, BIG / 2 + ENC_Z[0]) * Box(BIG, BIG, BIG))
+
+# Pod and cavity are both turned about the cathode axis. The front plate is
+# unaffected: the cavity stops at ENC_CAV_Z[1], so the plate is still solid stock
+# that ENC_BORE_R opens to Ø16 - an annulus r 8 .. 12 now instead of a bored square,
+# with the cone (r 7.83 at that station) passing through exactly as before.
+neut_house = union(NEUT_PLACE * cyl(ENC_D / 2, *ENC_Z), mount)
+neut_house -= NEUT_PLACE * cyl(ENC_CAV_R, *ENC_CAV_Z)
+neut_house -= NEUT_PLACE * cyl(ENC_BORE_R, ENC_CAV_Z[1] - 1, ENC_Z[1] + 2)
 
 # ---- assemble, color, export --------------------------------------------
 parts = [
@@ -390,7 +549,7 @@ parts = [
     (anode,      "Anode_Gas_Distributor", COL["anode"]),
     (feed,       "Propellant_Feed",       COL["shell"]),
     (cathode,    "Cathode_Neutralizer",   COL["cathode"]),
-    (neut_house, "Neutralizer_Housing",   COL["shell"]),
+    (neut_house, "Neutralizer_Housing",   COL["keeper"]),
 ]
 
 solids = []
