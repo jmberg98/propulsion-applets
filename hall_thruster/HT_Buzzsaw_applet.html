@@ -22,6 +22,16 @@
     throwOnError:false
   })"></script>
 
+<!-- The buzzsaw figure on this page is a WebGL scene rather than an inline SVG, so the
+     lesson page carries the same three.js pin the viewers do. Same version, same CDN,
+     so a reader who has already loaded hall_thruster.html gets it from cache. -->
+<script type="importmap">
+{ "imports": {
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
 <style>
 
 :root {
@@ -736,12 +746,174 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   background: var(--bg-diagram);
 }
 .fig-frame svg { display: block; width: 100%; height: auto; }
+
+/* ── 3-D figure frame ─────────────────────────────────
+   The same slot as .fig-frame, but what fills it is a WebGL
+   canvas with overlays sitting on top of it rather than one
+   inline SVG, so the frame needs a positioning context and the
+   canvas needs an explicit box to fill. The canvas is sized HERE,
+   in CSS, and the renderer is called with updateStyle off, so
+   three.js never writes an inline width that fights this rule.
+   Getting that backwards is what crops the corner overlays: the
+   drawing buffer grows, the element does not, and the canvas
+   overflows the frame instead of fitting it. */
+.bz-frame {
+  position: relative;
+  aspect-ratio: 900 / 470;
+  max-height: 700px;
+  overflow: hidden;
+}
+.bz-frame canvas { display: block; width: 100%; height: 100%; }
+.bz-hud {
+  position: absolute; top: 13px; left: 17px;
+  font-size: 13.5px; letter-spacing: .2px; line-height: 1.55; color: #8a8a8a;
+  pointer-events: none;
+}
+.bz-hud > div + div { color: #767676; }
+.bz-legend {
+  position: absolute; left: 17px; bottom: 13px;
+  display: flex; flex-wrap: wrap; gap: 3px 15px;
+  font-size: 13px; color: #8a8a8a;
+  pointer-events: none;
+}
+.bz-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.bz-legend i { width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto; }
+/* Said in the frame rather than in the caption, because both of these are true only for
+   some switch and slider positions and a caption cannot come and go. They share one slot:
+   the status line reports on the bounce, the note only appears when the bounce is off, so
+   the two can never want the slot at the same time. */
+.bz-status,
+.bz-note {
+  position: absolute; left: 50%; top: 46px;
+  transform: translateX(-50%);
+  max-width: min(520px, 76%);
+  padding: 8px 14px;
+  border-radius: 4px;
+  background: rgba(9,9,9,0.78);
+  text-align: center;
+  font-size: 15.5px; line-height: 1.5; color: #9a9a9a;
+  pointer-events: none;
+}
+.bz-status { font-size: 14.5px; max-width: min(560px, 80%); }
+.bz-hint {
+  position: absolute; right: 17px; bottom: 13px;
+  font-size: 13px; color: #6a6a6a; font-style: italic;
+  pointer-events: none;
+}
+/* Shown only if the context never comes up. A figure that silently renders
+   nothing is worse than one that says why. */
+.bz-fallback {
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  font-size: 17px; font-style: italic; color: var(--text-muted);
+}
 .fig-caption {
   padding: 11px 18px 15px;
   font-size: 17.5px;
   line-height: 1.55;
   color: var(--text-muted);
 }
+
+/* ── Figure controls and readouts ────────────────────
+   Sliders, toggles and output cells for an inline figure.
+   Ported from the demo panel in specific_impulse_applet.html
+   (.sl-group / .sl-row / .out-cell) rather than redesigned, so
+   a control reads the same whichever page it turns up on. The
+   strip sits between the .fig-frame and the .fig-caption, so
+   the reading order is figure, then knobs, then numbers. */
+.fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 13px 26px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.sl-group {
+  flex: 1 1 250px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sl-label {
+  font-size: 15px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.sl-row { display: flex; align-items: center; gap: 9px; }
+.sl-row input[type=range] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--c-accent);
+}
+.sl-val {
+  flex: 0 0 92px;
+  padding: 3px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 16.5px;
+  text-align: center;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* Toggles carry the same chrome as .quiz-submit; pressed state
+   is the one place a figure control takes an accent color. */
+.fig-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.fig-toggle {
+  padding: 7px 15px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.fig-toggle:hover { background: #232323; border-color: #4a4a4a; }
+.fig-toggle[aria-pressed="true"] {
+  color: var(--text-heading);
+  border-color: #5a5a5a;
+  background: #242424;
+}
+.fig-toggle:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+.fig-out {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+.fig-out .out-cell {
+  flex: 1 1 0;
+  min-width: 155px;
+  padding: 9px 15px 10px;
+  background: var(--bg-out-cell);
+  border-right: 1px solid var(--border);
+}
+.fig-out .out-cell:last-child { border-right: none; }
+.out-label {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.out-val {
+  font-size: 23px;
+  font-weight: 600;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+.out-sub { font-size: 14.5px; color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -845,7 +1017,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
     <span class="eq-step-label">2. Mirror bounce across the channel, inner pole to outer pole</span>
     $$ \tau_{b} \approx \frac{2\,w}{\textcolor{#3DBFFF}{v_\parallel}}
-       \qquad\qquad w = r_{out} - r_{in} $$
+       \qquad\qquad w = r_{out} - r_{in}
+       \qquad\qquad \mu = \frac{m_e \textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
+       = \text{const} $$
+    <span class="eq-caption">The first expression is an estimate and a generous one. It has the electron cross
+      the whole gap at its full parallel speed and turn instantly at the wall, when what actually turns it is the
+      <span class="key">mirror force</span> <span class="hl-B">$-\mu\,\partial B/\partial s$</span>, which slows it
+      the whole way in and reverses it early. The figure below integrates the second expression instead.</span>
 
     <div class="eq-divider"></div>
 
@@ -856,14 +1034,21 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
   <p class="th-body">
     Put the channel's own numbers in and the separation is stark. Taking the geometry of the model in this lesson
-    (<span class="key">r</span> from 38 to 62 millimeters, so a 24 millimeter channel), a peak field around 150
-    gauss, an <span class="hl-electron">electron temperature</span> near 20 electronvolts and roughly 300 volts
-    falling across the last 20 millimeters, the three come out near 1 millimeter and 2 nanoseconds, 24
-    millimeters and 18 nanoseconds, and 314 millimeters and 314 nanoseconds. Each stage is an order of magnitude
-    slower and wider than the one before it.
-    <!-- TODO: recompute these from the constants the viewer actually uses (P_R_IN, P_R_OUT,
-         P_R_MID in hall_thruster.html) rather than from the round numbers quoted here, and
-         state Te and B as the sliders' defaults so the figure below agrees with the prose. -->
+    (<span class="key">r</span> from 38 to 62 millimeters, so a 24 millimeter channel), a
+    <span class="hl-B">field</span> around 150 gauss at mid-channel, an
+    <span class="hl-electron">electron</span> carrying about 20 electronvolts and roughly 300 volts falling across
+    the last 20 millimeters, the three come out near 0.9 millimeters and 2 nanoseconds, 17 millimeters and 41
+    nanoseconds, and 314 millimeters and 360 nanoseconds. Each stage is roughly an order of magnitude slower and
+    wider than the one before it.
+  </p>
+  <p class="th-body">
+    One quantity has to be named before those numbers mean anything, and the figure below makes it a slider: the
+    <span class="key">pitch angle</span>, which is how the electron's one speed divides between the
+    <span class="hl-ve">$v_\perp$</span> that sets the gyroradius and the <span class="hl-ve">$v_\parallel$</span>
+    that carries it along the field line. They are not independent, and an electron cannot have all of its energy
+    in both. The numbers above are for 60 degrees, which is a typical value and, more to the point, is outside the
+    <span class="key">loss cone</span>, so it describes an electron the <span class="key">mirror</span> can
+    actually hold.
   </p>
   <p class="th-body">
     That ordering is not a coincidence of this thruster. It is the
@@ -872,16 +1057,196 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   </p>
 </div>
 
+<!-- ════════════════════ COUNTING THE TEETH ════════════════════ -->
+<div class="transition-line">
+  If an electron bounces radially far faster than it travels around the annulus, then its path around the channel
+  is not a circle. It is a sawtooth. So how many teeth does the blade have?
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Counting the Teeth</div>
+  <p class="th-body">
+    Divide one lap by one bounce and the answer falls straight out of the two timescales above.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Radial bounces per trip around the annulus</span>
+    $$ \boxed{\;N = \frac{\tau_{d}}{\tau_{b}}
+       = \frac{2\pi r_{mid}}{\textcolor{#3DBFFF}{v_{E\times B}}}
+         \cdot \frac{\textcolor{#3DBFFF}{v_\parallel}}{2\,w}\;} $$
+  </div>
+
+  <p class="th-body">
+    With the numbers quoted above, roughly 360 nanoseconds per lap against 41 nanoseconds per bounce, that is
+    about <b>nine teeth per lap</b>. The blade is a real object with a countable number of teeth, and the count
+    moves when you move the <span class="hl-B">field</span>, the
+    <span class="hl-electron">electron</span>'s energy or its <span class="key">pitch angle</span>.
+  </p>
+  <p class="th-body">
+    It is worth knowing where the larger number you may have seen for this comes from. Estimate the bounce as
+    $\tau_b \approx 2w/v_\parallel$ with the electron's <em>whole</em> speed taken as
+    <span class="hl-ve">$v_\parallel$</span>, and the count comes out nearer twenty. That estimate is not wrong
+    arithmetic; it is a different electron. An electron with all of its energy along the field line has no
+    <span class="hl-ve">$v_\perp$</span>, therefore no <span class="key">magnetic moment</span> to be pushed back
+    by, therefore sits squarely in the <span class="key">loss cone</span> and is on a wall before it has finished
+    a lap. The electrons that stay are the ones carrying most of their energy across the field, and they cross the
+    channel slowly. Fewer teeth, cut deeper, by an electron that is still there to cut them.
+  </p>
+  <p class="th-body">
+    The figure below builds that blade one motion at a time, on the annulus it actually runs around. One detail
+    it holds still for you: the <span class="hl-electron">electron</span> is also creeping slowly toward the
+    <span class="key">anode</span> the whole time, so the real object is not a flat disk of teeth but a slowly
+    advancing serrated helix. That axial creep is the subject of the
+    <a class="applet-link" href="HT_Acceleration_applet.html">next page</a>.
+  </p>
+</div>
+
 <div class="theory-block applet-host">
-  <div class="th-hdr">Building the Motion Up, One Piece at a Time</div>
-  <div class="demo-placeholder">
-    <div class="demo-placeholder-tag">Interactive figure to build</div>
-    <div class="demo-placeholder-note">Three toggles that add one motion at a time: gyration only, then the mirror bounce, then the E&times;B drift. Each switch reports its own length and time scale, so the hierarchy above is something the student assembles rather than reads.</div>
+  <div class="th-hdr">The Buzzsaw, One Motion at a Time</div>
+  <div class="fig-frame bz-frame" id="bz-frame">
+    <canvas id="bz-canvas" role="img"
+            aria-label="A Hall thruster seen from above and to one side, its annular discharge
+                        channel glowing, with one electron traced through it. The radial magnetic
+                        field is drawn as three field lines at each of six stations around the
+                        annulus: a straight one on the exit plane and two arched ones, one bowing
+                        downstream into the plume and one bowing upstream into the channel, all
+                        six converging on the two pole pieces. Three switches add one motion at a
+                        time: the gyration about the field line, drawn as a magnified helix; the
+                        mirror bounce, integrated from the conservation of the magnetic moment so
+                        the electron turns smoothly where the field is strong enough to turn it;
+                        and the azimuthal E cross B drift. With all three switched on the path is
+                        a sawtooth closing on itself around the ring, and its teeth can be
+                        counted directly. Drag to orbit the thruster."></canvas>
+    <div class="bz-fallback" id="bz-fallback">
+      This figure needs WebGL, which this browser has not made available. The three motions and
+      their timescales are set out as equations above.
+    </div>
+    <div class="bz-hud" id="bz-hud">
+      <div id="bz-hud-t"></div>
+      <div id="bz-hud-g"></div>
+    </div>
+    <div class="bz-status" id="bz-status"></div>
+    <div class="bz-note" id="bz-note"></div>
+    <div class="bz-legend">
+      <span><i style="background:#ffe94d"></i>electron</span>
+      <span><i style="background:#00DDB5"></i>B, radial</span>
+      <span><i style="background:#F5C518"></i>E, axial</span>
+      <span><i style="background:#3DBFFF"></i>E&times;B drift</span>
+    </div>
+    <div class="bz-hint">drag to orbit, scroll to zoom</div>
   </div>
-  <div class="fig-caption">
-    TODO: build this figure. It is the spine of the page, and it banks the Larmor, magnetic mirror, and
-    E&times;B applets in that order.
+
+  <div class="fig-controls">
+    <div class="sl-group" style="flex:1 1 100%">
+      <div class="sl-label">Take the motion apart, or build it back up</div>
+      <div class="fig-toggles">
+        <button type="button" class="fig-toggle" id="bz-t1" aria-pressed="true">1. Gyration</button>
+        <button type="button" class="fig-toggle" id="bz-t2" aria-pressed="true">2. Mirror bounce</button>
+        <button type="button" class="fig-toggle" id="bz-t3" aria-pressed="true">3. E&times;B drift</button>
+        <button type="button" class="fig-toggle" id="bz-tf" aria-pressed="true">Field lines</button>
+        <button type="button" class="fig-toggle" id="bz-tg" aria-pressed="true">Discharge glow</button>
+        <button type="button" class="fig-toggle" id="bz-reset">Reset view</button>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Field at mid-channel</div>
+      <div class="sl-row">
+        <input type="range" id="bz-b" min="50" max="300" step="5" value="150"
+               aria-label="Radial magnetic field at mid-channel, in gauss">
+        <span class="sl-val" id="bz-b-val">150 G</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Electron energy</div>
+      <div class="sl-row">
+        <input type="range" id="bz-te" min="5" max="40" step="1" value="20"
+               aria-label="Electron energy in electronvolts">
+        <span class="sl-val" id="bz-te-val">20 eV</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Pitch angle</div>
+      <div class="sl-row">
+        <input type="range" id="bz-pa" min="10" max="85" step="1" value="60"
+               aria-label="Pitch angle at mid-channel, in degrees from the field direction">
+        <span class="sl-val" id="bz-pa-val">60&deg;</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Axial field</div>
+      <div class="sl-row">
+        <input type="range" id="bz-e" min="5" max="30" step="1" value="15"
+               aria-label="Axial electric field in volts per millimeter">
+        <span class="sl-val" id="bz-e-val">15 V/mm</span>
+      </div>
+    </div>
   </div>
+
+  <div class="fig-out">
+    <div class="out-cell">
+      <div class="out-label">1. Gyration</div>
+      <div class="out-val" id="bz-o-1" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub" id="bz-o-1s">&nbsp;</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">2. Mirror bounce</div>
+      <div class="out-val" id="bz-o-2" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub" id="bz-o-2s">&nbsp;</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">3. E&times;B drift</div>
+      <div class="out-val" id="bz-o-3" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub" id="bz-o-3s">&nbsp;</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Teeth per lap</div>
+      <div class="out-val" id="bz-o-n" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub">N = &#964;<sub>d</sub> / &#964;<sub>b</sub></div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Path amplification</div>
+      <div class="out-val" id="bz-o-amp">&nbsp;</div>
+      <div class="out-sub">radial distance per lap, over one crossing</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    Three motions, three orders of magnitude, one electron, drawn on the annulus it actually
+    lives in. All three run to start with; switch them off in turn and the blade comes apart,
+    switch them back on in order and it assembles. The bounce is integrated from the conservation
+    of the <span class="key">magnetic moment</span> rather than imposed as a triangle wave, so
+    the electron slows as it climbs into the strong <span class="hl-B">field</span> at a pole and
+    turns smoothly, and it turns <em>early</em>, before the wall, whenever the mirror is strong
+    enough to turn it at all. Take the <span class="key">pitch angle</span> below about 52 degrees
+    and it stops turning early: that is the <span class="key">loss cone</span>, and what sends the
+    electron back is then the <a class="applet-link" href="../sheath/sheath_applet.html">wall
+    sheath</a>, not the mirror. The tooth count is the last two timescales divided,
+    $N = \tau_d/\tau_b$. Push the pitch angle down toward zero and it climbs back toward the
+    twenty that the estimate $\tau_b \approx 2w/v_\parallel$ gives, because that estimate quietly
+    assumes an electron with all of its energy along the field, which is exactly the electron
+    the mirror cannot hold. The number worth carrying away is the last cell: an
+    <span class="hl-electron">electron</span> that would have crossed the gap once in a straight
+    line covers that distance many times over instead, and it has that many chances to find a
+    <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">neutral</a>
+    before anything collects it. Two things are drawn kindly rather than faithfully, and both are
+    stated on the figure: the gyro-orbit is magnified, since at true scale it is under a
+    millimeter on a thruster 180 millimeters across, and the discharge glow is held below the
+    brightness a photograph would record, because at full strength it buries the path this figure
+    exists to show. The blade is also pinned to the exit plane; in the hardware the electron is
+    creeping slowly toward the <span class="key">anode</span> the whole time, so the real object
+    is a serrated helix.
+    <!-- TODO (skeleton): the mirror profile is a parabolic stand-in, B(s)/B_mid = 1 + (R-1)(2s/w)^2,
+         with R fixed at the 1.63 the prose derives from a 1/r field. That is the right SHAPE
+         (strong at both poles, weakest at mid-channel) and it makes the loss cone come out at
+         the 52 degrees the loss-cone figure below uses, but it is not this thruster's B(r).
+         Read the profile off build_thruster.py's magnetic circuit instead, and then R stops
+         being a constant and becomes a function of the coil current.
+         Second: one pitch angle and one energy, which the page's own clarifying note says is
+         wrong. The count is a mean over a spread. Draw a band rather than a line.
+         Third: the path amplification cell counts ONE lap. The honest figure is over the whole
+         residence time, which is set by cross-field transport, and is therefore the anomalous
+         transport question again. -->
+  </p>
 </div>
 
 <!-- ════════════════════ Q2: WHO IS MAGNETIZED ════════════════════ -->
@@ -908,69 +1273,155 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <div class="theory-block applet-host">
   <div class="th-hdr">Who Is Magnetized</div>
-  <div class="demo-placeholder">
-    <div class="demo-placeholder-tag">Interactive figure to build</div>
-    <div class="demo-placeholder-note">A slider on B, with the electron and xenon-ion gyroradii drawn to scale against the 24 millimeter channel. The point lands when one circle is invisibly small and the other will not fit on the screen.</div>
+  <div class="fig-frame">
+    <svg id="wm-svg" viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="Barlow, sans-serif"
+         aria-label="The 24 millimeter discharge channel drawn to scale, with the electron gyroradius drawn
+                     to the same scale as a small circle inside it, and the xenon ion gyroradius as an almost
+                     straight arc, because its circle is meters across. A logarithmic ruler underneath places
+                     both radii against the channel width.">
+
+      <rect width="900" height="430" fill="#0e0e0e"/>
+
+      <!-- ══ Channel, drawn to scale: 24 mm across 200 px ══ -->
+      <rect x="80" y="60" width="780" height="200" fill="#0b0b0b" stroke="none"/>
+      <g stroke="#4a4a4a" stroke-width="2.4">
+        <line x1="80" y1="60"  x2="860" y2="60"/>
+        <line x1="80" y1="260" x2="860" y2="260"/>
+      </g>
+      <text x="88" y="52" fill="#8a8a8a" font-size="14">outer wall, r = 62 mm</text>
+      <text x="88" y="278" fill="#8a8a8a" font-size="14">inner wall, r = 38 mm</text>
+
+      <!-- Channel-width dimension -->
+      <g stroke="#5a5a5a" stroke-width="1.2">
+        <line x1="800" y1="60" x2="800" y2="260"/>
+        <line x1="794" y1="60" x2="806" y2="60"/>
+        <line x1="794" y1="260" x2="806" y2="260"/>
+      </g>
+      <text x="812" y="165" fill="#9a9a9a" font-size="15">24 mm</text>
+
+      <!-- Xenon ion: an arc of a circle meters across, so nearly a straight line. -->
+      <path id="wm-ion" fill="none" stroke="#3DBFFF" stroke-width="2.2" d=""/>
+      <text id="wm-ion-lbl" x="530" y="120" fill="#3DBFFF" font-size="15.5" font-weight="600"></text>
+      <text x="530" y="139" fill="#6b8ea3" font-size="13.5">xenon ion, barely bent by the field</text>
+
+      <!-- Electron: a true-to-scale circle. It is meant to look small. -->
+      <circle id="wm-e" fill="none" stroke="#ffe94d" stroke-width="2.2" cx="220" cy="185"/>
+      <circle cx="220" cy="185" r="2.5" fill="#ffe94d"/>
+      <line id="wm-e-lead" x1="220" y1="185" x2="268" y2="215" stroke="#6b6552" stroke-width="1.2"/>
+      <text id="wm-e-lbl" x="274" y="212" fill="#ffe94d" font-size="15.5" font-weight="600"></text>
+      <text x="274" y="231" fill="#8f8a6e" font-size="13.5">electron, tied to the field line</text>
+
+      <!-- ══ Logarithmic ruler ══ -->
+      <line x1="80" y1="350" x2="860" y2="350" stroke="#2f2f2f" stroke-width="1.4"/>
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80"  y1="350" x2="80"  y2="356"/>
+        <line x1="210" y1="350" x2="210" y2="356"/>
+        <line x1="340" y1="350" x2="340" y2="356"/>
+        <line x1="470" y1="350" x2="470" y2="356"/>
+        <line x1="600" y1="350" x2="600" y2="356"/>
+        <line x1="730" y1="350" x2="730" y2="356"/>
+        <line x1="860" y1="350" x2="860" y2="356"/>
+      </g>
+      <g fill="#7a7a7a" font-size="13.5" text-anchor="middle">
+        <text x="80"  y="374">10 &#181;m</text>
+        <text x="210" y="374">100 &#181;m</text>
+        <text x="340" y="374">1 mm</text>
+        <text x="470" y="374">1 cm</text>
+        <text x="600" y="374">10 cm</text>
+        <text x="730" y="374">1 m</text>
+        <text x="860" y="374">10 m</text>
+      </g>
+      <text x="470" y="402" fill="#9a9a9a" font-size="15.5" text-anchor="middle">gyroradius, against the
+        24 mm the channel gives them</text>
+
+      <!-- Ruler markers -->
+      <g id="wm-mark-w">
+        <line x1="474" y1="318" x2="474" y2="344" stroke="#9a9a9a" stroke-width="2"/>
+        <text x="474" y="311" fill="#9a9a9a" font-size="14" text-anchor="middle">channel, 24 mm</text>
+      </g>
+      <g id="wm-mark-e">
+        <line id="wm-mark-e-l" y1="318" y2="344" stroke="#ffe94d" stroke-width="2.4"/>
+        <text id="wm-mark-e-t" y="294" fill="#ffe94d" font-size="14" text-anchor="middle">electron</text>
+      </g>
+      <g id="wm-mark-i">
+        <line id="wm-mark-i-l" y1="318" y2="344" stroke="#3DBFFF" stroke-width="2.4"/>
+        <text id="wm-mark-i-t" y="311" fill="#3DBFFF" font-size="14" text-anchor="middle">xenon ion</text>
+      </g>
+    </svg>
   </div>
-  <div class="fig-caption">
-    TODO: build this figure. Same axis convention as the cross-section view, so the channel width means the
-    same thing in both.
+
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Radial field</div>
+      <div class="sl-row">
+        <input type="range" id="wm-b" min="25" max="400" step="5" value="150"
+               aria-label="Radial magnetic field in gauss">
+        <span class="sl-val" id="wm-b-val">150 G</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Electron temperature</div>
+      <div class="sl-row">
+        <input type="range" id="wm-te" min="5" max="50" step="1" value="20"
+               aria-label="Electron temperature in electronvolts">
+        <span class="sl-val" id="wm-te-val">20 eV</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Ion energy</div>
+      <div class="sl-row">
+        <input type="range" id="wm-ei" min="50" max="600" step="10" value="300"
+               aria-label="Ion energy in electronvolts">
+        <span class="sl-val" id="wm-ei-val">300 eV</span>
+      </div>
+    </div>
   </div>
+
+  <div class="fig-out">
+    <div class="out-cell">
+      <div class="out-label">Electron gyroradius</div>
+      <div class="out-val" id="wm-o-re" style="color:#ffe94d">0</div>
+      <div class="out-sub" id="wm-o-re-sub">of a 24 mm channel</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Xenon gyroradius</div>
+      <div class="out-val" id="wm-o-ri" style="color:#3DBFFF">0</div>
+      <div class="out-sub" id="wm-o-ri-sub">channel widths across</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Mass ratio at work</div>
+      <div class="out-val" id="wm-o-ratio">0</div>
+      <div class="out-sub">ion radius over electron radius</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Verdict</div>
+      <div class="out-val" id="wm-o-verdict" style="font-size:19px">&nbsp;</div>
+      <div class="out-sub" id="wm-o-verdict-sub">&nbsp;</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    Same field, same channel, one species held and the other ignored. Gyroradius is
+    $r_c = m v_\perp / qB$, so it scales with $\sqrt{m}$ at a given energy and with $\sqrt{E}$ at a given mass.
+    A xenon ion outweighs an <span class="hl-electron">electron</span> by about 240,000, and it is falling
+    through hundreds of volts rather than carrying tens of electronvolts of thermal energy, so its circle comes
+    out meters across while the electron's is a fraction of a millimeter. Push the field as high as the slider
+    goes and the <span class="hl-ion">ion</span> still will not fit. That is what lets one field confine the
+    electrons and leave the beam alone.
+    <!-- TODO (skeleton): both radii use a single characteristic speed, sqrt(2E/m), rather than
+         an average over a distribution. For the electron that is the same simplification the
+         gridded-ion Maxwellian figure warns about, and the honest version averages r_c over
+         the distribution. Worth doing here since this page later leans on the tail. -->
+  </p>
 </div>
 
 <!-- ════════════════════ 3D VIEWER ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">The Buzzsaw in Three Dimensions</div>
+  <div class="th-hdr">The Hardware the Blade Runs In</div>
   <iframe class="applet-frame" src="hall_thruster.html?mode=buzzsaw&amp;v=1"
           title="The electron buzzsaw: one tagged electron sawing around the annulus"
           loading="lazy"></iframe>
-</div>
-
-<!-- ════════════════════ COUNTING THE TEETH ════════════════════ -->
-<div class="transition-line">
-  If an electron bounces radially far faster than it travels around the annulus, then its path around the channel
-  is not a circle. It is a sawtooth. So how many teeth does the blade have?
-</div>
-
-<div class="theory-block">
-  <div class="th-hdr">Counting the Teeth</div>
-  <p class="th-body">
-    Divide one lap by one bounce and the answer falls straight out of the two timescales above.
-  </p>
-
-  <div class="eq-panel">
-    <span class="eq-step-label">Radial bounces per trip around the annulus</span>
-    $$ \boxed{\;N = \frac{\tau_{d}}{\tau_{b}}
-       = \frac{2\pi r_{mid}}{\textcolor{#3DBFFF}{v_{E\times B}}}
-         \cdot \frac{\textcolor{#3DBFFF}{v_\parallel}}{2\,w}\;} $$
-  </div>
-
-  <p class="th-body">
-    With the numbers quoted above, roughly 314 nanoseconds per lap against 18 nanoseconds per bounce, that is
-    about <b>17 teeth per lap</b>. The blade is a real object with a countable number of teeth, and the count
-    moves when you move the <span class="hl-B">field</span> or the
-    <span class="hl-electron">electron temperature</span>.
-    <!-- TODO: this is the page's payoff number. Recheck it against the viewer's constants
-         before publishing, and make the figure below compute it live from the same
-         expression rather than hard-coding 17. -->
-  </p>
-  <p class="th-body">
-    One detail the flat picture hides: the electron is also creeping slowly toward the
-    <span class="key">anode</span> the whole time. The blade is not a flat disk but a slowly advancing serrated
-    helix.
-  </p>
-</div>
-
-<div class="theory-block applet-host">
-  <div class="th-hdr">The Blade, Unrolled</div>
-  <div class="demo-placeholder">
-    <div class="demo-placeholder-tag">Interactive figure to build</div>
-    <div class="demo-placeholder-note">The channel unrolled: azimuth across, radius up, with the sawtooth path drawn and the tooth count computed live from sliders on B and electron temperature. This is the figure the page is named after.</div>
-  </div>
-  <div class="fig-caption">
-    TODO: build this figure. Inline SVG in a .fig-frame, following the Maxwellian figure in
-    GIE_Ionization_applet.html for the hover-readout idiom.
-  </div>
 </div>
 
 <!-- ════════════════════ THE MIRROR IS LEAKY ════════════════════ -->
@@ -982,8 +1433,10 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <span class="key">loss cone</span>, though, and that story does not close. If the radial field falls roughly
     as one over <span class="key">r</span> across the gap, the ratio from the outer to the inner pole is only
     about 62 over 38, near 1.6, which puts the loss cone somewhere around 50 degrees and leaves a large fraction
-    of a <span class="key">Maxwellian</span> population outside it. Those electrons reach the wall on their first
-    pass.
+    of a <span class="key">Maxwellian</span> population <em>inside</em> it. Those are the electrons the mirror
+    cannot turn, and they reach the wall on their first pass. Set the pitch angle in the figure above below 52
+    degrees and you are looking at one of them: the teeth run flat against the ceramic instead of turning short
+    of it.
     <!-- TODO: state the trapped fraction properly, from an integral over a Maxwellian rather
          than from the cone angle alone, and note that the real field is neither purely
          radial nor one-over-r. -->
@@ -1001,16 +1454,167 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <div class="theory-block applet-host">
   <div class="th-hdr">Loss Cone and Sheath</div>
-  <div class="demo-placeholder">
-    <div class="demo-placeholder-tag">Interactive figure to build</div>
-    <div class="demo-placeholder-note">A pitch-angle dial: mirror ratio from B(r), a trapped-or-lost verdict for the chosen pitch angle, and the trapped fraction of a Maxwellian. Then a toggle that adds the wall sheath and shows how much of the remainder it turns back.</div>
+  <div class="fig-frame">
+    <svg id="lc-svg" viewBox="0 0 900 430" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="Barlow, sans-serif"
+         aria-label="Left: velocity space for one electron, with the loss cone shaded around the field
+                     direction and a draggable pitch-angle arrow that reports whether that electron is
+                     trapped or lost. Right: the same split taken over a whole Maxwellian population, as a
+                     stacked bar of the trapped fraction, the fraction the wall sheath turns back, and the
+                     fraction that actually reaches the wall.">
+
+      <rect width="900" height="430" fill="#0e0e0e"/>
+
+      <!-- ══ Velocity space ══ -->
+      <text x="240" y="42" fill="#9a9a9a" font-size="16" text-anchor="middle">One electron, in velocity
+        space</text>
+
+      <circle cx="240" cy="230" r="145" fill="#131313" stroke="#2f2f2f" stroke-width="1.2"/>
+      <path id="lc-cone-r" fill="#ff8e8e" fill-opacity="0.17" d=""/>
+      <path id="lc-cone-l" fill="#ff8e8e" fill-opacity="0.17" d=""/>
+      <line id="lc-edge-1" stroke="#ff8e8e" stroke-opacity="0.55" stroke-width="1.3" stroke-dasharray="5 4"/>
+      <line id="lc-edge-2" stroke="#ff8e8e" stroke-opacity="0.55" stroke-width="1.3" stroke-dasharray="5 4"/>
+      <line id="lc-edge-3" stroke="#ff8e8e" stroke-opacity="0.55" stroke-width="1.3" stroke-dasharray="5 4"/>
+      <line id="lc-edge-4" stroke="#ff8e8e" stroke-opacity="0.55" stroke-width="1.3" stroke-dasharray="5 4"/>
+
+      <g stroke="#3a3a3a" stroke-width="1.2">
+        <line x1="80" y1="230" x2="400" y2="230"/>
+        <line x1="240" y1="70" x2="240" y2="390"/>
+      </g>
+      <text x="392" y="228" fill="#00DDB5" font-size="15">v<tspan font-size="12"
+        dy="4">&#8741;</tspan></text>
+      <text x="392" y="246" fill="#5f8f85" font-size="12.5">along B</text>
+      <text x="240" y="62" fill="#9a9a9a" font-size="15" text-anchor="middle">v<tspan font-size="12"
+        dy="4">&#8869;</tspan></text>
+
+      <!-- The electron under test -->
+      <line id="lc-arrow" x1="240" y1="230" stroke="#ffe94d" stroke-width="3"
+            marker-end="url(#lc-head)"/>
+      <defs>
+        <marker id="lc-head" viewBox="0 0 10 10" refX="9" refY="5" markerUnits="userSpaceOnUse"
+                markerWidth="12" markerHeight="12" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffe94d"/>
+        </marker>
+      </defs>
+      <path id="lc-arc" fill="none" stroke="#ffe94d" stroke-opacity="0.5" stroke-width="1.3" d=""/>
+      <text id="lc-theta" fill="#ffe94d" font-size="15" font-weight="600"></text>
+      <text id="lc-verdict" x="240" y="410" font-size="18" font-weight="700" text-anchor="middle"></text>
+      <text id="lc-conelbl" x="322" y="272" fill="#ff8e8e" font-size="13.5" text-anchor="middle"
+            opacity="0.8"></text>
+
+      <!-- ══ Population split ══ -->
+      <text x="470" y="42" fill="#9a9a9a" font-size="16">A whole Maxwellian population</text>
+
+      <rect x="470" y="70" width="390" height="40" fill="#131313" stroke="#282828" stroke-width="1"/>
+      <rect id="lc-seg-trap"  x="470" y="70" width="0" height="40" fill="#ffe94d" fill-opacity="0.85"/>
+      <rect id="lc-seg-sheath" x="470" y="70" width="0" height="40" fill="#ffe94d" fill-opacity="0.28"/>
+      <rect id="lc-seg-wall"  x="470" y="70" width="0" height="40" fill="#ff8e8e" fill-opacity="0.75"/>
+
+      <g font-size="14">
+        <rect x="470" y="130" width="13" height="13" fill="#ffe94d" fill-opacity="0.85"/>
+        <text x="490" y="141" fill="#9a9a9a">trapped by the mirror</text>
+        <text id="lc-n-trap" x="860" y="141" fill="#ffe94d" font-size="15" font-weight="600"
+              text-anchor="end"></text>
+
+        <rect id="lc-key-sheath" x="470" y="158" width="13" height="13" fill="#ffe94d"
+              fill-opacity="0.28"/>
+        <text id="lc-key-sheath-t" x="490" y="169" fill="#9a9a9a">turned back by the wall sheath</text>
+        <text id="lc-n-sheath" x="860" y="169" fill="#e8d98a" font-size="15" font-weight="600"
+              text-anchor="end"></text>
+
+        <rect x="470" y="186" width="13" height="13" fill="#ff8e8e" fill-opacity="0.75"/>
+        <text x="490" y="197" fill="#9a9a9a">reaches the wall</text>
+        <text id="lc-n-wall" x="860" y="197" fill="#ff8e8e" font-size="15" font-weight="600"
+              text-anchor="end"></text>
+      </g>
+
+      <!-- The mirror geometry this ratio comes from -->
+      <text x="470" y="248" fill="#9a9a9a" font-size="15.5">Where the mirror ratio comes from</text>
+      <text x="470" y="274" fill="#7a7a7a" font-size="14">The radial field falls roughly as 1/r across the
+        gap, so</text>
+      <text id="lc-rline" x="470" y="296" fill="#00DDB5" font-size="15.5"></text>
+      <text id="lc-lcline" x="470" y="322" fill="#ff8e8e" font-size="15.5"></text>
+      <text x="470" y="356" fill="#7a7a7a" font-size="14">A mirror this weak leaves a large share of the
+        population</text>
+      <text x="470" y="376" fill="#7a7a7a" font-size="14">outside the cone. The sheath is what finishes the
+        job.</text>
+    </svg>
   </div>
-  <div class="fig-caption">
-    TODO: build this figure. Reuse the loss-cone geometry from
-    <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic_mirror</a> and the
-    sheath profile from <a class="applet-link" href="../sheath/sheath_applet.html">sheath</a> rather than
-    deriving either again.
+
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Pitch angle</div>
+      <div class="sl-row">
+        <input type="range" id="lc-theta-sl" min="0" max="90" step="1" value="30"
+               aria-label="Pitch angle in degrees, measured from the field direction">
+        <span class="sl-val" id="lc-theta-val">30°</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Mirror ratio</div>
+      <div class="sl-row">
+        <input type="range" id="lc-r" min="1.05" max="4" step="0.01" value="1.63"
+               aria-label="Mirror ratio, the field at the pole over the field at midchannel">
+        <span class="sl-val" id="lc-r-val">1.63</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Sheath potential</div>
+      <div class="sl-row">
+        <input type="range" id="lc-phi" min="0" max="8" step="0.1" value="2"
+               aria-label="Wall sheath potential in units of the electron temperature">
+        <span class="sl-val" id="lc-phi-val">2.0 T<sub>e</sub></span>
+      </div>
+    </div>
+    <div class="sl-group" style="flex:0 0 auto">
+      <div class="sl-label">Wall</div>
+      <div class="fig-toggles">
+        <button type="button" class="fig-toggle" id="lc-sheath" aria-pressed="true">Sheath on</button>
+      </div>
+    </div>
   </div>
+
+  <div class="fig-out">
+    <div class="out-cell">
+      <div class="out-label">Loss cone</div>
+      <div class="out-val" id="lc-o-angle" style="color:#ff8e8e">0</div>
+      <div class="out-sub">half-angle, sin&#178;&#952; = 1/R</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">This electron</div>
+      <div class="out-val" id="lc-o-one" style="font-size:20px">&nbsp;</div>
+      <div class="out-sub" id="lc-o-one-sub">&nbsp;</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Trapped fraction</div>
+      <div class="out-val" id="lc-o-trap" style="color:#ffe94d">0</div>
+      <div class="out-sub">of the population, by the mirror alone</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Reaching the wall</div>
+      <div class="out-val" id="lc-o-wall" style="color:#ff8e8e">0</div>
+      <div class="out-sub" id="lc-o-wall-sub">after the sheath has had its turn</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    The mirror here is weak. With the field falling as $1/r$ across a gap from 38 to 62 millimeters the ratio is
+    only about 1.6, which opens a loss cone near 50 degrees and leaves close to
+    <span class="hl-electron">two electrons in five</span> inside it, headed for a wall on their first pass.
+    Turn the <a class="applet-link" href="../sheath/sheath_applet.html">sheath</a> on and most of those are
+    turned back before they arrive. Read the division of labor off the bar rather than off the prose: the
+    <span class="hl-B">magnetic field</span> confines electrons <em>axially</em>, the
+    <span class="key">sheath</span> does most of the <em>radial</em> job, and the
+    <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">mirror</a> assists without
+    being sufficient.
+    <!-- TODO (skeleton): the two fractions are computed differently and the figure currently
+         hides that. Trapped fraction is a solid-angle fraction of an isotropic distribution,
+         sqrt(1 - 1/R); the sheath-transmitted share is a FLUX fraction, exp(-phi/Te).
+         Multiplying them is a serviceable estimate and not a derivation. Do the integral over
+         a Maxwellian properly, and take R from the actual B(r) in build_thruster.py rather
+         than from a 1/r assumption. Secondary electron emission also caps the real sheath
+         well below the floating value, which is why the phi slider must stay a slider. -->
+  </p>
 </div>
 
 <!-- ════════════════════ Q3: WHAT KEEPS THEM OFF THE WALLS ════════════════════ -->
@@ -1109,6 +1713,955 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <div class="foot-title">Propulsion Applets 2026</div>
   <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
 </footer>
+
+<!-- ════════════════════ FIGURE: THE BUZZSAW ════════════════════
+     The bounce here is INTEGRATED, not imposed. Earlier versions drew the radius as a
+     triangle wave between the two walls, which is a picture of an electron that carries
+     all of its energy along the field, reverses instantaneously at each wall and is
+     therefore in the loss cone at both ends - that is, of the one electron a mirror
+     cannot hold. What is drawn now is the guiding-centre motion under a conserved
+     magnetic moment, so the electron decelerates as it climbs into the strong field at a
+     pole, turns where mu*B reaches its total energy, and only reaches a wall when its
+     pitch angle puts it inside the loss cone. Everything else on the figure - the tooth
+     count, the lap time, the gyroradius - falls out of that integration rather than being
+     asserted alongside it.
+
+     The hardware is a stand-in built from primitives rather than the tessellated model
+     hall_thruster.html loads, on purpose: that model is two megabytes, this is a lesson
+     page, and everything this figure has to say is said by the annulus. Channel radii and
+     the pole spacing match it. -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Line2 }        from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+const frameEl = document.getElementById('bz-frame');
+const canvas  = document.getElementById('bz-canvas');
+if (frameEl && canvas) {
+
+let renderer = null;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (err) {
+  renderer = null;
+}
+if (!renderer) {
+  document.getElementById('bz-fallback').style.display = 'flex';
+} else {
+
+/* ── Constants ────────────────────────────────────────────────
+   Millimeters and nanoseconds throughout, which are also the scene's units, so a number
+   in the physics is the same number in the geometry. */
+const QE = 1.602176634e-19, M_E = 9.1093837015e-31;
+
+const R_IN = 38, R_OUT = 62, W = R_OUT - R_IN, R_MID = (R_IN + R_OUT) / 2;
+const LAP  = 2 * Math.PI * R_MID;
+const R_BODY = 90, H_BODY = 78, D_CH = 26, D_BORE = 7;
+
+/* The mirror. |B| along a field line is modeled as a parabolic well across the gap,
+       B(s)/B_mid = 1 + (R_MIRROR - 1) (2s/w)^2,     s = r - r_mid,
+   weakest at mid-channel and rising to R_MIRROR times that at either pole. The SHAPE is
+   the physical claim and it is the same one the field lines drawn below make: every line
+   has to land on a pole face, so the lines crowd as they converge into each pole and |B|
+   rises there. The VALUE is the 1.63 the prose derives from a 1/r field across a 38 to 62
+   millimeter gap, and it is what puts the loss cone at 52 degrees, which is the number the
+   loss-cone figure further down the page also runs on. A 1/r profile on its own would give
+   a mirror at the inner pole and none at the outer one, which is not what the pole pieces
+   do; this is the honest cheap stand-in for a field neither of us has solved for. */
+const R_MIRROR = 1.63;
+const THETA_LC = Math.atan(1 / Math.sqrt(R_MIRROR - 1)) * 180 / Math.PI;   // 51.6 degrees
+
+const RATE   = 60;                      // ns of simulated time per second of real time
+const THETA0 = -52 * Math.PI / 180;     // parked where the home camera sees it head-on
+const GY_DRAW = 4.0;                    // mm: the size the magnified gyro-orbit is drawn at
+
+/* Azimuth convention: x = r cos(theta), z = -r sin(theta), so that (r, theta, y) is
+   right-handed with y along the thrust axis. Get the sign of z wrong and the drift runs
+   backwards against the E cross B the field lines and the E arrow describe. */
+const rHat     = th => new THREE.Vector3(Math.cos(th), 0, -Math.sin(th));
+const thetaHat = th => new THREE.Vector3(-Math.sin(th), 0, -Math.cos(th));
+
+const bOf = s => 1 + (R_MIRROR - 1) * (2 * s / W) * (2 * s / W);
+
+const $  = id => document.getElementById(id);
+const el = {
+  t1: $('bz-t1'), t2: $('bz-t2'), t3: $('bz-t3'), tf: $('bz-tf'), tg: $('bz-tg'),
+  reset: $('bz-reset'),
+  b: $('bz-b'), te: $('bz-te'), pa: $('bz-pa'), e: $('bz-e'),
+  bVal: $('bz-b-val'), teVal: $('bz-te-val'), paVal: $('bz-pa-val'), eVal: $('bz-e-val'),
+  o1: $('bz-o-1'), o1s: $('bz-o-1s'), o2: $('bz-o-2'), o2s: $('bz-o-2s'),
+  o3: $('bz-o-3'), o3s: $('bz-o-3s'), oN: $('bz-o-n'), oAmp: $('bz-o-amp'),
+  hudT: $('bz-hud-t'), hudG: $('bz-hud-g'), status: $('bz-status'), note: $('bz-note')
+};
+const on = b => b.getAttribute('aria-pressed') === 'true';
+
+/* ── Scene ───────────────────────────────────────────────── */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#090909');
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+const camera   = new THREE.PerspectiveCamera(30, 1.9, 1, 8000);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan     = false;
+controls.minDistance   = 210;
+controls.maxDistance   = 1500;
+/* Never below the exit plane. Everything this figure is about happens in the mouth of the
+   channel, and from underneath there is nothing to see but the back of the can. */
+controls.maxPolarAngle = Math.PI * 0.495;
+
+/* The reference framing: looking down on the face from about thirty degrees above it,
+   thrust axis up the screen, the annulus reading as a flattened ellipse. */
+const HOME = { az: 38 * Math.PI / 180, el: 31 * Math.PI / 180, d: 470, ty: 12 };
+function home(){
+  controls.target.set(0, HOME.ty, 0);
+  camera.position.set(
+    HOME.d * Math.cos(HOME.el) * Math.sin(HOME.az),
+    HOME.ty + HOME.d * Math.sin(HOME.el),
+    HOME.d * Math.cos(HOME.el) * Math.cos(HOME.az));
+  camera.lookAt(controls.target);
+  controls.update();
+}
+
+scene.add(new THREE.HemisphereLight(0xdfe6f2, 0x141820, 0.34));
+scene.add(new THREE.AmbientLight(0xffffff, 0.50));
+const keyLight  = new THREE.DirectionalLight(0xffffff, 0.82);
+const fillLight = new THREE.DirectionalLight(0xffffff, 0.30);
+const rimLight  = new THREE.DirectionalLight(0xbcd0ff, 0.22);
+keyLight.position.set(1.4, 2.4, 2.2);
+fillLight.position.set(-1.2, 0.9, -0.9);
+rimLight.position.set(-0.5, 1.6, -2.2);
+scene.add(keyLight, fillLight, rimLight);
+
+/* ── Hardware ─────────────────────────────────────────────
+   An SPT reduced to the four surfaces that carry the lesson: the can, the two ceramic
+   channel walls, the anode at the base of the channel and the center pole face. */
+const MAT_BODY = new THREE.MeshStandardMaterial({ color: 0x6d737d, roughness: 0.62, metalness: 0.16 });
+const MAT_CER  = new THREE.MeshStandardMaterial({ color: 0xcabfa6, roughness: 0.86, metalness: 0.02,
+                                                  side: THREE.DoubleSide });
+const MAT_POLE = new THREE.MeshStandardMaterial({ color: 0x3d434c, roughness: 0.70, metalness: 0.28,
+                                                  side: THREE.DoubleSide });
+const MAT_AN   = new THREE.MeshStandardMaterial({ color: 0x8a8f96, roughness: 0.42, metalness: 0.58,
+                                                  side: THREE.DoubleSide });
+
+const hardware = new THREE.Group();
+const addMesh  = (geo, mat) => { const m = new THREE.Mesh(geo, mat); hardware.add(m); return m; };
+
+let g;
+g = new THREE.CylinderGeometry(R_BODY, R_BODY, H_BODY, 96, 1, true);
+g.translate(0, -H_BODY / 2, 0);                       addMesh(g, MAT_BODY);
+g = new THREE.CircleGeometry(R_BODY, 96);
+g.rotateX(Math.PI / 2); g.translate(0, -H_BODY, 0);   addMesh(g, MAT_BODY);
+g = new THREE.RingGeometry(R_OUT, R_BODY, 96, 1);
+g.rotateX(-Math.PI / 2);                              addMesh(g, MAT_BODY);
+g = new THREE.CylinderGeometry(R_OUT, R_OUT, D_CH, 96, 1, true);
+g.translate(0, -D_CH / 2, 0);                         addMesh(g, MAT_CER);
+g = new THREE.CylinderGeometry(R_IN, R_IN, D_CH, 96, 1, true);
+g.translate(0, -D_CH / 2, 0);                         addMesh(g, MAT_CER);
+g = new THREE.RingGeometry(R_IN, R_OUT, 96, 1);
+g.rotateX(-Math.PI / 2); g.translate(0, -D_CH, 0);    addMesh(g, MAT_AN);
+g = new THREE.CircleGeometry(R_IN, 96);
+g.rotateX(-Math.PI / 2); g.translate(0, -D_BORE, 0);  addMesh(g, MAT_POLE);
+
+/* Cathode, canted in toward the axis the way it is on the real hardware, because the
+   electrons this whole page is about are emitted from it and not from the channel. */
+const CATH_AZ = 128 * Math.PI / 180, CATH_R = 76;
+const cathode = new THREE.Group();
+cathode.position.copy(rHat(CATH_AZ).multiplyScalar(CATH_R));
+cathode.setRotationFromAxisAngle(thetaHat(CATH_AZ), -24 * Math.PI / 180);
+{
+  let cg = new THREE.CylinderGeometry(9, 10.5, 30, 32); cg.translate(0, 15, 0);
+  cathode.add(new THREE.Mesh(cg, MAT_BODY));
+  cg = new THREE.CylinderGeometry(5, 6.5, 9, 28); cg.translate(0, 34, 0);
+  cathode.add(new THREE.Mesh(cg, MAT_POLE));
+}
+hardware.add(cathode);
+scene.add(hardware);
+
+/* ── Glow ─────────────────────────────────────────────────
+   plumeMaterial and hallTorusMaterial are hall_thruster.html's, carried across rather
+   than rewritten, so the discharge reads the same in the lesson as it does in the viewer.
+   The section-cut uniforms are the one thing dropped: nothing here is cut. Both are held
+   well below the viewer's brightness, for the reason the caption states: at photographic
+   strength the ring buries the electron path. The RING is held lower than the plume, and
+   by more than looks necessary from a still: it sits directly under the blade. */
+const BUZZ_COL = 0x3ec0f5, BUZZ_CORE = 0xffffff;
+const BEAM_COL = 0x36b7ff, BEAM_CORE = 0xbfefff;
+const GLOW_RING = 0.34, GLOW_PLUME = 0.40;
+const glowMats = [];
+
+function plumeMaterial(colorHex, coreHex, fadeEnd = 1.0, coreExp = 2.6, peak = 0.95){
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime:   { value: 0 },
+      uColor:  { value: new THREE.Color(colorHex) },
+      uCore:   { value: new THREE.Color(coreHex) },
+      uFadeEnd:{ value: fadeEnd },
+      uOpacity:{ value: GLOW_PLUME },
+    },
+    vertexShader: `
+      varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+      void main(){
+        vUv = uv;
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vN = normalize(mat3(modelMatrix) * normal);
+        vV = normalize(cameraPosition - wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: `
+      #define CORE_EXP ${coreExp.toFixed(2)}
+      #define PEAK ${peak.toFixed(2)}
+      uniform float uTime; uniform vec3 uColor; uniform vec3 uCore;
+      uniform float uFadeEnd; uniform float uOpacity;
+      varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+      void main(){
+        float ndv   = abs(dot(normalize(vN), normalize(vV)));
+        float core  = pow(ndv, CORE_EXP);
+        float axial = clamp(vUv.y, 0.0, 1.0);
+        float fade  = pow(1.0 - smoothstep(0.02, uFadeEnd, axial), 1.5);
+        float win   = smoothstep(0.06, 0.40, axial) * (1.0 - smoothstep(0.65, 1.0, axial));
+        float flow  = 1.0 + 0.06 * win * sin(uTime * 4.0 - axial * 3.0);
+        /* The 0.02 floor FILLS the cone, since a shell is otherwise only its own limb and
+           reads hollow. Fading it out as the surface turns edge-on is what dissolves the
+           silhouette; a constant carried to the edge gives the plume a cut outline, which
+           no plume has. */
+        float edge = smoothstep(0.0, 0.30, ndv);
+        float a = (0.02 * edge + PEAK * core) * fade * flow * uOpacity;
+        vec3 col = mix(uColor, uCore, clamp(core * 0.85, 0.0, 1.0));
+        gl_FragColor = vec4(col, a);
+      }`,
+    transparent: true, blending: THREE.AdditiveBlending,
+    depthWrite: false, side: THREE.DoubleSide,
+  });
+  glowMats.push(mat);
+  return mat;
+}
+
+/* The ring itself. Shaded from POSITION ON THE TUBE rather than from view angle: a
+   saturated plasma is as bright edge-on as face-on, so the band clips white across its
+   whole width at every angle and the hue lives only in the fringe at the rims. Driving it
+   off the view vector instead is what used to make it look like a silver inflatable. */
+function hallTorusMaterial(exponent){
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime:  { value: 0 }, uOpacity: { value: GLOW_RING },
+      uColor: { value: new THREE.Color(BUZZ_COL) },
+      uCore:  { value: new THREE.Color(BUZZ_CORE) },
+      uBreathW: { value: 2 * Math.PI * 0.9 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main(){
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      #define EXPN ${exponent.toFixed(2)}
+      uniform float uTime; uniform float uOpacity; uniform vec3 uColor; uniform vec3 uCore;
+      uniform float uBreathW;
+      varying vec2 vUv;
+      void main(){
+        /* Skewed rather than a plain sine: the real cycle is a relaxation oscillation,
+           ionization running away and stalling, so it rises faster than it decays. */
+        float ph     = uTime * uBreathW;
+        float swing  = (sin(ph) + 0.28 * sin(2.0 * ph)) / 1.14;
+        float breath = 0.80 + 0.20 * (0.5 + 0.5 * swing);
+        /* vUv.y runs around the tube CROSS-SECTION. The face term is 1 on the flat
+           downstream face and 0 at the two radial rims, so it carries both jobs at once:
+           the hue emerges only at the rims, and the alpha dissolves there too, leaving the
+           ring no outline to read as a solid with. */
+        float face = abs(sin(vUv.y * 6.2831853));
+        float lum  = pow(face, EXPN);
+        vec3  col  = mix(uColor, uCore, clamp(0.20 + 0.80 * lum, 0.0, 1.0));
+        gl_FragColor = vec4(col * breath, uOpacity * smoothstep(0.0, 0.42, face));
+      }`,
+    transparent: true, blending: THREE.NormalBlending,
+    depthWrite: false, side: THREE.FrontSide,
+  });
+  glowMats.push(mat);
+  return mat;
+}
+
+const glowGroup = new THREE.Group();
+{
+  /* Beam cone. A Hall plume is broad: the ions are born across a potential drop rather
+     than pulled through focused optics, so it diverges far harder than a gridded engine's. */
+  const BEAM_LEN = 240, BEAM_HALF = 21 * Math.PI / 180;
+  const R_FAR = R_OUT + BEAM_LEN * Math.tan(BEAM_HALF);
+  const beamGeo = new THREE.CylinderGeometry(R_FAR, R_OUT, BEAM_LEN, 72, 48, true);
+  beamGeo.translate(0, BEAM_LEN / 2, 0);          // narrow end seated on the exit plane
+  const beam = new THREE.Mesh(beamGeo, plumeMaterial(BEAM_COL, BEAM_CORE, 1.0, 1.5, 0.7));
+  beam.renderOrder = 50;
+  glowGroup.add(beam);
+
+  /* The discharge as a flat LENS in the annulus. In a photograph of a firing thruster the
+     band has no visible axial depth at all, so the tube keeps its full radial half-width
+     and is squashed to about a sixth of it along the axis. It stays a torus rather than a
+     flat ring for one reason: a ring viewed edge-on is one pixel wide and would wink out
+     as the reader orbits. */
+  const buzzGeo = new THREE.TorusGeometry(R_MID, 13, 28, 144);
+  buzzGeo.scale(1, 1, 0.16);
+  buzzGeo.rotateX(Math.PI / 2);                   // torus axis Z -> the thrust axis
+  buzzGeo.translate(0, 1.5, 0);
+  const buzz = new THREE.Mesh(buzzGeo, hallTorusMaterial(0.55));
+  buzz.renderOrder = 45;
+  glowGroup.add(buzz);
+
+  // Cathode puff, off the keeper orifice along the cathode's own canted axis.
+  const nLen = 42, nR0 = 4.0, nR1 = nR0 + nLen * Math.tan(11 * Math.PI / 180);
+  const nGeo = new THREE.CylinderGeometry(nR1, nR0, nLen, 32, 20, true);
+  nGeo.translate(0, 38 + nLen / 2, 0);
+  const nMesh = new THREE.Mesh(nGeo, plumeMaterial(BEAM_COL, BEAM_CORE, 0.8));
+  nMesh.renderOrder = 50;
+  cathode.add(nMesh);                             // inherits the cant
+}
+scene.add(glowGroup);
+
+/* ── The magnetic field ───────────────────────────────────
+   Drawn as FIELD LINES, three at each of six stations round the annulus, rather than as
+   one straight arrow apiece. Only the middle one is straight, and only because it lies in
+   the plane of the two pole faces, which is the one place the field really is purely
+   radial. Every other line has to leave a pole face and land on the other one from a
+   standoff, so it arches: downstream of the exit plane it bows out into the plume,
+   upstream of it, back into the channel. That family IS the magnetic lens, and drawing it
+   is also what makes the mirror visible rather than asserted: the three lines are widely
+   spaced at mid-channel and converge as they run into each pole, and field lines crowding
+   together is what |B| rising means. The bounce integrated above climbs exactly that
+   profile.
+
+   One straight arrow per station said none of this. It drew the field as uniform across
+   the gap, which is the one thing it cannot be if there is to be a mirror at all. */
+const fieldGroup = new THREE.Group();
+{
+  const up = new THREE.Vector3(0, 1, 0);
+  /* Each entry is one line of the family: how far past each wall it lands on the pole
+     face, how far it bows off the exit plane, and how strongly it is drawn. The further a
+     line sits from the plane of the poles the wider it has to reach and the harder it has
+     to bow, which is the shape that makes the three read as one lens rather than as three
+     unrelated arcs.
+     Four stations, not six, and shallow sags. This is drawn ON TOP of the blade in
+     projection whatever the camera does, since the blade sits in the annulus between the
+     two arcs, so the field costs the electron path legibility one for one. Six deep arcs
+     buried it. */
+  const LINES = [
+    { reach:  9, sag:  13, alpha: 0.46 },   // downstream of the exit plane, into the plume
+    { reach:  3, sag:   0, alpha: 0.80 },   // ON it, where the field really is purely radial
+    { reach:  6, sag: -10, alpha: 0.46 },   // upstream of it, back into the channel
+  ];
+  /* All three heads at the same station, and that station chosen where the arcs are still
+     running mostly radially. Further out, where each arc has turned down toward its pole,
+     the three tangents fan apart and the station reads as a starburst rather than as three
+     arrows going the same way. */
+  const HEAD_U = 0.62;
+  const headGeo = new THREE.ConeGeometry(2.2, 6.5, 14);
+  for (let a = 0; a < 4; a++){
+    const th = a * Math.PI / 2 + 0.35, rh = rHat(th);
+    for (const L of LINES){
+      const mat = new THREE.MeshBasicMaterial({ color: 0x00DDB5, transparent: true,
+                                                opacity: L.alpha });
+      const R0 = R_IN - L.reach, SPAN = (R_OUT + L.reach) - R0;
+      const pts = [];
+      for (let i = 0; i <= 28; i++){
+        const u = i / 28;
+        pts.push(rh.clone().multiplyScalar(R0 + SPAN * u).setY(L.sag * Math.sin(Math.PI * u)));
+      }
+      fieldGroup.add(new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.45, 8, false), mat));
+      const tip = new THREE.Mesh(headGeo, mat);
+      tip.position.copy(rh.clone().multiplyScalar(R0 + SPAN * HEAD_U)
+                          .setY(L.sag * Math.sin(Math.PI * HEAD_U)));
+      // tangent to the arc: d/du of (radius along rHat, sag sin(pi u) along y)
+      tip.quaternion.setFromUnitVectors(up, rh.clone().multiplyScalar(SPAN)
+        .setY(L.sag * Math.PI * Math.cos(Math.PI * HEAD_U)).normalize());
+      fieldGroup.add(tip);
+    }
+  }
+
+  // E, axial and pointing downstream: the anode is at the base of the channel and the
+  // potential falls from it to the exit, so E x B runs the way the blue arc points.
+  const eAz = THETA0 + Math.PI / 2;
+  const eArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0),
+                   rHat(eAz).multiplyScalar(R_MID).setY(-16), 56, 0xF5C518, 12, 7);
+  eArrow.line.material.transparent = true; eArrow.line.material.opacity = 0.85;
+  eArrow.cone.material.transparent = true; eArrow.cone.material.opacity = 0.85;
+  fieldGroup.add(eArrow);
+}
+
+const driftGroup = new THREE.Group();
+{
+  /* ONE curved arrow on the top face, outside the channel, rather than a ring of chevrons.
+     Chevrons were tried first and the trouble is geometric: a cone pointing along the
+     azimuth is pointing at the camera wherever the ring turns toward it, and a cone seen
+     end-on is a blob. A single arc placed where the ring runs across the view reads as a
+     direction from every angle the controls allow. */
+  const A0 = THETA0 - 0.60, A1 = THETA0 + 0.35, RA = R_OUT + 14, YA = 3;
+  const mat = new THREE.MeshBasicMaterial({ color: 0x3DBFFF, transparent: true, opacity: 0.92 });
+  const up  = new THREE.Vector3(0, 1, 0);
+  const pts = [];
+  for (let i = 0; i <= 24; i++){
+    const th = A0 + (A1 - A0) * i / 24;
+    pts.push(rHat(th).multiplyScalar(RA).setY(YA));
+  }
+  driftGroup.add(new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 1.5, 10, false), mat));
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(4.4, 12, 18), mat);
+  tip.position.copy(rHat(A1).multiplyScalar(RA).setY(YA));
+  tip.quaternion.setFromUnitVectors(up, thetaHat(A1));   // +theta: the way E x B runs
+  driftGroup.add(tip);
+}
+fieldGroup.add(driftGroup);
+scene.add(fieldGroup);
+
+/* ── The electron ─────────────────────────────────────────
+   Line2 rather than THREE.Line, because a WebGL line is one pixel wide whatever you ask
+   for and the blade would be a hairline over a lit ring. */
+function glowSprite(){
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0.0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.3, 'rgba(255,233,77,0.55)');
+  grad.addColorStop(1.0, 'rgba(255,233,77,0)');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, 64, 64);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/* The blade is NORMAL-blended and the trail is additive, which is the one place the two
+   differ and it is not a style choice. Additive was tried on both: the blade lies on top
+   of the ring's own glow for its whole length, and yellow added to a pale blue-white ring
+   clips straight to white, so the path stops being the electron's and starts looking like
+   a second highlight on the plasma. The trail is short and mostly clear of the glow, and
+   additive is what gives its head somewhere to be brightest. */
+const bladeMat = new LineMaterial({
+  color: 0xffe94d, linewidth: 2.2, transparent: true, opacity: 0.9,
+  blending: THREE.NormalBlending, depthWrite: false
+});
+const trailMat = new LineMaterial({
+  color: 0xffffff, linewidth: 3.4, vertexColors: true, transparent: true,
+  blending: THREE.AdditiveBlending, depthWrite: false
+});
+
+const blade = new Line2(new LineGeometry(), bladeMat);
+const trail = new Line2(new LineGeometry(), trailMat);
+blade.renderOrder = 60; trail.renderOrder = 61;
+blade.frustumCulled = false; trail.frustumCulled = false;
+scene.add(blade, trail);
+
+const head = new THREE.Mesh(
+  new THREE.SphereGeometry(2.0, 18, 12),
+  new THREE.MeshBasicMaterial({ color: 0xfff6b0 }));
+head.renderOrder = 62;
+const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: glowSprite(), transparent: true, blending: THREE.AdditiveBlending,
+  depthWrite: false, depthTest: false, opacity: 0.85 }));
+halo.scale.set(24, 24, 1);
+halo.renderOrder = 63;
+scene.add(head, halo);
+
+/* ── Operating point ──────────────────────────────────────
+   One place where the four sliders become numbers, so the path, the readouts, the status
+   line and the clock cannot disagree with each other. */
+const NT = 512;                                   // samples per bounce period in the tables
+const tabPhi = new Float64Array(NT + 1);          // cumulative gyro-phase, in units of w_c0
+const tabTh  = new Float64Array(NT + 1);          // cumulative drift angle, in units of v_D0
+let S = {};
+
+function recompute(){
+  const B0 = +el.b.value * 1e-4;                       // T, AT MID-CHANNEL
+  const Te = +el.te.value;                             // eV
+  const pa = +el.pa.value * Math.PI / 180;             // pitch angle at mid-channel
+  const Ez = +el.e.value * 1e3;                        // V/m
+
+  el.bVal.textContent  = el.b.value + ' G';
+  el.teVal.textContent = Te + ' eV';
+  el.paVal.textContent = el.pa.value + '°';
+  el.eVal.textContent  = el.e.value + ' V/mm';
+
+  /* ONE speed, split by the pitch angle. This is the correction that moved every number
+     on the figure: the old version took the full characteristic speed sqrt(2E/m) as the
+     PARALLEL speed and the same full speed again as the PERPENDICULAR one, which is a
+     particle with twice the energy it was given and, worse, is simultaneously at a pitch
+     angle of zero and of ninety degrees. */
+  const v    = Math.sqrt(2 * QE * Te / M_E) * 1e-6;    // mm/ns, total
+  const vPar = v * Math.cos(pa), vPer = v * Math.sin(pa);
+
+  const tauC0 = 2 * Math.PI * M_E / (QE * B0) * 1e9;   // ns, at mid-channel
+  const wc0   = 2 * Math.PI / tauC0;                   // rad/ns
+  const rce0  = M_E * (vPer * 1e6) / (QE * B0) * 1e3;  // mm, at mid-channel
+  const vD0   = Ez / B0 * 1e-6;                        // mm/ns, at mid-channel
+
+  /* The bounce, in closed form. The mirror force is -mu dB/ds and B is quadratic in s, so
+     the force is LINEAR in s and the trapped bounce is exactly simple harmonic:
+        w_b = (2 v_perp / w) sqrt(R - 1),      s_max = v_par / w_b.
+     If s_max clears the half-gap the electron never reaches a wall and the mirror alone
+     turns it. If it does not, the sinusoid is truncated at the wall and what turns the
+     electron there is the sheath. That is the loss cone, and it opens at a pitch angle of
+     atan(1/sqrt(R-1)), which is where THETA_LC comes from. */
+  const wb      = (2 * vPer / W) * Math.sqrt(R_MIRROR - 1);
+  const sMax    = vPar / wb;
+  const trapped = sMax <= W / 2;
+  const T1      = (trapped ? Math.PI / 2 : Math.asin((W / 2) / sMax)) / wb;
+  const tauB    = 4 * T1;
+  const sPeak   = Math.min(sMax, W / 2);
+
+  S = { wb, sMax, T1, tauB, sPeak, trapped, wc0, tauC0, rce0, vD0 };
+
+  /* Gyro-phase and drift angle both advance at rates that depend on where the electron is
+     in its bounce, so neither is linear in t. Both are integrated once per operating point
+     over ONE bounce period and cached; a whole number of periods is then a multiple of the
+     total and the remainder is one interpolation. Midpoint rule, which is second order and
+     is plenty at 512 samples for a smooth periodic integrand. */
+  const h = tauB / NT;
+  tabPhi[0] = 0; tabTh[0] = 0;
+  for (let i = 1; i <= NT; i++){
+    const s = sAt((i - 0.5) * h);
+    const b = bOf(s);
+    tabPhi[i] = tabPhi[i - 1] + h * b;
+    tabTh[i]  = tabTh[i - 1]  + h / (b * (R_MID + s));
+  }
+  S.phiTot = tabPhi[NT];
+  S.thTot  = tabTh[NT];
+
+  /* Teeth per lap is now MEASURED off that integration rather than assumed: it is how many
+     bounce periods it takes the drift to carry the guiding center through 2 pi. */
+  S.N       = 2 * Math.PI / (vD0 * S.thTot);
+  S.tauD    = S.N * tauB;
+  S.tauCavg = tauB * tauC0 / S.phiTot;
+  S.gMag    = Math.max(1, GY_DRAW / rce0);
+
+  el.o1.textContent  = rce0.toFixed(2) + ' mm';
+  el.o1s.textContent = 'every ' + S.tauCavg.toFixed(1) + ' ns, about the field line';
+  el.o2.textContent  = (2 * sPeak).toFixed(1) + ' mm';
+  el.o2s.textContent = 'every ' + tauB.toFixed(1) + ' ns, ' + (trapped
+      ? 'turning at r = ' + (R_MID - sPeak).toFixed(1) + ' and ' + (R_MID + sPeak).toFixed(1) + ' mm'
+      : 'wall to wall, the sheath turning it');
+  el.o3.textContent  = LAP.toFixed(0) + ' mm';
+  el.o3s.textContent = 'every ' + S.tauD.toFixed(0) + ' ns, once around';
+  el.oN.textContent  = S.N.toFixed(1);
+  // Radial distance covered in one lap, against the one crossing a straight line would need.
+  el.oAmp.textContent = '×' + (4 * sPeak * S.N / W).toFixed(0);
+
+  [[el.o1, el.o1s, el.t1], [el.o2, el.o2s, el.t2], [el.o3, el.o3s, el.t3]]
+    .forEach(([a, b, t]) => { a.style.opacity = b.style.opacity = on(t) ? 1 : 0.4; });
+  el.oN.style.opacity = el.oAmp.style.opacity = (on(el.t2) && on(el.t3)) ? 1 : 0.4;
+
+  el.hudG.textContent = on(el.t1)
+    ? 'gyro-orbit drawn ×' + S.gMag.toFixed(1) + ', true radius ' + rce0.toFixed(2) +
+      ' mm at mid-channel'
+    : '';
+
+  if (!on(el.t2)) {
+    el.status.style.display = 'none';
+  } else {
+    el.status.style.display = '';
+    el.status.textContent = trapped
+      ? 'Mirror-trapped. It turns at r = ' + (R_MID - sPeak).toFixed(1) + ' and ' +
+        (R_MID + sPeak).toFixed(1) + ' mm, ' + (W / 2 - sPeak).toFixed(1) +
+        ' mm clear of each wall, and never touches the ceramic.'
+      : 'Inside the ' + THETA_LC.toFixed(0) + '° loss cone. The mirror cannot turn ' +
+        'this electron: it runs into the wall, and what sends it back is the sheath.';
+    el.status.style.color = trapped ? '#9fdcc9' : '#ff9e9e';
+  }
+
+  rebuildBlade();
+}
+
+/* Radial offset from mid-channel at simulated time t: a sinusoid while the electron is
+   mirror-trapped, and the same sinusoid folded at the wall when it is not. */
+function sAt(t){
+  const u = ((t % S.tauB) + S.tauB) % S.tauB;
+  const q = u <= S.T1 ? u : (u <= 3 * S.T1 ? 2 * S.T1 - u : u - 4 * S.T1);
+  return S.sMax * Math.sin(S.wb * q);
+}
+const cum = (tab, u) => {
+  const x = u / S.tauB * NT, i = Math.min(NT - 1, Math.max(0, Math.floor(x)));
+  return tab[i] + (x - i) * (tab[i + 1] - tab[i]);
+};
+
+const _v = new THREE.Vector3();
+function state(t, withGyro, out){
+  const bounce = on(el.t2), drift = on(el.t3), gyro = on(el.t1) && withGyro;
+  const s  = bounce ? sAt(t) : 0;
+  const r  = R_MID + s;
+  const b  = bOf(s);
+  const k  = Math.floor(t / S.tauB), u = t - k * S.tauB;
+
+  let th = THETA0, y = 0;
+  /* With the bounce switched off the guiding center sits at mid-channel for good, so the
+     drift is the plain v_D/r there; running it off the table would be the drift along a
+     path this electron is not taking. */
+  if (drift) th += bounce ? S.vD0 * (k * S.thTot + cum(tabTh, u)) : S.vD0 * t / R_MID;
+  if (gyro){
+    const phi = bounce ? S.wc0 * (k * S.phiTot + cum(tabPhi, u)) : S.wc0 * t;
+    // The orbit shrinks where B is strong, since r_c = m v_perp / eB and v_perp only
+    // grows as sqrt(B) under a conserved moment. It is tightest at the turning points.
+    const rg = S.gMag * S.rce0 / Math.sqrt(b);
+    th += rg * Math.cos(phi) / r;      // the orbit lies ACROSS the radial field, so it
+    y  += rg * Math.sin(phi);          // wobbles in azimuth and along the axis, not in r
+  }
+  return (out || _v).set(r * Math.cos(th), y, -r * Math.sin(th));
+}
+
+/* The blade: one whole lap, drawn at once and standing still, so the teeth can be counted
+   rather than watched going by. Gyration is left OUT of it deliberately. There are of
+   order a hundred orbits in a lap, so resolving them would cost tens of thousands of
+   points, and sampled coarsely they alias into a wobble that is not there. The trail
+   carries the gyration instead, over a window short enough to sample it properly. */
+const bladePts = [];
+function rebuildBlade(){
+  if (!on(el.t3)){ blade.visible = false; return; }
+  blade.visible = true;
+  const n = 1600;
+  bladePts.length = 0;
+  for (let i = 0; i <= n; i++){
+    state(S.tauD * i / n, false, _v);
+    bladePts.push(_v.x, _v.y, _v.z);
+  }
+  blade.geometry.setPositions(bladePts);
+}
+
+const trailPts = [], trailCols = [];
+function updateTrail(t){
+  /* How much history to keep: about a bounce when there is a bounce, a slice of the lap
+     when the drift is running on its own, and a few orbits when neither is on. */
+  let span = on(el.t2) ? Math.min(1.1 * S.tauB, 90)
+           : on(el.t3) ? S.tauD * 0.10
+                       : 4 * S.tauCavg;
+  /* Sampled on the GYRO period when the helix is being drawn, not on a fixed count: at 24
+     points an orbit it is a smooth coil, and at the 260 the rest of the figure needs it is
+     a zigzag that reads as noise. The WINDOW is capped in orbits rather than the sample
+     count in points, which is the same guard from the other end: over the sliders' range
+     the gyro period moves by more than ten to one, so a fixed window that is a tidy coil
+     at one end of it is several hundred orbits of aliasing at the other. */
+  let n = 260;
+  if (on(el.t1)){
+    span = Math.min(span, 34 * S.tauCavg);
+    n = Math.max(260, Math.round(span / S.tauCavg * 24));
+  }
+  trailPts.length = 0; trailCols.length = 0;
+  for (let i = 0; i <= n; i++){
+    const f = i / n;                                // 0 = oldest sample
+    state(Math.max(0, t - span * (1 - f)), true, _v);
+    trailPts.push(_v.x, _v.y, _v.z);
+    const a = f * f;                                // additive, so color IS the fade
+    trailCols.push(a, a * 0.92, a * 0.32);
+  }
+  trail.geometry.setPositions(trailPts);
+  trail.geometry.setColors(trailCols);
+}
+
+/* ── Frame ────────────────────────────────────────────────── */
+let simT = 0, last = 0;
+function step(now){
+  const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+  last = now;
+  simT += dt * RATE;
+
+  updateTrail(simT);
+  state(simT, true, _v);
+  head.position.copy(_v);
+  halo.position.copy(_v);
+
+  for (const m of glowMats) m.uniforms.uTime.value = now / 1000;
+  el.hudT.textContent = 't = ' + simT.toFixed(0) + ' ns, played at ' + RATE +
+                        ' ns per second of real time';
+
+  controls.update();
+  renderer.render(scene, camera);
+  raf = requestAnimationFrame(step);
+}
+
+/* ── Wiring ───────────────────────────────────────────────── */
+function applyToggles(){
+  fieldGroup.visible = on(el.tf);
+  driftGroup.visible = on(el.t3);
+  glowGroup.visible  = on(el.tg);
+  cathode.children.forEach(c => { if (c.material && c.material.isShaderMaterial) c.visible = on(el.tg); });
+  /* With neither of the larger motions switched on the guiding center is standing still,
+     and all there is to see is a coil going round on the spot. Say so. */
+  const idle = !on(el.t2) && !on(el.t3);
+  el.note.style.display = idle ? '' : 'none';
+  el.note.textContent = on(el.t1)
+    ? 'Only the gyration. The guiding center is standing still, so this is the orbit on ' +
+      'its own, magnified. Add the bounce to send it along the field line.'
+    : 'Nothing is switched on. Add the gyration, then the bounce, then the drift.';
+  recompute();
+}
+[el.t1, el.t2, el.t3, el.tf, el.tg].forEach(b => b.addEventListener('click', () => {
+  b.setAttribute('aria-pressed', on(b) ? 'false' : 'true');
+  applyToggles();
+}));
+[el.b, el.te, el.pa, el.e].forEach(s => s.addEventListener('input', recompute));
+el.reset.addEventListener('click', home);
+
+function resize(){
+  const w = Math.max(1, frameEl.clientWidth), h = Math.max(1, frameEl.clientHeight);
+  renderer.setSize(w, h, false);          // the CANVAS is sized in CSS; see .bz-frame
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  bladeMat.resolution.set(w, h);          // Line2 wants CSS pixels, not buffer pixels
+  trailMat.resolution.set(w, h);
+}
+new ResizeObserver(resize).observe(frameEl);
+resize();
+home();
+applyToggles();
+
+/* Off-screen the loop is pure waste, and this page carries a second three.js viewer in an
+   iframe further down that wants the frames more than this figure does. */
+let raf = null;
+new IntersectionObserver(es => {
+  for (const e of es){
+    if (e.isIntersecting && raf === null){ last = 0; raf = requestAnimationFrame(step); }
+    else if (!e.isIntersecting && raf !== null){ cancelAnimationFrame(raf); raf = null; }
+  }
+}, { threshold: 0 }).observe(frameEl);
+
+}
+}
+</script>
+
+<!-- ════════════════════ FIGURE: WHO IS MAGNETIZED ════════════════════ -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('wm-svg');
+  if (!svg) return;
+
+  const QE   = 1.602176634e-19;
+  const M_E  = 9.1093837015e-31;
+  const M_XE = 2.1801714e-25;
+  const W_MM = 24;                 // channel width, r 38 to 62 mm
+  const PX_PER_MM = 200 / W_MM;    // the upper panel is drawn to scale
+
+  const $ = id => document.getElementById(id);
+  const el = {
+    ion: $('wm-ion'), ionLbl: $('wm-ion-lbl'),
+    e: $('wm-e'), eLead: $('wm-e-lead'), eLbl: $('wm-e-lbl'),
+    markEL: $('wm-mark-e-l'), markET: $('wm-mark-e-t'),
+    markIL: $('wm-mark-i-l'), markIT: $('wm-mark-i-t'),
+    b: $('wm-b'), te: $('wm-te'), ei: $('wm-ei'),
+    bVal: $('wm-b-val'), teVal: $('wm-te-val'), eiVal: $('wm-ei-val'),
+    oRe: $('wm-o-re'), oReSub: $('wm-o-re-sub'),
+    oRi: $('wm-o-ri'), oRiSub: $('wm-o-ri-sub'),
+    oRatio: $('wm-o-ratio'), oVerdict: $('wm-o-verdict'), oVerdictSub: $('wm-o-verdict-sub')
+  };
+
+  /* Gyroradius from a characteristic speed sqrt(2E/m). Returned in millimeters,
+     which is the unit both panels are drawn in. */
+  const gyro = (E_eV, m, B_T) => Math.sqrt(2 * QE * E_eV / m) * m / (QE * B_T) * 1e3;
+
+  // Log ruler: 10 um to 10 m, seven decades across the same 780 px the panel uses.
+  const xLog = mm => 80 + (Math.log10(mm) - (-2)) / 6 * 780;
+
+  const mmStr = mm => mm >= 1000 ? (mm / 1000).toFixed(2) + ' m'
+                    : mm >= 1    ? mm.toFixed(2) + ' mm'
+                                 : (mm * 1000).toFixed(0) + ' µm';
+
+  function draw(){
+    const B_T = +el.b.value * 1e-4;        // gauss to tesla
+    const Te  = +el.te.value;
+    const Ei  = +el.ei.value;
+
+    el.bVal.textContent  = el.b.value + ' G';
+    el.teVal.textContent = Te + ' eV';
+    el.eiVal.textContent = Ei + ' eV';
+
+    const rE = gyro(Te, M_E,  B_T);        // mm
+    const rI = gyro(Ei, M_XE, B_T);        // mm
+
+    // Electron circle, true to the panel's scale.
+    const rEpx = rE * PX_PER_MM;
+    el.e.setAttribute('r', rEpx.toFixed(2));
+    const lead = Math.max(rEpx, 6) + 4;
+    el.eLead.setAttribute('x1', 220 + lead * 0.7);
+    el.eLead.setAttribute('y1', 185 + lead * 0.7);
+    el.eLbl.textContent = 'r = ' + mmStr(rE);
+
+    /* The ion arc is a piece of a circle whose radius runs to meters, so it is drawn
+       by sampling rather than as a <circle>: at these radii a circle element would
+       have a bounding box thousands of times the size of the frame. */
+    const Rpx = rI * PX_PER_MM;
+    const cx = 470, cy = 150 + Rpx;        // center far below the panel
+    let d = '';
+    for (let x = 340; x <= 860; x += 10){
+      const dx = x - cx;
+      const y = cy - Math.sqrt(Math.max(0, Rpx * Rpx - dx * dx));
+      d += (d ? ' L ' : 'M ') + x + ' ' + y.toFixed(1);
+    }
+    el.ion.setAttribute('d', d);
+    el.ionLbl.textContent = 'r = ' + mmStr(rI);
+
+    // Ruler markers, clamped so a marker that runs off the end still reads.
+    const place = (line, text, mm, label) => {
+      const x = Math.max(84, Math.min(856, xLog(mm)));
+      line.setAttribute('x1', x); line.setAttribute('x2', x);
+      text.setAttribute('x', x);
+      text.textContent = label;
+    };
+    place(el.markEL, el.markET, rE, 'electron, ' + mmStr(rE));
+    place(el.markIL, el.markIT, rI, 'xenon ion, ' + mmStr(rI));
+
+    el.oRe.textContent = mmStr(rE);
+    el.oReSub.textContent = (rE / W_MM * 100).toFixed(1) + '% of the channel width';
+    el.oRi.textContent = mmStr(rI);
+    el.oRiSub.textContent = (rI / W_MM).toFixed(0) + ' channel widths across';
+    el.oRatio.textContent = Math.round(rI / rE).toLocaleString() + '×';
+
+    /* Magnetized means the gyroradius is small against the confining dimension.
+       Ten to one either way is the usual rule of thumb, and it is a rule of thumb. */
+    const eMag = rE < W_MM / 10, iMag = rI < W_MM / 10;
+    if (eMag && !iMag){
+      el.oVerdict.textContent = 'electrons only';
+      el.oVerdict.style.color = '#51cf66';
+      el.oVerdictSub.textContent = 'the field holds one species and ignores the other';
+    } else if (!eMag && !iMag){
+      el.oVerdict.textContent = 'neither';
+      el.oVerdict.style.color = '#ff8e8e';
+      el.oVerdictSub.textContent = 'too weak to hold even the electrons';
+    } else {
+      el.oVerdict.textContent = 'both';
+      el.oVerdict.style.color = '#ff8e8e';
+      el.oVerdictSub.textContent = 'the ions would be trapped too, and never leave';
+    }
+  }
+
+  [el.b, el.te, el.ei].forEach(s => s.addEventListener('input', draw));
+  draw();
+})();
+</script>
+
+<!-- ════════════════════ FIGURE: LOSS CONE AND SHEATH ════════════════════ -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('lc-svg');
+  if (!svg) return;
+
+  const CX = 240, CY = 230, R = 145;       // velocity-space disk
+  const BX = 470, BW = 390;                // population bar
+
+  const $ = id => document.getElementById(id);
+  const el = {
+    coneR: $('lc-cone-r'), coneL: $('lc-cone-l'),
+    e1: $('lc-edge-1'), e2: $('lc-edge-2'), e3: $('lc-edge-3'), e4: $('lc-edge-4'),
+    arrow: $('lc-arrow'), arc: $('lc-arc'), theta: $('lc-theta'),
+    verdict: $('lc-verdict'), coneLbl: $('lc-conelbl'),
+    segTrap: $('lc-seg-trap'), segSheath: $('lc-seg-sheath'), segWall: $('lc-seg-wall'),
+    nTrap: $('lc-n-trap'), nSheath: $('lc-n-sheath'), nWall: $('lc-n-wall'),
+    keySheath: $('lc-key-sheath'), keySheathT: $('lc-key-sheath-t'),
+    rline: $('lc-rline'), lcline: $('lc-lcline'),
+    slTheta: $('lc-theta-sl'), slR: $('lc-r'), slPhi: $('lc-phi'), btn: $('lc-sheath'),
+    vTheta: $('lc-theta-val'), vR: $('lc-r-val'), vPhi: $('lc-phi-val'),
+    oAngle: $('lc-o-angle'), oOne: $('lc-o-one'), oOneSub: $('lc-o-one-sub'),
+    oTrap: $('lc-o-trap'), oWall: $('lc-o-wall'), oWallSub: $('lc-o-wall-sub')
+  };
+
+  const rad = d => d * Math.PI / 180;
+  const P = (a, r) => [CX + r * Math.cos(rad(a)), CY - r * Math.sin(rad(a))];
+
+  /* A sector of the disk, centered on the axis direction `axis` and half-width `half`.
+     Drawn as two radii and the arc between them. */
+  function sector(axis, half){
+    const [x1, y1] = P(axis - half, R), [x2, y2] = P(axis + half, R);
+    return `M ${CX} ${CY} L ${x1.toFixed(1)} ${y1.toFixed(1)} ` +
+           `A ${R} ${R} 0 ${half > 90 ? 1 : 0} 0 ${x2.toFixed(1)} ${y2.toFixed(1)} Z`;
+  }
+  function edge(node, axis, sign, half){
+    const [x, y] = P(axis + sign * half, R);
+    node.setAttribute('x1', CX); node.setAttribute('y1', CY);
+    node.setAttribute('x2', x.toFixed(1)); node.setAttribute('y2', y.toFixed(1));
+  }
+
+  function draw(){
+    const th   = +el.slTheta.value;
+    const Rm   = +el.slR.value;
+    const phi  = +el.slPhi.value;
+    const wall = el.btn.getAttribute('aria-pressed') === 'true';
+
+    el.vTheta.textContent = th + '°';
+    el.vR.textContent     = Rm.toFixed(2);
+    el.vPhi.innerHTML     = phi.toFixed(1) + ' T<sub>e</sub>';
+
+    /* Loss cone: an electron is reflected only if it has enough perpendicular energy,
+       sin^2(theta) > 1/R. Everything inside the cone reaches the wall. */
+    const thLC = Math.asin(Math.min(1, 1 / Math.sqrt(Rm))) * 180 / Math.PI;
+
+    el.coneR.setAttribute('d', sector(0, thLC));
+    el.coneL.setAttribute('d', sector(180, thLC));
+    edge(el.e1, 0,   +1, thLC); edge(el.e2, 0,   -1, thLC);
+    edge(el.e3, 180, +1, thLC); edge(el.e4, 180, -1, thLC);
+    el.coneLbl.textContent = 'loss cone, ±' + thLC.toFixed(0) + '° about B';
+
+    /* Pitch angle is measured FROM the field direction, so the arrow lies along
+       v-parallel at zero and along v-perpendicular at ninety. */
+    const [ax, ay] = P(th, R * 0.92);
+    el.arrow.setAttribute('x2', ax.toFixed(1));
+    el.arrow.setAttribute('y2', ay.toFixed(1));
+    const [a2x, a2y] = P(th, 52);
+    el.arc.setAttribute('d', th < 0.5 ? '' :
+      `M ${CX + 52} ${CY} A 52 52 0 0 0 ${a2x.toFixed(1)} ${a2y.toFixed(1)}`);
+    const [tx, ty] = P(th / 2, 68);
+    el.theta.setAttribute('x', tx.toFixed(1));
+    el.theta.setAttribute('y', ty.toFixed(1));
+    el.theta.textContent = th + '°';
+
+    const trappedOne = th > thLC;
+    el.verdict.textContent = trappedOne ? 'reflected before the wall' : 'inside the cone, hits the wall';
+    el.verdict.setAttribute('fill', trappedOne ? '#51cf66' : '#ff8e8e');
+
+    /* Population split. Trapped is the solid-angle share outside the cone for an
+       isotropic distribution; of the remainder, the sheath passes only the share with
+       enough parallel energy to climb it. */
+    const fTrap   = Math.sqrt(Math.max(0, 1 - 1 / Rm));
+    const escape  = wall ? Math.exp(-phi) : 1;
+    const fWall   = (1 - fTrap) * escape;
+    const fSheath = (1 - fTrap) - fWall;
+
+    const w = f => BW * f;
+    el.segTrap.setAttribute('width', w(fTrap));
+    el.segSheath.setAttribute('x', BX + w(fTrap));
+    el.segSheath.setAttribute('width', w(fSheath));
+    el.segWall.setAttribute('x', BX + w(fTrap + fSheath));
+    el.segWall.setAttribute('width', w(fWall));
+
+    const pct = f => (f * 100).toFixed(f < 0.1 ? 1 : 0) + '%';
+    el.nTrap.textContent   = pct(fTrap);
+    el.nSheath.textContent = wall ? pct(fSheath) : 'sheath off';
+    el.nWall.textContent   = pct(fWall);
+    el.keySheath.setAttribute('fill-opacity', wall ? 0.28 : 0.06);
+    el.keySheathT.setAttribute('fill', wall ? '#9a9a9a' : '#4a4a4a');
+
+    el.rline.textContent  = 'R = B(38 mm) / B(62 mm) ≈ ' + Rm.toFixed(2);
+    el.lcline.textContent = 'loss cone half-angle ≈ ' + thLC.toFixed(0) + '°';
+
+    el.oAngle.textContent = thLC.toFixed(0) + '°';
+    el.oOne.textContent   = trappedOne ? 'trapped' : 'lost';
+    el.oOne.style.color   = trappedOne ? '#51cf66' : '#ff8e8e';
+    el.oOneSub.textContent = trappedOne ? 'pitch angle outside the cone'
+                                        : 'pitch angle inside the cone';
+    el.oTrap.textContent  = pct(fTrap);
+    el.oWall.textContent  = pct(fWall);
+    el.oWallSub.textContent = wall ? 'after the sheath has had its turn'
+                                   : 'the mirror on its own, with no sheath';
+  }
+
+  [el.slTheta, el.slR, el.slPhi].forEach(s => s.addEventListener('input', draw));
+  el.btn.addEventListener('click', () => {
+    const on = el.btn.getAttribute('aria-pressed') === 'true';
+    el.btn.setAttribute('aria-pressed', on ? 'false' : 'true');
+    el.btn.textContent = on ? 'Sheath off' : 'Sheath on';
+    draw();
+  });
+  draw();
+})();
+</script>
 
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>

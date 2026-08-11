@@ -742,6 +742,106 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   line-height: 1.55;
   color: var(--text-muted);
 }
+
+/* ── Figure controls and readouts ────────────────────
+   Sliders, toggles and output cells for an inline figure.
+   Ported from the demo panel in specific_impulse_applet.html
+   (.sl-group / .sl-row / .out-cell) rather than redesigned, so
+   a control reads the same whichever page it turns up on. The
+   strip sits between the .fig-frame and the .fig-caption, so
+   the reading order is figure, then knobs, then numbers. */
+.fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 13px 26px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.sl-group {
+  flex: 1 1 250px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sl-label {
+  font-size: 15px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.sl-row { display: flex; align-items: center; gap: 9px; }
+.sl-row input[type=range] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--c-accent);
+}
+.sl-val {
+  flex: 0 0 92px;
+  padding: 3px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 16.5px;
+  text-align: center;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* Toggles carry the same chrome as .quiz-submit; pressed state
+   is the one place a figure control takes an accent color. */
+.fig-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.fig-toggle {
+  padding: 7px 15px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.fig-toggle:hover { background: #232323; border-color: #4a4a4a; }
+.fig-toggle[aria-pressed="true"] {
+  color: var(--text-heading);
+  border-color: #5a5a5a;
+  background: #242424;
+}
+.fig-toggle:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+.fig-out {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+.fig-out .out-cell {
+  flex: 1 1 0;
+  min-width: 155px;
+  padding: 9px 15px 10px;
+  background: var(--bg-out-cell);
+  border-right: 1px solid var(--border);
+}
+.fig-out .out-cell:last-child { border-right: none; }
+.out-label {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.out-val {
+  font-size: 23px;
+  font-weight: 600;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+.out-sub { font-size: 14.5px; color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -816,9 +916,17 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <!-- ════════════════════ 3D VIEWER ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Neutralization</div>
-  <iframe class="applet-frame" src="hall_thruster.html?mode=neu&amp;v=1"
+  <iframe class="applet-frame" src="hall_thruster.html?mode=neu&amp;v=2"
           title="Neutralization: one cathode feeding both the discharge and the beam"
           loading="lazy"></iframe>
+  <p class="fig-caption">
+    The thruster from the side, locked, with the <span class="hl-ion">beam</span> running to the right. The
+    <span class="key">cathode</span> outside the body feeds two streams at once: one downstream into the
+    <span class="hl-ion">beam</span>, one hooking back over the exit plane to sustain the discharge. The dashed
+    box out in the plume is a real sample volume, counting the <span class="hl-ion">ions</span> and
+    <span class="hl-electron">electrons</span> actually inside it. Cut the cathode and watch what the beam does
+    to the spacecraft it just left.
+  </p>
 </div>
 
 <!-- ════════════════════ CURRENT BOOKKEEPING ════════════════════ -->
@@ -830,29 +938,33 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <div class="theory-block">
   <div class="th-hdr">Where the Electrons Go</div>
   <p class="th-body">
-    <!-- TODO: the current balance, stated as an equation and then explained:
-           - the cathode emits a total electron current
-           - one part flows into the beam and neutralizes it, one part flows upstream into
-             the channel and is collected at the anode as the discharge current
-           - the discharge current is what the power supply actually reads
-           - in steady state the spacecraft draws no net current, which is the constraint
-             that fixes the split
-         Then say plainly which of these an operator sets and which one settles itself. -->
-    TODO: write the <span class="key">current balance</span>. The constraint that closes it is that the
-    spacecraft must draw no net current in steady state.
+    Every <span class="hl-ion">ion</span> that leaves takes one positive charge with it, so the same current has
+    to leave as <span class="hl-electron">electrons</span>: that is the beam-neutralizing share,
+    $I_b$. The rest of the cathode's emission streams back upstream into the channel and is collected at the
+    <span class="key">anode</span>, which is the current the discharge supply actually reads. The cathode's total
+    emission is the two together,
+    <!-- TODO: this states the balance and the constraint that closes it. Still to write:
+           - which of these an operator SETS (the discharge supply's current) and which settles
+             itself (the split, through the beam's own space charge)
+           - current utilization eta = I_b / I_d as a named efficiency, with a cited SPT-100
+             number, and a pointer to where it reappears on the acceleration page
+           - the cathode-off transient properly: the viewer draws the instant AFTER, with the
+             ions still leaving; in reality the discharge extinguishes a moment later -->
   </p>
-</div>
-
-<div class="theory-block applet-host">
-  <div class="th-hdr">Current Balance</div>
-  <div class="demo-placeholder">
-    <div class="demo-placeholder-tag">Interactive figure to build</div>
-    <div class="demo-placeholder-note">A ledger that splits the cathode's emitted electron current into the part that neutralizes the beam and the part that flows upstream to sustain the discharge, with a cathode-off toggle that breaks the balance and charges the spacecraft.</div>
+  <div class="eq-panel">
+    $$ I_c \;=\; I_b \;+\; I_{e,\text{back}} \;=\; I_d $$
+    <span class="eq-caption">Cathode emission equals the beam current plus the back-streaming current, and
+      that sum is the discharge current.</span>
   </div>
-  <div class="fig-caption">
-    TODO: build this figure. Port the spacecraft charge bar from the gridded-ion viewer
-    (updateChargeBar in gridded_ion.html) rather than designing a new one.
-  </div>
+  <p class="th-body" style="margin-top:14px">
+    The constraint that closes it is that the spacecraft draws <span class="key">no net current</span> in steady
+    state. Cut the cathode in the viewer above and the books stop closing: the
+    <span class="hl-ion">ions</span> keep leaving, nothing replaces the charge they carry away, and the
+    <span class="hl-electron">negative charge</span> left behind grows on the hull until it is pulling the beam
+    back. That is the same failure the
+    <a class="applet-link" href="../gridded_ion/GIE_Neutralization_applet.html">gridded engine</a> had, reached
+    by the same arithmetic.
+  </p>
 </div>
 
 <!-- ════════════════════ CATHODE COUPLING ════════════════════ -->

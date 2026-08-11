@@ -817,8 +817,10 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <!-- ════════════════════ EXEMPLARY THRUSTERS ════════════════════
      Two flown Hall thrusters, so the abstraction has hardware attached to it
      before the equations start. Same shape as the gridded-ion overview's list.
-     TODO: fill each .ex-specs from the operator's own published page, and add an
-     .ex-fig with a firing photo once one with a usable license is picked. -->
+     Both photos are NASA/JPL-Caltech, public domain. The SPT-100 entry carries an
+     SPT-140 photo because no open-license shot of the SPT-100 itself firing turned
+     up; the caption says so rather than letting the reader assume otherwise.
+     TODO: fill each .ex-specs from the operator's own published page. -->
 <div class="theory-block">
   <div class="th-hdr">Exemplary Hall Thrusters</div>
 
@@ -830,6 +832,18 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       <div class="ex-specs">
         OKB Fakel<span class="sep">|</span>100&nbsp;mm channel<span class="sep">|</span>TODO: power, thrust, <span class="hl-ve">I<sub>sp</sub></span>
       </div>
+      <figure class="ex-fig">
+        <img src="img/spt140_firing.jpg" loading="lazy"
+             alt="An SPT-140 Hall thruster firing head-on in a vacuum chamber. The annular
+                  discharge channel glows as a bright white-blue ring around a dark center pole,
+                  a broad blue plume streams toward the camera, and a small separate jet burns at
+                  the cathode mounted above the ring."/>
+        <figcaption>An <span class="key">SPT-140</span> firing at JPL. No open-license photo of the
+          SPT-100 itself was available, so this is its 4.5&nbsp;kW sibling from the same Fakel SPT
+          line, two of which fly on Psyche. The glowing ring is the annular
+          <span class="key">discharge channel</span>, and the small jet above it is the
+          <span class="hl-electron">cathode</span>. <span class="credit">NASA / JPL-Caltech</span></figcaption>
+      </figure>
     </li>
 
     <li class="ex-item">
@@ -839,6 +853,16 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       <div class="ex-specs">
         NASA Glenn &amp; JPL, magnetically shielded<span class="sep">|</span>TODO: power, thrust, <span class="hl-ve">I<sub>sp</sub></span>
       </div>
+      <figure class="ex-fig">
+        <img src="img/hermes_firing.jpg" loading="lazy"
+             alt="The HERMeS TDU-2 Hall thruster firing at 12.5 kilowatts. A thick white-blue ring
+                  of light marks the discharge channel, the center pole sits dark inside it, and the
+                  exhaust fades away to the left across the vacuum chamber."/>
+        <figcaption><span class="key">HERMeS</span> TDU-2 running at 600&nbsp;V and 12.5&nbsp;kW at
+          JPL. The bright ring is the <span class="key">discharge channel</span> seen end-on, and the
+          <span class="hl-ion">xenon ions</span> leaving it fade out to the left.
+          <span class="credit">NASA / JPL-Caltech</span></figcaption>
+      </figure>
     </li>
   </ul>
 </div>

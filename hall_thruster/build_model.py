@@ -42,7 +42,10 @@ COMPONENTS = [
     ("Discharge_Channel",     "Discharge Channel",        "channel",   "#eef0ea", "channel"),
     ("Anode_Gas_Distributor", "Anode",                    "anode",     "#3a3f48", "anode"),
     ("Propellant_Feed",       "Propellant Feed",          "structure", "#d5d8e4", "feed"),
-    ("Cathode_Neutralizer",   "Cathode-Neutralizer",      "cathode",   "#d8b62e", "cathode"),
+    # Labeled the way gridded_ion/build_model.py labels its equivalent part, so the two
+    # viewers name the same hardware the same way. The STEP part name keeps the old
+    # spelling - build_thruster.py and check_clearance.py key off it.
+    ("Cathode_Neutralizer",   "Neutralizer Cathode",      "cathode",   "#d8b62e", "cathode"),
     # Its own material and its own role, so the panel can name it: "structure" was
     # shared with the feed lines and carried their aluminum. The STEP part name is
     # left alone - check_clearance.py keys off it.

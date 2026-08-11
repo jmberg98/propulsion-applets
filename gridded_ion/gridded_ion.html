@@ -1317,7 +1317,18 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const FOV_SOLID       = 45;    // the 3-D view uses this perspective FOV; the section entry/exit
                                // MORPHS the projection matrix perspective⇄orthographic (see updateTween),
                                // so there is no near-parallel-FOV swap and thus no flatten "pop"
-const ANIM_SEC       = 0.9;
+// Section morph duration — the ONE timing knob for the 3-D⇄cross-section transition
+// (it drives both sTween constructors and the cancel-mid-entry fly-back, and nothing
+// else). Held in step with hall_thruster.html's ANIM_SEC so the two viewers open and
+// close their cutaways at the same pace: at 0.9 s the swing read as hurried, and the
+// slice at the end of it as a snap rather than a cut opening.
+const ANIM_SEC       = 1.4;
+// Fraction of the morph the CAMERA swing occupies, matching hall_thruster.html. It is
+// deliberately less than the whole: the swing takes the leading 58% on the way in and the
+// trailing 58% on the way out, leaving the remaining 42% for the cut to open (or heal)
+// with the view already dead head-on. See updateTween for why the two need separate
+// timebases, and applySectionBlend for how pCut is derived from this number.
+const CAM_WIN        = 0.58;
 const SECTION_MARGIN = 1.4;    // padding around the XY silhouette in the ortho section
                                // (extra breathing room so callout chips sit in the
                                // margins around the figure, not over the geometry)
@@ -1551,6 +1562,7 @@ let scene, camera, renderer, controls;
 let ambLight, hemiLight, keyLight, fillLight, rimLight;   // toggled flat in section
 let orthoCam;                  // orthographic camera for the axial section (parallel projection)
 let _mpCam = null, _moCam = null;   // scratch cameras used to blend a persp↔ortho projection during the section morph
+const _sTgt = new THREE.Vector3();  // scratch: the section morph's easing orbit target (un-pan / re-center)
 let clipPlane;                 // section plane (world z = cutOffset, keeps z<offset)
 let cutOffset = 0;
 let modelHalfZ = 1;            // half the model's Z depth — the cut sweeps in from here (no cut) to 0
@@ -4234,6 +4246,13 @@ function setSectionMode(on){
     beginSectionEntry();
   } else {
     const wasOrtho = orthoActive;       // false if still mid-swing into the section
+    // Where the section is actually SITTING when the button is pressed — the user may have
+    // panned and scroll-zoomed it, and a focused stage frames it off-center to begin with.
+    // Both have to be read BEFORE controls.target is reset, and both are then WALKED back to
+    // the default 3-D framing by the morph rather than snapped, or a panned/zoomed section
+    // jumps to full-frame centered on the first frame out.
+    const tgt0  = controls.target.clone();
+    const zoom0 = orthoCam.zoom || 1;
     orthoActive = false;
     oTween = null; fTween = null; sTween = null;
     showAnnotations(false);
@@ -4241,7 +4260,6 @@ function setSectionMode(on){
     controls.enableRotate = true;
     controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
     controls.touches.ONE = THREE.TOUCH.ROTATE;
-    controls.target.set(0, 0, 0);
     setHint('Drag to orbit · scroll to zoom · right-drag to pan');
 
     // Fully drop the section look (clip off, caps hidden, 3-D shading, plume back) —
@@ -4269,7 +4287,10 @@ function setSectionMode(on){
       // Exact reverse of the entry: start seamlessly from the ortho view (b=1, p=1)
       // and continuously un-blend the projection (→perspective) AND the section look
       // (→solid, cut healing back to the front) while orbiting out to the 3-D pose.
-      frameHalf = orthoCam.top;
+      // Effective ortho half-height is top/zoom, NOT top: scroll-zoom scales the frustum
+      // through `zoom`, so reading `top` alone hands the morph the DEFAULT framing and the
+      // first frame pops back out to it.
+      frameHalf = orthoCam.top / zoom0;
       camera.up.set(0, 1, 0);
       controls.enabled = false;
       sTween = {
@@ -4282,6 +4303,8 @@ function setSectionMode(on){
         d1: distSolid,
         b0: 1, b1: 0,                              // orthographic → perspective
         p0: 1, p1: 0,                              // cross-section → solid (cut heals, lighting restores)
+        tgt0, tgt1: new THREE.Vector3(0, 0, 0),    // un-pan back to centered
+        camWin: [1 - CAM_WIN, 1],                  // heal the cut face-on FIRST, then rotate out
         onDone: finishSolid,
       };
     } else {
@@ -4363,10 +4386,27 @@ function applySectionBlend(p){
   // no cut-sweep timing removes it. Gating the whole cut to the last (1-pCut) of the morph means the
   // interior is revealed only when the near wall is edge-on (invisible): the body simply rotates solid,
   // then slices open face-on. Reverse runs p 1→0, so it heals face-on first, then rotates out solid.
-  const pCut = 0.96;                                  // hold solid until the camera is ~fully face-on,
-  const s  = Math.max(0, (p - pCut) / (1 - pCut));   // then open in the last ~4% (near-instant snap) so
-  const se = s * s * (3 - 2 * s);                     // the near wall is EDGE-ON as the cut opens — no bowl.
-  cutOffset = modelHalfZ * (1 - se);                 // solid until face-on, then snaps open
+  // The camera gets its OWN, EARLIER window (see CAM_WIN / updateTween) so "the last (1-pCut)" is a
+  // real stretch of time rather than the few frames left over after a full-length swing.
+  //
+  // pCut is set from CAM_WIN, not by eye. The camera swing is finished at morph time
+  // t = CAM_WIN = 0.58, and p runs smoothstep(t), so by then p has reached
+  // smoothstep(0.58) = 0.629. Anything past that opens the cut with the view ALREADY
+  // dead head-on, i.e. with zero bowl by construction. 0.64 takes that with a little
+  // margin and still hands the slice the last ~31% of the morph (~0.43 s at ANIM_SEC
+  // 1.4). It used to be 0.96 on a SHARED timebase, which was the same no-bowl guarantee
+  // bought the crude way: the cut was crammed into the final ~4% (~0.06 s) and read as a
+  // snap rather than as a cut opening. Lowering pCut alone does not work and was tried in
+  // hall_thruster.html — without the camera getting its own earlier window the slice just
+  // starts while there is still angle on the plane, and the bowl comes back.
+  //
+  // The sweep stays a SMOOTHSTEP rather than an ease-out: slow at the start, so the first
+  // millimeters of cut (the ones that graze the outer shell, where any residual angle
+  // hurts most) are taken gently, and the bulk of the travel happens dead-on.
+  const pCut = 0.64;
+  const s  = Math.max(0, (p - pCut) / (1 - pCut));
+  const se = smoothstep(s);
+  cutOffset = modelHalfZ * (1 - se);                 // solid until face-on, then slices open
   positionCapPlanes();
   for (const c of comps){
     const m = c.mesh.material;
@@ -4378,8 +4418,8 @@ function applySectionBlend(p){
     // emissive cap flashed it white across the still-solid body AND the cathode/injector (glaring
     // edge-on; the default ¾ pose hid it). Keeping the cap LIT (emissive≈0, body color) at low p lets
     // that brief cut-face read as the same surface slab it replaces instead of a stripe; paired with
-    // the decelerating (1-p)² sweep above (which blows through the solid outer shell fast) the swap
-    // shows no band. p=1 is byte-identical to the old flat-emissive cap, so the settled section is
+    // the smoothstepped sweep above (which takes the first grazing millimeters of the outer shell
+    // gently) the swap shows no band. p=1 is byte-identical to the flat-emissive cap, so the settled section is
     // unchanged. (color/emissive/intensity/metalness/roughness are plain uniforms — safe per-frame.)
     const cm = c.cap.material;
     _capC.set(c.role === 'magnet' ? 0x101318 : c.color);   // Method 3: magnets get a darker, emphasized cap fill
@@ -4426,17 +4466,22 @@ function slerpDir(a, b, t){
    settleOrtho() swaps to the true ortho camera at the end (seamless: same framing,
    already near-parallel). */
 function beginSectionEntry(){
+  // Where the 3-D view is actually SITTING: right-drag pans the perspective camera, so the
+  // orbit target is not necessarily the origin. Read it BEFORE frameOrtho (which resets the
+  // target, but only for the ortho camera) and ease it back to center over the morph, or a
+  // panned 3-D view snaps to centered on the morph's first frame.
+  const tgt0 = controls.target.clone();
   frameOrtho();                                   // size the ortho frustum for the current aspect
   frameHalf = orthoCam.top;                        // half-height the section frames to
   tween = fTween = oTween = null;
-  const startDist = camera.position.length();
+  const startDist = camera.position.distanceTo(tgt0);
   // ONE continuous morph: rotate to head-on while the PROJECTION blends from
   // perspective (b=0) to orthographic (b=1). The camera stays at a sane distance
   // (no FOV-to-zero fly-out that wrecks depth precision), and because the projection
   // is interpolated rather than swapped, the parallel view arrives with no pop.
   sTween = {
     t: 0, dur: ANIM_SEC,
-    dir0: camera.position.clone().normalize(),
+    dir0: camera.position.clone().sub(tgt0).normalize(),
     dir1: new THREE.Vector3(0, 0, 1),
     // framing half-height at the z=0 plane: start = what the 3-D camera currently
     // frames (so frame 0 doesn't jump), end = the section silhouette half-height.
@@ -4447,6 +4492,11 @@ function beginSectionEntry(){
     b0: 0, b1: 1,                                  // perspective → orthographic
     // section look: p from wherever the cut currently is (0 for a fresh entry) → 1
     p0: 1 - cutOffset / modelHalfZ, p1: 1,
+    // Ease the orbit target onto whatever center the settled section will use. frameOrtho
+    // has just parked orthoCam at the viewFocus center (the origin when there is no focus),
+    // so reading it here lands the morph exactly where settleOrtho takes over.
+    tgt0, tgt1: new THREE.Vector3(orthoCam.position.x, orthoCam.position.y, 0),
+    camWin: [0, CAM_WIN],                          // rotate to head-on FIRST, then slice open
     onDone: settleOrtho,
   };
   controls.enabled = false;
@@ -5260,12 +5310,31 @@ function updateTween(dt){
     // stays at a sane distance d and near/far are tightened to bracket the model, so
     // depth precision holds and nothing (e.g. the magnet rings) z-fights through walls.
     sTween.t += dt / sTween.dur;
-    const s   = smoothstep(Math.min(sTween.t, 1));
+    const t = Math.min(sTween.t, 1);
+    // TWO timebases, and the split is what keeps the morph both smooth AND clean.
+    //
+    //   s  — the section LOOK (cut sweep, cap fill, lighting). Runs the full morph.
+    //   sc — the CAMERA (pose, framing, projection blend). Runs only over camWin.
+    //
+    // They used to be the same value, and that is what forced the reveal to be a snap. The
+    // near half of the discharge chamber reads as a big pale curved "bowl" whenever the
+    // camera has ANY angle on the cut plane, so the cut could only be allowed to open once
+    // the swing was essentially finished — which, on one shared timebase, meant cramming
+    // the entire slice into the last 4% of the morph (pCut was 0.96). Giving the camera its
+    // own EARLIER window (entry: the first ~58%; exit: the last ~58%) lets the swing finish
+    // dead head-on while there is still a third of the morph left, and the cut then opens at
+    // zero angle over that whole third — visible for ~0.43 s instead of ~0.06 s, with the
+    // bowl still gone by construction. Reverse runs the windows mirrored, so the cut heals
+    // face-on FIRST and only then does the body rotate back out. Same split, same numbers as
+    // hall_thruster.html, so the two viewers open and close their cutaways identically.
+    const s   = smoothstep(t);
+    const cw  = sTween.camWin || [0, 1];
+    const sc  = smoothstep(Math.min(1, Math.max(0, (t - cw[0]) / (cw[1] - cw[0]))));
     const asp = viewAspect();
-    const H   = sTween.H0 + (sTween.H1 - sTween.H0) * s;
-    const d   = sTween.d0 + (sTween.d1 - sTween.d0) * s;
-    // flatness progress f (0 = perspective, 1 = orthographic), linear across the morph
-    const f   = sTween.b0 + (sTween.b1 - sTween.b0) * s;
+    const H   = sTween.H0 + (sTween.H1 - sTween.H0) * sc;
+    const d   = sTween.d0 + (sTween.d1 - sTween.d0) * sc;
+    // flatness progress f (0 = perspective, 1 = orthographic), linear across the camera window
+    const f   = sTween.b0 + (sTween.b1 - sTween.b0) * sc;
     // Remap f → the projection-matrix blend weight b. A LINEAR matrix blend flattens
     // abruptly: because the stand-off d (≈730) ≫ the model depth (≈250), the on-screen
     // foreshortening ∝ (1−b)/((1−b)d + b) stays at nearly full perspective until b≈0.998
@@ -5294,17 +5363,22 @@ function updateTween(dt){
     for (let i = 0; i < 16; i++) ce[i] = pe[i] * (1 - b) + oe[i] * b;
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
 
-    // section look (cut sweep + lighting + materials) eases in lock-step with the camera
+    // section look (cut sweep + lighting + materials) — the FULL-morph timebase, so the
+    // slice keeps running after the camera window has closed
     if (sTween.p0 !== undefined){
       applySectionBlend(sTween.p0 + (sTween.p1 - sTween.p0) * s);
     }
 
-    // pose: sit at distance d along the slerped direction, looking at the origin
+    // Pose: sit a distance d along the slerped direction FROM THE ORBIT TARGET, which is
+    // itself easing between tgt0 and tgt1 (see the sTween constructors) so a panned or
+    // stage-focused start un-pans smoothly instead of snapping on frame one.
     // (controls.update(), run after this in animate, applies the lookAt)
-    const dir = slerpDir(sTween.dir0, sTween.dir1, s);
+    const dir = slerpDir(sTween.dir0, sTween.dir1, sc);
     camera.up.set(0, 1, 0);
-    camera.position.copy(dir.multiplyScalar(d));
-    controls.target.set(0, 0, 0);
+    if (sTween.tgt0) _sTgt.lerpVectors(sTween.tgt0, sTween.tgt1, sc);
+    else             _sTgt.set(0, 0, 0);
+    camera.position.copy(dir.multiplyScalar(d)).add(_sTgt);
+    controls.target.copy(_sTgt);
 
     if (sTween.t >= 1){
       const done = sTween.onDone;

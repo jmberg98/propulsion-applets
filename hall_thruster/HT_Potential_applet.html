@@ -742,6 +742,106 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   line-height: 1.55;
   color: var(--text-muted);
 }
+
+/* ── Figure controls and readouts ────────────────────
+   Sliders, toggles and output cells for an inline figure.
+   Ported from the demo panel in specific_impulse_applet.html
+   (.sl-group / .sl-row / .out-cell) rather than redesigned, so
+   a control reads the same whichever page it turns up on. The
+   strip sits between the .fig-frame and the .fig-caption, so
+   the reading order is figure, then knobs, then numbers. */
+.fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 13px 26px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.sl-group {
+  flex: 1 1 250px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sl-label {
+  font-size: 15px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.sl-row { display: flex; align-items: center; gap: 9px; }
+.sl-row input[type=range] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--c-accent);
+}
+.sl-val {
+  flex: 0 0 92px;
+  padding: 3px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 16.5px;
+  text-align: center;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* Toggles carry the same chrome as .quiz-submit; pressed state
+   is the one place a figure control takes an accent color. */
+.fig-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.fig-toggle {
+  padding: 7px 15px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.fig-toggle:hover { background: #232323; border-color: #4a4a4a; }
+.fig-toggle[aria-pressed="true"] {
+  color: var(--text-heading);
+  border-color: #5a5a5a;
+  background: #242424;
+}
+.fig-toggle:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+.fig-out {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+.fig-out .out-cell {
+  flex: 1 1 0;
+  min-width: 155px;
+  padding: 9px 15px 10px;
+  background: var(--bg-out-cell);
+  border-right: 1px solid var(--border);
+}
+.fig-out .out-cell:last-child { border-right: none; }
+.out-label {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.out-val {
+  font-size: 23px;
+  font-weight: 600;
+  color: var(--text-heading);
+  font-variant-numeric: tabular-nums;
+}
+.out-sub { font-size: 14.5px; color: var(--text-muted); }
 </style>
 </head>
 <body>
@@ -811,13 +911,182 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <div class="theory-block applet-host">
   <div class="th-hdr">Move the Field, Move the Fall</div>
-  <div class="demo-placeholder">
-    <div class="demo-placeholder-tag">Interactive figure to build</div>
-    <div class="demo-placeholder-note">The radial field profile B(z) along the channel with a draggable peak, and the axial potential and acceleration region plotted underneath. Drag the peak upstream and the whole acceleration region follows it. This is the page's thesis made draggable.</div>
+  <div class="fig-frame">
+    <svg id="mf-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="Barlow, sans-serif"
+         aria-label="Two stacked plots against distance along the channel. The upper one is the radial
+                     magnetic field, a peak whose position can be dragged. The lower one is the axial
+                     potential falling from the discharge voltage at the anode to zero downstream, together
+                     with the axial electric field. A shaded band marks the acceleration region, and it
+                     tracks the magnetic peak wherever the peak is dragged.">
+
+      <rect width="900" height="560" fill="#0e0e0e"/>
+
+      <!-- Acceleration band, drawn first so both plots sit on top of it.
+           One band spanning both panels is the whole argument of the figure:
+           the region under the B peak is the region the potential falls in. -->
+      <rect id="mf-band" x="0" y="40" width="0" height="450" fill="#F5C518" fill-opacity="0.06"/>
+      <line id="mf-band-a" y1="40" y2="490" stroke="#F5C518" stroke-opacity="0.35" stroke-width="1"
+            stroke-dasharray="5 4"/>
+      <line id="mf-band-b" y1="40" y2="490" stroke="#F5C518" stroke-opacity="0.35" stroke-width="1"
+            stroke-dasharray="5 4"/>
+
+      <!-- Exit plane: hardware, so grey, and drawn through both panels. -->
+      <line x1="600" y1="40" x2="600" y2="490" stroke="#5a5a5a" stroke-width="1.3"
+            stroke-dasharray="6 5"/>
+      <text x="606" y="54" fill="#8a8a8a" font-size="14">exit plane</text>
+      <text x="88" y="54" fill="#8a8a8a" font-size="14">anode</text>
+
+      <!-- ══ Upper panel: radial magnetic field ══ -->
+      <path id="mf-bfill" fill="#00DDB5" fill-opacity="0.09" d=""/>
+      <path id="mf-bline" fill="none" stroke="#00DDB5" stroke-width="2.4" stroke-linejoin="round" d=""/>
+      <circle id="mf-handle" r="7" fill="#00DDB5" stroke="#0e0e0e" stroke-width="2" cy="50"/>
+      <text id="mf-handle-lbl" fill="#00DDB5" font-size="14.5" text-anchor="middle"></text>
+
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80" y1="200" x2="860" y2="200"/>
+        <line x1="80" y1="200" x2="80" y2="50"/>
+      </g>
+      <text transform="rotate(-90 30 125)" x="30" y="125" fill="#9a9a9a" font-size="16"
+            text-anchor="middle">radial field <tspan font-family="KaTeX_Math, serif"
+            font-style="italic">B</tspan>&#8202;<tspan font-size="12" dy="4">r</tspan><tspan dy="-4">
+            (G)</tspan></text>
+      <g fill="#7a7a7a" font-size="14" text-anchor="end">
+        <text x="72" y="205">0</text>
+        <text x="72" y="130">125</text>
+        <text x="72" y="55">250</text>
+      </g>
+      <text x="854" y="72" fill="#00DDB5" font-size="16.5" font-weight="600" text-anchor="end">radial
+        magnetic field</text>
+      <text x="854" y="92" fill="#5f8f85" font-size="13.5" text-anchor="end">drag the peak</text>
+
+      <!-- Drag surface for the peak. Kept above the curve so the whole panel is
+           grabbable, not just the marker. -->
+      <rect id="mf-hit" x="80" y="50" width="780" height="150" fill="transparent"
+            style="cursor:ew-resize"/>
+
+      <!-- ══ Lower panel: potential and axial field ══ -->
+      <path id="mf-efill" fill="#F5C518" fill-opacity="0.15" d=""/>
+      <path id="mf-phi"   fill="none" stroke="#F5C518" stroke-width="2.6" stroke-linejoin="round" d=""/>
+
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80" y1="490" x2="860" y2="490"/>
+        <line x1="80" y1="490" x2="80" y2="300"/>
+      </g>
+      <text transform="rotate(-90 30 395)" x="30" y="395" fill="#9a9a9a" font-size="16"
+            text-anchor="middle">potential <tspan font-family="KaTeX_Math, serif"
+            font-style="italic">&#966;</tspan>&#160;&#160;(V)</text>
+      <g fill="#7a7a7a" font-size="14" text-anchor="end">
+        <text x="72" y="495">0</text>
+        <text id="mf-phi-mid" x="72" y="400">150</text>
+        <text id="mf-phi-top" x="72" y="305">300</text>
+      </g>
+      <text x="854" y="322" fill="#F5C518" font-size="16.5" font-weight="600" text-anchor="end">potential
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">&#966;</tspan>(<tspan
+        font-family="KaTeX_Math, serif" font-style="italic">z</tspan>)</text>
+      <text x="854" y="342" fill="#8f8258" font-size="13.5" text-anchor="end">shaded: axial field
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">E</tspan><tspan font-size="11"
+        dy="3">z</tspan></text>
+
+      <!-- x axis, shared, labeled once under the lower panel -->
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80"  y1="490" x2="80"  y2="496"/>
+        <line x1="210" y1="490" x2="210" y2="496"/>
+        <line x1="340" y1="490" x2="340" y2="496"/>
+        <line x1="470" y1="490" x2="470" y2="496"/>
+        <line x1="600" y1="490" x2="600" y2="496"/>
+        <line x1="730" y1="490" x2="730" y2="496"/>
+        <line x1="860" y1="490" x2="860" y2="496"/>
+      </g>
+      <g fill="#7a7a7a" font-size="14.5" text-anchor="middle">
+        <text x="80"  y="514">0</text>
+        <text x="210" y="514">5</text>
+        <text x="340" y="514">10</text>
+        <text x="470" y="514">15</text>
+        <text x="600" y="514">20</text>
+        <text x="730" y="514">25</text>
+        <text x="860" y="514">30</text>
+      </g>
+      <text x="470" y="542" fill="#9a9a9a" font-size="17" text-anchor="middle">distance from the anode
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">z</tspan>&#160;&#160;(mm)</text>
+    </svg>
   </div>
-  <div class="fig-caption">
-    TODO: build this figure. It is the one interactive on this page that cannot be substituted by prose.
+
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Field peak position</div>
+      <div class="sl-row">
+        <input type="range" id="mf-zpk" min="2" max="28" step="0.5" value="18"
+               aria-label="Position of the magnetic field peak, in millimeters from the anode">
+        <span class="sl-val" id="mf-zpk-val">18.0 mm</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Peak field</div>
+      <div class="sl-row">
+        <input type="range" id="mf-bmax" min="50" max="250" step="5" value="150"
+               aria-label="Peak radial magnetic field in gauss">
+        <span class="sl-val" id="mf-bmax-val">150 G</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Peak width</div>
+      <div class="sl-row">
+        <input type="range" id="mf-sig" min="2" max="9" step="0.25" value="5"
+               aria-label="Width of the magnetic field peak in millimeters">
+        <span class="sl-val" id="mf-sig-val">5.00 mm</span>
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Discharge voltage</div>
+      <div class="sl-row">
+        <input type="range" id="mf-vd" min="150" max="600" step="10" value="300"
+               aria-label="Discharge voltage in volts">
+        <span class="sl-val" id="mf-vd-val">300 V</span>
+      </div>
+    </div>
   </div>
+
+  <div class="fig-out">
+    <div class="out-cell">
+      <div class="out-label">Acceleration region</div>
+      <div class="out-val" id="mf-o-band" style="color:#F5C518">0</div>
+      <div class="out-sub">mm from the anode, middle 80% of the fall</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Region length</div>
+      <div class="out-val" id="mf-o-len" style="color:#F5C518">0</div>
+      <div class="out-sub">mm, against a 20 mm channel</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Peak axial field</div>
+      <div class="out-val" id="mf-o-emax" style="color:#F5C518">0</div>
+      <div class="out-sub">V/mm at the top of the fall</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Fall inside the channel</div>
+      <div class="out-val" id="mf-o-inside">0</div>
+      <div class="out-sub" id="mf-o-inside-sub">% of the drop upstream of the exit</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    Drag the peak and the whole acceleration region goes with it. The link between the two panels is the one
+    assumption this figure makes: <span class="hl-electron">electrons</span> cross the field with a mobility that
+    falls as $1/B^2$, so holding their current fixed puts the axial field where crossing is hardest,
+    $E_z \propto B_r^2$, and $\varphi$ is that field integrated back from the exit. Pull the peak upstream and
+    more of the fall happens inside the channel, where the <span class="hl-ion">ions</span> it produces are
+    still close enough to the walls to hit them. Push it downstream and the beam is born outside the channel,
+    more divergent and less well confined. Where designers actually put it, just inside the exit plane, is the
+    settlement between those two.
+    <!-- TODO (skeleton): the 1/B^2 mobility is CLASSICAL, and this page's own sibling admits
+         that measured cross-field transport is anomalous and much faster. The shape here is
+         therefore qualitatively right and quantitatively soft. Either state that inside the
+         figure or fit the profile to a published axial potential measurement (Haas and
+         Gallimore's emissive-probe maps of the SPT-100 are the standard reference) and cite
+         it. Also: the Gaussian B(z) is a stand-in. The real profile comes from the magnetic
+         circuit in build_thruster.py and could be computed from it. -->
+  </p>
 </div>
 
 <!-- ════════════════════ 3D VIEWER ════════════════════ -->
@@ -854,14 +1123,137 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <div class="theory-block applet-host">
   <div class="th-hdr">Circuit Diagram</div>
-  <div class="demo-placeholder">
-    <div class="demo-placeholder-tag">Interactive figure to build</div>
-    <div class="demo-placeholder-note">The whole-device schematic on a clean field, every node kept at its true position in the thruster so the circuit registers against the cross-section.</div>
+  <div class="fig-frame">
+    <svg id="ck-svg" viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="Barlow, sans-serif"
+         aria-label="Schematic of the thruster's four power supplies. The discharge supply runs between the
+                     anode at the base of the channel and the cathode, and its circuit closes through the
+                     plasma. The keeper supply and the cathode heater both reference the cathode. The magnet
+                     coil supply drives the inner and outer coils in series and touches neither the anode nor
+                     the cathode, so no discharge current passes through it.">
+
+      <rect width="900" height="520" fill="#0e0e0e"/>
+
+      <!-- ══ Hardware, drawn schematically. The registered cross-section is the
+           3-D viewer's job; here the geometry only has to place the nodes. ══ -->
+      <rect x="120" y="150" width="230" height="90" fill="#0b0b0b" stroke="#3a3a3a" stroke-width="1.4"/>
+      <rect x="122" y="151" width="11" height="88" fill="#4a4a4a"/>
+      <text x="140" y="143" fill="#9a9a9a" font-size="14.5">anode</text>
+      <text x="245" y="200" fill="#6a6a6a" font-size="14" text-anchor="middle">discharge channel</text>
+      <line x1="350" y1="140" x2="350" y2="250" stroke="#5a5a5a" stroke-width="1.2" stroke-dasharray="6 5"/>
+      <text x="356" y="264" fill="#7a7a7a" font-size="13.5">exit plane</text>
+
+      <rect x="160" y="100" width="100" height="26" fill="#161616" stroke="#4a4a4a" stroke-width="1.3"/>
+      <text x="210" y="93" fill="#00DDB5" font-size="14" text-anchor="middle">outer coil</text>
+      <rect x="160" y="264" width="100" height="26" fill="#161616" stroke="#4a4a4a" stroke-width="1.3"/>
+      <text x="210" y="306" fill="#00DDB5" font-size="14" text-anchor="middle">inner coil</text>
+
+      <rect x="560" y="60" width="120" height="90" rx="4" fill="none" stroke="#4a4a4a" stroke-width="1.3"
+            stroke-dasharray="5 4"/>
+      <text x="620" y="52" fill="#9a9a9a" font-size="14.5" text-anchor="middle">cathode assembly</text>
+      <rect x="585" y="82" width="70" height="38" fill="#1a1a1a" stroke="#5a5a5a" stroke-width="1.3"/>
+      <text x="620" y="106" fill="#9a9a9a" font-size="14" text-anchor="middle">emitter</text>
+      <text x="694" y="76" fill="#7a7a7a" font-size="13">keeper</text>
+
+      <!-- ══ Cathode common. Everything that references zero volts hangs off this. ══ -->
+      <g id="ck-g-common">
+        <path d="M 680 105 L 720 105 L 720 450 M 60 450 L 800 450" fill="none" stroke="#6a6a6a"
+              stroke-width="1.6"/>
+        <circle cx="720" cy="450" r="3.5" fill="#6a6a6a"/>
+        <text x="400" y="472" fill="#7a7a7a" font-size="14" text-anchor="middle">cathode common,
+          0 V reference</text>
+      </g>
+
+      <!-- ══ Discharge supply: anode to cathode, closing through the plasma ══ -->
+      <g id="ck-g-discharge">
+        <path d="M 127 240 L 127 330 L 60 330 L 60 372 M 60 388 L 60 450" fill="none" stroke="#F5C518"
+              stroke-width="1.8"/>
+        <line x1="44" y1="372" x2="76" y2="372" stroke="#F5C518" stroke-width="2.6"/>
+        <line x1="51" y1="388" x2="69" y2="388" stroke="#F5C518" stroke-width="2.6"/>
+        <text x="86" y="374" fill="#F5C518" font-size="15.5" font-weight="600">discharge supply</text>
+        <text x="86" y="394" fill="#8f8258" font-size="13.5">300 V, and every volt the ions fall through</text>
+        <circle cx="60" cy="450" r="3.5" fill="#F5C518"/>
+        <!-- The half of the loop that is not wire: cathode electrons streaming back
+             through the plasma to the anode. Without this the supply has no circuit. -->
+        <path d="M 560 140 C 500 152 430 172 364 190" fill="none" stroke="#ffe94d" stroke-width="1.6"
+              stroke-dasharray="6 5" stroke-opacity="0.85"/>
+        <text x="490" y="214" fill="#8f8a6e" font-size="13.5" text-anchor="middle">electrons back
+          through the plasma</text>
+        <text x="137" y="168" fill="#F5C518" font-size="14" font-weight="600">+300 V</text>
+      </g>
+
+      <!-- ══ Keeper: holds the cathode discharge alive ══ -->
+      <g id="ck-g-keeper">
+        <path d="M 620 60 L 620 30 L 800 30 L 800 232 M 800 248 L 800 450" fill="none" stroke="#6a6a6a"
+              stroke-width="1.8"/>
+        <line x1="784" y1="232" x2="816" y2="232" stroke="#a0a0a0" stroke-width="2.6"/>
+        <line x1="791" y1="248" x2="809" y2="248" stroke="#a0a0a0" stroke-width="2.6"/>
+        <text x="774" y="222" fill="#c0c0c0" font-size="15.5" font-weight="600" text-anchor="end">keeper
+          supply</text>
+        <text x="774" y="242" fill="#8a8a8a" font-size="13.5" text-anchor="end">tens of volts, keeps the
+          cathode lit</text>
+        <circle cx="800" cy="450" r="3.5" fill="#6a6a6a"/>
+      </g>
+
+      <!-- ══ Heater: startup only ══ -->
+      <g id="ck-g-heater">
+        <path d="M 600 150 L 600 300 L 612 300 M 628 300 L 640 300 L 640 150" fill="none" stroke="#6a6a6a"
+              stroke-width="1.8"/>
+        <line x1="612" y1="290" x2="612" y2="310" stroke="#a0a0a0" stroke-width="2.6"/>
+        <line x1="628" y1="294" x2="628" y2="306" stroke="#a0a0a0" stroke-width="2.6"/>
+        <text x="620" y="332" fill="#c0c0c0" font-size="15.5" font-weight="600"
+              text-anchor="middle">cathode heater</text>
+        <text x="620" y="351" fill="#8a8a8a" font-size="13.5" text-anchor="middle">on to start, off once the
+          cathode runs</text>
+      </g>
+
+      <!-- ══ Magnet coils: the supply that sets where the potential falls ══ -->
+      <g id="ck-g-magnet">
+        <path d="M 260 113 L 390 113 L 390 400 L 349 400" fill="none" stroke="#00DDB5" stroke-width="1.8"/>
+        <path d="M 260 277 L 300 277 L 300 400 L 337 400" fill="none" stroke="#00DDB5" stroke-width="1.8"/>
+        <path d="M 160 113 L 95 113 L 95 277 L 160 277" fill="none" stroke="#00DDB5" stroke-width="1.8"/>
+        <line x1="337" y1="390" x2="337" y2="410" stroke="#00DDB5" stroke-width="2.6"/>
+        <line x1="349" y1="394" x2="349" y2="406" stroke="#00DDB5" stroke-width="2.6"/>
+        <text x="372" y="380" fill="#00DDB5" font-size="15.5" font-weight="600">magnet coil supply</text>
+        <text x="372" y="400" fill="#5f8f85" font-size="13.5">a few amperes, coils in series</text>
+        <text x="372" y="419" fill="#5f8f85" font-size="13.5">it sets B, and B sets where &#966; falls</text>
+      </g>
+
+      <!-- Running note, rewritten by the buttons below -->
+      <text id="ck-note" x="450" y="504" fill="#9a9a9a" font-size="16" text-anchor="middle"></text>
+    </svg>
   </div>
-  <div class="fig-caption">
-    TODO: build this figure. Port the circuit overlay from the gridded-ion viewer, which already lays its
-    schematic out in model space and projects it through the section camera.
+
+  <div class="fig-controls">
+    <div class="sl-group" style="flex:1 1 100%">
+      <div class="sl-label">Trace one loop</div>
+      <div class="fig-toggles" id="ck-btns">
+        <button type="button" class="fig-toggle" data-loop="all" aria-pressed="true">All</button>
+        <button type="button" class="fig-toggle" data-loop="discharge" aria-pressed="false">Discharge</button>
+        <button type="button" class="fig-toggle" data-loop="keeper" aria-pressed="false">Keeper</button>
+        <button type="button" class="fig-toggle" data-loop="heater" aria-pressed="false">Heater</button>
+        <button type="button" class="fig-toggle" data-loop="magnet" aria-pressed="false">Magnets</button>
+      </div>
+    </div>
   </div>
+
+  <p class="fig-caption">
+    Four supplies, and only one of them is in the <span class="hl-ion">ion's</span> path. The
+    <span class="key">discharge supply</span> does all of the accelerating work, and notice that half of its
+    loop is not wire at all: the return leg is <span class="hl-electron">electrons</span> streaming back through
+    the plasma from the <span class="key">cathode</span>. The <span class="key">keeper</span> and the
+    <span class="key">heater</span> only keep the cathode itself running. The
+    <span class="key">magnet supply</span> touches neither electrode, carries none of the discharge current,
+    and is still the one that decides where the <span class="hl-phi">potential</span> falls, because it sets
+    <span class="hl-B">B</span>. That is the loop this page has been closing.
+    <!-- TODO (skeleton): three things left. (1) Port the gridded-ion viewer's overlay
+         instead of this stand-alone schematic, so every node sits at its true position in
+         model space and projects through the section camera (CIRC / clbl in
+         gridded_ion.html). Until then the geometry here is only suggestive. (2) Put current
+         arrows on each loop, with the discharge loop's split into beam and back-streaming
+         legs matching the ledger on the neutralization page. (3) Real numbers per supply,
+         with citations, rather than the round figures printed now. -->
+  </p>
 </div>
 
 <!-- ════════════════════ WHY THE BEAM FALLS SHORT ════════════════════ -->
@@ -907,6 +1299,194 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <div class="foot-title">Propulsion Applets 2026</div>
   <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
 </footer>
+
+<!-- ════════════════════ FIGURE: MOVE THE FIELD, MOVE THE FALL ════════════════════
+     Skeleton. E_z proportional to B_r squared is the classical-mobility closure and
+     is the only physics in here; everything else is arithmetic on it. -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('mf-svg');
+  if (!svg) return;
+
+  const $ = id => document.getElementById(id);
+  const el = {
+    band: $('mf-band'), bandA: $('mf-band-a'), bandB: $('mf-band-b'),
+    bfill: $('mf-bfill'), bline: $('mf-bline'),
+    handle: $('mf-handle'), handleLbl: $('mf-handle-lbl'), hit: $('mf-hit'),
+    efill: $('mf-efill'), phi: $('mf-phi'),
+    phiMid: $('mf-phi-mid'), phiTop: $('mf-phi-top'),
+    zpk: $('mf-zpk'), bmax: $('mf-bmax'), sig: $('mf-sig'), vd: $('mf-vd'),
+    zpkVal: $('mf-zpk-val'), bmaxVal: $('mf-bmax-val'), sigVal: $('mf-sig-val'), vdVal: $('mf-vd-val'),
+    oBand: $('mf-o-band'), oLen: $('mf-o-len'), oEmax: $('mf-o-emax'),
+    oInside: $('mf-o-inside'), oInsideSub: $('mf-o-inside-sub')
+  };
+
+  const Z_MAX = 30;          // mm of channel plus near plume that the axis covers
+  const Z_EXIT = 20;         // mm, exit plane
+  const X0 = 80, X1 = 860;
+  const B_TOP = 250;         // G, full scale of the upper panel
+  const BY0 = 50, BY1 = 200; // upper panel, top and baseline
+  const PY0 = 300, PY1 = 490;
+  const N = 600;
+
+  const xOf = z => X0 + z / Z_MAX * (X1 - X0);
+  const zOf = x => (x - X0) / (X1 - X0) * Z_MAX;
+  const yB  = B => BY1 - Math.min(B, B_TOP) / B_TOP * (BY1 - BY0);
+
+  function draw(){
+    const zpk = +el.zpk.value, bmax = +el.bmax.value, sig = +el.sig.value, Vd = +el.vd.value;
+
+    el.zpkVal.textContent  = zpk.toFixed(1) + ' mm';
+    el.bmaxVal.textContent = bmax + ' G';
+    el.sigVal.textContent  = sig.toFixed(2) + ' mm';
+    el.vdVal.textContent   = Vd + ' V';
+
+    /* Sample B(z), then E(z) proportional to B(z)^2 normalized so the whole
+       discharge voltage falls across the sampled length. phi is E integrated
+       back from the exit; the running integral is the cumulative fall. */
+    const dz = Z_MAX / N;
+    const B = new Float64Array(N + 1), E = new Float64Array(N + 1), cum = new Float64Array(N + 1);
+    let area = 0;
+    for (let i = 0; i <= N; i++){
+      const z = i * dz;
+      B[i] = bmax * Math.exp(-((z - zpk) ** 2) / (2 * sig * sig));
+      E[i] = B[i] * B[i];
+      area += E[i] * dz;
+    }
+    const scale = Vd / area;                       // V per mm per unit of B^2
+    let run = 0;
+    for (let i = 0; i <= N; i++){
+      E[i] *= scale;                               // V/mm
+      run += E[i] * dz;
+      cum[i] = run;                                // volts fallen by z
+    }
+    const eMax = Math.max(...E);
+
+    // ── Upper panel: B
+    let bl = '', bf = 'M ' + X0 + ' ' + BY1;
+    for (let i = 0; i <= N; i++){
+      const x = xOf(i * dz).toFixed(1), y = yB(B[i]).toFixed(1);
+      bl += (i ? ' L ' : 'M ') + x + ' ' + y;
+      bf += ' L ' + x + ' ' + y;
+    }
+    bf += ' L ' + X1 + ' ' + BY1 + ' Z';
+    el.bline.setAttribute('d', bl);
+    el.bfill.setAttribute('d', bf);
+    el.handle.setAttribute('cx', xOf(zpk));
+    el.handle.setAttribute('cy', yB(bmax));
+    el.handleLbl.setAttribute('x', xOf(zpk));
+    el.handleLbl.setAttribute('y', yB(bmax) - 14);
+    el.handleLbl.textContent = zpk.toFixed(1) + ' mm';
+
+    // ── Lower panel: phi and E
+    const yPhi = v => PY1 - v / Vd * (PY1 - PY0);
+    const yE   = e => PY1 - e / (eMax * 1.12) * (PY1 - PY0);
+    let pl = '', ef = 'M ' + X0 + ' ' + PY1;
+    for (let i = 0; i <= N; i++){
+      const x = xOf(i * dz).toFixed(1);
+      pl += (i ? ' L ' : 'M ') + x + ' ' + yPhi(Vd - cum[i]).toFixed(1);
+      ef += ' L ' + x + ' ' + yE(E[i]).toFixed(1);
+    }
+    ef += ' L ' + X1 + ' ' + PY1 + ' Z';
+    el.phi.setAttribute('d', pl);
+    el.efill.setAttribute('d', ef);
+    el.phiTop.textContent = Vd;
+    el.phiMid.textContent = Math.round(Vd / 2);
+
+    /* Acceleration region: where the middle 80% of the fall happens. Reading it off
+       the running integral rather than off a threshold on E keeps it meaningful when
+       the peak is pushed far enough out that part of the fall leaves the axis. */
+    const at = frac => {
+      const target = frac * Vd;
+      for (let i = 1; i <= N; i++) if (cum[i] >= target){
+        const t = (target - cum[i-1]) / (cum[i] - cum[i-1]);
+        return (i - 1 + t) * dz;
+      }
+      return Z_MAX;
+    };
+    const zA = at(0.10), zB = at(0.90);
+    el.band.setAttribute('x', xOf(zA));
+    el.band.setAttribute('width', Math.max(0, xOf(zB) - xOf(zA)));
+    el.bandA.setAttribute('x1', xOf(zA)); el.bandA.setAttribute('x2', xOf(zA));
+    el.bandB.setAttribute('x1', xOf(zB)); el.bandB.setAttribute('x2', xOf(zB));
+
+    // Share of the fall that happens upstream of the exit plane
+    const iExit = Math.round(Z_EXIT / dz);
+    const inside = cum[iExit] / Vd * 100;
+
+    el.oBand.textContent = zA.toFixed(1) + ' to ' + zB.toFixed(1);
+    el.oLen.textContent  = (zB - zA).toFixed(1);
+    el.oEmax.textContent = eMax.toFixed(1);
+    el.oInside.textContent = inside.toFixed(0) + '%';
+    el.oInside.style.color = inside > 85 ? '#ff8e8e' : (inside < 40 ? '#ff8e8e' : '#51cf66');
+    el.oInsideSub.textContent = inside > 85 ? 'ions born deep in the channel, wall losses climb'
+                              : inside < 40 ? 'the beam is born outside, poorly confined'
+                              : '% of the drop upstream of the exit';
+  }
+
+  /* Dragging the peak is the point of the figure, so the whole upper panel is a
+     drag surface. The slider stays the source of truth, which keeps the control
+     keyboard-reachable and the two from disagreeing. */
+  let dragging = false;
+  const setFromEvent = ev => {
+    const r = svg.getBoundingClientRect();
+    const x = (ev.clientX - r.left) / r.width * 900;
+    const z = Math.max(+el.zpk.min, Math.min(+el.zpk.max, zOf(x)));
+    el.zpk.value = Math.round(z * 2) / 2;
+    draw();
+  };
+  el.hit.addEventListener('pointerdown', ev => {
+    dragging = true;
+    el.hit.setPointerCapture(ev.pointerId);
+    setFromEvent(ev);
+  });
+  el.hit.addEventListener('pointermove', ev => { if (dragging) setFromEvent(ev); });
+  el.hit.addEventListener('pointerup',   ev => { dragging = false; el.hit.releasePointerCapture(ev.pointerId); });
+
+  [el.zpk, el.bmax, el.sig, el.vd].forEach(s => s.addEventListener('input', draw));
+  draw();
+})();
+</script>
+
+<!-- ════════════════════ FIGURE: CIRCUIT DIAGRAM ════════════════════
+     Skeleton, and a stand-alone one: the finished version should be the gridded-ion
+     viewer's overlay, laid out in model space. See the TODO in the caption. -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('ck-svg');
+  if (!svg) return;
+
+  const NOTE = {
+    all:       'Four supplies. Only the discharge supply is in the ion’s path.',
+    discharge: 'Anode to cathode, and back through the plasma. This is the loop the ions fall down.',
+    keeper:    'Cathode to keeper. It keeps the cathode discharge lit and carries no beam current.',
+    heater:    'Across the cathode heater. Used to start, then switched off in steady state.',
+    magnet:    'Coils in series, referenced to nothing. It carries no discharge current, and it still decides where the potential falls.'
+  };
+  const GROUPS = ['discharge', 'keeper', 'heater', 'magnet'];
+
+  const note = document.getElementById('ck-note');
+  const btns = [...document.querySelectorAll('#ck-btns .fig-toggle')];
+
+  function select(which){
+    for (const g of GROUPS){
+      const node = document.getElementById('ck-g-' + g);
+      node.setAttribute('opacity', (which === 'all' || which === g) ? '1' : '0.13');
+    }
+    /* The common rail belongs to every supply that references it, so it stays lit
+       for all of them except the magnet loop, which never touches it. */
+    document.getElementById('ck-g-common')
+            .setAttribute('opacity', which === 'magnet' ? '0.13' : '1');
+    note.textContent = NOTE[which];
+    btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.loop === which)));
+  }
+
+  btns.forEach(b => b.addEventListener('click', () => select(b.dataset.loop)));
+  select('all');
+})();
+</script>
 
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>
