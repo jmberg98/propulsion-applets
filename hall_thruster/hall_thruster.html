@@ -652,6 +652,10 @@ body{
   letter-spacing:0.2px; opacity:0.78; margin-top:2px;
 }
 .seg.seg-v button.active{ box-shadow:inset 2px 0 0 var(--c-ve); }
+/* The trace switch is a sub-choice of the Potential view - it has no meaning on the field.
+   gridded_ion.html's rule, verbatim, down to the class it hangs off. */
+#pot-spec-row{ display:none; }
+#app.pot-on #pot-spec-row{ display:block; }
 /* The focused stage carries its own heading inside its panel, so the whole-device
    title above it would be a second, contradictory one. */
 #app:not(.mode-overview) #overview-note,
@@ -1122,25 +1126,26 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
          phi. Switching the view re-annotates the same physics rather than loading a different
          figure, and the three sliders move all three views at once.
 
-         gridded_ion.html's Circuit Diagram stage carries the same choice as a two-button
-         "Currents / Potential" segment with a species sub-switch; here there is no currents
-         view to be a sub-choice of, so the three flatten into one control. -->
+         The control is gridded_ion.html's Circuit Diagram stage, control for control: a
+         two-button View segment with the species carried underneath as a sub-choice, because
+         the two potential views ARE one curve read by two carriers and the field is the other
+         thing entirely. Trace hides on the field view, where it has nothing to say. -->
     <div class="block ix-panel" id="ix-pot">
-      <div class="ix-title">Axial Potential</div>
-      <p class="ix-note">Nothing in the hardware marks where the beam is accelerated. The
-        <span class="c-b">radial magnetic field</span> does: it is hardest for
-        <span class="c-el">electrons</span> to cross where <span class="c-b">B</span> is
-        strongest, so that is where the axial field stands up and where the
-        <span class="c-phi">potential</span> falls. The shaded band is the middle 80% of that
-        fall, drawn on the hardware.</p>
-      <div class="ix-toglabel">Show</div>
-      <div class="seg seg-v" id="pot-view-seg">
-        <button type="button" data-pview="ion" class="active">Ion potential
-          <small>the fall an ion is accelerated down</small></button>
-        <button type="button" data-pview="electron">Electron potential
-          <small>the same curve, climbed the other way, closed by the supply</small></button>
-        <button type="button" data-pview="bfield">Radial field
-          <small>the field itself, which decides where the fall sits</small></button>
+      <div class="ix-toglabel">View</div>
+      <div class="seg" id="pot-view-seg">
+        <button type="button" data-pview="potential" class="active">Potential</button>
+        <button type="button" data-pview="bfield">Field</button>
+      </div>
+      <!-- Whose journey the potential figure annotates. The CURVE is the same either way - phi(z)
+           is one electrostatic potential, not two - but what is worth marking on it differs by
+           carrier: the ion falls the anode-to-plume drop and never touches the coupling voltage
+           the electron climbs. Potential view only. -->
+      <div id="pot-spec-row" style="margin-top:10px">
+        <div class="ix-toglabel">Trace</div>
+        <div class="seg" id="pot-spec-seg">
+          <button type="button" data-pspec="ion" class="active">Ion</button>
+          <button type="button" data-pspec="electron">Electron</button>
+        </div>
       </div>
       <!-- One sentence per view, written by refreshPotProfile. It carries what the animation on
            screen is and is NOT claiming, which is the one thing a reader cannot check by looking
@@ -4059,11 +4064,14 @@ function updatePlume(dt, t){
 
   /* Neutralization stage, after the loop for the same reason the ring's override is:
      both materials are in plumeMats and this is the exemption. With the cathode cut the
-     beam is not merely dimmer, it is SHORTER - nothing is holding the plume together
-     once the charge it carries has nowhere to go - and the keeper stops glowing. */
+     beam is not merely dimmer, it is SHORTER - the ions stall and turn back before they
+     get to the end of it - and the keeper stops glowing.
+     The glow is truncated to where they actually turn (NEU_STAG_FRAC) and it retracts on
+     scPot, the same charge the ions are being pulled by, so the plume shortens WITH the
+     beam it is drawing instead of snapping to a length the particles then disagree with. */
   if (appMode === 'neu'){
     puffFade += ((neuOn ? 1 : 0) - puffFade) * Math.min(1, dt * 4);
-    if (beamMat) beamMat.uniforms.uFadeEnd.value = neuOn ? 1.0 : 0.42;
+    if (beamMat) beamMat.uniforms.uFadeEnd.value = 1 + (1 - NEU_STAG_FRAC) * scPot;
     if (puffMat) puffMat.uniforms.uOpacity.value *= puffFade;
   }
 }
@@ -4265,6 +4273,49 @@ function neuBeamRay(p){
   p.kr  = _prand(0.6, 1.55);
 }
 const NEU_V0 = 700;            // mm/s along the axis at kr = 1 - the beam speed
+
+/* ── What the beam does with the cathode CUT ───────────────────
+   An ion that leaves an unneutralized spacecraft does not simply carry on. It leaves a
+   negative charge behind on the hull, that charge pulls on the positive beam, and since
+   nothing is replacing it the pull grows with every ion that goes. Within a very short
+   time the potential well is deeper than the energy the ions were given, and the beam
+   STOPS and falls back: it stagnates at a turning surface a little way out, piles up
+   there, and returns to the thruster it came from. Zero net thrust, which is the whole
+   argument for carrying a neutralizer.
+
+   So the stage models a RETARDING FIELD rather than a free flight. It is the same law
+   gridded_ion.html's neutralizer stage applies to its beam ions, written here against
+   this stage's ray parameterization.
+
+   Two properties are what make it read correctly:
+
+   THE TURNING STATION IS SET, NOT THE FORCE. Each ion is given the deceleration that
+   turns IT at its own station, v_i^2 / 2d_i, so the whole beam stagnates in one band
+   whatever speed it happened to be drawn at. That matters because kr - the spread in
+   beam speed - is a drawing device, put there so the two streams never fall into
+   lockstep and recycle in clumps; it is not a real energy spread. A single deceleration
+   applied to it would turn the slow ions at a third of the distance of the fast ones and
+   the beam would come back as a smear rather than a front.
+
+   THE BAND IS NOT A PLANE. Real beam ions do carry an energy spread, because an ion born
+   at the upstream edge of the potential fall gets more of it than one born near the exit,
+   so each ion draws its own turning station from a band around NEU_STAG_Z rather than
+   every one of them reaching the same millimeter and forming a bright disc.
+
+   The pull also ramps with scPot, the charge actually on the hull, so the beam is not
+   switched off - it slumps back over the second the ⊖ takes to grow, and the ions already
+   far downstream when the switch is thrown are the ones that get away. */
+const NEU_STAG_Z    = 300;     // where a fully charged hull turns the beam, CAD mm
+const NEU_STAG_BAND = 30;      // +/- on that station, the beam's own energy spread
+/* The pull an ion feels before the hull has finished charging. A floor rather than a
+   straight proportion, so the beam starts bending back at once instead of coasting free
+   for the first tenth of a second while scPot is still near zero. */
+const NEU_STAG_FLOOR = 0.35;
+/* The fraction of the drawn cone the beam still fills once it has stagnated, which is what
+   the plume shader is truncated to. Derived from the turning station rather than dialed in,
+   so the glow always ends where the ions actually turn around. */
+const NEU_STAG_FRAC = (NEU_STAG_Z - P_Z_EXIT) / (P_Z_FADE - P_Z_EXIT);
+
 /* Where that ray has got to at a given station. A ray aimed inward crosses the axis and
    comes out the other side, which is the same handling the free-flight walk below uses. */
 function neuRayAt(p, z){
@@ -4280,6 +4331,11 @@ function spawnBeamIon(p, spread){
   p.kind = 'beamion';
   neuBeamRay(p);
   p.vz = NEU_V0 * p.kr;
+  /* Its own deceleration under a fully charged hull: the one that brings THIS ion to rest
+     at THIS ion's turning station, v^2 / 2d. See the note above NEU_STAG_Z. Carried on the
+     particle because both terms are drawn per ion and neither changes over its flight. */
+  p.ret = p.vz * p.vz /
+          (2 * (_prand(NEU_STAG_Z - NEU_STAG_BAND, NEU_STAG_Z + NEU_STAG_BAND) - P_Z_EXIT));
   const z = spread ? _prand(P_Z_EXIT, P_Z_FADE) : P_Z_EXIT;
   const [r, th] = neuRayAt(p, z);
   pPlace(p, z, r, th);
@@ -4543,13 +4599,21 @@ function updateParticles(dt){
     const p = PARTS[i];
     const z = pZof(p);
 
-    /* Neutralization stage, beam ion. Already past the acceleration region, so it just
-       flies its ray - no ionAccel term, no wall clamp, nothing left to act on it. This
-       is the species the ⊖ on the hull is counting: every one of these that leaves takes
-       a positive charge with it whether or not the cathode is running. */
+    /* Neutralization stage, beam ion. Past the acceleration region, so with the cathode
+       running there is nothing left to act on it: no ionAccel term, no wall clamp, it
+       just flies its ray. This is the species the ⊖ on the hull is counting, and every
+       one of these that leaves takes a positive charge with it.
+       With the cathode CUT the charge they leave behind acts back on them - see the note
+       above NEU_STAG_Z - so they decelerate, stall at the turning band and come back down
+       the same ray. An ion that makes it back to the exit plane is re-emitted there: the
+       discharge is still running, so the thruster goes on firing ions into a well they
+       cannot climb out of, and what the reader sees is a fountain rather than an exhaust. */
     if (p.kind === 'beamion'){
+      if (appMode === 'neu' && !neuOn)
+        p.vz -= p.ret * Math.max(NEU_STAG_FLOOR, -scPot) * dt;
       const nz = z + p.vz * dt;
-      if (nz > P_Z_FADE) spawnBeamIon(p, false);
+      // Out the end of the beam, or back at the mouth it left: either way, re-emitted.
+      if (nz > P_Z_FADE || nz < P_Z_EXIT) spawnBeamIon(p, false);
       else { const rt = neuRayAt(p, nz); pPlace(p, nz, rt[0], rt[1]); }
       pPos[3*i] = p.x; pPos[3*i+1] = p.y; pPos[3*i+2] = p.z;
       pGlyph[i] = p.sp;
@@ -4918,7 +4982,10 @@ function buildProbe(){
 /* Count what is actually in the box this frame and draw it. The counts are REAL - the
    loop reads the same particle array the render does - which is what makes the claim
    demonstrable rather than asserted. With the cathode running the two converge on each
-   other; with it cut, nₑ decays to nothing while nᵢ is untouched. */
+   other. With it cut, nₑ decays to nothing and nᵢ RISES: the box sits just inside the
+   station the retarded ions stall at, and a beam that is slowing down piles up in the
+   space it is slowing down in. Both halves of that are the failure - no electrons, and
+   an ion population going nowhere. */
 function updateProbe(){
   if (!probeEls) buildProbe();
   const W = viewport.clientWidth, H = viewport.clientHeight;
@@ -5026,6 +5093,13 @@ function setNeutralizer(on, boot){
     for (const p of PARTS){
       if (p.kind === 'nbeam') spawnNeuBeamElectron(p, true);
       else if (p.kind === 'back'){ spawnBackElectron(p); p.age = _prand(0, 2.4); }
+      /* The ions are NOT re-primed, they are handed their speed back where they stand.
+         Nothing was hidden while the cathode was off - they were stalled and falling back
+         in plain view - so scattering them along a full beam would teleport a plume into
+         existence. Releasing the stalled population instead lets it run out and refill the
+         far plume over the half second it takes to fly there, which is what the barrier
+         collapsing actually looks like. */
+      else if (p.kind === 'beamion') p.vz = NEU_V0 * p.kr;
     }
   }
   const st = document.getElementById('neu-status');
@@ -5262,7 +5336,8 @@ function potDim(x, ya, yb){
 
 /* ── State ─────────────────────────────────────────────────── */
 const POT = {
-  view: 'ion',                              // 'ion' | 'electron' | 'bfield'
+  view: 'ion',                              // 'ion' | 'electron' | 'bfield' - what the figure draws
+  species: 'ion',                           // 'ion' | 'electron' - remembered across a Field detour
   ion:  { z: Z_ANODE_FACE, age: 0 },        // the rider on the ion trace
   // ONE electron on the plasma leg. `s` is its arc position along potElPath, `age` is seconds
   // since it was emitted at the keeper.
@@ -5748,18 +5823,21 @@ function refreshPotProfile(){
      climbing to the left invites the reader to imagine an electron running up it, and that is
      the opposite of how an electron gets to the anode in a Hall thruster. */
   const vn = document.getElementById('pot-vnote');
-  if (vn) vn.innerHTML = B
+  const vnote = B
     ? 'The peak is what sets everything else here. <b>E<sub>z</sub></b> goes as '
       + '<b>B<sub>r</sub></b><sup>2</sup>, so the shaded band follows the peak wherever you put it.'
     : POT.view === 'electron'
     ? 'The rider is on the <b>plasma</b> leg only: emitted at the cathode, <b>speeding up as it '
       + 'climbs</b>, and <b>collected</b> on the anode. It gains exactly what the ion loses, which '
-      + 'is why the two views are the same curve. Nothing travels back — the supply returns the '
+      + 'is why the two traces are the same curve. Nothing travels back — the supply returns the '
       + '<em>current</em>, not that electron. And most of a real electron’s speed is missing from '
       + 'this page, because it is the azimuthal drift, perpendicular to it.'
-    : 'An <b>ion</b> here is unmagnetized and collisionless: born in the channel, accelerated once, '
-      + 'gone. The rider speeds up as it falls, and that is the whole of its story. The contrast '
-      + 'with the electron view is the physics of the thruster.';
+    /* The ion view says nothing here on purpose: the curve, the rider and the two dimensioned
+       spans already carry it, and a paragraph restating them was the one note on this stage that
+       told the reader something they could see. */
+    : '';
+  // An empty paragraph would still spend its top margin on the gap above the sliders.
+  if (vn){ vn.innerHTML = vnote; vn.style.display = vnote ? '' : 'none'; }
 
   // ── accessible description, per view ─────────────────────────
   const dsc = document.getElementById('pot-desc');
@@ -5780,7 +5858,7 @@ function refreshPotProfile(){
          + 'the whole climb through the acceleration region and up the channel to the anode at '
          + 'plus ' + Math.round(L.anode) + ' volts, where it is collected. A single marker rides '
          + 'that leg and speeds up as it climbs, gaining the whole ' + Math.round(L.vd) + ' volts '
-         + 'as kinetic energy, exactly as the ion on the other view gains what it loses falling. '
+         + 'as kinetic energy, exactly as the ion on the other trace gains what it loses falling. '
          + 'What the marker does not show is transport: a real electron here is magnetized, so it '
          + 'crosses the field slowly and collisionally rather than running freely up the axis, and '
          + 'most of the speed it has is an azimuthal drift out of this plane. The dashed pale '
@@ -5798,7 +5876,7 @@ function refreshPotProfile(){
          + 'and up the channel, falls through the acceleration region, ' + band + ', and runs '
          + 'flat at 0 volts out into the plume. ' + Math.round(inside) + ' percent of the fall '
          + 'happens upstream of the exit plane. Nothing in the hardware marks where the fall is: '
-         + 'the radial magnetic field puts it there, which the third view draws. Two voltages '
+         + 'the radial magnetic field puts it there, which the Field view draws. Two voltages '
          + 'are dimensioned: the ' + Math.round(L.anode) + ' volts the ion falls through, and '
          + 'the ' + Math.round(L.vcc) + ' volt cathode coupling voltage below the plume that it '
          + 'does not. The two together are the ' + Math.round(L.vd) + ' volt discharge voltage.');
@@ -5848,10 +5926,17 @@ function updatePotStage(dt){
   potRiders(dt);
 }
 
-function setPotView(v){
-  POT.view = (v === 'electron' || v === 'bfield') ? v : 'ion';
+/* Two controls, one three-valued piece of state. The View segment chooses between the potential
+   and the field; the Trace segment chooses which carrier the potential is annotated for, and is
+   remembered while the reader is off on the field view. Everything downstream still reads
+   POT.view, which is what the drawing has always been written against. */
+function applyPotView(){
+  const B = POT.view === 'bfield';
   document.querySelectorAll('#pot-view-seg button').forEach(b =>
-    b.classList.toggle('active', b.dataset.pview === POT.view));
+    b.classList.toggle('active', (b.dataset.pview === 'bfield') === B));
+  document.querySelectorAll('#pot-spec-seg button').forEach(b =>
+    b.classList.toggle('active', b.dataset.pspec === POT.species));
+  document.getElementById('app').classList.toggle('pot-on', !B);
   // Both riders restart on a view change, each at its own emission point, so a view opens on the
   // beginning of the story it tells rather than part way through it.
   POT.ion.z = Z_ANODE_FACE; POT.ion.age = 0;
@@ -5859,6 +5944,15 @@ function setPotView(v){
   // A view change swaps which chips are shown, so the leaders have new boxes to measure.
   POT.relayout = true;
   refreshPotProfile();
+}
+function setPotView(v){
+  POT.view = (v === 'bfield') ? 'bfield' : POT.species;
+  applyPotView();
+}
+function setPotSpecies(v){
+  POT.species = (v === 'electron') ? 'electron' : 'ion';
+  if (POT.view !== 'bfield') POT.view = POT.species;
+  applyPotView();
 }
 
 function enterPotentialStage(){
@@ -5878,7 +5972,7 @@ function enterPotentialStage(){
      potential view is drawn over a dark thruster for the same reason. */
   setPower(false);
   applyTransparent();             // the deep, stage-owned ghost - see applyTransparent
-  setPotView(POT.view);
+  applyPotView();
   setHint('Drag to pan · scroll to zoom');
 }
 
@@ -5902,6 +5996,8 @@ function potSlider(id, key, fmt){
 }
 document.querySelectorAll('#pot-view-seg button').forEach(b =>
   b.addEventListener('click', () => setPotView(b.dataset.pview)));
+document.querySelectorAll('#pot-spec-seg button').forEach(b =>
+  b.addEventListener('click', () => setPotSpecies(b.dataset.pspec)));
 potSlider('pot-zpk', 'zpk');
 potSlider('pot-sig', 'sig');
 potSlider('pot-vd',  'vd');
