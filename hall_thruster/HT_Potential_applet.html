@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hall Thruster IV: Potential Distribution</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+
+:root {
+  /* ── Physics color tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a color mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+.transition-line,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ────────────────────────────────────
+   Color is the ONLY channel these use — never weight, never
+   size. Color answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Color key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.color-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.color-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.color-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 18px;
+}
+.page-intro + .page-intro { margin-top: -4px; }
+
+/* ── Transition line ─────────────────────────────────── */
+.transition-line {
+  font-size: 20.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 6px 0 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY / DROPDOWN SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+/* ── Equation panels ────────────────────────────────
+   Same metrics as the stage pages (GIE_Acceleration), so an
+   equation looks identical wherever the reader meets it.  */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+.deriv-inner p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+/* ── Exemplary engines ──────────────────────────────────
+   Outbound links. The engine name is NOT given a physics
+   color (a link is not a quantity), so it reads in the
+   heading color and signals itself with the underline and
+   the ↗ glyph instead.                                   */
+.ex-list { list-style: none; }
+.ex-item { padding: 12px 0 2px; border-top: 1px solid var(--border); }
+.ex-item:first-child { padding-top: 0; border-top: none; }
+.ex-name {
+  font-size: 20.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+.ex-name a {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid #3a3a3a;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ex-name a:hover { color: #ffffff; border-bottom-color: var(--c-accent); }
+.ex-name a:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 3px; }
+.ex-name .ext {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 5px;
+  vertical-align: 1px;
+}
+/* Spec strip: the numbers this lesson's equations actually predict. */
+.ex-specs {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .2px;
+  margin-bottom: 5px;
+}
+.ex-specs .sep { color: #3a3a3a; margin: 0 7px; }
+/* Hardware photo. The two NASA shots are landscape and portrait respectively,
+   so bound them by HEIGHT; matching widths would make the portrait tower over
+   the landscape one. */
+.ex-fig {
+  margin: 10px 0 4px;
+  /* Caption beside the photo, not under it: the page is up to 1500px wide and a
+     height-bounded photo leaves most of that empty. Stacks below 900px. */
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+.ex-fig img {
+  display: block;
+  max-height: 300px;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-canvas);
+}
+.ex-fig figcaption {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 460px;
+  padding-bottom: 2px;
+}
+@media (max-width: 900px) {
+  .ex-fig { display: block; }
+  .ex-fig figcaption { margin-top: 6px; max-width: none; }
+}
+.ex-fig .credit {
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: .3px;
+  color: #5f5f5f;
+}
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Embedded viewer / applet iframe ──────────────────
+   The frame is sized by ASPECT, not by a pinned pixel height. It is as wide as the page
+   (--page-w, up to 1500px), so a fixed height letterboxed it: the viewer scales its camera
+   to the shorter dimension, and a 2.4:1 slot left the model small with dead bands either
+   side. An aspect ratio keeps the slot proportionate at every window width; max-height
+   keeps a wide window from pushing it past one screen, min-height keeps a narrow one from
+   collapsing it. */
+.applet-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
+}
+
+/* ── Demo placeholder ───────────────────────────────── */
+.demo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 460px;
+  border-top: 1px solid var(--border);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.012) 0,
+      rgba(255,255,255,0.012) 12px,
+      transparent 12px,
+      transparent 24px
+    ),
+    var(--bg-canvas);
+  text-align: center;
+  padding: 24px;
+}
+.demo-placeholder-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.demo-placeholder-note {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled):not(.selected) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
+}
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ── Citation markers ───────────────────────────────────
+   Deliberately NOT a physics color. Every hl-* token means
+   "which quantity is this?"; a source number is not a
+   quantity, so it takes the neutral chrome accent instead.
+   Otherwise a blue marker would read as a velocity.       */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Reference list ─────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 16px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.15em !important; }
+
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.applet-nav a,
+.applet-nav .nav-disabled {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: var(--bg-panel-1);
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover {
+  border-color: var(--c-accent);
+  background: var(--bg-panel-3);
+  color: var(--text-heading);
+}
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  width          : var(--page-w);
+  margin-top     : 34px;
+  padding-top    : 26px;
+  border-top     : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 12px;
+  text-align     : center;
+  color          : var(--text-muted);
+}
+
+footer .foot-logo {
+  display   : block;
+  height    : 54px;
+  width     : auto;
+  opacity   : 0.88;
+  transition: opacity 0.15s ease;
+}
+footer a:hover .foot-logo { opacity: 1; }
+
+footer .foot-title {
+  font-size     : 17px;
+  letter-spacing: 0.3px;
+  color         : var(--text-secondary);
+}
+
+footer .foot-cred {
+  font-size: 15px;
+  color    : var(--text-muted);
+}
+
+/* ── Inline applet link ───────────────────────────────
+   Lifted from GIE_Ionization_applet.html: the overview page uses
+   .applet-link in its markup but never styled it. */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
+/* ── Static figure (inline SVG plot) ─────────────────
+   Full-bleed inside an .applet-host block so a figure sits
+   in the same frame as a demo iframe. The SVG carries its own
+   #0e0e0e ground, so it needs no background of its own. */
+.fig-frame {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  background: var(--bg-diagram);
+}
+.fig-frame svg { display: block; width: 100%; height: auto; }
+.fig-caption {
+  padding: 11px 18px 15px;
+  font-size: 17.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ── Figure controls and readouts ────────────────────
+   Sliders, toggles and output cells for an inline figure.
+   Ported from the demo panel in specific_impulse_applet.html
+   (.sl-group / .sl-row / .out-cell) rather than redesigned, so
+   a control reads the same whichever page it turns up on. The
+   strip sits between the .fig-frame and the .fig-caption, so
+   the reading order is figure, then knobs, then numbers. */
+.fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 13px 26px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.sl-group {
+  flex: 1 1 250px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sl-label {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.sl-row { display: flex; align-items: center; gap: 8px; }
+.sl-row input[type=range] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--c-accent);
+}
+.sl-val {
+  /* Wide enough that the longest readout THAT CARRIES ITS UNIT ("850 A/m²",
+     8 Courier characters at 17.5px) stays on one line. The corpus sets every
+     number in Courier, and Courier is wide; a box sized to the digits alone
+     wraps the unit onto a second line and the slider row grows a step taller
+     than its neighbours. */
+  flex: 0 0 106px;
+  white-space: nowrap;
+  padding: 3px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 17.5px;
+  text-align: center;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* Toggles carry the same chrome as .quiz-submit; pressed state
+   is the one place a figure control takes an accent color. */
+.fig-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.fig-toggle {
+  padding: 7px 15px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.fig-toggle:hover { background: #232323; border-color: #4a4a4a; }
+.fig-toggle[aria-pressed="true"] {
+  color: var(--text-heading);
+  border-color: #5a5a5a;
+  background: #242424;
+}
+.fig-toggle:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* ── Figure shell: figure left, controls right, results under ──
+   The house arrangement for a demo with its own knobs (design-system §4.5, and
+   specific_impulse_applet.html's demo): the figure takes the room it can use, the
+   controls stand beside it in a fixed column, and the numbers those controls move
+   run underneath in an output bar spanning both. Every figure in this folder that
+   carries controls is built this way, whether what fills the frame is an inline SVG
+   or a WebGL canvas, so a reader who has learned where the knobs live on one page
+   does not have to learn it again on the next. */
+.fig-app {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--border);
+}
+/* Flexes to whatever the panel leaves. min-width:0 lets it shrink below the figure's
+   intrinsic width, which a flex item otherwise refuses to do.
+   Deliberately left on the default align-self:stretch. The figure sets the row's height
+   whenever it is the taller of the two, and the panel stretches to match; when the
+   CONTROLS are taller the frame stretches instead. That leaves a band under a
+   fixed-aspect SVG, and the band is invisible: --bg-diagram and --bg-panel-1 are the
+   same #0e0e0e and the SVGs paint that same ground themselves. Pinning the frame to
+   flex-start instead looks correct until the panel outgrows a CANVAS figure, whose
+   ground is a different tone, and there the band does show. */
+.fig-app > .fig-frame {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border-top: none;
+}
+
+/* 240px, nearly the viewers' 210px panel of switches rather than the 360px the standalone
+   applets give a slider column, because the figure is what the block is for and every
+   pixel not spent here goes to it. What sets the number is the longest slider row: a name
+   and its readout want to stay on one line, and at 15px that is about the 200px of content
+   this width leaves. The panel type drops a step to buy that (see .fig-panel .sl-label),
+   still above the 13px a standalone applet's panel uses. A name too long for the line wraps
+   under its own readout, which is fine; a verdict runs to several lines and is also fine,
+   it is a sentence and not a label.
+   Content is vertically centered against the figure, so a short stack sits level with the
+   figure rather than hanging off the top edge. */
+.fig-panel {
+  flex: 0 0 240px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* 20px between groups, as in both viewers' #panel. Padding is symmetric rather than
+     the panels' 20/20/40: that deep bottom pad exists to keep the last line of a
+     full-height SCROLLING column off the frame edge, and this column is centered in a
+     figure instead, where it would just push everything visibly high. */
+  gap: 20px;
+  padding: 20px 20px;
+  background: var(--bg-panel-1);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+/* The controls keep their markup; in the panel they stack instead of running across. */
+.fig-panel .fig-controls {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  padding: 0;
+  border-top: none;
+  background: none;
+}
+.fig-panel .sl-group { flex: 0 0 auto; min-width: 0; gap: 0; }
+
+/* ── Panel vocabulary ────────────────────────────────────
+   A control column is not a row of controls under a figure, and the corpus styles the
+   two differently. Everything below takes the side-panel treatment its equivalent has
+   in sheath / debye / particle_collisions (the other 360px panels) and in the two
+   viewers, at the type sizes a LESSON page uses for a control column
+   (specific_impulse_applet.html's #rp). Sizes scale with the page; structure and color
+   do not. */
+
+/* Group heading, the viewers' .sect-hdr. A panel with more than one section says so
+   with these; a bare label is what a control row under a figure uses. A column of
+   sliders alone needs no heading, and does not get one. */
+.fig-panel .sect-hdr {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+/* Slider row: [name .......... value] over [track]. sheath's .ix-slider, structure and
+   colors unchanged. The readout is a flex sibling of the name rather than a boxed span
+   beside the track, and it is bare blue bold rather than sitting in a bordered well: a
+   well says "you can type in me", and this is a readout. */
+.fig-panel .sl-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: 2px;
+}
+.fig-panel .sl-val {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--c-ve);
+}
+.fig-panel .sl-row { display: block; }
+/* Blue, like the accent on every other slider in this codebase. Grey is what the
+   lesson pages use for a control sitting on the page itself. */
+.fig-panel .sl-row input[type=range] {
+  display: block;
+  width: 100%;
+  accent-color: var(--c-ve);
+  cursor: pointer;
+  /* Height and padding give the thumb a forgiving grab target; sheath's note applies
+     here too, a bare track is ~4px tall and a drag starting a few pixels off does
+     nothing. */
+  height: 22px;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+/* Pills, stacked and full width. A one-of-N chooser stays a row of pills: the switch
+   below is for a layer that is independently on or off, and choosing among five loops
+   is not that. Stacked because five pills wrapping inside a 200px column read as a
+   ragged paragraph of buttons rather than as one control. */
+.fig-panel .fig-toggles { flex-direction: column; gap: 7px; }
+.fig-panel .fig-toggle { width: 100%; text-align: center; }
+
+/* Layer switches, the viewers' .vtog. Keyed off aria-pressed, the toggle-button pattern
+   these figures already maintain, rather than the viewers' .on class, so the switch is
+   driven by the state the page keeps and needs no second source of truth. A switch shows
+   its own state, so its label names the layer and never the action: "Sheath", not
+   "Sheath on", which reads as a lie the moment the switch is off. */
+.fig-panel .vtoglist { display: flex; flex-direction: column; }
+.fig-panel .vtog {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%;
+  font-family: 'Barlow', sans-serif; font-size: 15px; color: var(--text-secondary);
+  background: none; border: none; padding: 7px 0; cursor: pointer;
+  user-select: none; text-align: left;
+  transition: color 0.15s ease;
+}
+.fig-panel .vtog:hover { color: var(--text-heading); }
+.fig-panel .vtog .vsw {
+  flex: 0 0 auto; width: 34px; height: 19px; border-radius: 19px;
+  background: var(--bg-panel-3); border: 1px solid var(--border); position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .vtog .vsw::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.fig-panel .vtog[aria-pressed="true"] { color: var(--text-heading); }
+.fig-panel .vtog[aria-pressed="true"] .vsw { background: var(--c-ve); border-color: var(--c-ve); }
+.fig-panel .vtog[aria-pressed="true"] .vsw::after { transform: translateX(15px); background: #fff; }
+.fig-panel .vtog:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* Reset and friends, the viewers' .btn / .btn-row. */
+.fig-panel .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.fig-panel .btn {
+  flex: 1 1 0;
+  font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 600;
+  padding: 9px 8px;
+  background: var(--bg-panel-2); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 5px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .btn:hover {
+  background: var(--bg-panel-3); color: var(--text-heading); border-color: var(--c-accent);
+}
+.fig-panel .btn:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* Below 980px the panel drops under the figure rather than squeezing it (§4.5). */
+@media (max-width: 980px) {
+  .fig-app { flex-wrap: wrap; }
+  .fig-app > .fig-frame { flex: 1 1 100%; }
+  .fig-panel {
+    flex: 1 1 100%; width: 100%;
+    border-left: none; border-top: 1px solid var(--border);
+  }
+}
+
+.fig-out {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+.fig-out .out-cell {
+  flex: 1 1 0;
+  min-width: 155px;
+  padding: 9px 15px 10px;
+  background: var(--bg-out-cell);
+  border-right: 1px solid var(--border);
+}
+.fig-out .out-cell:last-child { border-right: none; }
+/* Output cells carry the house .out-label / .out-val / .out-sub trio, at the
+   sizes a LESSON page uses (the 9/19/11.5 locked spec is the 210px viewer
+   panel's; a full-width page scales it the way specific_impulse_applet.html
+   already does). The one thing that does NOT scale is the typeface: every
+   number in this corpus is set in Courier New, so these are too. */
+.out-label {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.out-val {
+  font-size: 26px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  /* Cells that name a quantity set their own color inline (§4.6); this is the
+     fallback for the ones that are a bare ratio and belong to no quantity. */
+  color: var(--text-heading);
+}
+.out-sub {
+  font-size: 18.5px;
+  font-family: 'Courier New', monospace;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <a class="nav-prev" href="HT_Neutralization_applet.html">&larr; Prev</a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <span class="nav-disabled">Next &rarr;</span>
+</nav>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Hall Thruster IV: Potential Distribution</h1>
+  <span class="badge">Electric Propulsion</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  Everything so far has pointed at one question. The
+  <a class="applet-link" href="../gridded_ion/GIE_Potential_applet.html">gridded engine's potential profile</a>
+  could be read straight off its hardware: every rise and drop sat on a grid or an electrode you could point to.
+  A Hall thruster's <span class="hl-phi">potential</span> falls in open space, in the last few millimeters before
+  the exit plane, with nothing there to mark the spot.
+</p>
+
+<div class="color-key">
+  <span class="ck-lead">Color key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+</div>
+
+<p class="page-intro">
+  What puts it there is the <span class="hl-B">magnetic field</span>.
+  <span class="hl-electron">Electrons</span> move along a field line almost freely and across one only with
+  difficulty, which makes a field line very nearly an <span class="key">equipotential</span>. Shape
+  <span class="hl-B">B</span> and you have shaped <span class="hl-phi">&phi;</span>: the steep axial gradient
+  forms where the radial field is strongest, and designers put that peak just inside the exit
+  plane.<sup class="cite"><a href="HT_Overview_applet.html#ref-2">2</a></sup> This is the sense in which a Hall thruster's accelerator
+  grid is made of magnetic field.
+</p>
+
+<!-- ════════════════════ Q1: WHAT LOCATES THE FALL ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">No electrode sits where a Hall thruster's <span class="hl-phi">potential</span> drop
+    happens. What fixes its position along the channel?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>The exit plane itself: the plasma potential must fall to the ambient value at the open end, so the drop sits at the lip of the channel as a matter of geometry.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>The peak of the radial magnetic field. Electrons short out any potential difference along a field line but not across one, so the axial gradient concentrates where crossing the field is hardest.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>The position of the cathode, since the potential must fall from the anode to whatever the cathode sits at, and the drop forms along the line joining them.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<div class="theory-block applet-host">
+  <div class="th-hdr">Move the Field, Move the Fall</div>
+  <div class="fig-app">
+  <div class="fig-frame">
+    <svg id="mf-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="Barlow, sans-serif"
+         aria-label="Two stacked plots against distance along the channel. The upper one is the radial
+                     magnetic field, a peak whose position can be dragged. The lower one is the axial
+                     potential falling from the discharge voltage at the anode to zero downstream, together
+                     with the axial electric field. A shaded band marks the acceleration region, and it
+                     tracks the magnetic peak wherever the peak is dragged.">
+
+      <rect width="900" height="560" fill="#0e0e0e"/>
+
+      <!-- Acceleration band, drawn first so both plots sit on top of it.
+           One band spanning both panels is the whole argument of the figure:
+           the region under the B peak is the region the potential falls in. -->
+      <rect id="mf-band" x="0" y="40" width="0" height="450" fill="#F5C518" fill-opacity="0.06"/>
+      <line id="mf-band-a" y1="40" y2="490" stroke="#F5C518" stroke-opacity="0.35" stroke-width="1"
+            stroke-dasharray="5 4"/>
+      <line id="mf-band-b" y1="40" y2="490" stroke="#F5C518" stroke-opacity="0.35" stroke-width="1"
+            stroke-dasharray="5 4"/>
+
+      <!-- Exit plane: hardware, so grey, and drawn through both panels. -->
+      <line x1="600" y1="40" x2="600" y2="490" stroke="#5a5a5a" stroke-width="1.3"
+            stroke-dasharray="6 5"/>
+      <text x="606" y="54" fill="#8a8a8a" font-size="14">exit plane</text>
+      <text x="88" y="54" fill="#8a8a8a" font-size="14">anode</text>
+
+      <!-- ══ Upper panel: radial magnetic field ══ -->
+      <path id="mf-bfill" fill="#00DDB5" fill-opacity="0.09" d=""/>
+      <path id="mf-bline" fill="none" stroke="#00DDB5" stroke-width="2.4" stroke-linejoin="round" d=""/>
+      <circle id="mf-handle" r="7" fill="#00DDB5" stroke="#0e0e0e" stroke-width="2" cy="50"/>
+      <text id="mf-handle-lbl" fill="#00DDB5" font-size="14.5" text-anchor="middle"></text>
+
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80" y1="200" x2="860" y2="200"/>
+        <line x1="80" y1="200" x2="80" y2="50"/>
+      </g>
+      <text transform="rotate(-90 30 125)" x="30" y="125" fill="#9a9a9a" font-size="16"
+            text-anchor="middle">radial field <tspan font-family="KaTeX_Math, serif"
+            font-style="italic">B</tspan>&#8202;<tspan font-size="12" dy="4">r</tspan><tspan dy="-4">
+            (G)</tspan></text>
+      <g fill="#7a7a7a" font-size="14" text-anchor="end">
+        <text x="72" y="205">0</text>
+        <text x="72" y="130">125</text>
+        <text x="72" y="55">250</text>
+      </g>
+      <text x="854" y="72" fill="#00DDB5" font-size="16.5" font-weight="600" text-anchor="end">radial
+        magnetic field</text>
+      <text x="854" y="92" fill="#5f8f85" font-size="13.5" text-anchor="end">drag the peak</text>
+
+      <!-- Drag surface for the peak. Kept above the curve so the whole panel is
+           grabbable, not just the marker. -->
+      <rect id="mf-hit" x="80" y="50" width="780" height="150" fill="transparent"
+            style="cursor:ew-resize"/>
+
+      <!-- ══ Lower panel: potential and axial field ══ -->
+      <path id="mf-efill" fill="#F5C518" fill-opacity="0.15" d=""/>
+      <path id="mf-phi"   fill="none" stroke="#F5C518" stroke-width="2.6" stroke-linejoin="round" d=""/>
+
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80" y1="490" x2="860" y2="490"/>
+        <line x1="80" y1="490" x2="80" y2="300"/>
+      </g>
+      <text transform="rotate(-90 30 395)" x="30" y="395" fill="#9a9a9a" font-size="16"
+            text-anchor="middle">potential <tspan font-family="KaTeX_Math, serif"
+            font-style="italic">&#966;</tspan>&#160;&#160;(V)</text>
+      <g fill="#7a7a7a" font-size="14" text-anchor="end">
+        <text x="72" y="495">0</text>
+        <text id="mf-phi-mid" x="72" y="400">150</text>
+        <text id="mf-phi-top" x="72" y="305">300</text>
+      </g>
+      <text x="854" y="322" fill="#F5C518" font-size="16.5" font-weight="600" text-anchor="end">potential
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">&#966;</tspan>(<tspan
+        font-family="KaTeX_Math, serif" font-style="italic">z</tspan>)</text>
+      <text x="854" y="342" fill="#8f8258" font-size="13.5" text-anchor="end">shaded: axial field
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">E</tspan><tspan font-size="11"
+        dy="3">z</tspan></text>
+
+      <!-- x axis, shared, labeled once under the lower panel -->
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80"  y1="490" x2="80"  y2="496"/>
+        <line x1="210" y1="490" x2="210" y2="496"/>
+        <line x1="340" y1="490" x2="340" y2="496"/>
+        <line x1="470" y1="490" x2="470" y2="496"/>
+        <line x1="600" y1="490" x2="600" y2="496"/>
+        <line x1="730" y1="490" x2="730" y2="496"/>
+        <line x1="860" y1="490" x2="860" y2="496"/>
+      </g>
+      <g fill="#7a7a7a" font-size="14.5" text-anchor="middle">
+        <text x="80"  y="514">0</text>
+        <text x="210" y="514">5</text>
+        <text x="340" y="514">10</text>
+        <text x="470" y="514">15</text>
+        <text x="600" y="514">20</text>
+        <text x="730" y="514">25</text>
+        <text x="860" y="514">30</text>
+      </g>
+      <text x="470" y="542" fill="#9a9a9a" font-size="17" text-anchor="middle">distance from the anode
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">z</tspan>&#160;&#160;(mm)</text>
+    </svg>
+  </div>
+
+  <aside class="fig-panel">
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Field peak position<span class="sl-val" id="mf-zpk-val">18.0 mm</span></div>
+      <div class="sl-row">
+        <input type="range" id="mf-zpk" min="2" max="28" step="0.5" value="18"
+               aria-label="Position of the magnetic field peak, in millimeters from the anode">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Peak field<span class="sl-val" id="mf-bmax-val">150 G</span></div>
+      <div class="sl-row">
+        <input type="range" id="mf-bmax" min="50" max="250" step="5" value="150"
+               aria-label="Peak radial magnetic field in gauss">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Peak width<span class="sl-val" id="mf-sig-val">5.00 mm</span></div>
+      <div class="sl-row">
+        <input type="range" id="mf-sig" min="2" max="9" step="0.25" value="5"
+               aria-label="Width of the magnetic field peak in millimeters">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Discharge voltage<span class="sl-val" id="mf-vd-val">300 V</span></div>
+      <div class="sl-row">
+        <input type="range" id="mf-vd" min="150" max="600" step="10" value="300"
+               aria-label="Discharge voltage in volts">
+      </div>
+    </div>
+  </div>
+  </aside>
+  </div>
+
+  <div class="fig-out">
+    <div class="out-cell">
+      <div class="out-label">Acceleration region</div>
+      <div class="out-val" id="mf-o-band" style="color:#F5C518">0</div>
+      <div class="out-sub">mm from the anode, middle 80% of the fall</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Region length</div>
+      <div class="out-val" id="mf-o-len" style="color:#F5C518">0</div>
+      <div class="out-sub">mm, against a 20 mm channel</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Peak axial field</div>
+      <div class="out-val" id="mf-o-emax" style="color:#F5C518">0</div>
+      <div class="out-sub">V/mm at the top of the fall</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Fall inside the channel</div>
+      <div class="out-val" id="mf-o-inside">0</div>
+      <div class="out-sub" id="mf-o-inside-sub">% of the drop upstream of the exit</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    Drag the peak and the whole acceleration region goes with it. The link between the two panels is the one
+    assumption this figure makes: <span class="hl-electron">electrons</span> cross the field with a mobility that
+    falls as $1/B^2$, so holding their current fixed puts the axial field where crossing is hardest,
+    $E_z \propto B_r^2$, and $\varphi$ is that field integrated back from the exit. Pull the peak upstream and
+    more of the fall happens inside the channel, where the <span class="hl-ion">ions</span> it produces are
+    still close enough to the walls to hit them. Push it downstream and the beam is born outside the channel,
+    more divergent and less well confined. Where designers actually put it, just inside the exit plane, is the
+    settlement between those two.
+    <!-- TODO (skeleton): the 1/B^2 mobility is CLASSICAL, and this page's own sibling admits
+         that measured cross-field transport is anomalous and much faster. The shape here is
+         therefore qualitatively right and quantitatively soft. Either state that inside the
+         figure or fit the profile to a published axial potential measurement (Haas and
+         Gallimore's emissive-probe maps of the SPT-100 are the standard reference) and cite
+         it. Also: the Gaussian B(z) is a stand-in. The real profile comes from the magnetic
+         circuit in build_thruster.py and could be computed from it. -->
+  </p>
+</div>
+
+<!-- ════════════════════ 3D VIEWER ════════════════════
+     The viewer's own Potential stage, which is what this slot held a placeholder for. It is the
+     figure above, moved onto the hardware: the same Gaussian B_r, the same E_z proportional to
+     B_r squared, the same phi integrated back from downstream, the same three readouts by the
+     same definitions - but authored in model millimeters and projected through the section
+     camera, so every feature lands on the part that causes it. One model, two figures, which is
+     the only way a page and its viewer can be kept from disagreeing about where the thruster
+     accelerates. -->
+<div class="theory-block applet-host">
+  <div class="th-hdr">The Axial Potential on the Hardware</div>
+  <iframe class="applet-frame" src="hall_thruster.html?mode=potential&amp;v=4"
+          title="Axial potential and radial magnetic field registered against the thruster cross-section"
+          loading="lazy"></iframe>
+  <p class="fig-caption">
+    The plot is drawn IN the thruster, on the thruster's own axis: the two dashed planes are the real
+    <span class="key">anode</span> face and the real <span class="key">exit plane</span>, and the shaded band is
+    the middle 80% of the fall. Notice where it lands. Roughly two thirds of the
+    <span class="hl-phi">potential</span> drop is inside the channel and the last third is out in the
+    <span class="hl-ion">beam</span>, in open plasma with no hardware anywhere near it. Switch to
+    <span class="key">Electron potential</span> and the same curve is climbed the other way, from the
+    <span class="key">cathode</span> up to the <span class="key">anode</span>, and it only gets back to where it
+    started by going round the outside through the supply, which is the
+    <a class="applet-link" href="HT_Overview_applet.html#viewer">circuit diagram</a> drawn as a potential
+    instead of as wires. Switch to
+    <span class="key">Radial field</span> and the reason the band sits where it does is underneath it: the peak of
+    <span class="hl-B">B<sub>r</sub></span>. Drag that peak and the band goes with it.
+    <!-- TODO (skeleton): the profile is the classical closure, so it is qualitatively right and
+         quantitatively soft; the panel's own footer note says so. Fit it to a published axial
+         potential measurement (Haas and Gallimore's emissive-probe maps of the SPT-100) and cite
+         it, and take the 150 G peak and the 15 V coupling voltage from the same source rather
+         than leaving them as round numbers of the right order. -->
+  </p>
+</div>
+
+<!-- ════════════════════ THE CIRCUIT ════════════════════ -->
+<div class="transition-line">
+  Read the same thing a second way. Not as a profile an ion falls down, but as a set of supplies that each have
+  to close a circuit.
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">The Supplies, and What Each One Closes</div>
+  <p class="th-body">
+    <!-- TODO: one paragraph per supply, in the shape GIE_Potential_applet.html uses:
+           - discharge supply, anode positive with respect to cathode, carries the discharge
+             current, does essentially all the accelerating work
+           - cathode heater, used to start and then usually turned off in steady state
+           - keeper, holds the cathode discharge alive
+           - magnet coil supply, sets B and therefore sets where the potential falls, which is
+             the loop back to the top of this page
+         Then say which of these a student would be surprised to find is NOT in the ion's path. -->
+    TODO: the <span class="key">discharge supply</span>, the <span class="key">cathode heater</span>, the
+    <span class="key">keeper</span>, and the <span class="key">magnet coils</span>. The last of these is the one
+    that makes this page circular in a useful way: it sets <span class="hl-B">B</span>, and
+    <span class="hl-B">B</span> sets where the <span class="hl-phi">potential</span> falls.
+  </p>
+</div>
+
+<!-- ════════════════════ WHY THE BEAM FALLS SHORT ════════════════════
+     This slot used to hold the CIRCUIT DIAGRAM figure (hall_thruster.html?circuit=1). That
+     figure is gone rather than moved, and deliberately: the potential viewer directly above it
+     already draws the same loop as a potential, and its caption says so, so the schematic was
+     the page's third consecutive framing of one circuit. The overlay itself is untouched and is
+     still reachable from the Overview page's viewer, which is the only one in the series
+     carrying the full switch panel; the link in the caption above points there. -->
+<div class="transition-line">
+  So the supply holds a few hundred volts and the field decides where they fall. Now ask what the beam
+  actually leaves with, which turns out not to be either of those numbers.
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Why the Beam Energy Is Less Than the Discharge Voltage</div>
+  <p class="th-body">
+    A reader who has followed the profile this far can be forgiven for expecting an
+    <span class="hl-ion">ion</span> to arrive with $eV_\mathrm{d}$ of energy. None of them do, and there are two
+    separate reasons stacked on top of each other.
+  </p>
+  <p class="th-body">
+    The first is the <span class="key">cathode coupling voltage</span> from
+    <a class="applet-link" href="HT_Neutralization_applet.html">the previous page</a>. The cathode floats below
+    the plasma it feeds, so the supply's $V_\mathrm{d}$ is measured anode-to-cathode while the fall an ion
+    actually gets is anode-to-plume. The difference, $V_\mathrm{cc}$, is voltage the supply pays for and no
+    <span class="hl-ion">ion</span> ever falls through. It is around 5% at the profile's default settings, and it
+    is a ceiling rather than a spread: it applies to every ion equally, including one born on the anode itself.
+  </p>
+  <p class="th-body">
+    The second is the one <a class="applet-link" href="HT_Acceleration_applet.html">the acceleration page</a>
+    raised and could not yet put a number on. An ion is created wherever its parent
+    <span class="hl-neutral">neutral</span> happened to be ionized, and if that station is partway down the fall
+    then the ion only gets the part below it. So the exhaust does not leave at one energy. It leaves with a
+    <span class="key">distribution</span> of energies, $f(\varphi)$, and $f$ is not a second thing to be
+    measured: it is the ionization rate along the channel pushed through the very curve above, since
+    $f(\varphi)\,d\varphi = \dot n_i(z)\,dz$ with $\varphi = \varphi(z)$. Move the field peak and you have moved
+    $\varphi(z)$, which moves $f$, whether you meant to or not.
+  </p>
+  <p class="th-body">
+    Both losses are factors in the same product. Writing the thrust efficiency out and grouping the terms by
+    what each one penalizes<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup> gives
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Thrust efficiency, factored</span>
+    $$ \boxed{\;\eta \;=\;
+       \underbrace{\left(\frac{\textcolor{#9aa3b2}{\dot m_i}}{\textcolor{#9aa3b2}{\dot m}}\right)}_{\eta_u}\;
+       \underbrace{\left(\frac{\textcolor{#3DBFFF}{I_B}}{\textcolor{#F5C518}{I_a}}\right)}_{\eta_a}\;
+       \underbrace{\left(\int_0^1 \sqrt{\varphi}\,f(\varphi)\,d\varphi\right)^{\!2}}_{\eta_E}\;} $$
+    <span class="eq-caption">$\varphi$ is the birth potential normalized on the discharge voltage, so
+      every factor is at most one.</span>
+  </div>
+  <p class="th-body">
+    Each factor is less than one, and each is the unfinished business of a different page in this series.
+    <span class="key">Utilization</span> $\eta_u$ is propellant that left as gas, which is
+    <a class="applet-link" href="HT_Buzzsaw_applet.html">the Hall current's</a> job to prevent.
+    <span class="key">Anode efficiency</span> $\eta_a$ is <span class="hl-electron">electrons</span> that crossed
+    the field to the anode and were paid for at the full discharge voltage without pushing anything, which is
+    what the <span class="hl-B">magnetic field</span> exists to make hard.
+    <span class="key">Energy efficiency</span> $\eta_E$ is the spread this page has just accounted for, and it is
+    the only one of the three that is a functional of a distribution rather than a ratio of two numbers.
+  </p>
+  <p class="th-body">
+    The <a class="applet-link" href="../gridded_ion/GIE_Potential_applet.html">gridded engine</a> is the useful
+    contrast on the third factor, because it has almost no third factor. Essentially every
+    <span class="hl-ion">ion</span> there is born in the discharge chamber and starts its fall at the
+    <span class="key">screen grid</span>, so $f(\varphi)$ is very nearly a spike, the integral is very nearly
+    one, and $\eta_E$ is not a quantity anyone has to draw. That is what a hardware-defined starting potential
+    buys you. Giving it up is part of the price of
+    <a class="applet-link" href="HT_Acceleration_applet.html">escaping the space-charge limit</a>: accelerating
+    through a plasma instead of between two grids means the plasma decides where each ion enters the field, and
+    nothing in the thruster is holding it to one answer.
+  </p>
+</div>
+
+<!-- ════════════════════ EFFICIENCY ════════════════════
+     A stage of the same viewer (?mode=efficiency), framed about twice as close as the Potential
+     stage above and cropped to the upper half of the section, because the whole argument happens
+     between the anode face and a few centimeters past the exit plane.
+
+     It is on THIS page and not a page of its own because f(phi) is the subject of both, and
+     because eta_E cannot be computed without the fall this page has just derived. The stage does
+     not re-derive it: it calls the Potential stage's own potPhi/potFrac, so the two figures bin
+     and draw the same curve and cannot drift apart. -->
+<div class="theory-block applet-host" id="efficiency-fig">
+  <div class="th-hdr">What the Spread Costs</div>
+  <iframe class="applet-frame" src="hall_thruster.html?mode=efficiency&amp;v=4"
+          title="Ion birth potential, propellant utilization and the discharge current split, drawn on the thruster cross-section"
+          loading="lazy"></iframe>
+  <p class="fig-caption">
+    Three views of one model, with the panel reporting all four numbers on every one of them. On
+    <span class="key">Birth potential</span>, every <span class="hl-ion">ion</span> appears ON the curve at the
+    height its birth station maps to and rides the rest of the fall down; the bars up the right-hand edge are
+    those heights counted into bins, which is to say they are $f(\varphi)$ and they are nothing but this scatter
+    projected sideways. Drag <span class="key">Zone center</span> upstream, away from the fall, and the bars
+    gather at the top and $\eta_E$ climbs: that separation of the ionization region from the acceleration region
+    is the design principle, not an accident of the model. Drag it downstream into the fall and the distribution
+    smears down the axis. <span class="key">Propellant</span> is the same ionization rate read the other way, as
+    a bite taken out of the <span class="hl-neutral">neutral</span> flux, and whatever is still gas at the
+    right-hand edge is the $1-\eta_u$ that left at a few hundred meters per second.
+    <span class="key">Currents</span> is the split the equation above calls $I_B/I_a$, with the leak drawn as
+    what it physically is: <span class="hl-electron">electrons</span> crossing the acceleration band the wrong
+    way to reach the anode.
+    <!-- TODO (skeleton): three quantitative gaps, all named in the panel's own footer note.
+         (1) The back-streaming law is 1/B^2 from classical mobility, calibrated to land eta_a
+         near 0.77 at 150 G. Real cross-field transport is anomalous and much faster, and this
+         is the one factor where that matters most; fit it to a published I_b/I_d curve
+         (Hofer's SPT-100 / NASA-173Mv2 performance maps) and cite it.
+         (2) The ionization zone is a free Gaussian with a strength slider. It could be computed
+         from the same magnetic circuit the field profile comes from, since T_e peaks where B
+         does and that is what sets <sigma v>.
+         (3) The product is three factors, not five: beam divergence and multiply-charged ions
+         are missing, which is why it reads high against a flown thruster's ~50%. Add both as
+         a fourth and fifth factor, or state the omission inside the figure rather than only in
+         the panel footer. -->
+  </p>
+</div>
+
+<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Conceptual Questions</div>
+
+  <details class="clarify-detail">
+    <summary>If the accelerating field is set by where the magnetic field peaks, what happens to the thruster
+    when the magnet current is changed at a fixed discharge voltage?</summary>
+    <div class="clarify-body">
+      <!-- TODO: the acceleration region moves and changes shape, which moves where ions are
+           born relative to where they are accelerated, which changes divergence, wall
+           impingement and efficiency. This is the hook for the magnetic-lens applet, so
+           forward-reference it once that page exists. -->
+      TODO. This is the hook for a magnetic lens and shielding page.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════════ SOURCES ════════════════════
+     TODO: same as the other stage pages. -->
+
+<footer>
+  <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+    <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+  </a>
+  <div class="foot-title">Propulsion Applets 2026</div>
+  <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
+</footer>
+
+<!-- ════════════════════ FIGURE: MOVE THE FIELD, MOVE THE FALL ════════════════════
+     Skeleton. E_z proportional to B_r squared is the classical-mobility closure and
+     is the only physics in here; everything else is arithmetic on it. -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('mf-svg');
+  if (!svg) return;
+
+  const $ = id => document.getElementById(id);
+  const el = {
+    band: $('mf-band'), bandA: $('mf-band-a'), bandB: $('mf-band-b'),
+    bfill: $('mf-bfill'), bline: $('mf-bline'),
+    handle: $('mf-handle'), handleLbl: $('mf-handle-lbl'), hit: $('mf-hit'),
+    efill: $('mf-efill'), phi: $('mf-phi'),
+    phiMid: $('mf-phi-mid'), phiTop: $('mf-phi-top'),
+    zpk: $('mf-zpk'), bmax: $('mf-bmax'), sig: $('mf-sig'), vd: $('mf-vd'),
+    zpkVal: $('mf-zpk-val'), bmaxVal: $('mf-bmax-val'), sigVal: $('mf-sig-val'), vdVal: $('mf-vd-val'),
+    oBand: $('mf-o-band'), oLen: $('mf-o-len'), oEmax: $('mf-o-emax'),
+    oInside: $('mf-o-inside'), oInsideSub: $('mf-o-inside-sub')
+  };
+
+  const Z_MAX = 30;          // mm of channel plus near plume that the axis covers
+  const Z_EXIT = 20;         // mm, exit plane
+  const X0 = 80, X1 = 860;
+  const B_TOP = 250;         // G, full scale of the upper panel
+  const BY0 = 50, BY1 = 200; // upper panel, top and baseline
+  const PY0 = 300, PY1 = 490;
+  const N = 600;
+
+  const xOf = z => X0 + z / Z_MAX * (X1 - X0);
+  const zOf = x => (x - X0) / (X1 - X0) * Z_MAX;
+  const yB  = B => BY1 - Math.min(B, B_TOP) / B_TOP * (BY1 - BY0);
+
+  function draw(){
+    const zpk = +el.zpk.value, bmax = +el.bmax.value, sig = +el.sig.value, Vd = +el.vd.value;
+
+    el.zpkVal.textContent  = zpk.toFixed(1) + ' mm';
+    el.bmaxVal.textContent = bmax + ' G';
+    el.sigVal.textContent  = sig.toFixed(2) + ' mm';
+    el.vdVal.textContent   = Vd + ' V';
+
+    /* Sample B(z), then E(z) proportional to B(z)^2 normalized so the whole
+       discharge voltage falls across the sampled length. phi is E integrated
+       back from the exit; the running integral is the cumulative fall. */
+    const dz = Z_MAX / N;
+    const B = new Float64Array(N + 1), E = new Float64Array(N + 1), cum = new Float64Array(N + 1);
+    let area = 0;
+    for (let i = 0; i <= N; i++){
+      const z = i * dz;
+      B[i] = bmax * Math.exp(-((z - zpk) ** 2) / (2 * sig * sig));
+      E[i] = B[i] * B[i];
+      area += E[i] * dz;
+    }
+    const scale = Vd / area;                       // V per mm per unit of B^2
+    let run = 0;
+    for (let i = 0; i <= N; i++){
+      E[i] *= scale;                               // V/mm
+      run += E[i] * dz;
+      cum[i] = run;                                // volts fallen by z
+    }
+    const eMax = Math.max(...E);
+
+    // ── Upper panel: B
+    let bl = '', bf = 'M ' + X0 + ' ' + BY1;
+    for (let i = 0; i <= N; i++){
+      const x = xOf(i * dz).toFixed(1), y = yB(B[i]).toFixed(1);
+      bl += (i ? ' L ' : 'M ') + x + ' ' + y;
+      bf += ' L ' + x + ' ' + y;
+    }
+    bf += ' L ' + X1 + ' ' + BY1 + ' Z';
+    el.bline.setAttribute('d', bl);
+    el.bfill.setAttribute('d', bf);
+    el.handle.setAttribute('cx', xOf(zpk));
+    el.handle.setAttribute('cy', yB(bmax));
+    el.handleLbl.setAttribute('x', xOf(zpk));
+    el.handleLbl.setAttribute('y', yB(bmax) - 14);
+    el.handleLbl.textContent = zpk.toFixed(1) + ' mm';
+
+    // ── Lower panel: phi and E
+    const yPhi = v => PY1 - v / Vd * (PY1 - PY0);
+    const yE   = e => PY1 - e / (eMax * 1.12) * (PY1 - PY0);
+    let pl = '', ef = 'M ' + X0 + ' ' + PY1;
+    for (let i = 0; i <= N; i++){
+      const x = xOf(i * dz).toFixed(1);
+      pl += (i ? ' L ' : 'M ') + x + ' ' + yPhi(Vd - cum[i]).toFixed(1);
+      ef += ' L ' + x + ' ' + yE(E[i]).toFixed(1);
+    }
+    ef += ' L ' + X1 + ' ' + PY1 + ' Z';
+    el.phi.setAttribute('d', pl);
+    el.efill.setAttribute('d', ef);
+    el.phiTop.textContent = Vd;
+    el.phiMid.textContent = Math.round(Vd / 2);
+
+    /* Acceleration region: where the middle 80% of the fall happens. Reading it off
+       the running integral rather than off a threshold on E keeps it meaningful when
+       the peak is pushed far enough out that part of the fall leaves the axis. */
+    const at = frac => {
+      const target = frac * Vd;
+      for (let i = 1; i <= N; i++) if (cum[i] >= target){
+        const t = (target - cum[i-1]) / (cum[i] - cum[i-1]);
+        return (i - 1 + t) * dz;
+      }
+      return Z_MAX;
+    };
+    const zA = at(0.10), zB = at(0.90);
+    el.band.setAttribute('x', xOf(zA));
+    el.band.setAttribute('width', Math.max(0, xOf(zB) - xOf(zA)));
+    el.bandA.setAttribute('x1', xOf(zA)); el.bandA.setAttribute('x2', xOf(zA));
+    el.bandB.setAttribute('x1', xOf(zB)); el.bandB.setAttribute('x2', xOf(zB));
+
+    // Share of the fall that happens upstream of the exit plane
+    const iExit = Math.round(Z_EXIT / dz);
+    const inside = cum[iExit] / Vd * 100;
+
+    el.oBand.textContent = zA.toFixed(1) + ' to ' + zB.toFixed(1);
+    el.oLen.textContent  = (zB - zA).toFixed(1);
+    el.oEmax.textContent = eMax.toFixed(1);
+    el.oInside.textContent = inside.toFixed(0) + '%';
+    el.oInside.style.color = inside > 85 ? '#ff8e8e' : (inside < 40 ? '#ff8e8e' : '#51cf66');
+    el.oInsideSub.textContent = inside > 85 ? 'ions born deep in the channel, wall losses climb'
+                              : inside < 40 ? 'the beam is born outside, poorly confined'
+                              : '% of the drop upstream of the exit';
+  }
+
+  /* Dragging the peak is the point of the figure, so the whole upper panel is a
+     drag surface. The slider stays the source of truth, which keeps the control
+     keyboard-reachable and the two from disagreeing. */
+  let dragging = false;
+  const setFromEvent = ev => {
+    const r = svg.getBoundingClientRect();
+    const x = (ev.clientX - r.left) / r.width * 900;
+    const z = Math.max(+el.zpk.min, Math.min(+el.zpk.max, zOf(x)));
+    el.zpk.value = Math.round(z * 2) / 2;
+    draw();
+  };
+  el.hit.addEventListener('pointerdown', ev => {
+    dragging = true;
+    el.hit.setPointerCapture(ev.pointerId);
+    setFromEvent(ev);
+  });
+  el.hit.addEventListener('pointermove', ev => { if (dragging) setFromEvent(ev); });
+  el.hit.addEventListener('pointerup',   ev => { dragging = false; el.hit.releasePointerCapture(ev.pointerId); });
+
+  [el.zpk, el.bmax, el.sig, el.vd].forEach(s => s.addEventListener('input', draw));
+  draw();
+})();
+</script>
+
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+
+/* ── Single-answer multiple choice ─────────────────────────────── */
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct on every count.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
+  });
+});
+</script>
+</body>
+</html>

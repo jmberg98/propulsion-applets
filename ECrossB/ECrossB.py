@@ -316,7 +316,7 @@ input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
   </label>
   <label class="chk m-only drift hide" for="chk-drift">
     <input type="checkbox" id="chk-drift" checked>
-    Show drift <b style="color:#66bb6a">v<sub>d</sub></b>
+    Show drift <b style="color:#66bb6a">v<sub>E&#215;B</sub></b>
   </label>
   <label class="chk" for="chk-fe">
     <input type="checkbox" id="chk-fe">
@@ -346,7 +346,7 @@ input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
       <tr class="r-accel"><td>&#916;V [V]</td>        <td id="A-dV">&#x2014;</td><td class="col-B hide">&#x2014;</td></tr>
       <tr class="r-accel"><td>a [m/s&#178;]</td>      <td id="A-acc">&#x2014;</td><td class="col-B hide">&#x2014;</td></tr>
       <!-- drift rows -->
-      <tr class="r-drift hide"><td>v<sub>drift</sub> [m/s]</td><td id="A-vd">&#x2014;</td><td id="B-vd" class="col-B hide">&#x2014;</td></tr>
+      <tr class="r-drift hide"><td>v<sub>E&#215;B</sub> [m/s]</td><td id="A-vd">&#x2014;</td><td id="B-vd" class="col-B hide">&#x2014;</td></tr>
       <tr class="r-drift hide"><td>&#969;<sub>c</sub> [rad/s]</td><td id="A-wc">&#x2014;</td><td id="B-wc" class="col-B hide">&#x2014;</td></tr>
       <tr class="r-drift hide"><td>r<sub>L</sub> [m]</td>        <td id="A-rL">&#x2014;</td><td id="B-rL" class="col-B hide">&#x2014;</td></tr>
       <tr class="r-drift hide"><td>T<sub>c</sub> [s]</td>        <td id="A-Tc">&#x2014;</td><td id="B-Tc" class="col-B hide">&#x2014;</td></tr>
@@ -357,7 +357,7 @@ input[type="range"]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
     <div class="row"><span class="sw" style="background:#ff7043"></span><b id="leg-A">Particle</b></div>
     <div class="row col-B hide"><span class="sw" style="background:#4fc3f7"></span>Electron</div>
     <div class="row"><span class="sw" style="background:#ffd54f"></span>v velocity</div>
-    <div class="row drift hide"><span class="sw" style="background:#66bb6a"></span>v<sub>d</sub> E&#215;B drift</div>
+    <div class="row drift hide"><span class="sw" style="background:#66bb6a"></span>v<sub>E&#215;B</sub> drift</div>
     <div class="row"><span class="sw" style="background:#ef5350"></span><b style="color:#ef5350">E</b> field</div>
     <div class="row drift hide"><span class="sw" style="background:#5c6bc0"></span><b style="color:#5c6bc0">B</b> field (out of screen)</div>
   </div>
@@ -538,7 +538,7 @@ function makeParticle(color, sphereScale) {
     const s = makeTextSprite(txt, hex, SCENE_R*0.24); s.visible = false; scene.add(s); return s;
   };
   p.velLabel   = mkLabel('v',     '#ffd54f');
-  p.driftLabel = mkLabel('v_d',   '#66bb6a');
+  p.driftLabel = mkLabel('v_E×B', '#66bb6a');
   p.feLabel    = mkLabel('F_E',   '#ef5350');
   p.fbLabel    = mkLabel('F_B',   '#5c6bc0');
   p.fnetLabel  = mkLabel('F_net', '#ffffff');

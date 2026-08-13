@@ -745,7 +745,7 @@ footer .foot-cred {
 
   $$
   \boxed{\;
-  \textcolor{#3DBFFF}{\vec{v}_d}
+  \textcolor{#3DBFFF}{\vec{v}_{E\times B}}
   =
   \frac{\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}}{\textcolor{#00DDB5}{B}^2}
   \;}
@@ -770,21 +770,21 @@ footer .foot-cred {
         $$
 
         <span class="eq-note">
-          Suppose $\textcolor{#3DBFFF}{\vec{v}} = \textcolor{#3DBFFF}{\vec{v}_L}(t) + \textcolor{#3DBFFF}{\vec{v}_d}$,
+          Suppose $\textcolor{#3DBFFF}{\vec{v}} = \textcolor{#3DBFFF}{\vec{v}_L}(t) + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}$,
           where $\textcolor{#3DBFFF}{\vec{v}_L}(t)$ is time-varying cyclotron motion about the
-          <span class="hl-B">magnetic field</span> and $\textcolor{#3DBFFF}{\vec{v}_d}$ is constant motion assumed
+          <span class="hl-B">magnetic field</span> and $\textcolor{#3DBFFF}{\vec{v}_{E\times B}}$ is constant motion assumed
           perpendicular to the magnetic field.
         </span>
 
         <span class="eq-step-label">Decompose the velocity</span>
         $$
-        \textcolor{#FF4400}{m}\,\frac{d}{dt}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_d}\right)
+        \textcolor{#FF4400}{m}\,\frac{d}{dt}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\right)
         = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\vec{E}}
-        + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_d}\right)\times\textcolor{#00DDB5}{\vec{B}}
+        + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\right)\times\textcolor{#00DDB5}{\vec{B}}
         $$
         $$
         \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}_L}}{dt} + 0
-        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)
         + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)
         $$
 
@@ -794,13 +794,13 @@ footer .foot-cred {
         $$
         $$
         \cancel{\textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)}
-        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)
         + \cancel{\textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)}
         $$
         $$
-        0 = \cancel{\textcolor{#C060FF}{q}}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        0 = \cancel{\textcolor{#C060FF}{q}}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)
         \;\Longrightarrow\;
-        \textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}} = 0
+        \textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}} = 0
         $$
 
         <div class="eq-divider"></div>
@@ -808,24 +808,24 @@ footer .foot-cred {
         <span class="eq-step-label">Take the cross product of both sides with $\textcolor{#00DDB5}{\vec{B}}$</span>
         $$
         \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
-        + \left(\textcolor{#3DBFFF}{\vec{v}_d}\times\textcolor{#00DDB5}{\vec{B}}\right)\times\textcolor{#00DDB5}{\vec{B}} = 0
+        + \left(\textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)\times\textcolor{#00DDB5}{\vec{B}} = 0
         $$
 
         <span class="eq-step-label">Use the vector identity $(\vec{A}\times\vec{B})\times\vec{C} = \vec{B}(\vec{A}\cdot\vec{C}) - \vec{A}(\vec{B}\cdot\vec{C})$</span>
         $$
         \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
-        + \textcolor{#00DDB5}{\vec{B}}\underbrace{\left(\textcolor{#3DBFFF}{\vec{v}_d}\cdot\textcolor{#00DDB5}{\vec{B}}\right)}_{=\,0}
-        - \textcolor{#3DBFFF}{\vec{v}_d}\left(\textcolor{#00DDB5}{\vec{B}}\cdot\textcolor{#00DDB5}{\vec{B}}\right) = 0
+        + \textcolor{#00DDB5}{\vec{B}}\underbrace{\left(\textcolor{#3DBFFF}{\vec{v}_{E\times B}}\cdot\textcolor{#00DDB5}{\vec{B}}\right)}_{=\,0}
+        - \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\left(\textcolor{#00DDB5}{\vec{B}}\cdot\textcolor{#00DDB5}{\vec{B}}\right) = 0
         $$
         $$
         \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
-        - \textcolor{#3DBFFF}{\vec{v}_d}\,\textcolor{#00DDB5}{B}^2 = 0
+        - \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\,\textcolor{#00DDB5}{B}^2 = 0
         $$
 
         <span class="eq-step-label">Solve for the drift velocity</span>
         $$
         \boxed{\;
-        \textcolor{#3DBFFF}{\vec{v}_d}
+        \textcolor{#3DBFFF}{\vec{v}_{E\times B}}
         =
         \frac{\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}}{\textcolor{#00DDB5}{B}^2}
         \;}

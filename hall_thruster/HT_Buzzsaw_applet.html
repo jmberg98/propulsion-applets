@@ -1,0 +1,3653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hall Thruster I: The Hall Current</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<!-- The buzzsaw figure on this page is a WebGL scene rather than an inline SVG, so the
+     lesson page carries the same three.js pin the viewers do. Same version, same CDN,
+     so a reader who has already loaded hall_thruster.html gets it from cache. -->
+<script type="importmap">
+{ "imports": {
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<style>
+
+:root {
+  /* ── Physics color tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a color mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+.transition-line,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ────────────────────────────────────
+   Color is the ONLY channel these use — never weight, never
+   size. Color answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Color key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.color-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.color-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.color-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 18px;
+}
+.page-intro + .page-intro { margin-top: -4px; }
+
+/* ── Transition line ─────────────────────────────────── */
+.transition-line {
+  font-size: 20.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 6px 0 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY / DROPDOWN SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+/* ── Equation panels ────────────────────────────────
+   Same metrics as the stage pages (GIE_Acceleration), so an
+   equation looks identical wherever the reader meets it.  */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+.deriv-inner p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+/* ── Exemplary engines ──────────────────────────────────
+   Outbound links. The engine name is NOT given a physics
+   color (a link is not a quantity), so it reads in the
+   heading color and signals itself with the underline and
+   the ↗ glyph instead.                                   */
+.ex-list { list-style: none; }
+.ex-item { padding: 12px 0 2px; border-top: 1px solid var(--border); }
+.ex-item:first-child { padding-top: 0; border-top: none; }
+.ex-name {
+  font-size: 20.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+.ex-name a {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid #3a3a3a;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ex-name a:hover { color: #ffffff; border-bottom-color: var(--c-accent); }
+.ex-name a:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 3px; }
+.ex-name .ext {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 5px;
+  vertical-align: 1px;
+}
+/* Spec strip: the numbers this lesson's equations actually predict. */
+.ex-specs {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .2px;
+  margin-bottom: 5px;
+}
+.ex-specs .sep { color: #3a3a3a; margin: 0 7px; }
+/* Hardware photo. The two NASA shots are landscape and portrait respectively,
+   so bound them by HEIGHT; matching widths would make the portrait tower over
+   the landscape one. */
+.ex-fig {
+  margin: 10px 0 4px;
+  /* Caption beside the photo, not under it: the page is up to 1500px wide and a
+     height-bounded photo leaves most of that empty. Stacks below 900px. */
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+.ex-fig img {
+  display: block;
+  max-height: 300px;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-canvas);
+}
+.ex-fig figcaption {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 460px;
+  padding-bottom: 2px;
+}
+@media (max-width: 900px) {
+  .ex-fig { display: block; }
+  .ex-fig figcaption { margin-top: 6px; max-width: none; }
+}
+.ex-fig .credit {
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: .3px;
+  color: #5f5f5f;
+}
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Embedded viewer / applet iframe ──────────────────
+   The frame is sized by ASPECT, not by a pinned pixel height. It is as wide as the page
+   (--page-w, up to 1500px), so a fixed height letterboxed it: the viewer scales its camera
+   to the shorter dimension, and a 2.4:1 slot left the model small with dead bands either
+   side. An aspect ratio keeps the slot proportionate at every window width; max-height
+   keeps a wide window from pushing it past one screen, min-height keeps a narrow one from
+   collapsing it. */
+.applet-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
+}
+
+/* ── Demo placeholder ───────────────────────────────── */
+.demo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 460px;
+  border-top: 1px solid var(--border);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.012) 0,
+      rgba(255,255,255,0.012) 12px,
+      transparent 12px,
+      transparent 24px
+    ),
+    var(--bg-canvas);
+  text-align: center;
+  padding: 24px;
+}
+.demo-placeholder-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.demo-placeholder-note {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled):not(.selected) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
+}
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ── Citation markers ───────────────────────────────────
+   Deliberately NOT a physics color. Every hl-* token means
+   "which quantity is this?"; a source number is not a
+   quantity, so it takes the neutral chrome accent instead.
+   Otherwise a blue marker would read as a velocity.       */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Reference list ─────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 16px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.15em !important; }
+
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.applet-nav a,
+.applet-nav .nav-disabled {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: var(--bg-panel-1);
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover {
+  border-color: var(--c-accent);
+  background: var(--bg-panel-3);
+  color: var(--text-heading);
+}
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  width          : var(--page-w);
+  margin-top     : 34px;
+  padding-top    : 26px;
+  border-top     : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 12px;
+  text-align     : center;
+  color          : var(--text-muted);
+}
+
+footer .foot-logo {
+  display   : block;
+  height    : 54px;
+  width     : auto;
+  opacity   : 0.88;
+  transition: opacity 0.15s ease;
+}
+footer a:hover .foot-logo { opacity: 1; }
+
+footer .foot-title {
+  font-size     : 17px;
+  letter-spacing: 0.3px;
+  color         : var(--text-secondary);
+}
+
+footer .foot-cred {
+  font-size: 15px;
+  color    : var(--text-muted);
+}
+
+/* ── Inline applet link ───────────────────────────────
+   Lifted from GIE_Ionization_applet.html: the overview page uses
+   .applet-link in its markup but never styled it. */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
+/* ── Static figure (inline SVG plot) ─────────────────
+   Full-bleed inside an .applet-host block so a figure sits
+   in the same frame as a demo iframe. The SVG carries its own
+   #0e0e0e ground, so it needs no background of its own. */
+.fig-frame {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  background: var(--bg-diagram);
+}
+.fig-frame svg { display: block; width: 100%; height: auto; }
+
+/* ── 3-D figure frame ─────────────────────────────────
+   The same slot as .fig-frame, but what fills it is a WebGL
+   canvas with overlays sitting on top of it rather than one
+   inline SVG, so the frame needs a positioning context and the
+   canvas needs an explicit box to fill. The canvas is sized HERE,
+   in CSS, and the renderer is called with updateStyle off, so
+   three.js never writes an inline width that fights this rule.
+   Getting that backwards is what crops the corner overlays: the
+   drawing buffer grows, the element does not, and the canvas
+   overflows the frame instead of fitting it. */
+.bz-frame {
+  position: relative;
+  aspect-ratio: 900 / 470;
+  max-height: 700px;
+  overflow: hidden;
+}
+.bz-frame canvas { display: block; width: 100%; height: 100%; }
+
+/* Scene key. Lives in the panel, where every other legend in this codebase lives, and not
+   over the canvas. One entry now that the fields label themselves, and it is a particle,
+   so the swatch is the viewers' .lg i: a disc with the species glyph inked into it, so the
+   key and the dot it describes are the same object. (The rounded-rectangle swatch the
+   corpus uses for a field line went with the three field rows; larmor's .sw-rect is where
+   to find it again if a field ever needs listing here.) */
+.bz-legend {
+  display: flex; flex-wrap: wrap; gap: 8px 16px;
+  font-size: 15px; color: var(--text-secondary);
+  user-select: none;
+}
+.bz-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.bz-legend i {
+  flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-style: normal; font-size: 11px; font-weight: 800; line-height: 1;
+}
+/* Said in the frame rather than in the caption, because both of these are true only for
+   some switch and slider positions and a caption cannot come and go. They share one slot:
+   the status line reports on the bounce, the note only appears when the bounce is off, so
+   the two can never want the slot at the same time. */
+/* The result, reported in the panel: .ix-status, at its structure and its colors, so
+   "the electron is trapped" reads the same green here as "the beam is quasineutral" does
+   in the viewer's own panel further down this page. Sized up from that chip's 12.5px
+   because this panel is a lesson-scale 360px, not the viewer's 210px.
+
+   Two states share one slot: the status line reports on the bounce, the note only appears
+   when the bounce is switched off, so the two can never want the slot at once. Both are
+   here rather than in the caption because both are true only for some switch and slider
+   positions, and a caption cannot come and go. */
+.bz-status,
+.bz-note {
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  text-align: center;
+  font-size: 15px; line-height: 1.5; color: var(--text-muted);
+  user-select: none;
+}
+.bz-status { font-weight: 700; }
+.bz-status.ok {
+  color: #7fe0a0;
+  background: rgba(80,200,120,0.10);
+  border-color: rgba(80,200,120,0.30);
+}
+.bz-status.warn {
+  color: #ff9a8e;
+  background: rgba(255,90,70,0.10);
+  border-color: rgba(255,90,70,0.35);
+}
+
+/* Floating field labels — hall_thruster.html's .mlabel.fieldlabel, at its values: no chip
+   border and no leader, just a darker backing so the colored glyph reads over the hardware.
+
+   These three carry the field colors for the whole figure now that the scene key no longer
+   lists them, and they are the VIEWER's colors (blue B, red E), not the teal and gold the
+   equations above use. That split is the house rule: a mark that names a thing on the
+   canvas agrees with the canvas, and the quantity palette stays in the prose and the
+   KaTeX. It also stops this figure contradicting the thruster in the iframe further down
+   the page, which paints B blue and E red. The drift chip follows the same rule against
+   its own arc, which is white: the drift is not a field, and giving it a fourth saturated
+   hue beside B and E would make it look like one. */
+.bz-annot { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+.bz-flabel {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: rgba(10,12,18,0.66);
+  border: none;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.5);
+  border-radius: 6px;
+  padding: 1px 7px;
+  font: 600 20px 'Barlow', sans-serif;
+  font-style: italic;        /* the pre-KaTeX fallback; KaTeX slants its own */
+  white-space: nowrap;
+}
+.bz-flabel .katex { color: inherit; }
+.fieldlabel-B { color: #7f92ff; }
+.fieldlabel-E { color: #ff6360; }
+.fieldlabel-D { color: #FFFFFF; }
+
+/* Drag hint — the viewers' #hint, class for class: the pill, the 24px glyph per clause,
+   the "·" between them, and now their bottom-center placement at their 16px too. It sat
+   in larmor's bottom-right corner for as long as the scene key was drawn over the canvas
+   and a centered pill would have run into it; the key lives in the panel with every other
+   legend in this codebase, so the corner is no longer bought by anything. */
+.bz-hint {
+  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 11px;
+  background: rgba(8,8,8,0.82);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 11px 16px;
+  font-size: 15px; color: var(--text-muted);
+  pointer-events: none; user-select: none; z-index: 5;
+}
+.bz-hint svg { width: 24px; height: 24px; color: var(--text-secondary); flex-shrink: 0; }
+.bz-hint .hbit { display: flex; align-items: center; gap: 9px; }
+.bz-hint .hsep { opacity: 0.45; }
+/* Shown only if the context never comes up. A figure that silently renders
+   nothing is worse than one that says why. */
+.bz-fallback {
+  position: absolute; inset: 0;
+  display: none; align-items: center; justify-content: center;
+  padding: 24px; text-align: center;
+  font-size: 17px; font-style: italic; color: var(--text-muted);
+}
+.fig-caption {
+  padding: 11px 18px 15px;
+  font-size: 17.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ── Figure controls and readouts ────────────────────
+   Sliders, toggles and output cells for an inline figure.
+   Ported from the demo panel in specific_impulse_applet.html
+   (.sl-group / .sl-row / .out-cell) rather than redesigned, so
+   a control reads the same whichever page it turns up on. The
+   strip sits between the .fig-frame and the .fig-caption, so
+   the reading order is figure, then knobs, then numbers. */
+.fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 13px 26px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.sl-group {
+  flex: 1 1 250px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sl-label {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.sl-row { display: flex; align-items: center; gap: 8px; }
+.sl-row input[type=range] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--c-accent);
+}
+.sl-val {
+  /* Wide enough that the longest readout THAT CARRIES ITS UNIT ("850 A/m²",
+     8 Courier characters at 17.5px) stays on one line. The corpus sets every
+     number in Courier, and Courier is wide; a box sized to the digits alone
+     wraps the unit onto a second line and the slider row grows a step taller
+     than its neighbours. */
+  flex: 0 0 106px;
+  white-space: nowrap;
+  padding: 3px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 17.5px;
+  text-align: center;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* Toggles carry the same chrome as .quiz-submit; pressed state
+   is the one place a figure control takes an accent color. */
+.fig-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.fig-toggle {
+  padding: 7px 15px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.fig-toggle:hover { background: #232323; border-color: #4a4a4a; }
+.fig-toggle[aria-pressed="true"] {
+  color: var(--text-heading);
+  border-color: #5a5a5a;
+  background: #242424;
+}
+.fig-toggle:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* ── Figure shell: figure left, controls right, results under ──
+   The house arrangement for a demo with its own knobs (design-system §4.5, and
+   specific_impulse_applet.html's demo): the figure takes the room it can use, the
+   controls stand beside it in a fixed column, and the numbers those controls move
+   run underneath in an output bar spanning both. Every figure in this folder that
+   carries controls is built this way, whether what fills the frame is an inline SVG
+   or a WebGL canvas, so a reader who has learned where the knobs live on one page
+   does not have to learn it again on the next. */
+.fig-app {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--border);
+}
+/* Flexes to whatever the panel leaves. min-width:0 lets it shrink below the figure's
+   intrinsic width, which a flex item otherwise refuses to do.
+   Deliberately left on the default align-self:stretch. The figure sets the row's height
+   whenever it is the taller of the two, and the panel stretches to match; when the
+   CONTROLS are taller the frame stretches instead. That leaves a band under a
+   fixed-aspect SVG, and the band is invisible: --bg-diagram and --bg-panel-1 are the
+   same #0e0e0e and the SVGs paint that same ground themselves. Pinning the frame to
+   flex-start instead looks correct until the panel outgrows a CANVAS figure, whose
+   ground is a different tone, and there the band does show. */
+.fig-app > .fig-frame {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border-top: none;
+}
+
+/* 240px, nearly the viewers' 210px panel of switches rather than the 360px the standalone
+   applets give a slider column, because the figure is what the block is for and every
+   pixel not spent here goes to it. What sets the number is the longest slider row: a name
+   and its readout want to stay on one line, and at 15px that is about the 200px of content
+   this width leaves. The panel type drops a step to buy that (see .fig-panel .sl-label),
+   still above the 13px a standalone applet's panel uses. A name too long for the line wraps
+   under its own readout, which is fine; a verdict runs to several lines and is also fine,
+   it is a sentence and not a label.
+   Content is vertically centered against the figure, so a short stack sits level with the
+   figure rather than hanging off the top edge. */
+.fig-panel {
+  flex: 0 0 240px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* 20px between groups, as in both viewers' #panel. Padding is symmetric rather than
+     the panels' 20/20/40: that deep bottom pad exists to keep the last line of a
+     full-height SCROLLING column off the frame edge, and this column is centered in a
+     figure instead, where it would just push everything visibly high. */
+  gap: 20px;
+  padding: 20px 20px;
+  background: var(--bg-panel-1);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+/* The controls keep their markup; in the panel they stack instead of running across. */
+.fig-panel .fig-controls {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  padding: 0;
+  border-top: none;
+  background: none;
+}
+.fig-panel .sl-group { flex: 0 0 auto; min-width: 0; gap: 0; }
+
+/* ── Panel vocabulary ────────────────────────────────────
+   A control column is not a row of controls under a figure, and the corpus styles the
+   two differently. Everything below takes the side-panel treatment its equivalent has
+   in sheath / debye / particle_collisions (the other 360px panels) and in the two
+   viewers, at the type sizes a LESSON page uses for a control column
+   (specific_impulse_applet.html's #rp). Sizes scale with the page; structure and color
+   do not. */
+
+/* Group heading, the viewers' .sect-hdr. A panel with more than one section says so
+   with these; a bare label is what a control row under a figure uses. A column of
+   sliders alone needs no heading, and does not get one. */
+.fig-panel .sect-hdr {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+/* Slider row: [name .......... value] over [track]. sheath's .ix-slider, structure and
+   colors unchanged. The readout is a flex sibling of the name rather than a boxed span
+   beside the track, and it is bare blue bold rather than sitting in a bordered well: a
+   well says "you can type in me", and this is a readout. */
+.fig-panel .sl-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: 2px;
+}
+.fig-panel .sl-val {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--c-ve);
+  /* The readout is a typeable box plus its unit now, so it is a two-part object and has to
+     lay them out. Baseline, not center: the unit is a step smaller than the number and
+     centering would float it. */
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+}
+/* ── Typeable value box ──────────────────────────────────
+   gridded_ion.html's .ix-num / .ix-unit carried across at this page's panel scale rather
+   than redesigned, so a value box looks the same in a lesson figure as it does in the
+   viewers. Every readout on this page that sits on a slider is one of these: it reads as a
+   plain readout until it is hovered or focused, so the panel does not turn into a wall of
+   form fields, but it is a real text input at all times.
+   The unit stays OUTSIDE the input. It is not something the reader types, and leaving it in
+   the field would mean parsing it back out on every commit. */
+.sl-num {
+  width: 46px;
+  padding: 1px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--c-ve);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.sl-num:hover { border-color: #3a3a3a; background: var(--bg-input); }
+.sl-num:focus {
+  outline: none;
+  border-color: var(--c-ve);
+  background: var(--bg-input);
+  color: var(--hi-blue-soft);
+}
+/* Flashed for a moment when what was typed had to be clamped or snapped, so a value
+   silently changing out from under the reader is not the only feedback they get. */
+.sl-num.bad { border-color: #ff6b6b; color: #ff8e8e; }
+.sl-unit {
+  font-family: 'Courier New', monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--c-ve);
+}
+.fig-panel .sl-row { display: block; }
+/* Blue, like the accent on every other slider in this codebase. Grey is what the
+   lesson pages use for a control sitting on the page itself. */
+.fig-panel .sl-row input[type=range] {
+  display: block;
+  width: 100%;
+  accent-color: var(--c-ve);
+  cursor: pointer;
+  /* Height and padding give the thumb a forgiving grab target; sheath's note applies
+     here too, a bare track is ~4px tall and a drag starting a few pixels off does
+     nothing. */
+  height: 22px;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+/* Pills, stacked and full width. A one-of-N chooser stays a row of pills: the switch
+   below is for a layer that is independently on or off, and choosing among five loops
+   is not that. Stacked because five pills wrapping inside a 200px column read as a
+   ragged paragraph of buttons rather than as one control. */
+.fig-panel .fig-toggles { flex-direction: column; gap: 7px; }
+.fig-panel .fig-toggle { width: 100%; text-align: center; }
+
+/* Layer switches, the viewers' .vtog. Keyed off aria-pressed, the toggle-button pattern
+   these figures already maintain, rather than the viewers' .on class, so the switch is
+   driven by the state the page keeps and needs no second source of truth. A switch shows
+   its own state, so its label names the layer and never the action: "Sheath", not
+   "Sheath on", which reads as a lie the moment the switch is off. */
+.fig-panel .vtoglist { display: flex; flex-direction: column; }
+.fig-panel .vtog {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%;
+  font-family: 'Barlow', sans-serif; font-size: 15px; color: var(--text-secondary);
+  background: none; border: none; padding: 7px 0; cursor: pointer;
+  user-select: none; text-align: left;
+  transition: color 0.15s ease;
+}
+.fig-panel .vtog:hover { color: var(--text-heading); }
+.fig-panel .vtog .vsw {
+  flex: 0 0 auto; width: 34px; height: 19px; border-radius: 19px;
+  background: var(--bg-panel-3); border: 1px solid var(--border); position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .vtog .vsw::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.fig-panel .vtog[aria-pressed="true"] { color: var(--text-heading); }
+.fig-panel .vtog[aria-pressed="true"] .vsw { background: var(--c-ve); border-color: var(--c-ve); }
+.fig-panel .vtog[aria-pressed="true"] .vsw::after { transform: translateX(15px); background: #fff; }
+.fig-panel .vtog:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* Reset and friends, the viewers' .btn / .btn-row. */
+.fig-panel .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.fig-panel .btn {
+  flex: 1 1 0;
+  font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 600;
+  padding: 9px 8px;
+  background: var(--bg-panel-2); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 5px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .btn:hover {
+  background: var(--bg-panel-3); color: var(--text-heading); border-color: var(--c-accent);
+}
+.fig-panel .btn:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* Below 980px the panel drops under the figure rather than squeezing it (§4.5). */
+@media (max-width: 980px) {
+  .fig-app { flex-wrap: wrap; }
+  .fig-app > .fig-frame { flex: 1 1 100%; }
+  .fig-panel {
+    flex: 1 1 100%; width: 100%;
+    border-left: none; border-top: 1px solid var(--border);
+  }
+}
+
+.fig-out {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+.fig-out .out-cell {
+  flex: 1 1 0;
+  min-width: 155px;
+  padding: 9px 15px 10px;
+  background: var(--bg-out-cell);
+  border-right: 1px solid var(--border);
+}
+.fig-out .out-cell:last-child { border-right: none; }
+/* Output cells carry the house .out-label / .out-val / .out-sub trio, at the
+   sizes a LESSON page uses (the 9/19/11.5 locked spec is the 210px viewer
+   panel's; a full-width page scales it the way specific_impulse_applet.html
+   already does). The one thing that does NOT scale is the typeface: every
+   number in this corpus is set in Courier New, so these are too. */
+.out-label {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.out-val {
+  font-size: 26px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  /* Cells that name a quantity set their own color inline (§4.6); this is the
+     fallback for the ones that are a bare ratio and belong to no quantity. */
+  color: var(--text-heading);
+}
+.out-sub {
+  font-size: 18.5px;
+  font-family: 'Courier New', monospace;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+/* Result chip, ported from gridded_ion.html's .out-verdict / .ix-status without
+   redesign: a colored box with its text in the body face over a 10% wash of its own
+   hue and a 35% border of it. Scaled to this page the way the out-* trio above it is
+   (12.5px in the 210px viewer panel, 20px on a full-width one).
+   The hue here is the SPECIES rather than the pass/fail trio the viewer uses, because
+   this cell answers one question twice and the two answers are told apart by who they
+   are about. Ion blue and electron yellow already do that everywhere else on the page. */
+.out-verdict {
+  font-size: 20px;
+  font-weight: 700;
+  padding: 12px 10px;
+  border-radius: 6px;
+  text-align: center;
+  line-height: 1.35;
+}
+.out-verdict + .out-verdict { margin-top: 8px; }
+.out-verdict.ion {
+  color: var(--c-ve);
+  background: rgba(61,191,255,0.10);
+  border: 1px solid rgba(61,191,255,0.35);
+}
+.out-verdict.electron {
+  color: var(--c-electron);
+  background: rgba(255,233,77,0.10);
+  border: 1px solid rgba(255,233,77,0.35);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <a class="nav-prev" href="HT_Overview_applet.html">&larr; Prev</a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="HT_Acceleration_applet.html">Next &rarr;</a>
+</nav>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Hall Thruster I: The Hall Current</h1>
+  <span class="badge">Electric Propulsion</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  In the <a class="applet-link" href="../gridded_ion/GIE_Acceleration_applet.html">gridded ion engine</a>, two
+  metal grids held the accelerating <span class="hl-E">field</span>, and the electrons were kept out of the gap
+  by the <span class="key">screen grid</span>. A Hall thruster has no grids. Its
+  <span class="key">anode</span> sits in plain view at the base of an open channel, a couple of centimeters from
+  the exit. Left alone, the <span class="hl-electron">electrons</span> would run straight to it, the discharge
+  would short out, and nothing would accelerate.
+</p>
+
+<div class="color-key">
+  <span class="ck-lead">Color key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+</div>
+
+<p class="page-intro">
+  What stops them is a radial <span class="hl-B">magnetic field</span> laid across the channel. It grips the
+  <span class="hl-electron">electrons</span> and effectively ignores the much heavier
+  <span class="hl-ion">ions</span>, and the trapped electrons end up drifting around the annulus in a closed
+  ring: the <span class="key">Hall current</span>, or in the literature the
+  <span class="key">closed drift</span> that gives this thruster family its other
+  name.<sup class="cite"><a href="HT_Overview_applet.html#ref-2">2</a></sup>
+</p>
+
+<p class="page-intro">
+  On this page we will call that ring the <span class="key">buzzsaw</span>, because an electron in it does not
+  simply circle. It also bounces rapidly in and out along the field, so its path saws back and forth as it goes
+  around, and every <span class="hl-neutral">neutral atom</span> heading down the channel has to pass through
+  the blade. The name is ours, for teaching. If you go looking in the literature, look for
+  <span class="key">closed drift</span> and <span class="key">Hall current</span>.
+</p>
+
+<!-- ════════════════════ 3D VIEWER ════════════════════
+     Moved here from further down the page, and it leads now for a reason: everything below
+     this point is about a field, and a reader who has not yet seen the iron that makes the
+     field has nowhere to put any of it. So the hardware comes first and the physics is hung
+     on it, which is also the order the Overview page uses.
+
+     It is the viewer's own magnetic-circuit overlay framed as a figure - hall_thruster.html
+     ?magcircuit=1 boots into the cross-section with the thruster off, the flux loop on, the
+     control panel gone and the pointer disabled. There is nothing to drive: this is a
+     reference figure, not a demo. The buzzsaw stage the old placeholder here described (one
+     tagged electron gyrating, bouncing and drifting until the three motions add up to the
+     closed Hall current) is still unwritten; when it is written it belongs further down, next
+     to "The Buzzsaw, One Motion at a Time", not in this slot.
+
+     The section is rolled a quarter turn there so the thrust axis runs up the page. See
+     SECTION_ROLL in hall_thruster.html: the silhouette is portrait and this frame is 1.8 : 1,
+     so head on the thruster fills a third of the slot. -->
+<div class="theory-block applet-host" id="mag-fig">
+  <div class="th-hdr">The Hardware the Blade Runs In</div>
+  <iframe class="applet-frame" src="hall_thruster.html?magcircuit=1&amp;v=4"
+          title="Hall thruster cross-section with the magnetic circuit overlay, exit plane at the top"
+          loading="lazy"></iframe>
+  <p class="fig-caption">
+    The cross-section turned on its side, exit plane at the top, with the
+    <span class="key">magnetic circuit</span> drawn on the iron that carries it. The loop is closed and almost
+    all of it is metal: soft iron from the <span class="key">center stem</span> out along the
+    <span class="key">back plate</span>, up one of the four outer legs and back in across the front
+    <span class="key">pole</span>, with a single short gap where it crosses the channel at the exit plane. That
+    gap is the only part of the path that does any work. Everything else is there to get the flux around again
+    as cheaply as possible, so that where the field does cross open space it crosses in one place, radially,
+    exactly where the blade runs. The <span class="key">windings</span> drive it, and the cross and dot marks on
+    them read the usual way: current into the page, and out of it. There is nothing to set here. The controls,
+    the beam and the plume are all switched off so the figure shows one thing.
+  </p>
+</div>
+
+<!-- ════════════════════ Q1: WHAT HOLDS THE ELECTRONS ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">There is no <span class="key">screen grid</span> between the discharge and the anode. What
+    keeps <span class="hl-electron">electrons</span> from crossing the last two centimeters to the
+    <span class="key">anode</span> and shorting out the discharge?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>The anode is recessed at the base of the channel, so most electrons never travel toward it in the first place.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>A radial magnetic field magnetizes them. Their gyroradius is far smaller than the channel, so they are stuck on the field lines and can only work their way across by colliding.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>The axial electric field points the wrong way for electrons, so it pushes them out of the channel before they can reach the anode.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ THREE MOTIONS ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Three Motions, One Electron</div>
+  <p class="th-body">
+    A single <span class="hl-electron">electron</span> in the channel is doing three things at once, and each one
+    has already had an applet of its own. It
+    <a class="applet-link" href="../larmor/larmor_applet.html">gyrates</a> tightly about the radial field line. It
+    slides along that line toward one wall, meets a stronger
+    <span class="hl-B">field</span> near the pole piece, and
+    <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">reflects</a>. And the crossed
+    fields make the whole guiding center
+    <a class="applet-link" href="../ECrossB/ECrossB_applet.html">drift</a> azimuthally.
+  </p>
+  <p class="th-body">
+    What makes the picture tractable is that the three separate cleanly in both time and space.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">1. Gyration about the field line</span>
+    $$ r_{ce} = \frac{m_e \textcolor{#3DBFFF}{v_\perp}}{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}
+       \qquad\qquad \tau_{c} = \frac{2\pi}{\omega_{ce}}
+       = \frac{2\pi m_e}{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}} $$
+
+    <div class="eq-divider"></div>
+
+    <span class="eq-step-label">2. Mirror bounce across the channel, inner pole to outer pole</span>
+    $$ \tau_{b} \approx \frac{2\,w}{\textcolor{#3DBFFF}{v_\parallel}}
+       \qquad\qquad w = r_{out} - r_{in}
+       \qquad\qquad \mu = \frac{m_e \textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
+       = \text{const} $$
+    <span class="eq-caption">The first expression is an estimate and a generous one. It has the electron cross
+      the whole gap at its full parallel speed and turn instantly at the wall, when what actually turns it is the
+      <span class="key">mirror force</span> <span class="hl-B">$-\mu\,\partial B/\partial s$</span>, which slows it
+      the whole way in and reverses it early. The figure below integrates the second expression instead.</span>
+
+    <div class="eq-divider"></div>
+
+    <span class="eq-step-label">3. Azimuthal drift around the annulus</span>
+    $$ \textcolor{#3DBFFF}{v_{E\times B}} = \frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}
+       \qquad\qquad \tau_{d} = \frac{2\pi r_{mid}}{\textcolor{#3DBFFF}{v_{E\times B}}} $$
+  </div>
+
+  <p class="th-body">
+    Put the channel's own numbers in and the separation is stark. Taking the geometry of the model in this lesson
+    (<span class="key">r</span> from 38 to 62 millimeters, so a 24 millimeter channel), a
+    <span class="hl-B">field</span> around 150 gauss at mid-channel, an
+    <span class="hl-electron">electron</span> carrying about 20 electronvolts and roughly 300 volts falling across
+    the last 20 millimeters, the three come out near 0.9 millimeters and 2 nanoseconds, 17 millimeters and 41
+    nanoseconds, and 314 millimeters and 360 nanoseconds. Each stage is roughly an order of magnitude slower and
+    wider than the one before it.
+  </p>
+  <p class="th-body">
+    One quantity has to be named before those numbers mean anything, and the figure below makes it a slider: the
+    <span class="key">pitch angle</span>, which is how the electron's one speed divides between the
+    <span class="hl-ve">$v_\perp$</span> that sets the gyroradius and the <span class="hl-ve">$v_\parallel$</span>
+    that carries it along the field line. They are not independent, and an electron cannot have all of its energy
+    in both. The numbers above are for 60 degrees, which is a typical value and, more to the point, is outside the
+    <span class="key">loss cone</span>, so it describes an electron the <span class="key">mirror</span> can
+    actually hold.
+  </p>
+  <p class="th-body">
+    That ordering is not a coincidence of this thruster. It is the
+    <span class="key">guiding-center hierarchy</span>, one timescale per adiabatic invariant, and a Hall thruster
+    is an unusually clean place to see all three at once.
+  </p>
+</div>
+
+<!-- ════════════════════ COUNTING THE TEETH ════════════════════ -->
+<div class="transition-line">
+  If an electron bounces radially far faster than it travels around the annulus, then its path around the channel
+  is not a circle. It is a sawtooth. So how many teeth does the blade have?
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Counting the Teeth</div>
+  <p class="th-body">
+    Divide one lap by one bounce and the answer falls straight out of the two timescales above.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Radial bounces per trip around the annulus</span>
+    $$ \boxed{\;N = \frac{\tau_{d}}{\tau_{b}}
+       = \frac{2\pi r_{mid}}{\textcolor{#3DBFFF}{v_{E\times B}}}
+         \cdot \frac{\textcolor{#3DBFFF}{v_\parallel}}{2\,w}\;} $$
+  </div>
+
+  <p class="th-body">
+    With the numbers quoted above, roughly 360 nanoseconds per lap against 41 nanoseconds per bounce, that is
+    about <b>nine teeth per lap</b>. The blade is a real object with a countable number of teeth, and the count
+    moves when you move the <span class="hl-B">field</span>, the
+    <span class="hl-electron">electron</span>'s energy or its <span class="key">pitch angle</span>.
+  </p>
+  <p class="th-body">
+    It is worth knowing where the larger number you may have seen for this comes from. Estimate the bounce as
+    $\tau_b \approx 2w/v_\parallel$ with the electron's <em>whole</em> speed taken as
+    <span class="hl-ve">$v_\parallel$</span>, and the count comes out nearer twenty. That estimate is not wrong
+    arithmetic; it is a different electron. An electron with all of its energy along the field line has no
+    <span class="hl-ve">$v_\perp$</span>, therefore no <span class="key">magnetic moment</span> to be pushed back
+    by, therefore sits squarely in the <span class="key">loss cone</span> and is on a wall before it has finished
+    a lap. The electrons that stay are the ones carrying most of their energy across the field, and they cross the
+    channel slowly. Fewer teeth, cut deeper, by an electron that is still there to cut them.
+  </p>
+  <p class="th-body">
+    The figure below builds that blade one motion at a time, on the annulus it actually runs around. One detail
+    it holds still for you: the <span class="hl-electron">electron</span> is also creeping slowly toward the
+    <span class="key">anode</span> the whole time, so the real object is not a flat disk of teeth but a slowly
+    advancing serrated helix. That axial creep is the subject of the
+    <a class="applet-link" href="HT_Acceleration_applet.html">next page</a>.
+  </p>
+</div>
+
+<div class="theory-block applet-host">
+  <div class="th-hdr">The Buzzsaw, One Motion at a Time</div>
+  <div class="fig-app">
+  <div class="fig-frame bz-frame" id="bz-frame">
+    <canvas id="bz-canvas" role="img"
+            aria-label="A Hall thruster seen from above and to one side, its annular discharge
+                        channel glowing, with one electron traced through it. The radial magnetic
+                        field is drawn as three field lines at each of eight stations around the
+                        annulus: a straight one on the exit plane and two arched ones, one bowing
+                        downstream into the plume and one bowing upstream into the channel, all
+                        six converging on the two pole pieces. Three switches add one motion at a
+                        time: the gyration about the field line, drawn as a magnified helix; the
+                        mirror bounce, integrated from the conservation of the magnetic moment so
+                        the electron turns smoothly where the field is strong enough to turn it;
+                        and the azimuthal E cross B drift. With all three switched on the path is
+                        a sawtooth closing on itself around the ring, and its teeth can be
+                        counted directly. Drag to orbit the thruster."></canvas>
+    <div class="bz-fallback" id="bz-fallback">
+      This figure needs WebGL, which this browser has not made available. The three motions and
+      their timescales are set out as equations above.
+    </div>
+    <!-- Floating field labels, positioned each frame from the scene. aria-hidden because
+         the scene key in the panel already names all three as real text. -->
+    <div class="bz-annot" id="bz-annot" aria-hidden="true"></div>
+    <!-- Nothing sits over the canvas but the field labels. A clock reporting simulated
+         time against real time was tried here, then a card disclosing the gyro-orbit's
+         magnification; the output bar carries the three timescales and the orbit's TRUE
+         radius already, and this figure is about the shape of the path, not its scale. -->
+    <!-- Two clauses, not the viewers' three: this figure sets controls.enablePan = false. -->
+    <div class="bz-hint">
+      <span class="hbit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2v20M2 12h20"/>
+          <path d="M12 2l-2.4 2.4M12 2l2.4 2.4"/>
+          <path d="M12 22l-2.4-2.4M12 22l2.4-2.4"/>
+          <path d="M2 12l2.4-2.4M2 12l2.4 2.4"/>
+          <path d="M22 12l-2.4-2.4M22 12l-2.4 2.4"/>
+        </svg><span>Drag to orbit</span>
+      </span>
+      <span class="hsep">·</span>
+      <span class="hbit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="6.5" y="3.75" width="11" height="16.5" rx="5.5"/>
+          <path d="M12 7.4v3.3"/>
+          <path d="M10.3 2.4L12 0.9l1.7 1.5"/>
+          <path d="M10.3 21.6L12 23.1l1.7-1.5"/>
+        </svg><span>Scroll to zoom</span>
+      </span>
+    </div>
+  </div>
+
+  <aside class="fig-panel">
+  <!-- Switch rows, not the pill buttons a control strip under a figure uses: these three
+       add and remove a layer of the scene, which is what the viewers' .vtog answers.
+       They keep aria-pressed, the toggle-button pattern the figure's JS already reads,
+       so the switch and the state have one source of truth between them.
+
+       THREE switches, and only the three motions. The field lines, the field labels and the
+       discharge glow used to have switches of their own and no longer do: they are the
+       setting the three motions happen in, not a fourth, fifth and sixth thing to take
+       apart, and every one of them was on in every state worth looking at. A switch that is
+       never worth throwing is a switch that costs the reader a decision for nothing. They
+       are now simply always drawn. -->
+  <div>
+    <div class="sect-hdr">Take it apart</div>
+    <div class="vtoglist">
+      <button type="button" class="vtog" id="bz-t1" aria-pressed="true">
+        <span>1. Gyration</span><span class="vsw"></span></button>
+      <button type="button" class="vtog" id="bz-t2" aria-pressed="true">
+        <span>2. Mirror bounce</span><span class="vsw"></span></button>
+      <button type="button" class="vtog" id="bz-t3" aria-pressed="true">
+        <span>3. E&times;B drift</span><span class="vsw"></span></button>
+    </div>
+    <div class="btn-row"><button type="button" class="btn" id="bz-reset">Reset view</button></div>
+  </div>
+
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Magnetic Field Strength in Air Gap<span class="sl-val"><input
+             class="sl-num" id="bz-b-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="150"
+             aria-label="Magnetic field strength in the air gap, in gauss"><span
+             class="sl-unit">G</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-b" min="50" max="300" step="5" value="150"
+               aria-label="Magnetic field strength in the air gap, in gauss">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Electron energy<span class="sl-val"><input
+             class="sl-num" id="bz-te-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="20"
+             aria-label="Electron energy in electronvolts"><span
+             class="sl-unit">eV</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-te" min="5" max="40" step="1" value="20"
+               aria-label="Electron energy in electronvolts">
+      </div>
+    </div>
+    <!-- 0 to 90, the whole range the angle can physically take, rather than the 10 to 85 the
+         slider used to allow. Both ends are real electrons and both are worth seeing: at 90
+         the velocity is entirely perpendicular, so the guiding center stands still at
+         mid-channel and there is nothing but gyration, and at 0 it is entirely parallel, so
+         there is no magnetic moment, no mirror, and the electron streams straight into the
+         ceramic. The closed-form bounce is singular at exactly 0, so the physics clamps the
+         angle a twentieth of a degree off it; see recompute(). -->
+    <div class="sl-group">
+      <div class="sl-label">Pitch angle<span class="sl-val"><input
+             class="sl-num" id="bz-pa-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="60"
+             aria-label="Pitch angle at mid-channel, in degrees from the field direction"><span
+             class="sl-unit">&deg;</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-pa" min="0" max="90" step="1" value="60"
+               aria-label="Pitch angle at mid-channel, in degrees from the field direction">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Axial Electric Field Strength<span class="sl-val"><input
+             class="sl-num" id="bz-e-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="15"
+             aria-label="Axial electric field strength in volts per millimeter"><span
+             class="sl-unit">V/mm</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-e" min="5" max="30" step="1" value="15"
+               aria-label="Axial electric field strength in volts per millimeter">
+      </div>
+    </div>
+  </div>
+
+  <!-- The three fields named themselves in the key until they got labels on the canvas.
+       A key entry and a floating label are two answers to one question, and the label is
+       the better one: it is ON the thing it names instead of asking the reader to match a
+       swatch to an arrow. What is left is the electron, which is the one object in the
+       scene with nothing written beside it. -->
+  <div>
+    <div class="sect-hdr">Scene key</div>
+    <div class="bz-legend">
+      <span><i style="background:#ffe94d;color:#2a2405">&minus;</i>electron</span>
+    </div>
+  </div>
+
+  <div class="bz-status" id="bz-status"></div>
+  <div class="bz-note" id="bz-note"></div>
+  </aside>
+  </div>
+
+  <!-- The three quantities the sliders actually set, rather than the five derived ones this
+       bar used to carry. All three are the electron's, so all three take its yellow; the
+       sub-line under each is the definition it is computed from, so the cell says where its
+       number came from without the reader having to scroll back to the equations. Each cell
+       dims with the motion it belongs to: the radius and the frequency describe the gyration,
+       the drift velocity describes the drift. -->
+  <div class="fig-out">
+    <div class="out-cell" id="bz-c-rl">
+      <div class="out-label">Larmor radius</div>
+      <div class="out-val" id="bz-o-rl" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub">r<sub>L</sub> = m<sub>e</sub>v<sub>&perp;</sub> / eB</div>
+    </div>
+    <div class="out-cell" id="bz-c-fc">
+      <div class="out-label">Cyclotron frequency</div>
+      <div class="out-val" id="bz-o-fc" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub">f<sub>ce</sub> = eB / 2&pi;m<sub>e</sub></div>
+    </div>
+    <div class="out-cell" id="bz-c-vd">
+      <div class="out-label">Electron drift velocity</div>
+      <div class="out-val" id="bz-o-vd" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub">v = E&times;B / B&sup2;</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    Three motions, three orders of magnitude, one electron, drawn on the annulus it actually
+    lives in. All three run to start with; switch them off in turn and the blade comes apart,
+    switch them back on in order and it assembles. The bounce is integrated from the conservation
+    of the <span class="key">magnetic moment</span> rather than imposed as a triangle wave, so
+    the electron slows as it climbs into the strong <span class="hl-B">field</span> at a pole and
+    turns smoothly, and it turns <em>early</em>, before the wall, whenever the mirror is strong
+    enough to turn it at all. Take the <span class="key">pitch angle</span> below about 52 degrees
+    and it stops turning early: that is the <span class="key">loss cone</span>, and what sends the
+    electron back is then the <a class="applet-link" href="../sheath/sheath_applet.html">wall
+    sheath</a>, not the mirror. Every place the path reaches the ceramic is marked with a small
+    red-orange &times;, twice a bounce and all the way around, so an electron the
+    <span class="key">mirror</span> cannot hold is not merely labelled as such: you can see where
+    it goes instead, and count the strikes. A confined electron puts none on the figure at all.
+    The slider runs the full 0 to 90 degrees, so both edges of that
+    argument can be looked at directly: at 90 the velocity is entirely across the field, the
+    guiding center stands still at mid-channel and there is nothing left but the gyration, and at
+    0 it is entirely along the field, there is no <span class="key">magnetic moment</span> for the
+    mirror to push back on, and the electron runs flat into the ceramic. Push the pitch angle down
+    toward zero and the teeth per lap climb back toward the twenty that the estimate
+    $\tau_b \approx 2w/v_\parallel$ gives, because that estimate quietly assumes an electron with
+    all of its energy along the field, which is exactly the electron the mirror cannot hold. Count
+    the teeth off the path itself and the point of the whole figure is there to be counted: an
+    <span class="hl-electron">electron</span> that would have crossed the gap once in a straight
+    line covers that distance many times over instead, and it has that many chances to find a
+    <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">neutral</a>
+    before anything collects it. The three cells under the figure are the numbers those teeth are
+    cut from: the radius the <span class="hl-electron">electron</span> gyrates on, the frequency it
+    gyrates at, and the $\vec{E}\times\vec{B}$ drift that carries the whole orbit around the ring.
+    Two things are drawn kindly rather than faithfully, and both are
+    stated on the figure: the gyro-orbit is magnified, since at true scale it is under a
+    millimeter on a thruster 180 millimeters across, and the discharge glow is held below the
+    brightness a photograph would record, because at full strength it buries the path this figure
+    exists to show. The blade is also pinned to the exit plane; in the hardware the electron is
+    creeping slowly toward the <span class="key">anode</span> the whole time, so the real object
+    is a serrated helix.
+    <!-- TODO (skeleton): the mirror profile is a parabolic stand-in, B(s)/B_mid = 1 + (R-1)(2s/w)^2,
+         with R fixed at the 1.63 the prose derives from a 1/r field. That is the right SHAPE
+         (strong at both poles, weakest at mid-channel) and it makes the loss cone come out at
+         the 52 degrees the prose quotes, but it is not this thruster's B(r).
+         Read the profile off build_thruster.py's magnetic circuit instead, and then R stops
+         being a constant and becomes a function of the coil current.
+         Second: one pitch angle and one energy, which the page's own clarifying note says is
+         wrong. The count is a mean over a spread. Draw a band rather than a line.
+         Third: all three output cells are read at MID-CHANNEL, where B is weakest. The Larmor
+         radius and the drift velocity both move by the mirror ratio across the gap, so a single
+         number for either is the value at one point on the bounce and not the value over it. -->
+  </p>
+</div>
+
+<!-- ════════════════════ Q2: WHO IS MAGNETIZED ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">The same <span class="hl-B">magnetic field</span> threads the channel for both species. Why
+    does it confine the <span class="hl-electron">electrons</span> while leaving the
+    <span class="hl-ion">xenon ions</span> free to accelerate straight out?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>The ions carry the opposite sign of charge, so the magnetic force on them points out of the channel.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>Gyroradius grows with mass. A xenon ion is well over a hundred thousand times heavier than an electron, so its gyroradius dwarfs the channel while the electron's is a fraction of a millimeter.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>Ions move too quickly for the field to deflect them.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<div class="theory-block applet-host">
+  <div class="th-hdr">Who Is Magnetized</div>
+  <div class="fig-app">
+  <div class="fig-frame">
+    <svg id="wm-svg" viewBox="0 0 900 610" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="Barlow, sans-serif"
+         aria-label="Top: the discharge channel in section, drawn to scale across and down, showing the
+                     soft-iron pole walls, the boron nitride liner, the anode ring with its gas plenum and
+                     feed, the 24 millimeter channel between the liner faces, and the exit plane with plume
+                     beyond it. Inside the channel the electron's gyro-orbit is a small circle at true size,
+                     and the xenon ion enters flat past the anode with its arc peeling away from the dashed
+                     straight line it came in on. Both radii are labelled together, in the channel.
+                     Bottom: a logarithmic
+                     ruler running seven decades from ten
+                     micrometers to a hundred meters, banded into magnetized below a tenth of the channel
+                     width, marginal, and not magnetized above the channel width. Both gyroradii are marked
+                     on it as species glyphs, and the span between them is braced and labelled with the
+                     ratio.">
+
+      <rect width="900" height="610" fill="#0e0e0e"/>
+
+      <!-- ══ Panel one: the discharge channel in section, drawn to scale ══
+           Not an abstract box any more: this is the r-z section the viewer shows, at the
+           dimensions build_thruster.py builds the model from, and at ONE scale in both
+           directions (8 1/3 px per mm, the scale the 24 mm gap already set down the panel).
+
+             pole walls, soft iron   r 28..33 and 67..72   #7a808b
+             ceramic liner, BN       r 33..38 and 62..67   #eef0ea
+             channel cavity          r 38..62              open: the 24 mm gap
+             anode ring              r 39..61, z 21..31    #3a3f48
+             plenum, feed bore, orifice                    void
+
+           Radially the panel is a window on r 32..68, so a sliver of iron shows past each
+           ceramic wall and the section reads as a crop of the hardware rather than a part
+           floating on its own. Axially it runs z 14, the back plate's front face, to
+           z 107.6, which puts the exit plane at x = 663 and leaves 24 mm of plume past it.
+           Nothing is stretched to fit: the channel really is 65 mm long against a 24 mm
+           gap, and that proportion is what the panel shows.
+
+           The three material colors are the model's own, out of build_thruster.py's
+           palette, so a reader who has scrolled past the viewer meets the same materials
+           in the same tones here. -->
+      <text x="470" y="30" fill="#9a9a9a" font-size="16" text-anchor="middle">Drawn to Scale</text>
+
+      <!-- Pole walls, cropped by the panel edge -->
+      <g fill="#7a808b">
+        <rect x="80" y="100"    width="583.33" height="8.33"/>
+        <rect x="80" y="391.67" width="583.33" height="8.33"/>
+      </g>
+      <!-- Ceramic cup: two side walls, and the back wall closing the upstream end -->
+      <g fill="#eef0ea">
+        <rect x="80" y="108.33" width="583.33" height="41.67"/>
+        <rect x="80" y="350"    width="583.33" height="41.67"/>
+        <rect x="80" y="108.33" width="41.67"  height="283.34"/>
+      </g>
+      <!-- The cavity itself, on the ground this corpus gives a plot area, so an empty
+           region reads as empty. -->
+      <rect x="121.67" y="150" width="541.66" height="200" fill="#131313"/>
+
+      <!-- Propellant feed, bored through the ceramic back wall into the plenum -->
+      <rect x="80" y="216.67" width="58.33" height="33.33" fill="#d5d8e4"/>
+      <rect x="80" y="233.33" width="83.33" height="16.67" fill="#14171c"/>
+      <!-- Anode ring, and the void inside it: plenum up the middle, feed bore in from the
+           left, orifice out to the right. Those three read as one cross, which is exactly
+           what the section shows. -->
+      <rect x="138.33" y="158.33" width="83.33" height="183.34" fill="#3a3f48"/>
+      <g fill="#14171c">
+        <rect x="163.33" y="183.33" width="33.34" height="133.34"/>
+        <rect x="196.67" y="220.83" width="25"    height="58.34"/>
+      </g>
+      <text x="180" y="176" fill="#aab0bb" font-size="13" text-anchor="middle">anode</text>
+
+      <!-- Exit plane: where every wall stops and the plume begins -->
+      <line x1="663.33" y1="100" x2="663.33" y2="400" stroke="#6a6a6a" stroke-width="1.2"
+            stroke-dasharray="5 4"/>
+      <text x="671" y="118" fill="#8a8a8a" font-size="14">exit plane</text>
+
+      <text x="480" y="168" fill="#8a8a8a" font-size="14">outer wall, r = 62 mm</text>
+      <text x="480" y="342" fill="#8a8a8a" font-size="14">inner wall, r = 38 mm</text>
+
+      <!-- Channel-gap dimension, stood off in the plume where it crosses no hardware -->
+      <g stroke="#5a5a5a" stroke-width="1.2">
+        <line x1="700" y1="150" x2="700" y2="350"/>
+        <line x1="694" y1="150" x2="706" y2="150"/>
+        <line x1="694" y1="350" x2="706" y2="350"/>
+      </g>
+      <text x="712" y="254" fill="#8a8a8a" font-size="14">24 mm</text>
+
+      <!-- Scale bar. The gap dimension fixes the scale DOWN the panel; nothing fixed the
+           scale ACROSS it, and the ion's arc is computed in both, so the deflection
+           printed under it is only meaningful once the reader can see that one millimeter
+           is the same length in either direction. -->
+      <g stroke="#5a5a5a" stroke-width="1.2">
+        <line x1="776.67" y1="380" x2="860" y2="380"/>
+        <line x1="776.67" y1="375" x2="776.67" y2="385"/>
+        <line x1="860"    y1="375" x2="860"    y2="385"/>
+      </g>
+      <text x="818" y="398" fill="#8a8a8a" font-size="14" text-anchor="middle">10 mm</text>
+
+      <!-- ══ Xenon ion ══
+           The ion enters at the left edge running flat, and the dashed line is the path
+           it would keep if the field did nothing. The daylight that opens between the
+           two going right IS the whole deflection the field manages over the width
+           drawn, and at these radii there is barely any: that near-straight run against
+           an orbit the panel can hold is the point of the panel. Nothing is exaggerated
+           to make it: the arc is a circle of the radius the label quotes, drawn at the
+           panel's own scale. -->
+      <path id="wm-ion-ref" fill="none" stroke="#4d6b7d" stroke-width="1.3"
+            stroke-dasharray="7 5" d=""/>
+      <path id="wm-ion" fill="none" stroke="#3DBFFF" stroke-width="2.2" d=""/>
+      <!-- Species glyph, the scene key's ⊕ disc, so the arc is identified on itself.
+           Parked just past the anode face, where the ion's run starts. -->
+      <g id="wm-ion-g">
+        <circle id="wm-ion-gd" r="8.5" fill="#3DBFFF"/>
+        <line id="wm-ion-gh" stroke="#05243a" stroke-width="2.3" stroke-linecap="round"/>
+        <line id="wm-ion-gv" stroke="#05243a" stroke-width="2.3" stroke-linecap="round"/>
+      </g>
+      <!-- ══ Electron ══
+           One gyro-orbit at true size, on the channel midline and downstream of the anode,
+           which is where the buzzsaw actually runs. The cross is the guiding center, the
+           thing that stays put; the glyph rides the orbit around it.
+
+           The orbit is drawn face-on. B here is RADIAL, so the real orbit lies across
+           this section rather than in it and would project to a line. Turning it into the page is the only way a size comparison can be made at
+           all, and size is the entire question this figure asks. -->
+      <circle id="wm-e" fill="none" stroke="#ffe94d" stroke-width="2.2" cx="330" cy="250"/>
+      <g id="wm-e-cross" stroke="#8f8a6e" stroke-width="1.2">
+        <line x1="325" y1="250" x2="335" y2="250"/>
+        <line x1="330" y1="245" x2="330" y2="255"/>
+      </g>
+      <g id="wm-e-g">
+        <circle id="wm-e-gd" fill="#ffe94d"/>
+        <line id="wm-e-gh" stroke="#2a2405" stroke-linecap="round"/>
+      </g>
+      <line id="wm-e-lead" x2="414" y2="296" stroke="#6b6552" stroke-width="1.2"/>
+      <text id="wm-e-lbl" x="420" y="300" fill="#ffe94d" font-size="16.5" font-weight="600"></text>
+      <!-- The ion's direct label, stacked with the electron's rather than parked in the
+           top corner: the figure's whole claim is that one radius is nothing like the
+           other, and the two readings make that case only when they sit together. Set
+           on the line above, matching the order of the two arcs in the panel. -->
+      <text id="wm-ion-lbl" x="420" y="276" fill="#3DBFFF" font-size="16.5"
+            font-weight="600"></text>
+
+      <!-- ══ Logarithmic ruler: seven decades, 10 µm to 100 m ══
+           Seven and not the six it used to run: the ion reaches 16 m at the weak-field end
+           of the sliders, and a ruler that stopped at 10 m clamped the marker to the axis
+           end while its label went on climbing, which reads as the ion pinned at 10 m.
+
+           The bands are the rule of thumb the verdict cell already applies, drawn instead
+           of asserted: a species is magnetized when its gyroradius is small against the
+           dimension that has to confine it, and a tenth is where the convention puts the
+           line. They are static, because the channel is 24 mm whatever the sliders do;
+           only the two markers move across them. -->
+
+      <!-- Regions shaded and labelled in their own hue, the way the loss-cone figure
+           shaded its cone: a wash at low opacity with its name sitting in it, sentence
+           case, at the size that figure gave its region label. The three hues are the
+           corpus verdict trio (.out-verdict below / at / over), not the physics tokens. A band is a
+           judgement about a length, not a quantity, so it must not borrow a quantity's
+           color. -->
+      <rect x="80"    y="472" width="265.2" height="26" fill="#51cf66" fill-opacity="0.09"/>
+      <rect x="345.2" y="472" width="111.4" height="26" fill="#ffd06a" fill-opacity="0.08"/>
+      <rect x="456.6" y="472" width="403.4" height="26" fill="#ff8e8e" fill-opacity="0.08"/>
+      <g stroke="#3a3a3a" stroke-width="1">
+        <line x1="345.2" y1="472" x2="345.2" y2="498"/>
+        <line x1="456.6" y1="472" x2="456.6" y2="498"/>
+      </g>
+      <!-- Set high in the strip rather than centered in it: a marker glyph rides the
+           axis at the strip's lower edge and can land anywhere along it, so the band
+           names have to keep out of the bottom eight pixels or the ion sits on a word. -->
+      <g font-size="13.5" text-anchor="middle" opacity="0.8">
+        <text x="212" y="484" fill="#51cf66">magnetized, r &lt; 2.4 mm</text>
+        <text x="401" y="484" fill="#ffd06a">marginal</text>
+        <text x="658" y="484" fill="#ff8e8e">not magnetized, r &gt; the 24 mm gap</text>
+      </g>
+
+      <line x1="80" y1="498" x2="860" y2="498" stroke="#2f2f2f" stroke-width="1.2"/>
+      <g stroke="#2f2f2f" stroke-width="1.2">
+        <line x1="80"     y1="498" x2="80"     y2="505"/>
+        <line x1="191.43" y1="498" x2="191.43" y2="505"/>
+        <line x1="302.86" y1="498" x2="302.86" y2="505"/>
+        <line x1="414.29" y1="498" x2="414.29" y2="505"/>
+        <line x1="525.71" y1="498" x2="525.71" y2="505"/>
+        <line x1="637.14" y1="498" x2="637.14" y2="505"/>
+        <line x1="748.57" y1="498" x2="748.57" y2="505"/>
+        <line x1="860"    y1="498" x2="860"    y2="505"/>
+      </g>
+      <g fill="#7a7a7a" font-size="14.5" text-anchor="middle">
+        <text x="80"     y="521">10 &#181;m</text>
+        <text x="191.43" y="521">100 &#181;m</text>
+        <text x="302.86" y="521">1 mm</text>
+        <text x="414.29" y="521">1 cm</text>
+        <text x="525.71" y="521">10 cm</text>
+        <text x="637.14" y="521">1 m</text>
+        <text x="748.57" y="521">10 m</text>
+        <text x="860"    y="521">100 m</text>
+      </g>
+      <!-- Axis title, in the house form: the name, then the quantity itself set in
+           KaTeX_Math italic so it matches the r_c in the equations above. No unit in
+           parentheses, because the ticks carry four different ones. -->
+      <text x="470" y="547" fill="#9a9a9a" font-size="17" text-anchor="middle">gyroradius
+        <tspan font-family="KaTeX_Math, serif" font-style="italic">r</tspan><tspan
+        font-size="12" dy="4">c</tspan></text>
+
+      <!-- Markers: the species glyphs again, sitting on the axis, so the ruler and the
+           panel above it are visibly about the same two objects.
+           The tick is a stub between the label and the top of the strip rather than a
+           full-height leader down to the glyph: run it the whole way and it draws
+           through whichever band name it happens to pass. Label, stub and glyph share
+           an x, and that alignment is what carries the eye across the band.
+           Each disc takes a ground-colored ring so it separates from the wash it lands
+           on, whichever of the three that turns out to be. -->
+      <g id="wm-mark-e">
+        <line id="wm-mark-e-l" y1="462" y2="472" stroke="#ffe94d" stroke-width="1.4"
+              stroke-dasharray="3 3"/>
+        <circle id="wm-mark-e-d" cy="498" r="8.5" fill="#ffe94d"
+                stroke="#0e0e0e" stroke-width="1.5"/>
+        <line id="wm-mark-e-h" y1="498" y2="498" stroke="#2a2405" stroke-width="2.3"
+              stroke-linecap="round"/>
+        <text id="wm-mark-e-t" y="460" fill="#ffe94d" font-size="15" font-weight="600"
+              text-anchor="middle"></text>
+      </g>
+      <g id="wm-mark-i">
+        <line id="wm-mark-i-l" y1="462" y2="472" stroke="#3DBFFF" stroke-width="1.4"
+              stroke-dasharray="3 3"/>
+        <circle id="wm-mark-i-d" cy="498" r="8.5" fill="#3DBFFF"
+                stroke="#0e0e0e" stroke-width="1.5"/>
+        <line id="wm-mark-i-h" y1="498" y2="498" stroke="#05243a" stroke-width="2.3"
+              stroke-linecap="round"/>
+        <line id="wm-mark-i-v" stroke="#05243a" stroke-width="2.3" stroke-linecap="round"/>
+        <text id="wm-mark-i-t" y="460" fill="#3DBFFF" font-size="15" font-weight="600"
+              text-anchor="middle"></text>
+      </g>
+
+      <!-- The span between the markers, which is the mass ratio at work made into a
+           length. It is also the answer to why this axis is logarithmic at all. -->
+      <path id="wm-brace" fill="none" stroke="#6a6a6a" stroke-width="1.2" d=""/>
+      <text id="wm-brace-t" x="470" y="588" fill="#7a7a7a" font-size="14"
+            text-anchor="middle"></text>
+    </svg>
+  </div>
+
+  <aside class="fig-panel">
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Radial field<span class="sl-val"><input
+             class="sl-num" id="wm-b-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="150"
+             aria-label="Radial magnetic field in gauss"><span
+             class="sl-unit">G</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="wm-b" min="25" max="400" step="5" value="150"
+               aria-label="Radial magnetic field in gauss">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Electron kinetic energy<span class="sl-val"><input
+             class="sl-num" id="wm-te-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="20"
+             aria-label="Electron kinetic energy in electronvolts"><span
+             class="sl-unit">eV</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="wm-te" min="5" max="50" step="1" value="20"
+               aria-label="Electron kinetic energy in electronvolts">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Ion kinetic energy<span class="sl-val"><input
+             class="sl-num" id="wm-ei-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="300"
+             aria-label="Ion kinetic energy in electronvolts"><span
+             class="sl-unit">eV</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="wm-ei" min="50" max="600" step="10" value="300"
+               aria-label="Ion kinetic energy in electronvolts">
+      </div>
+    </div>
+  </div>
+  </aside>
+  </div>
+
+  <div class="fig-out">
+    <!-- Both radii are quoted against the SAME 24 mm channel and in the same unit, so
+         the two cells can be read straight off each other: a percent well under a
+         hundred beside a percent in the thousands is this whole figure in two numbers.
+         Quoting the ion in channel widths instead made it the one cell you had to
+         convert before you could compare it to the one next to it. -->
+    <div class="out-cell">
+      <div class="out-label">Electron Larmor radius</div>
+      <div class="out-val" id="wm-o-re" style="color:#ffe94d">0</div>
+      <div class="out-sub" id="wm-o-re-sub">of a 24 mm channel</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Xenon ion Larmor radius</div>
+      <div class="out-val" id="wm-o-ri" style="color:#3DBFFF">0</div>
+      <div class="out-sub" id="wm-o-ri-sub">of a 24 mm channel</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Larmor radius ratio</div>
+      <!-- Written as the relation rather than as a bare multiplier, because the claim
+           being made is that one radius IS the other times a constant; the cell only
+           fills the constant in. Set in KaTeX rather than Courier, so the two radii are
+           the same symbols here as in the equations above and the caption below; it is
+           a statement about r, not a readout of a number. -->
+      <div class="out-val" id="wm-o-ratio"></div>
+    </div>
+    <div class="out-cell">
+      <!-- Twofold, because the figure asks about two species and the answer for one is
+           not the answer for the other. The thruster is working exactly when these two
+           boxes disagree, which a single word ("electrons only") stated but did not
+           show. No label over them: each box names its own species, so a "verdict"
+           heading only repeated the row it sits in. -->
+      <div class="out-verdict ion" id="wm-o-vi">&nbsp;</div>
+      <div class="out-verdict electron" id="wm-o-ve">&nbsp;</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    Same field, same channel, one species held and the other ignored. Gyroradius is
+    $r_c = m v_\perp / qB$, so it scales with $\sqrt{m}$ at a given energy and with $\sqrt{E}$ at a given mass.
+    A xenon ion outweighs an <span class="hl-electron">electron</span> by about 240,000, and it is falling
+    through hundreds of volts rather than carrying tens of electronvolts of thermal energy, so its circle comes
+    out meters across while the electron's is a fraction of a millimeter. Push the field as high as the slider
+    goes and the <span class="hl-ion">ion</span> still will not fit. That is what lets one field confine the
+    electrons and leave the beam alone.
+    <!-- TODO (skeleton): both radii use a single characteristic speed, sqrt(2E/m), rather than
+         an average over a distribution. For the electron that is the same simplification the
+         gridded-ion Maxwellian figure warns about, and the honest version averages r_c over
+         the distribution. Worth doing here since this page later leans on the tail. -->
+  </p>
+</div>
+
+<!-- ════════════════════ THE MIRROR IS LEAKY ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">The Mirror Is Leaky</div>
+  <p class="th-body">
+    It is tempting to stop here and say the <span class="key">magnetic mirror</span> keeps the
+    <span class="hl-electron">electrons</span> off the walls. Work out the
+    <span class="key">loss cone</span>, though, and that story does not close. If the radial field falls roughly
+    as one over <span class="key">r</span> across the gap, the ratio from the outer to the inner pole is only
+    about 62 over 38, near 1.6, which puts the loss cone somewhere around 50 degrees and leaves a large fraction
+    of a <span class="key">Maxwellian</span> population <em>inside</em> it. Those are the electrons the mirror
+    cannot turn, and they reach the wall on their first pass. Set the pitch angle in the figure above below 52
+    degrees and you are looking at one of them: the teeth run flat against the ceramic instead of turning short
+    of it.
+    <!-- TODO: state the trapped fraction properly, from an integral over a Maxwellian rather
+         than from the cone angle alone, and note that the real field is neither purely
+         radial nor one-over-r. -->
+  </p>
+  <p class="th-body">
+    What finishes the job is the <a class="applet-link" href="../sheath/sheath_applet.html">wall sheath</a>. The
+    channel wall charges negative with respect to the plasma, and the resulting
+    <span class="hl-E">field</span> repels most of the <span class="hl-electron">electrons</span> that the mirror
+    failed to turn around. The honest division of labor is worth stating plainly: the
+    <span class="hl-B">magnetic field</span> is what confines electrons <em>axially</em>, by magnetizing them;
+    the <span class="key">sheath</span> is what mostly confines them <em>radially</em>; and the
+    <span class="key">mirror</span> assists with the radial job without being sufficient for it.
+  </p>
+</div>
+
+<!-- ════════════════════ Q3: WHAT KEEPS THEM OFF THE WALLS ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <!-- Single-answer now, not select-all: the question names the mirror in its own stem and
+       asks what ELSE does the job, so there is exactly one thing left to name. -->
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">Besides the <span class="key">magnetic mirror</span> many
+    <span class="hl-electron">electrons</span> are trapped by, what else keeps
+    <span class="hl-electron">electrons</span> from coming in contact with the
+    <span class="key">discharge channel</span> walls and losing their charge?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">a</span>The azimuthal E&times;B drift, which carries electrons around the annulus and therefore away from the walls.
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">b</span>The sheath at the wall, which charges negative with respect to the plasma and repels most electrons that the mirror does not turn around.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>Their gyroradius is a fraction of a millimeter, so a magnetized electron cannot cross the last millimeters to the ceramic.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ PATH AMPLIFICATION ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr">Why the Blade Ionizes So Well</div>
+  <p class="th-body">
+    Now the payoff. An <span class="hl-electron">electron</span> that crossed the channel in a straight line
+    would travel 24 millimeters and be collected. Sawing its way around instead, it covers that distance once per
+    tooth and keeps going for many laps before <span class="key">collisions</span> work it across to the
+    <span class="key">anode</span>. The
+    <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">ionizing collision</a>
+    it needs becomes overwhelmingly likely somewhere along that path, which is why a channel a couple of
+    centimeters deep can ionize nearly all the propellant fed into it.
+  </p>
+  <p class="th-body">
+    Compare the <a class="applet-link" href="../gridded_ion/GIE_Ionization_applet.html">gridded engine</a>, which
+    needed <span class="hl-B">ring-cusp fields</span> to reach roughly 80 percent
+    <span class="key">utilization</span>. The Hall thruster gets there and further with a much simpler magnetic
+    circuit, because the closed drift is a far better path-lengthening trick than a cusp
+    is.<sup class="cite"><a href="HT_Overview_applet.html#ref-2">2</a></sup>
+    <!-- TODO: put a number on the effective path length, N times w times the number of laps,
+         and turn it into an ionization probability with the xenon cross-section the
+         particle-collisions applet already uses. Then state the utilization figure with a
+         verified citation rather than the qualitative claim above. -->
+  </p>
+</div>
+
+<!-- ════════════════════ WHERE THE METAPHOR BREAKS ════════════════════ -->
+<div class="clarify-section">
+  <div class="clarify-hdr">Where the Metaphor Breaks Down</div>
+
+  <details class="clarify-detail">
+    <summary>A buzzsaw blade has rigid teeth in a fixed pattern. Real electrons do not. How far should the
+    picture be pushed?</summary>
+    <div class="clarify-body">
+      The teeth are a <span class="key">statistical envelope</span>, not hardware. Every electron has its own
+      pitch angle and its own energy, so the tooth count computed above is a typical value across a spread, and
+      the electrons in the <span class="key">loss cone</span> never complete a tooth at all. The ionizing is done
+      disproportionately by the high-energy tail of the distribution, exactly as it was in the
+      <a class="applet-link" href="../gridded_ion/GIE_Ionization_applet.html">gridded engine</a>, so the
+      electrons that matter most for ionization are not the typical ones the blade is drawn from.
+    </div>
+  </details>
+
+  <details class="clarify-detail">
+    <summary>The picture says electrons cross to the anode by collisions. Measured Hall thrusters pass far more
+    current across the field than collisions alone can explain. What is missing?</summary>
+    <div class="clarify-body">
+      <!-- TODO: anomalous cross-field transport. Keep it qualitative and honest: turbulent
+           fluctuations and near-wall effects move electrons across B faster than classical
+           collisions predict, this is still an active research question, and every number on
+           this page that depends on how long an electron survives in the channel is affected
+           by it. Cite Zhurin (ref-2) and add a modern review once verified. -->
+      TODO: <span class="key">anomalous cross-field transport</span>, and why the classical collision estimate
+      is a lower bound rather than an answer.
+    </div>
+  </details>
+</div>
+
+<!-- ════════════════════ SOURCES ════════════════════
+     TODO: this page cites ref-2 in the prose but carries no Sources list of its
+     own yet. Either add a <details class="refs"> block here, mirroring the
+     overview page's, or drop the superscripts and point the reader at the
+     overview's list. Do not leave the markers dangling. -->
+
+<footer>
+  <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+    <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+  </a>
+  <div class="foot-title">Propulsion Applets 2026</div>
+  <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
+</footer>
+
+<!-- ════════════════════ TYPEABLE VALUE BOXES ════════════════════
+     gridded_ion.html's wireNumBox, carried across rather than rewritten, so a typed value
+     behaves the same on a lesson page as it does in the viewers. A plain <script> and not a
+     module: both figures below want it, one of them is a module and one is not, and a
+     classic script runs at parse time so it is defined before either of them executes. -->
+<script>
+"use strict";
+/* Each slider's readout is an <input>, so a value can be typed instead of dragged for. The
+   SLIDER stays the source of truth: typing writes through it (clamped to its min/max and
+   snapped to its step) and then runs the same setter a drag would, so there is exactly one
+   path into the model and the box always ends up showing the value that was actually
+   applied. A value past either end of the range therefore lands on that end rather than
+   being rejected, which is what the reader typing it asked for.
+
+   Committed on Enter or blur, never per keystroke — mid-typing a "1" in a 50 to 300 gauss
+   field would otherwise slam the model to its minimum and fight the person typing. */
+function wireNumBox(rangeId, boxId, apply){
+  const rng = document.getElementById(rangeId), box = document.getElementById(boxId);
+  if (!rng || !box) return;
+  const flash = () => {
+    box.classList.add('bad');
+    setTimeout(() => box.classList.remove('bad'), 450);
+  };
+  const commit = () => {
+    box.classList.remove('bad');
+    const v = parseFloat(String(box.value).replace(/[^0-9.eE+-]/g, ''));
+    if (!isFinite(v)){ apply(+rng.value); return; }      // unreadable → snap back to the slider
+    const min = +rng.min, max = +rng.max, step = +rng.step || 0;
+    let c = Math.min(max, Math.max(min, v));
+    if (step > 0) c = Math.round((c - min) / step) * step + min;
+    c = Math.min(max, Math.max(min, c));
+    // Out of range or off-step: the value is going to change out from under them, so say so.
+    if (Math.abs(c - v) > (step || 1e-9) / 2) flash();
+    rng.value = c;
+    apply(+rng.value);                                   // re-read, so the browser's clamp wins
+  };
+  box.addEventListener('keydown', e => {
+    if (e.key === 'Enter'){ e.preventDefault(); commit(); box.blur(); }
+    else if (e.key === 'Escape'){ apply(+rng.value); box.blur(); }
+    else if (e.key === 'ArrowUp' || e.key === 'ArrowDown'){   // nudge by one slider step
+      e.preventDefault();
+      const st = +rng.step || 1;
+      const min = +rng.min, max = +rng.max;
+      rng.value = Math.min(max, Math.max(min, +rng.value + (e.key === 'ArrowUp' ? st : -st)));
+      apply(+rng.value);
+    }
+    e.stopPropagation();                                 // keys are for the box, not the figure
+  });
+  box.addEventListener('blur',  commit);
+  box.addEventListener('focus', () => box.select());
+}
+</script>
+
+<!-- ════════════════════ FIGURE: THE BUZZSAW ════════════════════
+     The bounce here is INTEGRATED, not imposed. Earlier versions drew the radius as a
+     triangle wave between the two walls, which is a picture of an electron that carries
+     all of its energy along the field, reverses instantaneously at each wall and is
+     therefore in the loss cone at both ends - that is, of the one electron a mirror
+     cannot hold. What is drawn now is the guiding-centre motion under a conserved
+     magnetic moment, so the electron decelerates as it climbs into the strong field at a
+     pole, turns where mu*B reaches its total energy, and only reaches a wall when its
+     pitch angle puts it inside the loss cone. Everything else on the figure - the tooth
+     count, the lap time, the gyroradius - falls out of that integration rather than being
+     asserted alongside it.
+
+     The hardware is a stand-in built from primitives rather than the tessellated model
+     hall_thruster.html loads, on purpose: that model is two megabytes, this is a lesson
+     page, and everything this figure has to say is said by the annulus. Channel radii and
+     the pole spacing match it. -->
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { Line2 }        from 'three/addons/lines/Line2.js';
+import { LineGeometry } from 'three/addons/lines/LineGeometry.js';
+import { LineMaterial } from 'three/addons/lines/LineMaterial.js';
+
+const frameEl = document.getElementById('bz-frame');
+const canvas  = document.getElementById('bz-canvas');
+if (frameEl && canvas) {
+
+let renderer = null;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (err) {
+  renderer = null;
+}
+if (!renderer) {
+  document.getElementById('bz-fallback').style.display = 'flex';
+} else {
+
+/* ── Constants ────────────────────────────────────────────────
+   Millimeters and nanoseconds throughout, which are also the scene's units, so a number
+   in the physics is the same number in the geometry. */
+const QE = 1.602176634e-19, M_E = 9.1093837015e-31;
+
+const R_IN = 38, R_OUT = 62, W = R_OUT - R_IN, R_MID = (R_IN + R_OUT) / 2;
+const LAP  = 2 * Math.PI * R_MID;
+const R_BODY = 90, H_BODY = 78, D_CH = 26, D_BORE = 7;
+
+/* The mirror. |B| along a field line is modeled as a parabolic well across the gap,
+       B(s)/B_mid = 1 + (R_MIRROR - 1) (2s/w)^2,     s = r - r_mid,
+   weakest at mid-channel and rising to R_MIRROR times that at either pole. The SHAPE is
+   the physical claim and it is the same one the field lines drawn below make: every line
+   has to land on a pole face, so the lines crowd as they converge into each pole and |B|
+   rises there. The VALUE is the 1.63 the prose derives from a 1/r field across a 38 to 62
+   millimeter gap, and it is what puts the loss cone at 52 degrees, which is the number the
+   loss-cone figure further down the page also runs on. A 1/r profile on its own would give
+   a mirror at the inner pole and none at the outer one, which is not what the pole pieces
+   do; this is the honest cheap stand-in for a field neither of us has solved for. */
+/* The loss cone that follows from it opens at atan(1/sqrt(R-1)) = 51.6 degrees. Kept as a
+   comment and not as a const: the verdict beside the figure names neither the angle nor the
+   cone any more, it just says whether this electron is held, so nothing computes with it.
+   The 52 degrees the prose and the caption quote is this number. */
+const R_MIRROR = 1.63;
+
+/* Playback. RATE is the pace with the gyration switched off, where the fastest thing on
+   screen is the bounce and 60 ns of simulated time per second of real time puts a tooth of
+   the buzzsaw at about a second.
+
+   With the gyration ON that pace is far too fast, and not as a matter of taste: at the
+   default 150 G the gyro period is 2.4 ns, so 60 ns/s advances two fifths of an orbit per
+   frame. The trail is resampled every frame and still draws its coil, but the electron
+   itself is then jumping 145 degrees around a circle between frames, which is past the
+   Nyquist limit for the eye as much as for anything else — it reads as a glyph flickering
+   about at random NEXT TO a helix rather than as the particle drawing one. So when the
+   gyration is being drawn the rate is capped at FPO frames per orbit instead, which is the
+   same guard the trail already applies to its own sampling, moved from points per orbit to
+   frames per orbit. Over the sliders' range that is a cap of 7 to 43 ns/s. */
+const RATE   = 60;                      // ns of simulated time per second of real time
+const FPO    = 10;                      // frames per gyro-orbit, once the gyration is drawn
+const FPS    = 60;                      // frames per second assumed for that cap
+const THETA0 = -52 * Math.PI / 180;     // parked where the home camera sees it head-on
+const GY_DRAW = 4.0;                    // mm: the size the magnified gyro-orbit is drawn at
+
+/* Azimuth convention: x = r cos(theta), z = -r sin(theta), so that (r, theta, y) is
+   right-handed with y along the thrust axis. Get the sign of z wrong and the drift runs
+   backwards against the E cross B the field lines and the E arrow describe. */
+const rHat     = th => new THREE.Vector3(Math.cos(th), 0, -Math.sin(th));
+const thetaHat = th => new THREE.Vector3(-Math.sin(th), 0, -Math.cos(th));
+
+const bOf = s => 1 + (R_MIRROR - 1) * (2 * s / W) * (2 * s / W);
+
+const $  = id => document.getElementById(id);
+const el = {
+  t1: $('bz-t1'), t2: $('bz-t2'), t3: $('bz-t3'),
+  reset: $('bz-reset'),
+  b: $('bz-b'), te: $('bz-te'), pa: $('bz-pa'), e: $('bz-e'),
+  bVal: $('bz-b-val'), teVal: $('bz-te-val'), paVal: $('bz-pa-val'), eVal: $('bz-e-val'),
+  oRL: $('bz-o-rl'), oFC: $('bz-o-fc'), oVD: $('bz-o-vd'),
+  cRL: $('bz-c-rl'), cFC: $('bz-c-fc'), cVD: $('bz-c-vd'),
+  status: $('bz-status'), note: $('bz-note')
+};
+const on = b => b.getAttribute('aria-pressed') === 'true';
+
+/* Millimeters, dropping to micrometers only where two decimals of a millimeter would print
+   as 0.00. The corpus's mmStr (further down this page, in the who-is-magnetized figure)
+   spans seven decades and needs meters at the top; this one is a gyroradius on a 24 mm
+   channel and never leaves the two units below. */
+const rStr = mm => mm >= 0.01 ? mm.toFixed(2) + ' mm' : (mm * 1000).toFixed(1) + ' µm';
+
+/* ── Scene ───────────────────────────────────────────────── */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#090909');
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+const camera   = new THREE.PerspectiveCamera(30, 1.9, 1, 8000);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.enablePan     = false;
+controls.minDistance   = 210;
+controls.maxDistance   = 1500;
+/* Never below the exit plane. Everything this figure is about happens in the mouth of the
+   channel, and from underneath there is nothing to see but the back of the can. */
+controls.maxPolarAngle = Math.PI * 0.495;
+
+/* The reference framing: looking down on the face from about thirty degrees above it,
+   thrust axis up the screen, the annulus reading as a flattened ellipse. */
+const HOME = { az: 38 * Math.PI / 180, el: 31 * Math.PI / 180, d: 470, ty: 12 };
+function home(){
+  controls.target.set(0, HOME.ty, 0);
+  camera.position.set(
+    HOME.d * Math.cos(HOME.el) * Math.sin(HOME.az),
+    HOME.ty + HOME.d * Math.sin(HOME.el),
+    HOME.d * Math.cos(HOME.el) * Math.cos(HOME.az));
+  camera.lookAt(controls.target);
+  controls.update();
+}
+
+scene.add(new THREE.HemisphereLight(0xdfe6f2, 0x141820, 0.34));
+scene.add(new THREE.AmbientLight(0xffffff, 0.50));
+const keyLight  = new THREE.DirectionalLight(0xffffff, 0.82);
+const fillLight = new THREE.DirectionalLight(0xffffff, 0.30);
+const rimLight  = new THREE.DirectionalLight(0xbcd0ff, 0.22);
+keyLight.position.set(1.4, 2.4, 2.2);
+fillLight.position.set(-1.2, 0.9, -0.9);
+rimLight.position.set(-0.5, 1.6, -2.2);
+scene.add(keyLight, fillLight, rimLight);
+
+/* ── Hardware ─────────────────────────────────────────────
+   An SPT reduced to the four surfaces that carry the lesson: the can, the two ceramic
+   channel walls, the anode at the base of the channel and the center pole face. */
+const MAT_BODY = new THREE.MeshStandardMaterial({ color: 0x6d737d, roughness: 0.62, metalness: 0.16 });
+const MAT_CER  = new THREE.MeshStandardMaterial({ color: 0xcabfa6, roughness: 0.86, metalness: 0.02,
+                                                  side: THREE.DoubleSide });
+const MAT_POLE = new THREE.MeshStandardMaterial({ color: 0x3d434c, roughness: 0.70, metalness: 0.28,
+                                                  side: THREE.DoubleSide });
+const MAT_AN   = new THREE.MeshStandardMaterial({ color: 0x8a8f96, roughness: 0.42, metalness: 0.58,
+                                                  side: THREE.DoubleSide });
+
+const hardware = new THREE.Group();
+const addMesh  = (geo, mat) => { const m = new THREE.Mesh(geo, mat); hardware.add(m); return m; };
+
+let g;
+g = new THREE.CylinderGeometry(R_BODY, R_BODY, H_BODY, 96, 1, true);
+g.translate(0, -H_BODY / 2, 0);                       addMesh(g, MAT_BODY);
+g = new THREE.CircleGeometry(R_BODY, 96);
+g.rotateX(Math.PI / 2); g.translate(0, -H_BODY, 0);   addMesh(g, MAT_BODY);
+g = new THREE.RingGeometry(R_OUT, R_BODY, 96, 1);
+g.rotateX(-Math.PI / 2);                              addMesh(g, MAT_BODY);
+g = new THREE.CylinderGeometry(R_OUT, R_OUT, D_CH, 96, 1, true);
+g.translate(0, -D_CH / 2, 0);                         addMesh(g, MAT_CER);
+g = new THREE.CylinderGeometry(R_IN, R_IN, D_CH, 96, 1, true);
+g.translate(0, -D_CH / 2, 0);                         addMesh(g, MAT_CER);
+g = new THREE.RingGeometry(R_IN, R_OUT, 96, 1);
+g.rotateX(-Math.PI / 2); g.translate(0, -D_CH, 0);    addMesh(g, MAT_AN);
+g = new THREE.CircleGeometry(R_IN, 96);
+g.rotateX(-Math.PI / 2); g.translate(0, -D_BORE, 0);  addMesh(g, MAT_POLE);
+
+/* Cathode, canted in toward the axis the way it is on the real hardware, because the
+   electrons this whole page is about are emitted from it and not from the channel. */
+/* 218°, not 128°: the thruster turned a quarter turn about its own axis. Everything else
+   on it is a body of revolution, so a rotation moves nothing but this — which is the point,
+   the cathode is the one feature that marks which way round the thruster is sitting. At
+   218° it stands off the left of the ring instead of behind it, where it neither hides
+   behind the pole nor sits on top of the electron path the figure is about. */
+const CATH_AZ = 218 * Math.PI / 180, CATH_R = 76;
+const cathode = new THREE.Group();
+cathode.position.copy(rHat(CATH_AZ).multiplyScalar(CATH_R));
+cathode.setRotationFromAxisAngle(thetaHat(CATH_AZ), -24 * Math.PI / 180);
+{
+  let cg = new THREE.CylinderGeometry(9, 10.5, 30, 32); cg.translate(0, 15, 0);
+  cathode.add(new THREE.Mesh(cg, MAT_BODY));
+  cg = new THREE.CylinderGeometry(5, 6.5, 9, 28); cg.translate(0, 34, 0);
+  cathode.add(new THREE.Mesh(cg, MAT_POLE));
+}
+hardware.add(cathode);
+scene.add(hardware);
+
+/* ── Glow ─────────────────────────────────────────────────
+   plumeMaterial and hallTorusMaterial are hall_thruster.html's, carried across rather
+   than rewritten, so the discharge reads the same in the lesson as it does in the viewer.
+   The section-cut uniforms are the one thing dropped: nothing here is cut. Both are held
+   well below the viewer's brightness, for the reason the caption states: at photographic
+   strength the ring buries the electron path. The RING is held lower than the plume, and
+   by more than looks necessary from a still: it sits directly under the blade. */
+const BUZZ_COL = 0x3ec0f5, BUZZ_CORE = 0xffffff;
+const BEAM_COL = 0x36b7ff, BEAM_CORE = 0xbfefff;
+const GLOW_RING = 0.34, GLOW_PLUME = 0.40;
+const glowMats = [];
+
+function plumeMaterial(colorHex, coreHex, fadeEnd = 1.0, coreExp = 2.6, peak = 0.95){
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime:   { value: 0 },
+      uColor:  { value: new THREE.Color(colorHex) },
+      uCore:   { value: new THREE.Color(coreHex) },
+      uFadeEnd:{ value: fadeEnd },
+      uOpacity:{ value: GLOW_PLUME },
+    },
+    vertexShader: `
+      varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+      void main(){
+        vUv = uv;
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vN = normalize(mat3(modelMatrix) * normal);
+        vV = normalize(cameraPosition - wp.xyz);
+        gl_Position = projectionMatrix * viewMatrix * wp;
+      }`,
+    fragmentShader: `
+      #define CORE_EXP ${coreExp.toFixed(2)}
+      #define PEAK ${peak.toFixed(2)}
+      uniform float uTime; uniform vec3 uColor; uniform vec3 uCore;
+      uniform float uFadeEnd; uniform float uOpacity;
+      varying vec3 vN; varying vec3 vV; varying vec2 vUv;
+      void main(){
+        float ndv   = abs(dot(normalize(vN), normalize(vV)));
+        float core  = pow(ndv, CORE_EXP);
+        float axial = clamp(vUv.y, 0.0, 1.0);
+        float fade  = pow(1.0 - smoothstep(0.02, uFadeEnd, axial), 1.5);
+        float win   = smoothstep(0.06, 0.40, axial) * (1.0 - smoothstep(0.65, 1.0, axial));
+        float flow  = 1.0 + 0.06 * win * sin(uTime * 4.0 - axial * 3.0);
+        /* The 0.02 floor FILLS the cone, since a shell is otherwise only its own limb and
+           reads hollow. Fading it out as the surface turns edge-on is what dissolves the
+           silhouette; a constant carried to the edge gives the plume a cut outline, which
+           no plume has. */
+        float edge = smoothstep(0.0, 0.30, ndv);
+        float a = (0.02 * edge + PEAK * core) * fade * flow * uOpacity;
+        vec3 col = mix(uColor, uCore, clamp(core * 0.85, 0.0, 1.0));
+        gl_FragColor = vec4(col, a);
+      }`,
+    transparent: true, blending: THREE.AdditiveBlending,
+    depthWrite: false, side: THREE.DoubleSide,
+  });
+  glowMats.push(mat);
+  return mat;
+}
+
+/* The ring itself. Shaded from POSITION ON THE TUBE rather than from view angle: a
+   saturated plasma is as bright edge-on as face-on, so the band clips white across its
+   whole width at every angle and the hue lives only in the fringe at the rims. Driving it
+   off the view vector instead is what used to make it look like a silver inflatable. */
+function hallTorusMaterial(exponent){
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime:  { value: 0 }, uOpacity: { value: GLOW_RING },
+      uColor: { value: new THREE.Color(BUZZ_COL) },
+      uCore:  { value: new THREE.Color(BUZZ_CORE) },
+      uBreathW: { value: 2 * Math.PI * 0.9 },
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main(){
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      #define EXPN ${exponent.toFixed(2)}
+      uniform float uTime; uniform float uOpacity; uniform vec3 uColor; uniform vec3 uCore;
+      uniform float uBreathW;
+      varying vec2 vUv;
+      void main(){
+        /* Skewed rather than a plain sine: the real cycle is a relaxation oscillation,
+           ionization running away and stalling, so it rises faster than it decays. */
+        float ph     = uTime * uBreathW;
+        float swing  = (sin(ph) + 0.28 * sin(2.0 * ph)) / 1.14;
+        float breath = 0.80 + 0.20 * (0.5 + 0.5 * swing);
+        /* vUv.y runs around the tube CROSS-SECTION. The face term is 1 on the flat
+           downstream face and 0 at the two radial rims, so it carries both jobs at once:
+           the hue emerges only at the rims, and the alpha dissolves there too, leaving the
+           ring no outline to read as a solid with. */
+        float face = abs(sin(vUv.y * 6.2831853));
+        float lum  = pow(face, EXPN);
+        vec3  col  = mix(uColor, uCore, clamp(0.20 + 0.80 * lum, 0.0, 1.0));
+        gl_FragColor = vec4(col * breath, uOpacity * smoothstep(0.0, 0.42, face));
+      }`,
+    transparent: true, blending: THREE.NormalBlending,
+    depthWrite: false, side: THREE.FrontSide,
+  });
+  glowMats.push(mat);
+  return mat;
+}
+
+const glowGroup = new THREE.Group();
+{
+  /* Beam cone. A Hall plume is broad: the ions are born across a potential drop rather
+     than pulled through focused optics, so it diverges far harder than a gridded engine's. */
+  const BEAM_LEN = 240, BEAM_HALF = 21 * Math.PI / 180;
+  const R_FAR = R_OUT + BEAM_LEN * Math.tan(BEAM_HALF);
+  const beamGeo = new THREE.CylinderGeometry(R_FAR, R_OUT, BEAM_LEN, 72, 48, true);
+  beamGeo.translate(0, BEAM_LEN / 2, 0);          // narrow end seated on the exit plane
+  const beam = new THREE.Mesh(beamGeo, plumeMaterial(BEAM_COL, BEAM_CORE, 1.0, 1.5, 0.7));
+  beam.renderOrder = 50;
+  glowGroup.add(beam);
+
+  /* The discharge as a flat LENS in the annulus. In a photograph of a firing thruster the
+     band has no visible axial depth at all, so the tube keeps its full radial half-width
+     and is squashed to about a sixth of it along the axis. It stays a torus rather than a
+     flat ring for one reason: a ring viewed edge-on is one pixel wide and would wink out
+     as the reader orbits. */
+  const buzzGeo = new THREE.TorusGeometry(R_MID, 13, 28, 144);
+  buzzGeo.scale(1, 1, 0.16);
+  buzzGeo.rotateX(Math.PI / 2);                   // torus axis Z -> the thrust axis
+  buzzGeo.translate(0, 1.5, 0);
+  const buzz = new THREE.Mesh(buzzGeo, hallTorusMaterial(0.55));
+  buzz.renderOrder = 45;
+  glowGroup.add(buzz);
+
+  // Cathode puff, off the keeper orifice along the cathode's own canted axis.
+  const nLen = 42, nR0 = 4.0, nR1 = nR0 + nLen * Math.tan(11 * Math.PI / 180);
+  const nGeo = new THREE.CylinderGeometry(nR1, nR0, nLen, 32, 20, true);
+  nGeo.translate(0, 38 + nLen / 2, 0);
+  const nMesh = new THREE.Mesh(nGeo, plumeMaterial(BEAM_COL, BEAM_CORE, 0.8));
+  nMesh.renderOrder = 50;
+  cathode.add(nMesh);                             // inherits the cant
+}
+scene.add(glowGroup);
+
+/* ── The magnetic field ───────────────────────────────────
+   Drawn as FIELD LINES, three at each of six stations round the annulus, rather than as
+   one straight arrow apiece. Only the middle one is straight, and only because it lies in
+   the plane of the two pole faces, which is the one place the field really is purely
+   radial. Every other line has to leave a pole face and land on the other one from a
+   standoff, so it arches: downstream of the exit plane it bows out into the plume,
+   upstream of it, back into the channel. That family IS the magnetic lens, and drawing it
+   is also what makes the mirror visible rather than asserted: the three lines are widely
+   spaced at mid-channel and converge as they run into each pole, and field lines crowding
+   together is what |B| rising means. The bounce integrated above climbs exactly that
+   profile.
+
+   One straight arrow per station said none of this. It drew the field as uniform across
+   the gap, which is the one thing it cannot be if there is to be a mirror at all. */
+const fieldGroup = new THREE.Group();
+{
+  const up = new THREE.Vector3(0, 1, 0);
+  /* Each entry is one line of the family: how far past each wall it lands on the pole
+     face, how far it bows off the exit plane, and how strongly it is drawn. The further a
+     line sits from the plane of the poles the wider it has to reach and the harder it has
+     to bow, which is the shape that makes the three read as one lens rather than as three
+     unrelated arcs.
+     EIGHT stations, at shallow sags. This is drawn ON TOP of the blade in projection
+     whatever the camera does, since the blade sits in the annulus between the two arcs, so
+     every station costs the electron path some legibility; what buys eight of them back is
+     that the sags stay shallow and the TUBES stay quiet. The weight has been moved off the
+     line and onto the head instead — see HEAD_ALPHA below — so the ring reads as a ring of
+     arrows rather than as a cage of bright wires. */
+  const LINES = [
+    { reach:  9, sag:  13, alpha: 0.40 },   // downstream of the exit plane, into the plume
+    { reach:  3, sag:   0, alpha: 0.66 },   // ON it, where the field really is purely radial
+    { reach:  6, sag: -10, alpha: 0.40 },   // upstream of it, back into the channel
+  ];
+  /* All three heads at the same station, and that station chosen where the arcs are still
+     running mostly radially. Further out, where each arc has turned down toward its pole,
+     the three tangents fan apart and the station reads as a starburst rather than as three
+     arrows going the same way. */
+  const HEAD_U = 0.62;
+  /* The head is what says which WAY the field points, and it is the one part of a field
+     line worth reading at a glance, so it is drawn nearly opaque and half again as large as
+     the line it sits on rather than inheriting the line's own faint alpha. A cone at the old
+     2.2 by 6.5 is a few pixels across at the home camera and it disappeared into the tube
+     entirely once the ring was glowing under it. */
+  const HEAD_ALPHA = 0.95;
+  const headGeo = new THREE.ConeGeometry(3.4, 10, 18);
+  const STATIONS = 8;
+  for (let a = 0; a < STATIONS; a++){
+    const th = a * 2 * Math.PI / STATIONS + 0.35, rh = rHat(th);
+    for (const L of LINES){
+      /* hall_thruster.html's --c-bfield. Blue is B's across the codebase; the teal this
+         used to be is the QUANTITY token, which belongs to the equations above and to
+         the word "B" in the prose, not to a field line on a canvas. */
+      const mat = new THREE.MeshBasicMaterial({ color: 0x7f92ff, transparent: true,
+                                                opacity: L.alpha });
+      const headMat = new THREE.MeshBasicMaterial({ color: 0x9aa8ff, transparent: true,
+                                                    opacity: HEAD_ALPHA });
+      const R0 = R_IN - L.reach, SPAN = (R_OUT + L.reach) - R0;
+      const pts = [];
+      for (let i = 0; i <= 28; i++){
+        const u = i / 28;
+        pts.push(rh.clone().multiplyScalar(R0 + SPAN * u).setY(L.sag * Math.sin(Math.PI * u)));
+      }
+      fieldGroup.add(new THREE.Mesh(
+        new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.45, 8, false), mat));
+      const tip = new THREE.Mesh(headGeo, headMat);
+      tip.position.copy(rh.clone().multiplyScalar(R0 + SPAN * HEAD_U)
+                          .setY(L.sag * Math.sin(Math.PI * HEAD_U)));
+      // tangent to the arc: d/du of (radius along rHat, sag sin(pi u) along y)
+      tip.quaternion.setFromUnitVectors(up, rh.clone().multiplyScalar(SPAN)
+        .setY(L.sag * Math.PI * Math.cos(Math.PI * HEAD_U)).normalize());
+      /* Drawn AFTER the glow rather than before it. The plume and the discharge band are
+         transparent and do not write depth, so anything drawn first is simply blended over
+         and washed pale; at renderOrder 55 the head lands on top of them instead. Depth
+         testing stays ON, so a head on the far side of the ring is still hidden by the
+         hardware in front of it, which is the whole reason not to reach for depthTest here.
+         The tubes are left where they were: they are meant to read as passing THROUGH the
+         ring, and it is only the heads that have to survive it. */
+      tip.renderOrder = 55;
+      fieldGroup.add(tip);
+    }
+  }
+
+  // E, axial and pointing downstream: the anode is at the base of the channel and the
+  // potential falls from it to the exit, so E x B runs the way the white drift arc points.
+  const eAz = THETA0 + Math.PI / 2;
+  // hall_thruster.html's --c-efield, for the same reason the field lines take --c-bfield.
+  const eArrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0),
+                   rHat(eAz).multiplyScalar(R_MID).setY(-16), 56, 0xff6360, 12, 7);
+  eArrow.line.material.transparent = true; eArrow.line.material.opacity = 0.85;
+  eArrow.cone.material.transparent = true; eArrow.cone.material.opacity = 0.85;
+  fieldGroup.add(eArrow);
+}
+
+const driftGroup = new THREE.Group();
+{
+  /* ONE curved arrow on the top face, outside the channel, rather than a ring of chevrons.
+     Chevrons were tried first and the trouble is geometric: a cone pointing along the
+     azimuth is pointing at the camera wherever the ring turns toward it, and a cone seen
+     end-on is a blob. A single arc placed where the ring runs across the view reads as a
+     direction from every angle the controls allow. */
+  const A0 = THETA0 - 0.60, A1 = THETA0 + 0.35, RA = R_OUT + 14, YA = 3;
+  /* White, not the velocity blue the equations give v_ExB: in the scene this arc sits a
+     few tens of units from the blue-violet field lines and the red E arrow, and a third
+     saturated hue between them reads as a fourth field rather than as the result of the
+     other two. White belongs to none of them, so the drift is the one thing here that is
+     plainly not a field. */
+  const mat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 0.92 });
+  const up  = new THREE.Vector3(0, 1, 0);
+  const pts = [];
+  for (let i = 0; i <= 24; i++){
+    const th = A0 + (A1 - A0) * i / 24;
+    pts.push(rHat(th).multiplyScalar(RA).setY(YA));
+  }
+  driftGroup.add(new THREE.Mesh(
+    new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 1.5, 10, false), mat));
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(4.4, 12, 18), mat);
+  tip.position.copy(rHat(A1).multiplyScalar(RA).setY(YA));
+  tip.quaternion.setFromUnitVectors(up, thetaHat(A1));   // +theta: the way E x B runs
+  driftGroup.add(tip);
+}
+fieldGroup.add(driftGroup);
+scene.add(fieldGroup);
+
+/* ── The electron ─────────────────────────────────────────
+   Line2 rather than THREE.Line, because a WebGL line is one pixel wide whatever you ask
+   for and the blade would be a hairline over a lit ring. */
+function glowSprite(){
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0.0, 'rgba(255,255,255,1)');
+  grad.addColorStop(0.3, 'rgba(255,233,77,0.55)');
+  grad.addColorStop(1.0, 'rgba(255,233,77,0)');
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, 64, 64);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/* The blade is NORMAL-blended and the trail is additive, which is the one place the two
+   differ and it is not a style choice. Additive was tried on both: the blade lies on top
+   of the ring's own glow for its whole length, and yellow added to a pale blue-white ring
+   clips straight to white, so the path stops being the electron's and starts looking like
+   a second highlight on the plasma. The trail is short and mostly clear of the glow, and
+   additive is what gives its head somewhere to be brightest. */
+const bladeMat = new LineMaterial({
+  color: 0xffe94d, linewidth: 2.2, transparent: true, opacity: 0.9,
+  blending: THREE.NormalBlending, depthWrite: false
+});
+const trailMat = new LineMaterial({
+  color: 0xffffff, linewidth: 3.4, vertexColors: true, transparent: true,
+  blending: THREE.AdditiveBlending, depthWrite: false
+});
+
+const blade = new Line2(new LineGeometry(), bladeMat);
+const trail = new Line2(new LineGeometry(), trailMat);
+blade.renderOrder = 60; trail.renderOrder = 61;
+blade.frustumCulled = false; trail.frustumCulled = false;
+scene.add(blade, trail);
+
+/* Write a new set of points into a Line2. Never call setPositions directly; call this.
+
+   three.js LATCHES the instance count the first time it sets a line's attributes up —
+   WebGLBindingStates assigns geometry._maxInstanceCount only while it is undefined — and
+   setPositions does not clear it. Hand the line a different number of points afterwards and
+   the latched count is still what gets drawn. Both lines here change their point count with
+   the sliders, so both were wrong: the blade held a full ring of teeth in its buffer and
+   drew about half a ring, which looked exactly like a path that stops in mid-air, and a line
+   that got SHORTER would have been drawn past the end of its own buffer. Clearing the latch
+   on every write is the whole fix; three re-latches on the next frame, from the buffer that
+   is actually there. */
+function setLinePositions(line, pts){
+  line.geometry.setPositions(pts);
+  line.geometry._maxInstanceCount = undefined;
+}
+
+/* ── Wall strikes ─────────────────────────────────────────
+   A small × wherever the yellow path reaches the ceramic. Only an electron inside the loss
+   cone ever puts one on the figure, which is the point of drawing them: the verdict beside
+   the figure says the mirror cannot hold this one, and these say where it goes instead.
+   There are two per bounce, one on each wall, so at a glance they also count the bounces.
+
+   An × and not a dot, at one flat color and no falloff. A glowing dot is what this figure
+   already uses for a PARTICLE — the electron carries a halo sprite built exactly that way —
+   so a second glowing dot on the same canvas read as more particles rather than as marks on
+   the hardware. An × is a mark: it has no volume, it says "here", and it sits on the wall
+   without pretending to be an object sitting on the wall.
+
+   Red-orange, clear of everything else in the scene: the path it interrupts is yellow, the
+   field lines are blue-violet, the E arrow is the softer #ff6360 red, and this is hotter and
+   more orange than any of them.
+
+   One Points cloud with a draw range rather than a sprite per hit: the count moves with
+   every slider (two at the far end of the range, a hundred and thirty at the other), and a
+   pool sized once and drawn short is the version that does not allocate on a drag. */
+/* Sized so the pool NEVER binds anywhere on the sliders, rather than sized to taste and
+   capped: the worst corner of the range (5 V/mm against 300 G, 40 eV, pitch on the floor)
+   puts N near 300 teeth in a lap and so 600 strikes in it. A cap that silently dropped the
+   rest would draw a thinner ring of marks and read as fewer wall strikes, which is the one
+   thing these must not say. */
+const MAX_HITS = 1024;
+const HIT_COL  = '#ff5722';
+function hitSprite(){
+  const S = 64;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  const m = S * 0.16;                         // the arms stop short of the sprite edge
+  g.strokeStyle = HIT_COL;
+  g.lineWidth = S * 0.15;
+  g.lineCap = 'butt';                         // square ends: a drawn mark, not a lozenge
+  g.beginPath();
+  g.moveTo(m, m);     g.lineTo(S - m, S - m);
+  g.moveTo(S - m, m); g.lineTo(m, S - m);
+  g.stroke();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  /* Mipmapped, unlike the electron's halo. The mark is drawn small — about fifteen device
+     pixels at the home camera, from a 64-pixel texture — and hard edges minified that far
+     without mipmaps crawl and flicker as the ring turns. A soft radial blob hid that; two
+     straight strokes do not. */
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter;
+  return tex;
+}
+const hitPos = new Float32Array(MAX_HITS * 3);
+const hitGeo = new THREE.BufferGeometry();
+hitGeo.setAttribute('position', new THREE.BufferAttribute(hitPos, 3));
+hitGeo.setDrawRange(0, 0);
+/* 20, against the old dot's 26. three.js's point size is not world units — it drops the
+   projection's focal term — so the figure that matters is size/P11, and at this camera's
+   30-degree field that puts the sprite box near 5.4 mm and the × inside it near 3.7 mm, on a
+   24 mm channel. Small enough to sit inside a tooth without covering the turn it marks, big
+   enough to still read as an × rather than as a speck, and it scales with the scene, so
+   zooming in makes the marks bigger the way it makes the hardware bigger. */
+const hits = new THREE.Points(hitGeo, new THREE.PointsMaterial({
+  size: 20, map: hitSprite(), transparent: true, depthWrite: false,
+  sizeAttenuation: true, blending: THREE.NormalBlending }));
+/* Over the blade and over the glow, but still depth-TESTED, so a strike on the far side of
+   the ring is hidden by the body in front of it the way the path there is. */
+hits.renderOrder = 62;
+hits.frustumCulled = false;
+hits.visible = false;
+scene.add(hits);
+
+/* The electron itself, drawn as the species glyph rather than as a bare dot: a #ffe94d
+   disc with a #2a2405 minus barred across it. That is hall_thruster.html's electron cell
+   from makeGlyphAtlas, proportions and colors unchanged — disc r = 0.44 of the box, bar
+   half-length r·0.46, bar width r·0.24 — so the particle in this figure, the particles in
+   the viewer's beam and the swatch in the scene key are all visibly one object.
+
+   A Sprite and not a Mesh, because the glyph has to face the reader: a minus painted on a
+   sphere turns edge-on and vanishes as the electron goes round the annulus, which is the
+   whole reason the corpus draws species as billboarded discs in the first place. */
+function electronGlyph(){
+  const S = 128;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const g = c.getContext('2d');
+  const cx = S / 2, cy = S / 2, r = S * 0.44;
+  const grd = g.createRadialGradient(cx, cy, r * 0.08, cx, cy, r);
+  grd.addColorStop(0, '#ffe94d'); grd.addColorStop(0.82, '#ffe94d');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grd; g.beginPath(); g.arc(cx, cy, r, 0, 6.283); g.fill();
+  g.strokeStyle = '#2a2405'; g.lineCap = 'round'; g.lineWidth = r * 0.24;
+  const h = r * 0.46;
+  g.beginPath(); g.moveTo(cx - h, cy); g.lineTo(cx + h, cy); g.stroke();
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace; tex.generateMipmaps = false;
+  tex.minFilter = THREE.LinearFilter; tex.magFilter = THREE.LinearFilter;
+  return tex;
+}
+const head = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: electronGlyph(), transparent: true, depthWrite: false }));
+/* Big enough for the bar to read at lesson size and still sit inside the 24-unit halo.
+   The old bare dot was 4 units across; a minus is illegible at that size. */
+head.scale.set(9, 9, 1);
+head.renderOrder = 62;
+const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: glowSprite(), transparent: true, blending: THREE.AdditiveBlending,
+  depthWrite: false, depthTest: false, opacity: 0.85 }));
+halo.scale.set(24, 24, 1);
+/* Under the glyph, not over it. The halo is additive, so drawing it last lifted the dark
+   bar of the minus toward yellow and washed the sign out — the glow belongs around the
+   electron, not across it. */
+halo.renderOrder = 61;
+scene.add(head, halo);
+
+/* ── Operating point ──────────────────────────────────────
+   One place where the four sliders become numbers, so the path, the readouts, the status
+   line and the scale disclosure cannot disagree with each other. */
+const NT = 512;                                   // samples per bounce period in the tables
+const tabPhi = new Float64Array(NT + 1);          // cumulative gyro-phase, in units of w_c0
+const tabTh  = new Float64Array(NT + 1);          // cumulative drift angle, in units of v_D0
+let S = {};
+
+function recompute(){
+  const B0 = +el.b.value * 1e-4;                       // T, AT MID-CHANNEL
+  const Te = +el.te.value;                             // eV
+  const Ez = +el.e.value * 1e3;                        // V/m
+  /* The pitch angle slider now runs the whole 0 to 90 degrees, and exactly 0 is the one
+     value the closed form below cannot take: with no perpendicular velocity there is no
+     magnetic moment, the bounce frequency w_b goes to zero, and s_max = v_par/w_b and
+     T1 = asin(.)/w_b both come out 0/0. Clamped a twentieth of a degree off it instead,
+     which is far inside the slider's own one-degree step and lands the limit exactly where
+     the physics says it should: w_b -> 0 makes s_max enormous, the electron is nowhere near
+     trapped, and tau_b collapses to the naive 2w/v_par the prose above warns about. Ninety
+     needs no guard — v_par is zero there, so s_max is zero, and a bounce of zero amplitude
+     is a correct description of an electron that never leaves mid-channel. */
+  const PA_MIN = 0.05 * Math.PI / 180;
+  const pa = Math.max(PA_MIN, +el.pa.value * Math.PI / 180);   // pitch angle at mid-channel
+
+  /* The readouts are typeable boxes, so these write .value and not .textContent, and the
+     unit lives in the sibling .sl-unit rather than in the field. Writing through here is
+     also what clamps a typed value: wireNumBox puts what was typed into the RANGE first,
+     which clamps and snaps it, and then calls this, which prints back what was applied. */
+  el.bVal.value  = el.b.value;
+  el.teVal.value = el.te.value;
+  el.paVal.value = el.pa.value;
+  el.eVal.value  = el.e.value;
+
+  /* ONE speed, split by the pitch angle. This is the correction that moved every number
+     on the figure: the old version took the full characteristic speed sqrt(2E/m) as the
+     PARALLEL speed and the same full speed again as the PERPENDICULAR one, which is a
+     particle with twice the energy it was given and, worse, is simultaneously at a pitch
+     angle of zero and of ninety degrees. */
+  const v    = Math.sqrt(2 * QE * Te / M_E) * 1e-6;    // mm/ns, total
+  const vPar = v * Math.cos(pa), vPer = v * Math.sin(pa);
+
+  const tauC0 = 2 * Math.PI * M_E / (QE * B0) * 1e9;   // ns, at mid-channel
+  const wc0   = 2 * Math.PI / tauC0;                   // rad/ns
+  const rce0  = M_E * (vPer * 1e6) / (QE * B0) * 1e3;  // mm, at mid-channel
+  /* The orbit the SAME electron would have if all of its energy were perpendicular. Not a
+     quantity the figure reports; it is the reference the drawn magnification is set from,
+     so that one field-and-energy setting has one magnification and the drawn orbit then
+     shrinks with sin(pitch) the way the real one does. Scaling off rce0 instead pinned the
+     drawn orbit at GY_DRAW for every pitch angle, which drew a fat helix at a pitch of one
+     degree — an electron with essentially no gyration at all. */
+  const rce90 = M_E * (v * 1e6) / (QE * B0) * 1e3;     // mm
+  const vD0   = Ez / B0 * 1e-6;                        // mm/ns, at mid-channel
+
+  /* The bounce, in closed form. The mirror force is -mu dB/ds and B is quadratic in s, so
+     the force is LINEAR in s and the trapped bounce is exactly simple harmonic:
+        w_b = (2 v_perp / w) sqrt(R - 1),      s_max = v_par / w_b.
+     If s_max clears the half-gap the electron never reaches a wall and the mirror alone
+     turns it. If it does not, the sinusoid is truncated at the wall and what turns the
+     electron there is the sheath. That is the loss cone, and it opens at a pitch angle of
+     atan(1/sqrt(R-1)), which is where THETA_LC comes from. */
+  const wb      = (2 * vPer / W) * Math.sqrt(R_MIRROR - 1);
+  const sMax    = vPar / wb;
+  const trapped = sMax <= W / 2;
+  const T1      = (trapped ? Math.PI / 2 : Math.asin((W / 2) / sMax)) / wb;
+  const tauB    = 4 * T1;
+  const sPeak   = Math.min(sMax, W / 2);
+
+  S = { wb, sMax, T1, tauB, sPeak, trapped, wc0, tauC0, rce0, vD0 };
+
+  /* Gyro-phase and drift angle both advance at rates that depend on where the electron is
+     in its bounce, so neither is linear in t. Both are integrated once per operating point
+     over ONE bounce period and cached; a whole number of periods is then a multiple of the
+     total and the remainder is one interpolation. Midpoint rule, which is second order and
+     is plenty at 512 samples for a smooth periodic integrand. */
+  const h = tauB / NT;
+  tabPhi[0] = 0; tabTh[0] = 0;
+  for (let i = 1; i <= NT; i++){
+    const s = sAt((i - 0.5) * h);
+    const b = bOf(s);
+    tabPhi[i] = tabPhi[i - 1] + h * b;
+    tabTh[i]  = tabTh[i - 1]  + h / (b * (R_MID + s));
+  }
+  S.phiTot = tabPhi[NT];
+  S.thTot  = tabTh[NT];
+
+  /* Teeth per lap is now MEASURED off that integration rather than assumed: it is how many
+     bounce periods it takes the drift to carry the guiding center through 2 pi. */
+  S.N       = 2 * Math.PI / (vD0 * S.thTot);
+  S.tauD    = S.N * tauB;
+  S.tauCavg = tauB * tauC0 / S.phiTot;
+  S.gMag    = Math.max(1, GY_DRAW / rce90);
+  /* The gyro period moves by a factor of six across the field slider, so the pace has to
+     be read off the operating point rather than set once. Averaged over the bounce, since
+     that is the period the trail is sampled on too. */
+  S.rate    = on(el.t1) ? Math.min(RATE, S.tauCavg * FPS / FPO) : RATE;
+
+  /* ── The three reported quantities ──────────────────────
+     All three are read AT MID-CHANNEL, which is where every slider on this panel is
+     defined and where B is weakest. Larmor radius: r_L = m v_perp / eB, so it is the
+     PERPENDICULAR speed that sets it and the pitch angle moves it all the way to zero.
+     Cyclotron frequency: f_ce = eB / 2 pi m, which is 1/tau_c and depends on nothing but
+     the field, so it is the one cell the other three sliders do not touch. Drift velocity:
+     the magnitude of E x B / B^2, which for the perpendicular E and B this channel has is
+     just E/B, and it is the speed of the guiding center around the annulus. */
+  el.oRL.textContent = rStr(rce0);
+  el.oFC.textContent = (1000 / tauC0).toFixed(0) + ' MHz';   // 1/tau_c, tau_c in ns
+  el.oVD.textContent = (vD0 * 1e3).toFixed(0) + ' km/s';     // mm/ns -> km/s
+
+  /* A cell dims with the motion it belongs to, as the old bar's cells did: the radius and
+     the frequency are the gyration, the drift velocity is the drift. */
+  el.cRL.style.opacity = el.cFC.style.opacity = on(el.t1) ? 1 : 0.4;
+  el.cVD.style.opacity = on(el.t3) ? 1 : 0.4;
+
+  if (!on(el.t2)) {
+    el.status.style.display = 'none';
+  } else {
+    el.status.style.display = '';
+    /* The verdict, and nothing but the verdict. It used to spell out where the turning
+       points landed and how much daylight was left to the wall; the figure now says both of
+       those things itself, in the shape of the path and in the × marks where it reaches the
+       ceramic, and a chip repeating them in prose was the reader's third place to look for
+       one answer. */
+    el.status.textContent = trapped
+      ? 'Electron confined in mirror'
+      : 'Electron not confined in mirror';
+    // .ok / .warn rather than an inline color, so the verdict wears the same pair as
+    // every other pass/fail readout in the corpus (.ix-status, .out-verdict, #col-cap).
+    el.status.classList.toggle('ok',  trapped);
+    el.status.classList.toggle('warn', !trapped);
+  }
+
+  rebuildBlade();
+}
+
+/* Radial offset from mid-channel at simulated time t: a sinusoid while the electron is
+   mirror-trapped, and the same sinusoid folded at the wall when it is not. */
+function sAt(t){
+  const u = ((t % S.tauB) + S.tauB) % S.tauB;
+  const q = u <= S.T1 ? u : (u <= 3 * S.T1 ? 2 * S.T1 - u : u - 4 * S.T1);
+  return S.sMax * Math.sin(S.wb * q);
+}
+const cum = (tab, u) => {
+  const x = u / S.tauB * NT, i = Math.min(NT - 1, Math.max(0, Math.floor(x)));
+  return tab[i] + (x - i) * (tab[i + 1] - tab[i]);
+};
+
+const _v = new THREE.Vector3();
+function state(t, withGyro, out){
+  const bounce = on(el.t2), drift = on(el.t3), gyro = on(el.t1) && withGyro;
+  const s  = bounce ? sAt(t) : 0;
+  const r  = R_MID + s;
+  const b  = bOf(s);
+  const k  = Math.floor(t / S.tauB), u = t - k * S.tauB;
+
+  let th = THETA0, y = 0;
+  /* With the bounce switched off the guiding center sits at mid-channel for good, so the
+     drift is the plain v_D/r there; running it off the table would be the drift along a
+     path this electron is not taking. */
+  if (drift) th += bounce ? S.vD0 * (k * S.thTot + cum(tabTh, u)) : S.vD0 * t / R_MID;
+  if (gyro){
+    const phi = bounce ? S.wc0 * (k * S.phiTot + cum(tabPhi, u)) : S.wc0 * t;
+    // The orbit shrinks where B is strong, since r_c = m v_perp / eB and v_perp only
+    // grows as sqrt(B) under a conserved moment. It is tightest at the turning points.
+    const rg = S.gMag * S.rce0 / Math.sqrt(b);
+    th += rg * Math.cos(phi) / r;      // the orbit lies ACROSS the radial field, so it
+    y  += rg * Math.sin(phi);          // wobbles in azimuth and along the axis, not in r
+  }
+  return (out || _v).set(r * Math.cos(th), y, -r * Math.sin(th));
+}
+
+/* The blade: one whole lap of the path, drawn at once, so the teeth can be counted rather
+   than watched going by. Gyration is left OUT of it deliberately. There are of order a
+   hundred orbits in a lap, so resolving them would cost tens of thousands of points, and
+   sampled coarsely they alias into a wobble that is not there. The trail carries the
+   gyration instead, over a window short enough to sample it properly.
+
+   The lap it draws is the lap the ELECTRON IS ON — t in [k*tau_d, (k+1)*tau_d] for the
+   current k — and that is the whole of the fix. It used to be pinned to the first lap and
+   left standing there forever. A single fixed lap is the path only when the lap holds a
+   WHOLE number of bounces, and it generally does not: the sawtooth comes back round shifted
+   by frac(N) of a tooth, so on lap two the electron is cutting teeth beside the drawn ones,
+   on lap three beside those, and so on. At the default setting N is about nine and one
+   ninth of a tooth is a small error nobody notices. Push E/B up and N falls toward one — at
+   30 V/mm against 50 G it is 1.4 — and the drawn blade is then a single tooth while the
+   electron is most of a lap away from it.
+
+   Re-laid on the lap boundary rather than trailed behind the electron, which was the other
+   way to make the two agree. A trailing window is correct at every instant but it has to
+   grow into existence: the pace is capped so the gyro-orbit can be drawn, so a lap is 25
+   seconds of real time at the default and over two minutes at the slow end, and for all of
+   that the ring of teeth is a partial arc that cannot be counted. Re-laying gives the full
+   lap on the first frame, keeps the electron exactly on it, and moves the teeth once per lap
+   by the fraction of a tooth they really move by. */
+const bladePts = [];
+let bladeLap = -1;
+function rebuildBlade(){
+  const k = Math.floor(simT / S.tauD), t0 = k * S.tauD;
+  bladeLap = k;
+  blade.visible = on(el.t3);
+  if (blade.visible){
+    /* Sampled per TOOTH rather than at a flat count. The count used to be a flat 1600, which
+       is 1200 points on a single tooth at N = 1.4 and eleven per tooth at the other end of
+       the sliders, where a truncated sinusoid starts to look folded out of straight lines.
+       Rebuilding is once a lap now, so the top of the range costs nothing worth saving. */
+    const n = Math.max(400, Math.min(4000, Math.round(110 * S.N)));
+    bladePts.length = 0;
+    for (let i = 0; i <= n; i++){
+      state(t0 + S.tauD * i / n, false, _v);
+      bladePts.push(_v.x, _v.y, _v.z);
+    }
+    setLinePositions(blade, bladePts);
+  }
+  updateWallHits(t0, t0 + S.tauD);
+}
+
+/* Where the path meets the ceramic. Only an electron the mirror cannot hold gets there, so
+   these appear exactly when the verdict says it is not confined and never otherwise.
+
+   The contacts are not searched for; they are known. Inside the loss cone the radial motion
+   is the trapped sinusoid truncated at the wall, so s reaches +w/2 at T1 into every bounce
+   period and -w/2 at 3*T1 — the outer wall then the inner one, twice per period and no more.
+   Marking them straight off those two times costs nothing and cannot miss one between
+   samples, which a scan over the drawn points can and does at the coarse end of the range. */
+function updateWallHits(t0, t1){
+  let m = 0;
+  if (on(el.t2) && S && !S.trapped && S.tauB > 0){
+    const kEnd = Math.floor(t1 / S.tauB);
+    for (let k = Math.floor(t0 / S.tauB); k <= kEnd && m < MAX_HITS; k++){
+      for (let j = 0; j < 2 && m < MAX_HITS; j++){
+        const tc = k * S.tauB + (j ? 3 * S.T1 : S.T1);
+        if (tc < t0 || tc > t1) continue;
+        state(tc, false, _v);
+        hitPos[m * 3] = _v.x; hitPos[m * 3 + 1] = _v.y; hitPos[m * 3 + 2] = _v.z;
+        m++;
+      }
+    }
+  }
+  hits.visible = m > 0;
+  hitGeo.setDrawRange(0, m);
+  hitGeo.attributes.position.needsUpdate = true;
+}
+
+const trailPts = [], trailCols = [];
+function updateTrail(t){
+  /* How much history to keep: part of a bounce when there is a bounce, a short slice of the
+     lap when the drift is running on its own, and a couple of orbits when neither is on.
+
+     Cut down from a whole bounce period, a tenth of a lap and four orbits. At those lengths
+     the glowing coil ran back over so much of the path that it read as the object itself
+     rather than as the electron's wake, and with the gyration on it buried the standing
+     blade underneath it — the trail was drawing the same sawtooth a second time, in a
+     brighter color, one bounce out of step with the one already there. A trail is meant to
+     say where the particle just came from and then get out of the way of the path. */
+  let span = on(el.t2) ? Math.min(0.42 * S.tauB, 34)
+           : on(el.t3) ? S.tauD * 0.035
+                       : 2.2 * S.tauCavg;
+  /* Sampled on the GYRO period when the helix is being drawn, not on a fixed count: at 24
+     points an orbit it is a smooth coil, and at the 260 the rest of the figure needs it is
+     a zigzag that reads as noise. The WINDOW is capped in orbits rather than the sample
+     count in points, which is the same guard from the other end: over the sliders' range
+     the gyro period moves by more than ten to one, so a fixed window that is a tidy coil
+     at one end of it is several hundred orbits of aliasing at the other. */
+  let n = 260;
+  if (on(el.t1)){
+    span = Math.min(span, 11 * S.tauCavg);
+    n = Math.max(260, Math.round(span / S.tauCavg * 24));
+  }
+  /* The window is clipped to the history that exists rather than clamped to it: before the
+     first full span has run, clamping put every sample older than t = 0 on the same point,
+     and a few hundred coincident additive vertices are a white bead sitting on the
+     electron. Clipped, the coil simply starts short and grows, which is what a trail does. */
+  const t0 = Math.max(0, t - span), w = t - t0;
+  trailPts.length = 0; trailCols.length = 0;
+  for (let i = 0; i <= n; i++){
+    const f = i / n;                                // 0 = oldest sample
+    state(t0 + w * f, true, _v);
+    trailPts.push(_v.x, _v.y, _v.z);
+    const a = f * f;                                // additive, so color IS the fade
+    trailCols.push(a, a * 0.92, a * 0.32);
+  }
+  setLinePositions(trail, trailPts);
+  trail.geometry.setColors(trailCols);
+}
+
+/* ── Frame ────────────────────────────────────────────────── */
+let simT = 0, last = 0;
+function step(now){
+  const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
+  last = now;
+  /* S.rate is set for a display running at FPS, so the same cap has to be applied to the
+     step itself for a display that is not: a dropped frame or a slower panel hands this a
+     larger dt and the electron goes back to hopping around its orbit. Capped, a slow
+     machine draws the helix in slow motion instead, which is the failure worth having.
+     Above FPS the cap does not bind and the pace stays true to the clock. */
+  const adv = dt * (S.rate || RATE);
+  simT += on(el.t1) ? Math.min(adv, S.tauCavg / FPO) : adv;
+
+  // The blade draws the lap the electron is on, so it is re-laid when the electron crosses
+  // into the next one. Once every 25 seconds or so of real time, not once a frame.
+  if (Math.floor(simT / S.tauD) !== bladeLap) rebuildBlade();
+  updateTrail(simT);
+  state(simT, true, _v);
+  head.position.copy(_v);
+  halo.position.copy(_v);
+
+  for (const m of glowMats) m.uniforms.uTime.value = now / 1000;
+
+  controls.update();
+  renderer.render(scene, camera);
+  updateFieldLabels();          // after render: reads the camera the frame just used
+  raf = requestAnimationFrame(step);
+}
+
+/* ── Wiring ───────────────────────────────────────────────── */
+function applyToggles(){
+  /* The field lines and the discharge glow have no switch any more and are simply always
+     drawn; only the drift arc still comes and goes, because it names a motion that can be
+     switched off and would otherwise be pointing at nothing. */
+  driftGroup.visible = on(el.t3);
+  /* With neither of the larger motions switched on the guiding center is standing still,
+     and all there is to see is a coil going round on the spot. Say so. */
+  const idle = !on(el.t2) && !on(el.t3);
+  el.note.style.display = idle ? '' : 'none';
+  el.note.textContent = on(el.t1)
+    ? 'Only the gyration. The guiding center is standing still, so this is the orbit on ' +
+      'its own, magnified. Add the bounce to send it along the field line.'
+    : 'Nothing is switched on. Add the gyration, then the bounce, then the drift.';
+  recompute();
+}
+[el.t1, el.t2, el.t3].forEach(b => b.addEventListener('click', () => {
+  b.setAttribute('aria-pressed', on(b) ? 'false' : 'true');
+  applyToggles();
+}));
+[el.b, el.te, el.pa, el.e].forEach(s => s.addEventListener('input', recompute));
+// Same four knobs, reachable from the keyboard. recompute() writes every box back, so a
+// typed value and a dragged one land in exactly the same place.
+wireNumBox('bz-b',  'bz-b-val',  recompute);
+wireNumBox('bz-te', 'bz-te-val', recompute);
+wireNumBox('bz-pa', 'bz-pa-val', recompute);
+wireNumBox('bz-e',  'bz-e-val',  recompute);
+el.reset.addEventListener('click', home);
+
+/* ── Field labels ─────────────────────────────────────────
+   hall_thruster.html's floating field chips, ported: the glyph typeset through KaTeX so
+   the vector accent is the one the equations on this page already use, colored to match
+   the field it sits on, on a dark backing and with no leader — the label IS on its field,
+   so there is nothing to point at. KaTeX is deferred here as it is in both viewers, so
+   each chip starts as the plain italic letter and is re-rendered once the library lands;
+   with no network they simply stay that way, which is the same fallback gridded_ion takes.
+
+   Anchors are picked off the geometry the field block above builds, pushed clear of the
+   arrow or the arc they name so the chip does not cover it. Each of the three sits at a
+   different azimuth on purpose: the drift arc sweeps THETA0-0.60 to THETA0+0.35, so the
+   field-line station inside that span is the one place a B chip must NOT go, and the E
+   arrow stands at THETA0+90. That leaves the station a quarter turn behind the E arrow
+   for B, which is clear of both and still on the visible side at the home camera. */
+const FIELD_LABELS = [
+  // B and E are always drawn now that neither the lines nor the labels have a switch; the
+  // only thing that can still hide one of these chips is the camera swinging it off screen.
+  { k: 'B', tex: '\\vec{B}', txt: 'B',
+    pos: rHat(Math.PI / 2 + 0.35).multiplyScalar(R_OUT + 26).setY(14),
+    vis: () => true },
+  { k: 'E', tex: '\\vec{E}', txt: 'E',
+    pos: rHat(THETA0 + Math.PI / 2).multiplyScalar(R_MID).setY(52),
+    vis: () => true },
+  // The drift is a velocity, so it is labelled as one, and it takes the white of the arc
+  // it names rather than the velocity blue the equations give v_ExB: in the scene the
+  // chip's job is to say which arrow it belongs to. Set a little past the arc's head, not
+  // radially outboard of it, so the chip trails the arrow instead of sitting on its point.
+  { k: 'D', tex: '\\vec{v}_{E\\times B}', txt: 'v',
+    pos: rHat(THETA0 + 0.60).multiplyScalar(R_OUT + 26).setY(12),
+    vis: () => on(el.t3) },
+];
+
+const annotEl = $('bz-annot');
+const fieldLabelEls = FIELD_LABELS.map(l => {
+  const chip = document.createElement('div');
+  chip.className = 'bz-flabel fieldlabel-' + l.k;
+  chip.textContent = l.txt;
+  chip.style.display = 'none';
+  annotEl.appendChild(chip);
+  return { chip, tex: l.tex, pos: l.pos, vis: l.vis };
+});
+
+function typesetFieldLabels(){
+  if (!window.katex) return;
+  for (const e of fieldLabelEls){
+    e.chip.textContent = '';
+    katex.render(e.tex, e.chip, { throwOnError: false });
+  }
+}
+typesetFieldLabels();
+if (!window.katex) window.addEventListener('load', typesetFieldLabels, { once: true });
+
+/* Project a scene point to frame pixels. Unlike the viewers' section camera this one
+   orbits, so a point CAN swing behind the eye; project() returns z > 1 once it has, and
+   that is the guard the fixed-camera version does not need and does not carry. */
+const _lp = new THREE.Vector3(), _lxy = [0, 0];
+function projectToFrame(p, W, H, out){
+  _lp.copy(p).project(camera);
+  out[0] = (_lp.x * 0.5 + 0.5) * W;
+  out[1] = (-_lp.y * 0.5 + 0.5) * H;
+  return _lp.z < 1;
+}
+
+function updateFieldLabels(){
+  const W = frameEl.clientWidth, H = frameEl.clientHeight;
+  for (const e of fieldLabelEls){
+    const show = e.vis() && projectToFrame(e.pos, W, H, _lxy);
+    e.chip.style.display = show ? '' : 'none';
+    if (!show) continue;
+    e.chip.style.left = _lxy[0].toFixed(1) + 'px';
+    e.chip.style.top  = _lxy[1].toFixed(1) + 'px';
+  }
+}
+
+function resize(){
+  const w = Math.max(1, frameEl.clientWidth), h = Math.max(1, frameEl.clientHeight);
+  renderer.setSize(w, h, false);          // the CANVAS is sized in CSS; see .bz-frame
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  bladeMat.resolution.set(w, h);          // Line2 wants CSS pixels, not buffer pixels
+  trailMat.resolution.set(w, h);
+}
+new ResizeObserver(resize).observe(frameEl);
+resize();
+home();
+applyToggles();
+
+/* Off-screen the loop is pure waste, and this page carries a second three.js viewer in an
+   iframe further down that wants the frames more than this figure does. */
+let raf = null;
+new IntersectionObserver(es => {
+  for (const e of es){
+    if (e.isIntersecting && raf === null){ last = 0; raf = requestAnimationFrame(step); }
+    else if (!e.isIntersecting && raf !== null){ cancelAnimationFrame(raf); raf = null; }
+  }
+}, { threshold: 0 }).observe(frameEl);
+
+}
+}
+</script>
+
+<!-- ════════════════════ FIGURE: WHO IS MAGNETIZED ════════════════════ -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('wm-svg');
+  if (!svg) return;
+
+  const QE   = 1.602176634e-19;
+  const M_E  = 9.1093837015e-31;
+  const M_XE = 2.1801714e-25;
+  const W_MM = 24;                 // channel width, r 38 to 62 mm
+  const PX_PER_MM = 200 / W_MM;    // the upper panel is drawn to scale
+
+  /* The ion runs between these two x, stopping short of the dimension bracket at x = 800
+     rather than crossing it. ENTRY is where it comes in and where the dashed reference
+     sits; picked so that the steepest arc the sliders allow (106 px of fall, at 25 gauss
+     on a 50 eV ion) still lands inside the channel instead of through the inner wall. */
+  const AX0 = 230, AX1 = 860, ENTRY = 178;
+  const E_CX = 330, E_CY = 250;                // guiding center, on the channel midline
+
+  const $ = id => document.getElementById(id);
+  const el = {
+    ion: $('wm-ion'), ionRef: $('wm-ion-ref'), ionLbl: $('wm-ion-lbl'),
+    ionGd: $('wm-ion-gd'), ionGh: $('wm-ion-gh'), ionGv: $('wm-ion-gv'),
+    e: $('wm-e'), eLead: $('wm-e-lead'), eLbl: $('wm-e-lbl'),
+    eGd: $('wm-e-gd'), eGh: $('wm-e-gh'), eCross: $('wm-e-cross'),
+    markEL: $('wm-mark-e-l'), markET: $('wm-mark-e-t'),
+    markED: $('wm-mark-e-d'), markEH: $('wm-mark-e-h'),
+    markIL: $('wm-mark-i-l'), markIT: $('wm-mark-i-t'),
+    markID: $('wm-mark-i-d'), markIH: $('wm-mark-i-h'), markIV: $('wm-mark-i-v'),
+    brace: $('wm-brace'), braceT: $('wm-brace-t'),
+    b: $('wm-b'), te: $('wm-te'), ei: $('wm-ei'),
+    bVal: $('wm-b-val'), teVal: $('wm-te-val'), eiVal: $('wm-ei-val'),
+    oRe: $('wm-o-re'), oReSub: $('wm-o-re-sub'),
+    oRi: $('wm-o-ri'), oRiSub: $('wm-o-ri-sub'),
+    oRatio: $('wm-o-ratio'),
+    oVi: $('wm-o-vi'), oVe: $('wm-o-ve')
+  };
+
+  /* Gyroradius from a characteristic speed sqrt(2E/m). Returned in millimeters,
+     which is the unit both panels are drawn in. */
+  const gyro = (E_eV, m, B_T) => Math.sqrt(2 * QE * E_eV / m) * m / (QE * B_T) * 1e3;
+
+  /* Log ruler: 10 um to 100 m, SEVEN decades across the same 780 px the panel uses.
+     Seven because the ion reaches 16 m at the weak-field end and a six-decade ruler
+     ending at 10 m clamped it to the axis end while its label kept climbing. */
+  const xLog = mm => 80 + (Math.log10(mm) + 2) / 7 * 780;
+
+  /* Three significant figures throughout, rather than two decimals throughout: a
+     gyroradius of 291.63 mm claims a hundredth of a millimeter off a slider that steps
+     in tens of electronvolts, and none of these inputs is known to anything like that. */
+  const mmStr = mm => mm >= 1000 ? (mm / 1000).toFixed(2) + ' m'
+                    : mm >= 100  ? mm.toFixed(0) + ' mm'
+                    : mm >= 1    ? mm.toFixed(2) + ' mm'
+                                 : (mm * 1000).toFixed(0) + ' µm';
+
+  /* The same radius said again as a fraction of the gap that has to hold it, which is
+     the only comparison the verdict actually makes. One decimal below ten percent and
+     none above it: the ion runs to five figures of percent, and a decimal place out
+     there is noise on a slider that steps in tens of electronvolts. */
+  const pctStr = mm => {
+    const p = mm / W_MM * 100;
+    return (p < 10 ? p.toFixed(1) : Math.round(p).toLocaleString()) +
+           '% of the channel width';
+  };
+
+  /* A species glyph on the ruler axis: the scene key's disc with its sign inked in,
+     so the marker and the particle it stands for are the same object. The plus needs
+     a second stroke; the minus passes null for it. */
+  const glyph = (disc, horiz, vert, x) => {
+    disc.setAttribute('cx', x.toFixed(1));
+    horiz.setAttribute('x1', (x - 4).toFixed(1));
+    horiz.setAttribute('x2', (x + 4).toFixed(1));
+    if (vert){
+      vert.setAttribute('x1', x.toFixed(1)); vert.setAttribute('x2', x.toFixed(1));
+      vert.setAttribute('y1', '494'); vert.setAttribute('y2', '502');
+    }
+  };
+
+  function draw(){
+    const B_T = +el.b.value * 1e-4;        // gauss to tesla
+    const Te  = +el.te.value;
+    const Ei  = +el.ei.value;
+
+    // Typeable boxes: the value goes in the field, the unit sits beside it in .sl-unit.
+    el.bVal.value  = el.b.value;
+    el.teVal.value = el.te.value;
+    el.eiVal.value = el.ei.value;
+
+    const rE = gyro(Te, M_E,  B_T);        // mm
+    const rI = gyro(Ei, M_XE, B_T);        // mm
+
+    // ── Electron: one gyro-orbit, true to the panel's scale ──
+    const rEpx = rE * PX_PER_MM;
+    el.e.setAttribute('r', rEpx.toFixed(2));
+    /* The glyph rides the orbit up and to the right, where it clears both the
+       guiding-center cross at the middle and the leader going down to the label. It is
+       sized OFF the orbit rather than fixed: at 150 gauss the orbit is 8 px across and a
+       fixed 7 px glyph swallows the very thing it is supposed to be riding. Floored at
+       3 px so it stays a recognizable disc at the strong-field end, and the cross goes
+       away below the radius where the two would merge into one blob. */
+    const gR = Math.max(3, Math.min(7, rEpx * 0.55));
+    const egx = E_CX + rEpx * 0.766, egy = E_CY - rEpx * 0.643;
+    el.eGd.setAttribute('r', gR.toFixed(1));
+    el.eGd.setAttribute('cx', egx.toFixed(1)); el.eGd.setAttribute('cy', egy.toFixed(1));
+    el.eGh.setAttribute('stroke-width', (gR * 0.32).toFixed(2));
+    el.eGh.setAttribute('x1', (egx - gR * 0.5).toFixed(1));
+    el.eGh.setAttribute('x2', (egx + gR * 0.5).toFixed(1));
+    el.eGh.setAttribute('y1', egy.toFixed(1));         el.eGh.setAttribute('y2', egy.toFixed(1));
+    el.eCross.style.display = rEpx >= 14 ? '' : 'none';
+    const lead = Math.max(rEpx, 8);
+    el.eLead.setAttribute('x1', (E_CX + lead * 0.707).toFixed(1));
+    el.eLead.setAttribute('y1', (E_CY + lead * 0.707).toFixed(1));
+    el.eLbl.textContent = 'electron, r = ' + mmStr(rE);
+
+    /* ── Xenon ion ──
+       The arc is a piece of a circle whose radius runs to meters, so it is drawn by
+       sampling rather than as a <circle>: at these radii a circle element would have a
+       bounding box thousands of times the size of the frame. The center sits directly
+       below the entry point, which makes the circle tangent to the horizontal there,
+       so the ion comes in flat, and everything below the dashed line is deflection. */
+    const Rpx = rI * PX_PER_MM;
+    const cy = ENTRY + Rpx;
+    const arcY = x => cy - Math.sqrt(Math.max(0, Rpx * Rpx - (x - AX0) * (x - AX0)));
+    let d = '';
+    for (let x = AX0; x <= AX1; x += 10) d += (d ? ' L ' : 'M ') + x + ' ' + arcY(x).toFixed(1);
+    el.ion.setAttribute('d', d);
+
+    // The path it came in on, held straight across the panel.
+    el.ionRef.setAttribute('d', 'M ' + AX0 + ' ' + ENTRY + ' L ' + AX1 + ' ' + ENTRY);
+
+    // Glyph parked at the entry, just downstream of the anode face at x = 222.
+    const igx = 250, igy = arcY(igx);
+    el.ionGd.setAttribute('cx', igx); el.ionGd.setAttribute('cy', igy.toFixed(1));
+    el.ionGh.setAttribute('x1', igx - 4); el.ionGh.setAttribute('x2', igx + 4);
+    el.ionGh.setAttribute('y1', igy.toFixed(1)); el.ionGh.setAttribute('y2', igy.toFixed(1));
+    el.ionGv.setAttribute('x1', igx); el.ionGv.setAttribute('x2', igx);
+    el.ionGv.setAttribute('y1', (igy - 4).toFixed(1)); el.ionGv.setAttribute('y2', (igy + 4).toFixed(1));
+
+    el.ionLbl.textContent = 'xenon ion, r = ' + mmStr(rI);
+
+    /* ── Ruler markers ──
+       Still clamped, though seven decades leaves the sliders no way to run off either
+       end: a clamp that never fires costs nothing, and the ruler's range is a choice
+       that could change again. */
+    const xE = Math.max(84, Math.min(856, xLog(rE)));
+    const xI = Math.max(84, Math.min(856, xLog(rI)));
+    const place = (line, text, x, label) => {
+      line.setAttribute('x1', x.toFixed(1)); line.setAttribute('x2', x.toFixed(1));
+      text.setAttribute('x', x.toFixed(1));
+      text.textContent = label;
+    };
+    place(el.markEL, el.markET, xE, 'electron, ' + mmStr(rE));
+    place(el.markIL, el.markIT, xI, 'xenon ion, ' + mmStr(rI));
+    glyph(el.markED, el.markEH, null, xE);
+    glyph(el.markID, el.markIH, el.markIV, xI);
+
+    /* The span between them, which is the mass ratio at work turned into a length.
+       On a log axis that length IS the ratio, which is the argument for the axis. */
+    el.brace.setAttribute('d', 'M ' + xE.toFixed(1) + ' 562 V 570 H ' + xI.toFixed(1) + ' V 562');
+    el.braceT.textContent = Math.round(rI / rE).toLocaleString() + '× apart';
+
+    el.oRe.textContent = mmStr(rE);
+    el.oReSub.textContent = pctStr(rE);
+    el.oRi.textContent = mmStr(rI);
+    el.oRiSub.textContent = pctStr(rI);
+    /* r_Li = b r_Le, with b filled in. The thousands separator goes in as {,} so KaTeX
+       spaces it as a digit group rather than as a comma between two terms, and the
+       multiplier is bound to r_Le with a thin space the way a coefficient is. b runs
+       from about 490 to 5,400 across the three sliders. */
+    ratioTex = 'r_{Li} \\approx ' +
+               Math.round(rI / rE).toLocaleString().replace(/,/g, '{,}') + '\\, r_{Le}';
+    typesetRatio();
+
+    /* Confined means the Larmor radius is small against the dimension that has to hold
+       the species. Ten to one is the usual rule of thumb, and it is a rule of thumb.
+       Read once per species, because the answer differs by species and that difference
+       IS the thruster: the ions are meant to fail this test and the electrons to pass
+       it, so the box states which species it is about and lets the reader judge. */
+    const eMag = rE < W_MM / 10, iMag = rI < W_MM / 10;
+    el.oVi.textContent = iMag ? 'Ions confined' : 'Ions not confined';
+    el.oVe.textContent = eMag ? 'Electrons confined' : 'Electrons not confined';
+  }
+
+  /* KaTeX arrives on a deferred script, so the first draw() can run before it exists.
+     Hold the TeX and typeset on load when that happens, which is what the field labels
+     on the section figure above already do. */
+  let ratioTex = '';
+  function typesetRatio(){
+    if (!window.katex) return;
+    katex.render(ratioTex, el.oRatio, { throwOnError: false });
+  }
+
+  [el.b, el.te, el.ei].forEach(s => s.addEventListener('input', draw));
+  wireNumBox('wm-b',  'wm-b-val',  draw);
+  wireNumBox('wm-te', 'wm-te-val', draw);
+  wireNumBox('wm-ei', 'wm-ei-val', draw);
+  draw();
+  if (!window.katex) window.addEventListener('load', typesetRatio, { once: true });
+})();
+</script>
+
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+
+/* ── Single-answer multiple choice ─────────────────────────────── */
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct on every count.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
+  });
+});
+</script>
+</body>
+</html>

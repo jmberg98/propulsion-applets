@@ -1,0 +1,3199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Hall Thruster II: Acceleration</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"
+  onload="renderMathInElement(document.body,{
+    delimiters:[
+      {left:'$$', right:'$$', display:true},
+      {left:'\\[', right:'\\]', display:true},
+      {left:'$', right:'$', display:false},
+      {left:'\\(', right:'\\)', display:false}
+    ],
+    throwOnError:false
+  })"></script>
+
+<style>
+
+:root {
+  /* ── Physics color tokens ────────────────────────────────
+     ONE QUANTITY, ONE COLOR — in prose and in equations alike.
+     This block is byte-identical in every applet on purpose:
+     divergence here is what made a color mean two different
+     things from one lesson to the next. Ratios vs #0e0e0e.   */
+  --c-thrust:  #FF4400;  /* F, thrust, mass m, ṁ             5.6:1 */
+  --c-ve:      #3DBFFF;  /* v, c, Isp, ΔV, r_L, ω_c, ion     9.3:1 */
+  --c-power:   #C060FF;  /* q, charge, electron, power, μ    5.9:1 */
+  --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
+  --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
+  --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
+  --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
+
+  --c-accent:      #a0a0a0;
+  --c-accent-bg:   rgba(160,160,160,0.07);
+  --c-accent-glow: rgba(160,160,160,0.13);
+
+  --bg-page:     #090909;
+  --bg-panel-1:  #0e0e0e;
+  --bg-panel-2:  #121212;
+  --bg-panel-3:  #171717;
+  --bg-panel-4:  #1d1d1d;
+  --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
+  --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
+
+  --border: #282828;
+
+  --text-main:      #d6d6d6;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #7a7a7a;
+  --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
+  --page-w: min(1500px, calc(100vw - 192px));
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: var(--bg-panel-1); }
+::-webkit-scrollbar-thumb        { background: #383838; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover  { background: #d0d0d0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 22px 16px 36px;
+}
+
+#hdr,
+.page-intro,
+.clarify-section,
+.theory-block,
+.quiz-section,
+.transition-line,
+footer {
+  width: var(--page-w);
+}
+
+.theory-block.applet-host {
+  width: var(--page-w);
+  margin-left: 0;
+}
+
+/* ── Highlight classes ────────────────────────────────────
+   Color is the ONLY channel these use — never weight, never
+   size. Color answers "which quantity is this?".  For a term
+   of art that is NOT a quantity, use .key instead.  Never
+   stack the two: .key.hl-* is three channels for one signal. */
+.hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
+.hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
+.hl-press, .hl-B                            { color: var(--c-press); }
+.hl-E, .hl-phi                              { color: var(--c-efield); }
+.hl-neutral                                 { color: var(--c-neutral); }
+.hl-photon                                  { color: var(--c-photon); }
+.key { font-weight: 700; font-style: italic; }
+
+/* ── Color key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.color-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.color-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.color-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
+
+/* ── Header ──────────────────────────────────────────── */
+#hdr {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
+
+/* ── Badge ───────────────────────────────────────────── */
+.badge {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Page intro ──────────────────────────────────────── */
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 18px;
+}
+.page-intro + .page-intro { margin-top: -4px; }
+
+/* ── Transition line ─────────────────────────────────── */
+.transition-line {
+  font-size: 20.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 6px 0 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY / DROPDOWN SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
+details.clarify-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.clarify-body {
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
+}
+
+/* ══════════════════════════════════════════════════════
+   THEORY BLOCKS
+   ══════════════════════════════════════════════════════ */
+.theory-block {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.th-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
+.theory-block > .th-body:last-child { margin-bottom: 0; }
+
+/* ── Equation panels ────────────────────────────────
+   Same metrics as the stage pages (GIE_Acceleration), so an
+   equation looks identical wherever the reader meets it.  */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+.deriv-inner p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+}
+
+/* ── Exemplary engines ──────────────────────────────────
+   Outbound links. The engine name is NOT given a physics
+   color (a link is not a quantity), so it reads in the
+   heading color and signals itself with the underline and
+   the ↗ glyph instead.                                   */
+.ex-list { list-style: none; }
+.ex-item { padding: 12px 0 2px; border-top: 1px solid var(--border); }
+.ex-item:first-child { padding-top: 0; border-top: none; }
+.ex-name {
+  font-size: 20.5px;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 2px;
+}
+.ex-name a {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid #3a3a3a;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.ex-name a:hover { color: #ffffff; border-bottom-color: var(--c-accent); }
+.ex-name a:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 3px; }
+.ex-name .ext {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-left: 5px;
+  vertical-align: 1px;
+}
+/* Spec strip: the numbers this lesson's equations actually predict. */
+.ex-specs {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .2px;
+  margin-bottom: 5px;
+}
+.ex-specs .sep { color: #3a3a3a; margin: 0 7px; }
+/* Hardware photo. The two NASA shots are landscape and portrait respectively,
+   so bound them by HEIGHT; matching widths would make the portrait tower over
+   the landscape one. */
+.ex-fig {
+  margin: 10px 0 4px;
+  /* Caption beside the photo, not under it: the page is up to 1500px wide and a
+     height-bounded photo leaves most of that empty. Stacks below 900px. */
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+}
+.ex-fig img {
+  display: block;
+  max-height: 300px;
+  max-width: 100%;
+  height: auto;
+  width: auto;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-canvas);
+}
+.ex-fig figcaption {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 460px;
+  padding-bottom: 2px;
+}
+@media (max-width: 900px) {
+  .ex-fig { display: block; }
+  .ex-fig figcaption { margin-top: 6px; max-width: none; }
+}
+.ex-fig .credit {
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: .3px;
+  color: #5f5f5f;
+}
+
+/* ── Applet host overrides ──────────────────────────── */
+.theory-block.applet-host {
+  padding: 16px 0 0;
+  --c-accent:       #d0d0d0;
+  --text-main:      #f1f1f1;
+  --text-secondary: #d9d9d9;
+  --text-muted:     #bcbcbc;
+  --text-heading:   #ffffff;
+}
+.theory-block.applet-host .th-hdr {
+  margin: 0 18px 12px;
+}
+
+/* ── Embedded viewer / applet iframe ──────────────────
+   The frame is sized by ASPECT, not by a pinned pixel height. It is as wide as the page
+   (--page-w, up to 1500px), so a fixed height letterboxed it: the viewer scales its camera
+   to the shorter dimension, and a 2.4:1 slot left the model small with dead bands either
+   side. An aspect ratio keeps the slot proportionate at every window width; max-height
+   keeps a wide window from pushing it past one screen, min-height keeps a narrow one from
+   collapsing it. */
+.applet-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
+}
+
+/* ── Demo placeholder ─────────────────────────────────
+   Nothing on the page uses this at the moment: the slot it used to fill now holds the
+   electron-diffusion figure. Kept because the page still owes a viewer stage for the ion
+   half of the accelerating region (see the comment above that figure), and this is the
+   chrome that stage's placeholder took while it was waiting.       */
+.demo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 460px;
+  border-top: 1px solid var(--border);
+  background:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255,255,255,0.012) 0,
+      rgba(255,255,255,0.012) 12px,
+      transparent 12px,
+      transparent 24px
+    ),
+    var(--bg-canvas);
+  text-align: center;
+  padding: 24px;
+}
+.demo-placeholder-tag {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  border: 1px dashed #3a3a3a;
+  border-radius: 4px;
+  padding: 5px 12px;
+}
+.demo-placeholder-note {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-style: italic;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
+.quiz-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.quiz-hdr {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
+}
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
+}
+.quiz-opt:hover:not(:disabled):not(.selected) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
+.quiz-opt:disabled { cursor: default; }
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
+}
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+/* ── Citation markers ───────────────────────────────────
+   Deliberately NOT a physics color. Every hl-* token means
+   "which quantity is this?"; a source number is not a
+   quantity, so it takes the neutral chrome accent instead.
+   Otherwise a blue marker would read as a velocity.       */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Reference list ─────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 16px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+
+/* ── KaTeX font sizing ──────────────────────────────── */
+.katex { font-size: 1.15em !important; }
+
+
+/* ── Applet navigation ─────────────────────────────── */
+.applet-nav {
+  width: var(--page-w);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.applet-nav a,
+.applet-nav .nav-disabled {
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  background: var(--bg-panel-1);
+  white-space: nowrap;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.applet-nav a:hover {
+  border-color: var(--c-accent);
+  background: var(--bg-panel-3);
+  color: var(--text-heading);
+}
+.applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
+.applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+
+/* ── Footer ─────────────────────────────────────────── */
+footer {
+  width          : var(--page-w);
+  margin-top     : 34px;
+  padding-top    : 26px;
+  border-top     : 1px solid var(--border);
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+  gap            : 12px;
+  text-align     : center;
+  color          : var(--text-muted);
+}
+
+footer .foot-logo {
+  display   : block;
+  height    : 54px;
+  width     : auto;
+  opacity   : 0.88;
+  transition: opacity 0.15s ease;
+}
+footer a:hover .foot-logo { opacity: 1; }
+
+footer .foot-title {
+  font-size     : 17px;
+  letter-spacing: 0.3px;
+  color         : var(--text-secondary);
+}
+
+footer .foot-cred {
+  font-size: 15px;
+  color    : var(--text-muted);
+}
+
+/* ── Inline applet link ───────────────────────────────
+   Lifted from GIE_Ionization_applet.html: the overview page uses
+   .applet-link in its markup but never styled it. */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
+/* ── Static figure (inline SVG plot) ─────────────────
+   Full-bleed inside an .applet-host block so a figure sits
+   in the same frame as a demo iframe. The SVG carries its own
+   #0e0e0e ground, so it needs no background of its own. */
+.fig-frame {
+  width: 100%;
+  border-top: 1px solid var(--border);
+  background: var(--bg-diagram);
+}
+.fig-frame svg { display: block; width: 100%; height: auto; }
+.fig-caption {
+  padding: 11px 18px 15px;
+  font-size: 17.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ── Figure controls and readouts ────────────────────
+   Sliders, toggles and output cells for an inline figure.
+   Ported from the demo panel in specific_impulse_applet.html
+   (.sl-group / .sl-row / .out-cell) rather than redesigned, so
+   a control reads the same whichever page it turns up on. The
+   strip sits between the .fig-frame and the .fig-caption, so
+   the reading order is figure, then knobs, then numbers. */
+.fig-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 13px 26px;
+  padding: 13px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.sl-group {
+  flex: 1 1 250px;
+  min-width: 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.sl-label {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+}
+.sl-row { display: flex; align-items: center; gap: 8px; }
+.sl-row input[type=range] {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--c-accent);
+}
+.sl-val {
+  /* Wide enough that the longest readout THAT CARRIES ITS UNIT ("850 A/m²",
+     8 Courier characters at 17.5px) stays on one line. The corpus sets every
+     number in Courier, and Courier is wide; a box sized to the digits alone
+     wraps the unit onto a second line and the slider row grows a step taller
+     than its neighbours. */
+  flex: 0 0 106px;
+  white-space: nowrap;
+  padding: 3px 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 17.5px;
+  text-align: center;
+  background: var(--bg-panel-4);
+  color: var(--c-accent);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+/* Toggles carry the same chrome as .quiz-submit; pressed state
+   is the one place a figure control takes an accent color. */
+.fig-toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+.fig-toggle {
+  padding: 7px 15px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-muted);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.fig-toggle:hover { background: #232323; border-color: #4a4a4a; }
+.fig-toggle[aria-pressed="true"] {
+  color: var(--text-heading);
+  border-color: #5a5a5a;
+  background: #242424;
+}
+.fig-toggle:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* ── Figure shell: figure left, controls right, results under ──
+   The house arrangement for a demo with its own knobs (design-system §4.5, and
+   specific_impulse_applet.html's demo): the figure takes the room it can use, the
+   controls stand beside it in a fixed column, and the numbers those controls move
+   run underneath in an output bar spanning both. Every figure in this folder that
+   carries controls is built this way, whether what fills the frame is an inline SVG
+   or a WebGL canvas, so a reader who has learned where the knobs live on one page
+   does not have to learn it again on the next. */
+.fig-app {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--border);
+}
+/* Flexes to whatever the panel leaves. min-width:0 lets it shrink below the figure's
+   intrinsic width, which a flex item otherwise refuses to do.
+   Deliberately left on the default align-self:stretch. The figure sets the row's height
+   whenever it is the taller of the two, and the panel stretches to match; when the
+   CONTROLS are taller the frame stretches instead. That leaves a band under a
+   fixed-aspect SVG, and the band is invisible: --bg-diagram and --bg-panel-1 are the
+   same #0e0e0e and the SVGs paint that same ground themselves. Pinning the frame to
+   flex-start instead looks correct until the panel outgrows a CANVAS figure, whose
+   ground is a different tone, and there the band does show. */
+.fig-app > .fig-frame {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border-top: none;
+}
+
+/* 240px, nearly the viewers' 210px panel of switches rather than the 360px the standalone
+   applets give a slider column, because the figure is what the block is for and every
+   pixel not spent here goes to it. What sets the number is the longest slider row: a name
+   and its readout want to stay on one line, and at 15px that is about the 200px of content
+   this width leaves. The panel type drops a step to buy that (see .fig-panel .sl-label),
+   still above the 13px a standalone applet's panel uses. A name too long for the line wraps
+   under its own readout, which is fine; a verdict runs to several lines and is also fine,
+   it is a sentence and not a label.
+   Content is vertically centered against the figure, so a short stack sits level with the
+   figure rather than hanging off the top edge. */
+.fig-panel {
+  flex: 0 0 240px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* 20px between groups, as in both viewers' #panel. Padding is symmetric rather than
+     the panels' 20/20/40: that deep bottom pad exists to keep the last line of a
+     full-height SCROLLING column off the frame edge, and this column is centered in a
+     figure instead, where it would just push everything visibly high. */
+  gap: 20px;
+  padding: 20px 20px;
+  background: var(--bg-panel-1);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+/* The controls keep their markup; in the panel they stack instead of running across. */
+.fig-panel .fig-controls {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  padding: 0;
+  border-top: none;
+  background: none;
+}
+.fig-panel .sl-group { flex: 0 0 auto; min-width: 0; gap: 0; }
+
+/* ── Panel vocabulary ────────────────────────────────────
+   A control column is not a row of controls under a figure, and the corpus styles the
+   two differently. Everything below takes the side-panel treatment its equivalent has
+   in sheath / debye / particle_collisions (the other 360px panels) and in the two
+   viewers, at the type sizes a LESSON page uses for a control column
+   (specific_impulse_applet.html's #rp). Sizes scale with the page; structure and color
+   do not. */
+
+/* Group heading, the viewers' .sect-hdr. A panel with more than one section says so
+   with these; a bare label is what a control row under a figure uses. A column of
+   sliders alone needs no heading, and does not get one. */
+.fig-panel .sect-hdr {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+/* Slider row: [name .......... value] over [track]. sheath's .ix-slider, structure and
+   colors unchanged. The readout is a flex sibling of the name rather than a boxed span
+   beside the track, and it is bare blue bold rather than sitting in a bordered well: a
+   well says "you can type in me", and this is a readout. */
+.fig-panel .sl-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: 2px;
+}
+/* Which engine a knob belongs to, set in that engine's plot color so the slider, its
+   curve, its band under the axis and its flight anchor are one thread. It drops a step
+   below the name and takes the color inline, the way the .out-val readouts do, because
+   the colors are the figure's and not the page palette's. The voltage slider drives
+   both curves and gets no tag. */
+.fig-panel .sl-tag { display: block; font-size: 13px; line-height: 1.25; white-space: nowrap; }
+.fig-panel .sl-val {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--c-ve);
+}
+.fig-panel .sl-row { display: block; }
+/* Blue, like the accent on every other slider in this codebase. Grey is what the
+   lesson pages use for a control sitting on the page itself. */
+.fig-panel .sl-row input[type=range] {
+  display: block;
+  width: 100%;
+  accent-color: var(--c-ve);
+  cursor: pointer;
+  /* Height and padding give the thumb a forgiving grab target; sheath's note applies
+     here too, a bare track is ~4px tall and a drag starting a few pixels off does
+     nothing. */
+  height: 22px;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+/* Pills, stacked and full width. A one-of-N chooser stays a row of pills: the switch
+   below is for a layer that is independently on or off, and choosing among five loops
+   is not that. Stacked because five pills wrapping inside a 200px column read as a
+   ragged paragraph of buttons rather than as one control. */
+.fig-panel .fig-toggles { flex-direction: column; gap: 7px; }
+.fig-panel .fig-toggle { width: 100%; text-align: center; }
+
+/* Layer switches, the viewers' .vtog. Keyed off aria-pressed, the toggle-button pattern
+   these figures already maintain, rather than the viewers' .on class, so the switch is
+   driven by the state the page keeps and needs no second source of truth. A switch shows
+   its own state, so its label names the layer and never the action: "Sheath", not
+   "Sheath on", which reads as a lie the moment the switch is off. */
+.fig-panel .vtoglist { display: flex; flex-direction: column; }
+.fig-panel .vtog {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%;
+  font-family: 'Barlow', sans-serif; font-size: 15px; color: var(--text-secondary);
+  background: none; border: none; padding: 7px 0; cursor: pointer;
+  user-select: none; text-align: left;
+  transition: color 0.15s ease;
+}
+.fig-panel .vtog:hover { color: var(--text-heading); }
+.fig-panel .vtog .vsw {
+  flex: 0 0 auto; width: 34px; height: 19px; border-radius: 19px;
+  background: var(--bg-panel-3); border: 1px solid var(--border); position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .vtog .vsw::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.fig-panel .vtog[aria-pressed="true"] { color: var(--text-heading); }
+.fig-panel .vtog[aria-pressed="true"] .vsw { background: var(--c-ve); border-color: var(--c-ve); }
+.fig-panel .vtog[aria-pressed="true"] .vsw::after { transform: translateX(15px); background: #fff; }
+.fig-panel .vtog:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* Reset and friends, the viewers' .btn / .btn-row. */
+.fig-panel .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.fig-panel .btn {
+  flex: 1 1 0;
+  font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 600;
+  padding: 9px 8px;
+  background: var(--bg-panel-2); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 5px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .btn:hover {
+  background: var(--bg-panel-3); color: var(--text-heading); border-color: var(--c-accent);
+}
+.fig-panel .btn:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* ── Scene key, verdict chip, and a control that is switched out ──
+   .dz-legend and .dz-status are HT_Buzzsaw_applet.html's .bz-legend and .bz-status at
+   their own values, renamed for this figure and otherwise untouched: a scene key and a
+   verdict chip should read the same on both pages of one lesson.
+
+   .is-off is the only new thing here. The anomalous coefficient is a knob on a term that
+   the switch above it can remove entirely, and a live-looking slider that drives nothing
+   is worse than no slider at all. Dimmed AND disabled, so the state is visible and not
+   merely decorative. */
+.dz-legend {
+  display: flex; flex-wrap: wrap; gap: 8px 16px;
+  font-size: 15px; color: var(--text-secondary);
+  user-select: none;
+}
+.dz-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.dz-legend i {
+  flex: 0 0 auto; width: 15px; height: 15px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-style: normal; font-size: 11px; font-weight: 800; line-height: 1;
+}
+.dz-status {
+  padding: 9px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-panel-2);
+  text-align: center;
+  font-size: 15px; line-height: 1.5; color: var(--text-muted);
+  font-weight: 700;
+  user-select: none;
+}
+.dz-status.ok {
+  color: #7fe0a0;
+  background: rgba(80,200,120,0.10);
+  border-color: rgba(80,200,120,0.30);
+}
+.dz-status.warn {
+  color: #ff9a8e;
+  background: rgba(255,90,70,0.10);
+  border-color: rgba(255,90,70,0.35);
+}
+.fig-panel .sl-group.is-off { opacity: 0.4; }
+.fig-panel .sl-group.is-off input[type=range] { cursor: default; }
+
+/* Below 980px the panel drops under the figure rather than squeezing it (§4.5). */
+@media (max-width: 980px) {
+  .fig-app { flex-wrap: wrap; }
+  .fig-app > .fig-frame { flex: 1 1 100%; }
+  .fig-panel {
+    flex: 1 1 100%; width: 100%;
+    border-left: none; border-top: 1px solid var(--border);
+  }
+}
+
+.fig-out {
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border);
+}
+.fig-out .out-cell {
+  flex: 1 1 0;
+  min-width: 155px;
+  padding: 9px 15px 10px;
+  background: var(--bg-out-cell);
+  border-right: 1px solid var(--border);
+}
+.fig-out .out-cell:last-child { border-right: none; }
+/* Four cells across, and the two long labels run to two lines. Reserving both lines
+   everywhere puts the numbers on one baseline; without it a short label floats its
+   value a line above its neighbors and the row reads as misaligned. */
+.fig-out .out-label { min-height: 2.4em; }
+/* Output cells carry the house .out-label / .out-val / .out-sub trio, at the
+   sizes a LESSON page uses (the 9/19/11.5 locked spec is the 210px viewer
+   panel's; a full-width page scales it the way specific_impulse_applet.html
+   already does). The one thing that does NOT scale is the typeface: every
+   number in this corpus is set in Courier New, so these are too. */
+.out-label {
+  font-size: 16px;
+  color: var(--text-muted);
+  letter-spacing: .7px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.out-val {
+  font-size: 26px;
+  font-weight: 600;
+  font-family: 'Courier New', monospace;
+  /* Cells that name a quantity set their own color inline (§4.6); this is the
+     fallback for the ones that are a bare ratio and belong to no quantity. */
+  color: var(--text-heading);
+}
+.out-sub {
+  font-size: 18.5px;
+  font-family: 'Courier New', monospace;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ APPLET NAV ════════════════════ -->
+<nav class="applet-nav">
+  <a class="nav-prev" href="HT_Buzzsaw_applet.html">&larr; Prev</a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="HT_Neutralization_applet.html">Next &rarr;</a>
+</nav>
+
+<!-- ════════════════════ HEADER ════════════════════ -->
+<div id="hdr">
+  <h1>Hall Thruster II: Acceleration</h1>
+  <span class="badge">Electric Propulsion</span>
+</div>
+
+<!-- ════════════════════ INTRO ════════════════════ -->
+<p class="page-intro">
+  In the <a class="applet-link" href="../gridded_ion/GIE_Acceleration_applet.html">gridded ion engine</a>, the
+  accelerating gap had to be kept empty of <span class="hl-electron">electrons</span>, so the only charge in it
+  was the <span class="hl-ion">ion</span> charge being accelerated. That charge pushes back on the ions still
+  arriving, and the <span class="key">Child&ndash;Langmuir</span> space-charge limit is the ceiling it imposes.
+</p>
+
+<div class="color-key">
+  <span class="ck-lead">Color key</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
+  <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
+</div>
+
+<p class="page-intro">
+  A Hall thruster accelerates its <span class="hl-ion">ions</span> in a region that is full of
+  <span class="hl-electron">electrons</span>: the buzzsaw from the previous page sits in the same volume the ions
+  are accelerating through. The plasma there is <span class="key">quasineutral</span>, the net space charge is
+  close to zero, and the limit that capped the gridded engine never
+  appears.<sup class="cite"><a href="HT_Overview_applet.html#ref-1">1</a></sup> This one difference is most of why Hall thrusters
+  displaced gridded engines commercially.
+</p>
+
+<!-- ════════════════════ Q1: WHY NO SPACE-CHARGE LIMIT ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">Why does the <span class="key">Child&ndash;Langmuir</span> limit not cap the
+    <span class="hl-ion">ion</span> current a Hall thruster can accelerate?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>Electrons are present throughout the accelerating region, so the ion space charge is neutralized as fast as it builds up and never sets up a field that blocks the ions behind it.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>The accelerating distance is so much longer than a grid gap that the limit becomes numerically irrelevant.
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>The magnetic field carries the ions across the gap, so the ion current is set by the field strength rather than by space charge.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<div class="theory-block applet-host">
+  <div class="th-hdr">Thrust Density: Gridded Against Hall</div>
+  <div class="fig-app">
+  <div class="fig-frame">
+    <!-- Chrome ported from the Stuhlinger plots in optimum_isp_applet.html so the two
+         graphs on this site read as one family: paper against a darker plot ground,
+         5%-white gridlines with no spines and no tick marks, Title Case axis titles
+         with bracketed units, ribboned device bands, a bordered legend, and a unified
+         hover readout set in Courier. Those are Plotly defaults there and hand-drawn
+         here; this page loads no Plotly. Two things sit somewhere else than they do on
+         that page, the device bands and the legend; buildBands() and buildLegend() each
+         say why. -->
+    <svg id="td-svg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif"
+         aria-label="Thrust per unit area against accelerating voltage, on a logarithmic vertical axis.
+                     A strip under the axis marks the span of voltage each engine family runs at; it labels
+                     voltages only, and says nothing about thrust density.
+                     The Child-Langmuir ceiling for a gridded engine rises as voltage squared from a fraction
+                     of a newton per square meter; the Hall thruster curve rises only as the square root of
+                     voltage but starts roughly an order of magnitude higher, because no space-charge limit
+                     applies to a quasineutral accelerating region. At the voltage each engine actually runs,
+                     the marked SPT-100 point sits about an order of magnitude above the marked NSTAR point.">
+
+      <!-- Paper. The plot area paints its own darker ground below, the way
+           paper_bgcolor and plot_bgcolor differ on the Stuhlinger plots. -->
+      <rect width="900" height="600" fill="#0e0e0e"/>
+
+      <!-- Painted by the script from one style block, so the chrome cannot drift from
+           the scales the curves are drawn against and the flight anchors stop being
+           hand-computed coordinates. Draw order is Plotly's: bands sit under the
+           gridlines, gridlines under the data. -->
+      <g id="td-plotbg"></g>
+      <g id="td-bands"></g>
+      <g id="td-grid"></g>
+
+      <!-- Series. Each takes the color of its own engine family, matching the band
+           under the axis and the flight anchor rather than the page's thrust color,
+           because on this figure the question is which engine, not which quantity.
+           Both are solid; color alone separates them. Strokes are restated by the
+           script, which is where the values are authored. -->
+      <path id="td-cl"   fill="none" stroke="#ba68c8" stroke-width="2.2"
+            stroke-linejoin="round" d=""/>
+      <path id="td-hall" fill="none" stroke="#ffb74d" stroke-width="2.4"
+            stroke-linejoin="round" d=""/>
+
+      <!-- Flight-hardware anchors, placed from their own data by the script.
+           TODO: verify both against primary sources before publishing. NSTAR is
+           thrust at full power divided by beam area; SPT-100 is thrust divided by
+           channel annulus area. Neither number is quoted as a thrust density in
+           the literature, so both are our own arithmetic on published figures. -->
+      <g id="td-anchors"></g>
+
+      <!-- Operating-point cursor, driven by the voltage slider. Neutral white and
+           lighter than anything else on the plot, so it reads as a place the reader put
+           rather than as a third series; the dotted lines are the bands' edges.
+           The two operating points are crosses, not dots: the flight anchors below are
+           filled circles, and a reader who can move one mark and not the other should be
+           able to tell them apart at a glance without reading a label. Each cross is
+           drawn about its own origin and placed by a translate in draw(). -->
+      <line id="td-cursor" stroke="#ffffff" stroke-opacity="0.28" stroke-width="1"/>
+      <path id="td-dot-cl"   fill="none" stroke="#ba68c8" stroke-width="2.6"
+            stroke-linecap="round" d="M-6.5 -6.5 L6.5 6.5 M-6.5 6.5 L6.5 -6.5"/>
+      <path id="td-dot-hall" fill="none" stroke="#ffb74d" stroke-width="2.6"
+            stroke-linecap="round" d="M-6.5 -6.5 L6.5 6.5 M-6.5 6.5 L6.5 -6.5"/>
+
+      <!-- Gridlines, tick labels and the legend, all script-built -->
+      <g id="td-axes"></g>
+      <g id="td-legend"></g>
+
+      <!-- Axis and plot titles. Symbols keep KaTeX italics rather than the sans the
+           Plotly titles use, so a symbol looks the same here as in the running text. -->
+      <text x="450" y="44" fill="#9a9a9a" font-size="17" text-anchor="middle">Gridded Ceiling Against Hall</text>
+      <text x="485.5" y="586" fill="#bcbcbc" font-size="17" text-anchor="middle">Accelerating Voltage&#160;&#160;<tspan
+            font-family="KaTeX_Math, serif" font-style="italic">V</tspan>&#160;&#160;[V]</text>
+      <text transform="rotate(-90 26 310)" x="26" y="310" fill="#bcbcbc" font-size="17"
+            text-anchor="middle">Thrust Density&#160;&#160;<tspan font-family="KaTeX_Math, serif"
+            font-style="italic">F</tspan>/<tspan font-family="KaTeX_Math, serif"
+            font-style="italic">A</tspan>&#160;&#160;[N&#8202;/&#8202;m<tspan font-size="12"
+            dy="-6">2</tspan><tspan dy="6">]</tspan></text>
+
+      <!-- Unified hover: pointer line, a marker on each series, and the readout box -->
+      <g id="td-hover" pointer-events="none" style="display:none"></g>
+      <rect id="td-hit" fill="transparent" style="cursor:crosshair"/>
+    </svg>
+  </div>
+
+  <aside class="fig-panel">
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Accelerating voltage<span class="sl-val" id="td-v-val">300 V</span></div>
+      <div class="sl-row">
+        <input type="range" id="td-v" min="100" max="1200" step="10" value="300"
+               aria-label="Accelerating voltage in volts">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label"><span>Effective grid gap <span class="sl-tag"
+             style="color:#ba68c8">(Gridded Ion Engine)</span></span><span
+             class="sl-val" id="td-d-val">1.40 mm</span></div>
+      <div class="sl-row">
+        <input type="range" id="td-d" min="0.5" max="3" step="0.05" value="1.4"
+               aria-label="Effective gridded-engine accelerating gap in millimeters">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label"><span>Hall ion current density <span class="sl-tag"
+             style="color:#ffb74d">(Hall Thruster)</span></span><span
+             class="sl-val" id="td-j-val">850 A/m&#178;</span></div>
+      <div class="sl-row">
+        <input type="range" id="td-j" min="200" max="2000" step="10" value="850"
+               aria-label="Hall thruster ion current density in amperes per square meter">
+      </div>
+    </div>
+  </div>
+  </aside>
+  </div>
+
+  <!-- Every cell here is an upper bound, and the labels say so. The two densities are
+       ceilings for different reasons, one set by space charge and one by how much
+       propellant the discharge puts through a unit area with every ion leaving axially
+       at full energy. Specific impulse is one cell for both, because a singly charged
+       xenon ion that falls through the whole of V leaves at the same speed whichever
+       engine dropped it: the figure's whole difference is density, not speed, and what
+       separates these two engines on Isp is the voltage each RUNS at, which is what the
+       bands under the axis show. What separates the two engines in practice,
+       the Hall ion born partway down the potential, is the next section's subject and is
+       not modeled here. -->
+  <div class="fig-out">
+    <div class="out-cell">
+      <div class="out-label">Max Gridded Ion Thrust Density</div>
+      <div class="out-val" id="td-o-cl" style="color:#ba68c8">0</div>
+      <div class="out-sub">N/m&#178;, Child&ndash;Langmuir</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Max Hall Thruster Thrust Density</div>
+      <div class="out-val" id="td-o-hall" style="color:#ffb74d">0</div>
+      <div class="out-sub">N/m&#178;, no ceiling to hit</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Ratio of Maxima</div>
+      <div class="out-val" id="td-o-ratio">0</div>
+      <div class="out-sub" id="td-o-note">Hall over gridded, at this voltage</div>
+    </div>
+    <!-- One cell, not one per engine: the bound is the same number twice, so a second
+         copy of it would only invite the reader to hunt for a difference that is not
+         there. It takes neither engine's color but the site's specific-impulse blue,
+         the same var(--c-ve) that carries v, c and Isp everywhere else. Seconds and
+         meters per second are stacked rather than run together on one line. -->
+    <div class="out-cell">
+      <div class="out-label">Max Specific Impulse</div>
+      <div class="out-val" id="td-o-isp" style="color:var(--c-ve)">0</div>
+      <div class="out-sub" id="td-o-ve">m/s</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    The gridded curve is the same <span class="key">Child&ndash;Langmuir</span> result derived in
+    <a class="applet-link" href="../gridded_ion/GIE_Acceleration_applet.html">GIE II</a>,
+    $F/A = \tfrac{8}{9}\varepsilon_0 V^2/d^2$, so the two pages cannot disagree. The Hall curve carries no such
+    term: with <span class="hl-electron">electrons</span> filling the accelerating region there is no net space
+    charge to push back, and thrust density is set by whatever <span class="hl-ion">ion</span> current the
+    discharge sustains, $F/A = j\sqrt{2 m_i V / q}$. Read it two ways. Compare each engine at the voltage it
+    actually runs, the two marked points, and the Hall thruster is about an order of magnitude denser: 21 against
+    1.5 newtons per square meter. Compare them at the <em>same</em> voltage and the gap is far wider still,
+    because the space-charge ceiling falls as $V^2$ and punishes the low-voltage end hardest. That same $V^2$ is
+    why the gridded ceiling stops binding at high voltage, where the Hall curve is only climbing as $\sqrt{V}$,
+    and it is why gridded engines keep the high-<span class="hl-ve">specific impulse</span> end of the market.
+    <!-- TODO (skeleton): the gap slider is an EFFECTIVE gap, not the physical one, and that
+         distinction is doing real work here. Set it from the sheath-thickness and aperture
+         geometry the GIE pages already use rather than leaving it a free knob, and say why
+         NSTAR sits a factor of three below its own ceiling (beamlet focusing, screen
+         transparency, erosion margin) instead of leaving the dot unexplained. -->
+  </p>
+</div>
+
+<!-- ════════════════════ ELECTRON DIFFUSION AND THE ANODE LEAK ════════════════════
+     This slot used to hold a placeholder for an ION acceleration stage of the 3-D viewer:
+     ions born at scattered points along the channel and falling through the axial field
+     near the exit plane, inside a plasma that stays quasineutral the whole way. That stage
+     is still worth building, and its subject is now split across two pages: the birth
+     scatter itself is drawn on HT_Potential_applet.html's efficiency stage, and what is
+     left for a viewer stage here is the fall. Build it BELOW this section rather than in
+     place of it; the leak is the electron half of the same accelerating region and wants
+     to be read first, because it is the price of the quasineutrality the page has just
+     spent two figures selling. -->
+<div class="transition-line">
+  Filling the accelerating region with electrons is what removed the ceiling. It also handed those electrons a
+  road back to the anode.
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">What a Collision Does to a Magnetized Electron</div>
+  <p class="th-body">
+    Every <span class="hl-electron">electron</span> in the channel ends on the
+    <span class="key">anode</span> eventually, whether the <span class="hl-B">field</span> likes it or not: the
+    cathode emits them, the discharge circuit pumps them, and the anode is the only positive surface in the
+    machine. The question is never whether they arrive but how long they take, because a slow electron ionizes
+    many <span class="hl-neutral">neutrals</span> on the way and a fast one is just current the power supply paid
+    full <span class="hl-phi">discharge voltage</span> for and got no thrust from. So start with how an electron
+    crosses a plasma at all.
+  </p>
+  <p class="th-body">
+    With no <span class="hl-B">magnetic field</span>, drop the electron inertia and keep the two forces that
+    matter, the <span class="hl-press">pressure</span> gradient pushing the population outward and collisional
+    drag holding it back.<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup>
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Momentum balance, no field</span>
+    $$ \nabla p_e \;\approx\; -\,n_e m_e \nu_e \vec{v}_e
+       \qquad\Longrightarrow\qquad
+       n_e \vec{v}_e \;\approx\; -\,\frac{kT_e}{m_e \nu_e}\nabla n_e $$
+    <span class="eq-caption">Fick's law, with a diffusivity
+      $\textcolor{#ffe94d}{D_e} = kT_e / m_e\nu_e$.</span>
+    <span class="eq-note">The collision frequency sits in the denominator, which is where everybody expects it.
+      Each collision is a step taken backward, a more collisional plasma diffuses more slowly, and an electron
+      that never collides crosses at its thermal speed. Hold on to that intuition for one more equation, because
+      the field is about to invert it.</span>
+  </div>
+  <p class="th-body">
+    Now switch the <span class="hl-B">field</span> on, perpendicular to the gradient. The magnetic force joins
+    the balance, and solving for the flux gives a diffusivity across the field that is the old one divided by the
+    square of a single dimensionless number.
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Cross-field diffusivity, and the Hall parameter</span>
+    $$ \boxed{\;\textcolor{#ffe94d}{D_\perp} \;=\; \frac{\textcolor{#ffe94d}{D_e}}{1+\beta^2}\;}
+       \qquad\qquad
+       \beta \;=\; \frac{\omega_{ce}}{\nu_e} \;=\; \frac{e\textcolor{#00DDB5}{B}}{m_e \nu_e} $$
+    <span class="eq-caption">$\beta$ is the <span class="key">Hall parameter</span>: gyrations completed per
+      collision.</span>
+  </div>
+  <details class="deriv-detail">
+    <summary>The algebra</summary>
+    <div class="deriv-inner">
+      <p>Add the magnetic force to the balance:
+        $kT_e\nabla n_e \approx -n_e m_e \nu_e \vec{v}_e - e n_e \vec{v}_e \times \vec{B}$.</p>
+      <p>That is one equation in two unknowns, $\vec{v}_e$ and $\vec{v}_e \times \vec{B}$. To get a second,
+        cross the whole thing with $\vec{B}$ and use
+        $\vec{v}\times\vec{B}\times\vec{B} = -\vec{v}_\perp B^2$, which holds because the flux we are solving
+        for is perpendicular to $\vec{B}$:
+        $kT_e\nabla n_e \times \vec{B} \approx -n_e m_e \nu_e\, \vec{v}_e\times\vec{B} + e n_e \vec{v}_e B^2$.</p>
+      <p>Eliminate $\vec{v}_e \times \vec{B}$ between the two and the flux comes out as one term along
+        $-\nabla n_e$ and one perpendicular to both $\vec{B}$ and $\nabla n_e$:</p>
+      <p>$$ n_e\vec{v}_e \;\approx\; \frac{-D_e\nabla n_e \;-\; \vec\beta \times D_e \nabla n_e}{1+\beta^2} $$</p>
+      <p>The second term is the $\nabla p \times \vec{B}$ drift, which carries particles around the gradient
+        rather than down it and moves nothing toward the anode. The first term is the one that does, and it is
+        ordinary diffusion with $D_e$ cut by $1+\beta^2$. Putting the electric field back in is a substitution
+        rather than a rederivation: replace $\nabla n_e$ with $\nabla n_e + (en_e/kT_e)\vec{E}$ throughout, and
+        the same denominator now also governs the conductivity.</p>
+    </div>
+  </details>
+  <p class="th-body">
+    In a Hall thruster $\beta$ is in the hundreds, so the $1$ is not worth keeping, and what is left is worth
+    reading twice.
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Strongly magnetized limit, $\beta \gg 1$</span>
+    $$ \textcolor{#ffe94d}{D_\perp} \;\approx\; \frac{\textcolor{#ffe94d}{D_e}}{\beta^2}
+       \;=\; \frac{kT_e}{m_e}\frac{\nu_e}{\omega_{ce}^2}
+       \;=\; \frac{m_e kT_e}{e^2}\,\frac{\nu_e}{\textcolor{#00DDB5}{B}^2} $$
+    <span class="eq-note">The collision frequency has moved to the numerator. Across a magnetic field,
+      collisions no longer impede diffusion, they <em>are</em> the diffusion: a collisionless magnetized electron
+      goes nowhere at all. The sign of the whole dependence flipped when the field came on, and every loss on
+      this page follows from that one reversal.</span>
+  </div>
+  <p class="th-body">
+    The picture behind the algebra is worth having in mind, because the applet below draws it directly. Between
+    collisions the <span class="hl-electron">electron</span> is locked onto the
+    $\vec{E}\times\vec{B}$ orbit from <a class="applet-link" href="HT_Buzzsaw_applet.html">the previous page</a>
+    and makes no axial progress whatsoever. A collision breaks the orbit and lets the guiding center jump about
+    one <span class="key">Larmor radius</span>, and because the axial
+    <span class="hl-E">electric field</span> is pushing on the electron the whole time, those jumps are biased
+    toward the anode. Axial transport is not something that survives the collisions. It is something that only
+    exists because of them. At SPT-100 conditions, counting real collisions only, the two diffusivities are six
+    orders of magnitude apart,
+    $D_e \approx 2.8\times10^{5}\ \mathrm{m^2/s}$ against
+    $D_\perp \approx 0.6\ \mathrm{m^2/s}$, and spreading the electrons one centimeter
+    across the field takes tens of microseconds instead of tens of picoseconds.<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup>
+  </p>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">The Leak Current, and What Sets It</div>
+  <p class="th-body">
+    Turning that into a current takes one step. The mean axial speed an
+    <span class="hl-electron">electron</span> makes toward the anode is the azimuthal drift speed
+    $\textcolor{#F5C518}{E}/\textcolor{#00DDB5}{B}$ scaled down by the fraction of a gyration that a collision
+    interrupts, and the collisions that matter are with the heavy particles, mostly the
+    <span class="hl-neutral">neutrals</span> still streaming out of the anode manifold.
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Cross-field electron speed and the leak it carries</span>
+    $$ v_{e_x} \;\approx\; \frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}\,
+       \frac{\nu_{eH}}{\omega_{ce}}
+       \qquad\qquad
+       \textcolor{#ffe94d}{I_\mathrm{leak}} \;=\; e\,n_e\,v_{e_x}\,A_\mathrm{ch}
+       \qquad\qquad
+       \nu_{eH} \;=\; \textcolor{#9aa3b2}{n_H}\,\bar{c}_e\,Q_{eH} $$
+    <span class="eq-caption">$\nu_{eH}/\omega_{ce}$ is $1/\beta$: one over the gyrations completed between
+      collisions.</span>
+  </div>
+  <p class="th-body">
+    Those <span class="hl-electron">electrons</span> reach the anode having been accelerated through the full
+    <span class="hl-phi">discharge voltage</span> and having pushed on nothing. What they cost is written as the
+    <span class="key">anode efficiency</span>, the fraction of the discharge current that actually left as
+    <span class="hl-ion">beam</span>. Comparing the two currents needs a speed to compare against, and the usual
+    choice is that the beam <span class="hl-ion">ions</span> cross the magnetic barrier at roughly half their
+    final speed.
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Anode efficiency</span>
+    $$ \frac{\textcolor{#ffe94d}{I_\mathrm{leak}}}{\textcolor{#3DBFFF}{I_B}}
+       \;=\; \frac{v_{e_x}}{\textcolor{#3DBFFF}{v_i}/2}
+       \;=\; \frac{2}{\textcolor{#3DBFFF}{v_i}}\frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}
+       \frac{\nu_{eH}}{\omega_{ce}}
+       \qquad\qquad
+       \boxed{\;\eta_a \;=\; \frac{\textcolor{#3DBFFF}{I_B}}{\textcolor{#F5C518}{I_a}}
+       \;=\; \frac{1}{1 + \textcolor{#ffe94d}{I_\mathrm{leak}}/\textcolor{#3DBFFF}{I_B}}\;} $$
+    <span class="eq-caption">Wall losses ignored, so the discharge current is just
+      $\textcolor{#F5C518}{I_a} = \textcolor{#3DBFFF}{I_B} + \textcolor{#ffe94d}{I_\mathrm{leak}}$.</span>
+  </div>
+  <p class="th-body">
+    Now push the <span class="hl-m">mass flow rate</span> up, which is the one lever that raises thrust density
+    on hardware you have already built. The <span class="hl-neutral">neutral</span> density in the channel rises
+    with it, so $\nu_{eH}$ rises with it. The plasma density rises with it too, since every
+    <span class="hl-ion">ion</span> in the acceleration region came from the ionization region upstream, so
+    $\textcolor{#3DBFFF}{I_B}$ rises in proportion. But $\textcolor{#ffe94d}{I_\mathrm{leak}}$ carries
+    <em>both</em> factors, $n_e$ and $\nu_{eH}$, and so it rises as the square. The ratio of the two therefore
+    grows linearly with flow: the <span class="hl-thrust">thrust density</span> keeps climbing, and the fraction
+    of the discharge current doing the pushing keeps falling.
+  </p>
+  <p class="th-body">
+    That is enough to put a number on the ceiling. Ask for a leak no worse than
+    $\textcolor{#ffe94d}{I_\mathrm{leak}}/\textcolor{#3DBFFF}{I_B} \le 0.2$ and the inequality above becomes a
+    limit on the collision frequency, hence on the <span class="hl-neutral">neutral</span> density, hence on the
+    flow.
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">The flow ceiling, in the form it is usually quoted</span>
+    $$ \nu_{eH} \;\le\; 0.1\,\frac{\textcolor{#3DBFFF}{v_i}\,\textcolor{#00DDB5}{B}\,\omega_{ce}}
+       {\textcolor{#F5C518}{E}}
+       \qquad\Longrightarrow\qquad
+       \textcolor{#9aa3b2}{n_H} \;=\; \frac{\nu_{eH}}{\bar{c}_e Q_{eH}}
+       \;\le\; 3.5\times10^{19}\ \mathrm{m^{-3}} $$
+    <span class="eq-caption">SPT-100 numbers: $\textcolor{#3DBFFF}{v_i} = 16\,000$ m/s,
+      $\textcolor{#00DDB5}{B} \approx 0.02$ T, $\omega_{ce} \approx 3.5\times10^{9}$ rad/s,
+      $\textcolor{#F5C518}{E} \approx 5$ kV/m, $T_e \approx 10$ eV, $Q_{eH} \approx 3\times10^{-19}$
+      m².<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup></span>
+  </div>
+  <p class="th-body">
+    Flown thrusters run several times below that density, which is the interesting part: on this argument alone
+    there is room to run an SPT-100 at several times its nominal flow and collect several times the
+    <span class="hl-thrust">thrust</span> from the same hardware. That high-flow regime has been proposed as an
+    alternative to magnetoplasmadynamic thrusters where tens of kilowatts are
+    available, and it is largely unexplored, in part because facilities that can absorb that much power are
+    rare.<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup>
+  </p>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Faster Than the Collisions Allow</div>
+  <p class="th-body">
+    One honest complication, and it is a large one. Measured
+    <span class="hl-electron">electrons</span> cross the <span class="hl-B">field</span> considerably faster than
+    any count of real collisions predicts. The accepted explanation is that they scatter off small-scale
+    electrostatic fluctuations in the plasma, which are always present, and which act like collisions without
+    being any. Bohm's empirical form for the resulting diffusivity, and the tunable version everyone actually
+    fits data with, are
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Anomalous, or Bohm, diffusion</span>
+    $$ D_\mathrm{Bohm} = \frac{kT_e}{16\,e\textcolor{#00DDB5}{B}}
+       \qquad\qquad
+       D_\mathrm{anom} = \frac{kT_e}{c_B\,e\textcolor{#00DDB5}{B}}
+       \qquad\qquad
+       \nu_\mathrm{anom} = \frac{\omega_{ce}}{c_B} $$
+    <span class="eq-caption">$c_B \sim 16$ to $100$. Written as a collision frequency it simply adds:
+      $\nu_e + \nu_\mathrm{anom}$ goes into the same $D_\perp$.</span>
+  </div>
+  <p class="th-body">
+    Two things follow, and the applet below has a switch for both. First, the anomalous term scales as
+    $\textcolor{#00DDB5}{B}^{-1}$ rather than $\textcolor{#00DDB5}{B}^{-2}$, so it wins at high field, and the
+    experiments confirm the $\textcolor{#00DDB5}{B}^{-1}$ slope. Second, and more useful here, it does not
+    depend on the <span class="hl-m">mass flow</span> at all: it sets the offset, and the real collisions set the
+    slope. Switch it off in the figure and you get the clean textbook scaling with an anode efficiency near
+    $0.95$; switch it on at $c_B \approx 100$ and the number lands near $0.75$, which is what an SPT-100 actually
+    does. The same fluctuations are why cross-field transport is the hardest thing to predict in a Hall thruster,
+    and they are the reason a code cannot be written from first principles and trusted.
+  </p>
+</div>
+
+<div class="theory-block applet-host">
+  <div class="th-hdr">Electron Diffusion and the Anode Leak</div>
+  <div class="fig-app">
+  <div class="fig-frame">
+    <!-- Two panels, one argument, stacked in one SVG the way HT_Buzzsaw_applet.html's "Who
+         Is Magnetized" figure carries a scene over a ruler: the mechanism above, and the
+         consequence for the whole thruster below. Splitting them into two figures would put
+         a caption between a cause and its effect.
+
+         Everything inside is script-built. The group stack IS the draw order, and it is
+         chosen so nothing the reader needs to keep reading can be buried by a particle:
+         static scene, then neutrals, then trails, then collision marks, then electrons,
+         then the labels that must stay legible over all of it. -->
+    <svg id="dz-svg" viewBox="0 0 900 808" xmlns="http://www.w3.org/2000/svg" role="img"
+         font-family="'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif"
+         aria-label="Top: the acceleration region of the channel unrolled into a rectangle, with the anode
+                     at the left edge and the exit plane at the right, the radial magnetic field pointing out
+                     of the page and the axial electric field pointing right. Electrons drift steadily down the
+                     frame on their E cross B orbits, wrapping around the annulus, and make no axial progress
+                     until they collide. Each collision with one of the drawn neutrals, and each scattering off
+                     a plasma fluctuation, jumps an electron about one Larmor radius, biased toward the anode,
+                     so the population random-walks slowly leftward and is collected. Raising the propellant
+                     flow fills the frame with neutrals, raises the collision rate and visibly speeds the walk;
+                     raising the magnetic field slows it steeply.
+                     Bottom: the electron leak current as a fraction of the beam current, and the anode
+                     efficiency it implies, both against propellant mass flow rate, with a second axis along
+                     the top converting that flow into thrust density. The leak fraction rises linearly with
+                     flow and the anode efficiency falls with it. A dotted line marks the customary design
+                     target of a leak no worse than one fifth of the beam current, and where the collisional
+                     curve crosses it is marked as the flow ceiling and its thrust density."></svg>
+  </div>
+
+  <aside class="fig-panel">
+  <div class="fig-controls">
+    <div class="sl-group">
+      <!-- No .sl-tag on this one. The tag exists to say which curve a knob belongs to, and
+           there is one flow rate here; a nowrap tag long enough to be worth reading would
+           also be long enough to push the readout out of a 240px column. -->
+      <div class="sl-label">Propellant mass flow<span class="sl-val" id="dz-m-val">5.0 mg/s</span></div>
+      <div class="sl-row">
+        <input type="range" id="dz-m" min="1" max="30" step="0.5" value="5"
+               aria-label="Propellant mass flow rate in milligrams per second">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Radial magnetic field<span class="sl-val" id="dz-b-val">200 G</span></div>
+      <div class="sl-row">
+        <input type="range" id="dz-b" min="50" max="400" step="5" value="200"
+               aria-label="Radial magnetic field strength in gauss">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Electron temperature<span class="sl-val" id="dz-te-val">10.0 eV</span></div>
+      <div class="sl-row">
+        <input type="range" id="dz-te" min="4" max="25" step="0.5" value="10"
+               aria-label="Electron temperature in electronvolts">
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="sect-hdr">Transport</div>
+    <div class="vtoglist">
+      <button type="button" class="vtog" id="dz-anom" aria-pressed="true">
+        <span>Anomalous scattering</span><span class="vsw"></span></button>
+    </div>
+    <div class="fig-controls" style="margin-top:10px">
+      <div class="sl-group" id="dz-cb-group">
+        <div class="sl-label">Coefficient <span style="font-style:italic">c<sub>B</sub></span><span
+               class="sl-val" id="dz-cb-val">100</span></div>
+        <div class="sl-row">
+          <input type="range" id="dz-cb" min="16" max="200" step="2" value="100"
+                 aria-label="Anomalous transport coefficient c sub B">
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button type="button" class="btn" id="dz-pause">Pause</button>
+      <button type="button" class="btn" id="dz-reset">Reset</button>
+    </div>
+  </div>
+
+  <!-- Five entries, not four, and every one of them names a thing the reader can point at in
+       the frame. The first two exist because the scene draws one electron heavily and the
+       rest faintly, and a reader who notices that difference and is not told what it encodes
+       will reasonably assume it is physics. It is not: all nine obey the same equations, and
+       the weight is emphasis so that "follow one electron" has an answer.
+       The last entry deliberately reuses the word on the switch above it. It said
+       "fluctuation" here and "Anomalous scattering" on the toggle, which are the same event
+       under two names, and nothing on the page joined them up. -->
+  <div>
+    <div class="sect-hdr">Scene key</div>
+    <div class="dz-legend">
+      <span><i style="background:#ffe94d;border:2px solid #ffffff"></i>the traced electron</span>
+      <span><i style="background:#ffe94d;opacity:.5"></i>the other eight, drawn faint</span>
+      <span><i style="background:#9aa3b2"></i>neutral atom</span>
+      <span><i style="background:none;border:2px solid #e8ecf2"></i>collision with a neutral</span>
+      <span><i style="background:none;border:2px solid #cbb2ff"></i>anomalous scatter, no neutral</span>
+    </div>
+  </div>
+
+  <div class="dz-status" id="dz-status"></div>
+  </aside>
+  </div>
+
+  <!-- The cells ARE the chain, read left to right: the flow rate on the slider sets a neutral
+       density, which sets a collision frequency, which sets the Hall parameter and the
+       cross-field diffusivity, which set the leak, which sets the efficiency. Six links, each
+       the subject of one equation above, and every one of them moves when the first slider
+       does. The two that are bare ratios take no physics color, per the page's own rule; the
+       rest take the color of the quantity they are. -->
+  <div class="fig-out">
+    <div class="out-cell">
+      <div class="out-label">Neutral Density</div>
+      <div class="out-val" id="dz-o-nh" style="color:var(--c-neutral)">0</div>
+      <div class="out-sub">m&#8315;&#179;, n<sub>H</sub> &prop; &#7745;</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Collision Frequency</div>
+      <div class="out-val" id="dz-o-nu" style="color:var(--c-electron)">0</div>
+      <div class="out-sub" id="dz-o-nu-sub">s&#8315;&#185;, &nu;<sub>eH</sub> + &nu;<sub>anom</sub></div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Hall Parameter</div>
+      <div class="out-val" id="dz-o-beta">0</div>
+      <div class="out-sub">&beta; = &omega;<sub>ce</sub> / &nu;<sub>e</sub></div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Cross-Field Diffusivity</div>
+      <div class="out-val" id="dz-o-dperp" style="color:var(--c-electron)">0</div>
+      <div class="out-sub">m&#178;/s, D<sub>e</sub>/(1+&beta;&#178;)</div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Electron Leak Ratio</div>
+      <div class="out-val" id="dz-o-leak" style="color:var(--c-electron)">0</div>
+      <div class="out-sub">I<sub>leak</sub> / I<sub>B</sub></div>
+    </div>
+    <div class="out-cell">
+      <div class="out-label">Anode Efficiency</div>
+      <div class="out-val" id="dz-o-eta">0</div>
+      <div class="out-sub">&eta;<sub>a</sub> = 1/(1 + I<sub>leak</sub>/I<sub>B</sub>)</div>
+    </div>
+  </div>
+
+  <p class="fig-caption">
+    <strong>What to look for:</strong> follow the <span class="hl-electron">electron</span> with the white ring,
+    the one whose trail is drawn several seconds deep. It runs almost straight down, lap after lap around the
+    annulus, and each lap sits a little further left than the one before. The downward part is free and gets it
+    nowhere; every pixel of leftward progress it makes, it made in a collision. The eight faint ones behind it
+    are doing the same thing, and how far apart they have drifted is the spread that $D_\perp$ measures.
+    The frame is the acceleration region with the channel cut along one radius and unrolled:
+    <span class="key">anode</span> at the left edge, exit plane at the right, and the top and bottom edges are
+    the same cut, which is why an electron leaving the bottom returns at the top. The
+    <span class="hl-B">magnetic field</span> points out of the page and the
+    <span class="hl-E">electric field</span> points right, so the drift runs down the frame and every electron
+    in the figure is on the same buzzsaw. Each mark is one scattering event, and each one jumps the orbit about
+    one <span class="key">Larmor radius</span> in a random direction with a bias toward the anode, which is the
+    random walk that $D_\perp$ describes and the drift that $v_{e_x}$ describes, drawn as the same motion,
+    because they are. The white marks are real collisions and land on the
+    <span class="hl-neutral">neutral</span> that was hit; the violet ones are
+    <span class="key">anomalous</span> scatters off a plasma fluctuation, with nothing there to hit, and they
+    are drawn only when the switch for them is on. The <span class="hl-electron">electron</span> wearing a white
+    ring is the one being traced, and the eight faint ones are drawn faint so that it can be followed. Nothing
+    separates them physically: all nine run the same equations. The grey <span class="hl-neutral">neutrals</span> are drawn standing still because on this
+    timescale they are: they cross the channel at a few hundred meters per second against an electron drift of a
+    few hundred thousand.
+    Take the <span class="hl-m">flow</span> up and the frame fills with <span class="hl-neutral">neutrals</span>,
+    the marks come faster, and the walk visibly speeds up: that is the whole argument of this page in one slider.
+    Switch <span class="key">anomalous scattering</span> off if the walk looks too busy to follow. With it on,
+    the fluctuations scatter an electron tens of times per lap and the trail is a continuous jitter, which is
+    both what a real thruster does and too fast to count; with it off, the hops separate and you can watch a
+    single one happen.
+    Take the <span class="hl-B">field</span> up instead and the walk slows steeply, since the jump length falls as
+    $1/\textcolor{#00DDB5}{B}$ and the number of jumps needed to cross rises as $\textcolor{#00DDB5}{B}^2$. Drag
+    on the plot to move the operating point; the crossing marked on it is where the collisional leak reaches the
+    customary fifth of the <span class="hl-ion">beam</span> current, and the model puts it at a
+    <span class="hl-neutral">neutral</span> density of $3.5\times10^{19}\ \mathrm{m^{-3}}$, the same number the
+    inequality above gives, which is the one check on the arithmetic worth stating.
+    <span class="hl-electron">$\eta_a$</span> returns on
+    <a class="applet-link" href="HT_Potential_applet.html#efficiency-fig">the potential page</a> as one factor of
+    three in the thrust efficiency; this figure is where the factor comes from.
+    <!-- TODO (skeleton): four stated stand-ins, none of them hidden from the reader but none
+         of them derived here either.
+         (1) The neutral density is uniform and is a fixed fraction of the injected flow
+         divided by the channel area and a thermal neutral speed. Real n_H falls steeply
+         through the ionization region, which is exactly the profile HT_Potential_applet.html
+         already computes; take it from there and n_H(z) stops being a constant.
+         (2) E is pinned at 5 kV/m and the acceleration region at 25 mm, both SPT-100
+         nominal. The potential page moves the field peak with the magnetic circuit, and this
+         figure should follow it rather than assert its own.
+         (3) Q_eH is a single number for electron-neutral scattering at all T_e. It is a
+         function of energy, and at 4 eV against 25 eV that matters.
+         (4) The ion half-speed in I_leak/I_B is the closure the lecture uses to compare the
+         two currents. It is a factor of order one and it is doing real work in every number
+         the efficiency cell reports.
+         Two drawing distortions, both deliberate: the azimuthal direction is compressed
+         about thirty times against the axial one, so a lap fits the frame, and one second
+         of animation is one microsecond in the channel. Past a few hundred collisions a
+         second the marks are subsampled, because past that they stop being distinguishable
+         and only the walk itself carries information. -->
+  </p>
+</div>
+
+<!-- ════════════════════ Q2: WHAT RAISING THE FLOW COSTS ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">A Hall thruster is run at twice its nominal <span class="hl-m">mass flow rate</span> at the
+    same <span class="hl-phi">discharge voltage</span>. Ignoring anomalous transport, what happens to the
+    <span class="hl-electron">electron</span> leak current, and why?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text"><span>It roughly quadruples, so it grows twice as fast as the beam current
+          and the anode efficiency falls.</span>
+          <span class="quiz-opt-note">Twice the flow is twice the plasma density and twice the neutral density,
+            and the leak carries both factors.</span></span>
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text"><span>It roughly doubles, in step with the beam current, so the anode
+          efficiency is unchanged.</span>
+          <span class="quiz-opt-note">This is the answer you get by forgetting that the collision frequency
+            itself depends on the flow.</span></span>
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text"><span>It roughly halves, because the extra collisions scatter the electrons
+          before they can cross the magnetic barrier.</span>
+          <span class="quiz-opt-note">True without a magnetic field, and exactly backward with one.</span></span>
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ WHAT IT COSTS ════════════════════ -->
+<div class="transition-line">
+  The leak is not the only bill. Losing the space-charge limit also costs something in the beam itself, and if
+  it did not, nobody would still be flying gridded engines.
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">What the Trade Actually Is</div>
+  <p class="th-body">
+    <!-- TODO: the trade, one paragraph each, with numbers and citations:
+           - thrust density gain, roughly an order of magnitude for the same area
+           - beam divergence, because the accelerating field is not a flat sheet between two
+             flat grids and the ions are born across a range of potentials
+           - lower practical Isp, and the reasons for it
+           - multiply-charged ions and their efficiency cost
+           - no grid to erode, but a channel wall that does erode instead (Overview page's
+             second conceptual question) -->
+    TODO. The claims to make and support here: thrust density up by roughly an order of magnitude for the same
+    area; a <span class="hl-ion">beam</span> that leaves considerably more divergent; a lower practical
+    <span class="hl-ve">specific impulse</span>; and an efficiency penalty from multiply-charged
+    <span class="hl-ion">ions</span>.
+  </p>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Born Across a Range of Potentials</div>
+  <p class="th-body">
+    There is a second consequence worth separating out. In a gridded engine every
+    <span class="hl-ion">ion</span> starts at essentially the same
+    <span class="hl-phi">potential</span>, the screen grid, and falls through essentially the same voltage. In a
+    Hall thruster an ion is created wherever its parent <span class="hl-neutral">neutral</span> happened to be
+    ionized, which is spread over the length of the acceleration region, so different ions fall through
+    different fractions of the total. The exhaust therefore leaves with a
+    <span class="key">spread</span> of speeds rather than one speed.
+    <!-- TODO: connect this to the divergence and Isp claims above, and to the ion energy
+         distribution the potential page will plot. -->
+  </p>
+  <p class="th-body">
+    Which raises the question the next pages answer: where exactly does the
+    <span class="hl-phi">potential</span> fall, if no hardware marks the spot?
+    <a class="applet-link" href="HT_Potential_applet.html">That is the potential distribution &rarr;</a>
+  </p>
+</div>
+
+<!-- ════════════════════ Q3: THE TRADE ════════════════════
+     TODO: write this question once the trade section above has its numbers, so the
+     distractors can be quantitative rather than qualitative. Q2 is the flow-rate question
+     under the diffusion figure. -->
+
+<!-- ════════════════════ SOURCES ════════════════════
+     TODO: same as the buzzsaw page. This page cites ref-1 with no list of its own. -->
+
+<footer>
+  <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
+    <img class="foot-logo" src="../assets/mit_aeroastro.png" alt="MIT AeroAstro" />
+  </a>
+  <div class="foot-title">Propulsion Applets 2026</div>
+  <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
+</footer>
+
+<!-- ════════════════════ FIGURE: THRUST DENSITY ════════════════════
+     Skeleton. The physics is the finished part; the framing (axis ranges, the
+     two hardware anchors, which quantities get sliders) is what still wants a
+     second pass. See the TODO in the caption. -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('td-svg');
+  if (!svg) return;
+
+  const EPS0 = 8.8541878128e-12;      // F/m
+  const QE   = 1.602176634e-19;       // C
+  const M_XE = 2.1801714e-25;         // kg, xenon-131.29
+  const G0   = 9.80665;               // m/s², the definition, for seconds of Isp
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const $  = id => document.getElementById(id);
+  const mk = (tag, attrs, text) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+    if (text !== null && text !== undefined) n.textContent = text;
+    return n;
+  };
+
+  /* ── Style, taken value for value from the Stuhlinger plots ──────────────────
+     GRID, PFONT, LEG, HOVERSTYLE and MARG in optimum_isp_applet.html are Plotly
+     settings in CSS pixels at that page's plot size. This figure is drawn in
+     viewBox units, which the browser renders about PX times larger at full page
+     width, so colors carry over exactly and lengths carry over scaled. Type is
+     carried over as a hierarchy, ticks under titles under legend, pinned to the
+     sizes the rest of this page already sets rather than as raw pixel values. */
+  const PX = 1.4;
+  const STYLE = {
+    plotBg: '#090909',                                    // plot_bgcolor, on #0e0e0e paper
+    grid:   'rgba(255,255,255,0.05)',                     // GRID.gridcolor, and no zeroline
+    tick:   { color: '#bcbcbc', size: 15 },               // PFONT
+    legend: { bg: 'rgba(14,14,14,0.92)', border: '#2a2a2a', color: '#888', size: 18 },
+    hover:  { bg: '#0e0e0e', border: '#282828', color: '#f1f1f1', size: 15,
+              family: "'Courier New',monospace" },
+    band:   { color: '#d0d0d0', bg: 'rgba(9,9,9,0.90)', size: 15 }
+  };
+
+  /* Plot box: MARG {t:70, b:44, l:65, r:14} scaled by PX, then both vertical margins
+     opened out, the bottom to 98 to seat the device-band strip between the axis and its
+     tick labels, the top to 118 to seat the legend. y is logarithmic over four decades,
+     0.01 to 100 N/m^2. A curve that leaves the box at an extreme slider setting is
+     clipped rather than clamped, so it exits instead of crawling along the frame. */
+  /* 900 by 600, not the 900 by 516 this started at. The frame is sized by ASPECT and is as
+     wide as the page allows, so the only lever on how much of a screen a figure occupies is
+     its own proportions; at 516 the plot was a letterbox strip on a 1500px page. */
+  const W = 900, H = 600;
+  const X0 = 91, X1 = W - 20, Y0 = 118, Y1 = H - 98;
+  const V_MIN = 100, V_MAX = 1200;
+  const DEC_LO = -2, DEC_HI = 2;
+
+  const xOf = V => X0 + (V - V_MIN) / (V_MAX - V_MIN) * (X1 - X0);
+  const yOf = T => Y1 - (Math.log10(Math.max(T, 1e-12)) - DEC_LO) / (DEC_HI - DEC_LO) * (Y1 - Y0);
+
+  /* Child-Langmuir thrust density, exactly the boxed result in GIE II:
+     F/A = (8/9) eps0 V^2 / d^2, with d the effective accelerating gap.
+     Species-independent, which is itself worth noticing. */
+  const clDensity = (V, d_mm) => (8/9) * EPS0 * V * V / ((d_mm * 1e-3) ** 2);
+
+  /* Exhaust speed of a singly charged xenon ion that falls through the whole of V.
+     It is an upper bound: nothing here is charged twice, born partway down the drop,
+     or leaving off axis. Neither engine appears in it, which is the point of the two
+     specific-impulse cells reading alike. */
+  const vExhaust = V => Math.sqrt(2 * QE * V / M_XE);
+
+  /* Hall: quasineutral, so no space-charge term at all. Thrust density is the
+     ion current density times the momentum each ion carries out, and the momentum
+     is written through vExhaust so the curve and the Isp cell cannot disagree.
+     Equivalently j*sqrt(2 m_i V / q). */
+  const hallDensity = (V, j) => j * M_XE * vExhaust(V) / QE;
+
+  const el = {
+    cl: $('td-cl'), hall: $('td-hall'),
+    cursor: $('td-cursor'), dotCl: $('td-dot-cl'), dotHall: $('td-dot-hall'),
+    v: $('td-v'), d: $('td-d'), j: $('td-j'),
+    vVal: $('td-v-val'), dVal: $('td-d-val'), jVal: $('td-j-val'),
+    oCl: $('td-o-cl'), oHall: $('td-o-hall'), oRatio: $('td-o-ratio'), oNote: $('td-o-note'),
+    oIsp: $('td-o-isp'), oVe: $('td-o-ve')
+  };
+
+  /* One color per engine family, not one per quantity: each curve takes the color of
+     the operating-voltage band it belongs to, so the strip under the axis, the flight
+     anchor, the legend swatch and the curve itself are one thread the reader can
+     follow. Color now carries the whole distinction, both curves being solid, so what
+     marks the gridded line as a ceiling rather than an operating point is its legend
+     entry and the caption, not its stroke.
+     Legend names follow the Stuhlinger convention, symbol then a parenthesised gloss;
+     the short names are what the hover readout has room for. */
+  const C_GRIDDED = '#ba68c8', C_HALL = '#ffb74d';
+  const SERIES = [
+    { id: 'cl',   node: el.cl,   dot: el.dotCl,   color: C_GRIDDED, width: 2.2, dash: null,
+      name: 'F/A max  (gridded, Child–Langmuir)', short: 'gridded ceiling',
+      fn: (V, p) => clDensity(V, p.d) },
+    { id: 'hall', node: el.hall, dot: el.dotHall, color: C_HALL,    width: 2.4, dash: null,
+      name: 'F/A  (Hall, quasineutral)',          short: 'Hall',
+      fn: (V, p) => hallDensity(V, p.j) }
+  ];
+
+  /* Operating-voltage bands, the Stuhlinger plots' device-regime overlay: a ribbon with
+     a bordered label, dotted edges, and DEVICE_REGIMES' colors, so a Hall band is the
+     same orange on both graphs. Where they sit is the one thing not carried over, and
+     buildBands() gives the reason. Each band names the curve it belongs to, because its
+     edges are drawn up to that curve and take its color.
+     TODO: these are nominal operating ranges for the two flight engines already
+     marked below, not a survey. Source them with the anchors in the caption's TODO. */
+  const BANDS = [
+    { lo: 200, hi:  400, name: 'Hall Thruster',      series: 'hall',
+      ribbon: 'rgba(255,167,38,0.24)', line: C_HALL },
+    { lo: 650, hi: 1100, name: 'Gridded Ion Engine', series: 'cl',
+      ribbon: 'rgba(171,71,188,0.22)', line: C_GRIDDED }
+  ];
+  /* The strip carries the engine names alone, spelled as the index and the lesson titles
+     spell them. It used to be labelled "runs at" out in the y-axis gutter; the ribbons
+     say what they are, and the label only put words where the tick labels live. */
+  const BAND_TOP = Y1 + 9, BAND_H = 24;
+
+  /* Flight hardware, colored to the band each one sits in, and placed to miss that
+     band's edges. NSTAR sits ON its band's 1100 V edge, so its label runs left, inboard.
+     SPT-100 sits mid-band with an edge 70-odd units either side, too close for a label
+     on either flank, so that one is centered under its dot instead. */
+  const ANCHORS = [
+    { V: 1100, T: 1.5, name: 'NSTAR, gridded', sub: '1.5 N/m² at 1100 V',
+      color: C_GRIDDED, anchor: 'end',    dx: -11 },
+    { V:  300, T: 21,  name: 'SPT-100, Hall',  sub: '21 N/m² at 300 V',
+      color: C_HALL,    anchor: 'middle', dx:   0 }
+  ];
+
+  const X_TICKS = [200, 400, 600, 800, 1000, 1200];               // Plotly dtick 200
+  const Y_TICKS = [[0.01, '0.01'], [0.1, '0.1'], [1, '1'], [10, '10'], [100, '100']];
+
+  const sig = (x, n) => {
+    if (!isFinite(x)) return '0';
+    if (x >= 100) return x.toFixed(0);
+    if (x >= 10)  return x.toFixed(1);
+    if (x >= 1)   return x.toFixed(2);
+    return x.toPrecision(n);
+  };
+
+  const params = () => ({ d: +el.d.value, j: +el.j.value });
+
+  // ── Chrome ────────────────────────────────────────────────────────────────
+  function buildGround(){
+    $('td-plotbg').appendChild(
+      mk('rect', { x: X0, y: Y0, width: X1 - X0, height: Y1 - Y0, fill: STYLE.plotBg }));
+    /* Series color lives in SERIES, so the curve, its operating cross, its legend swatch
+       and its hover marker cannot drift apart. The markup carries the same values as
+       authored defaults, for anyone reading the SVG without the script. */
+    SERIES.forEach(s => {
+      s.node.setAttribute('stroke', s.color);
+      if (s.dash) s.node.setAttribute('stroke-dasharray', s.dash);
+      else        s.node.removeAttribute('stroke-dasharray');
+      s.dot.setAttribute('stroke', s.color);
+    });
+    el.cursor.setAttribute('y1', Y0);
+    el.cursor.setAttribute('y2', Y1);
+    const hit = $('td-hit');
+    hit.setAttribute('x', X0); hit.setAttribute('y', Y0);
+    hit.setAttribute('width', X1 - X0); hit.setAttribute('height', Y1 - Y0);
+  }
+
+  /* A strip below the axis, where deviceOverlay washes the full height of the plot.
+     That works on the Stuhlinger plots because their curves are U shaped, so a band
+     further right implies nothing about height. Here both curves climb with voltage,
+     and a full-height column standing under the ion engine's higher voltages reads as
+     "ion engines reach a higher thrust density" to anyone who does not stop to work
+     out what the shading encodes. That is the exact opposite of the lesson: at the
+     voltage each engine actually runs, the Hall point sits an order of magnitude
+     ABOVE the gridded one. Below the axis a band can only be read as what it is, an
+     interval of voltage, and its edges still carry the eye up to the curve.
+     Bands are assumed disjoint; two that overlapped would need stacked strips and a
+     deeper bottom margin, which is what deviceOverlay's lanes are for. */
+  function buildBands(){
+    const g = $('td-bands');
+    BANDS.forEach(b => {
+      const lo = Math.max(V_MIN, b.lo), hi = Math.min(V_MAX, b.hi);
+      if (hi <= lo) return;
+      const xl = xOf(lo), xr = xOf(hi);
+
+      /* Each edge rises only as far as its own curve, so the band reads as the piece of
+         that curve the engine actually uses. The curve moves with the sliders, so the
+         top of the line is set in draw() and only its foot is fixed here. */
+      b.edges = [[xl, lo], [xr, hi]].map(([x, V]) => {
+        const line = mk('line', { x1: x, x2: x, y2: BAND_TOP,
+          stroke: b.line, 'stroke-width': 0.8 * PX, 'stroke-dasharray': '2 4' });
+        g.appendChild(line);
+        return { line, V };
+      });
+
+      const yTop = BAND_TOP, yBot = BAND_TOP + BAND_H;
+      g.appendChild(mk('rect', { x: xl, y: yTop, width: xr - xl, height: BAND_H,
+        fill: b.ribbon, stroke: b.line, 'stroke-width': PX }));
+
+      // Centered, or pushed inboard when the band runs off an edge, as deviceOverlay does
+      const mid = (xl + xr) / 2, edge = 0.05 * (X1 - X0);
+      let tx = mid, anchor = 'middle';
+      if (mid < X0 + edge)      { tx = xl + 28; anchor = 'start'; }
+      else if (mid > X1 - edge) { tx = xr - 28; anchor = 'end';   }
+
+      const cy  = (yTop + yBot) / 2;
+      const bg  = mk('rect', { rx: 2, fill: STYLE.band.bg, stroke: b.line, 'stroke-width': PX });
+      const txt = mk('text', { x: tx, y: cy, fill: STYLE.band.color, 'font-size': STYLE.band.size,
+        'font-weight': 700, 'text-anchor': anchor, 'dominant-baseline': 'middle' }, b.name);
+      g.appendChild(bg); g.appendChild(txt);
+
+      const tw = txt.getComputedTextLength(), th = STYLE.band.size;
+      const bx = anchor === 'start' ? tx : anchor === 'end' ? tx - tw : tx - tw / 2;
+      bg.setAttribute('x', bx - 7);       bg.setAttribute('y', cy - th * 0.72);
+      bg.setAttribute('width', tw + 14);  bg.setAttribute('height', th * 1.44);
+    });
+  }
+
+  function buildAxes(){
+    const grid = $('td-grid'), g = $('td-axes');
+    X_TICKS.forEach(v => {
+      const x = xOf(v);
+      grid.appendChild(mk('line', { x1: x, x2: x, y1: Y0, y2: Y1,
+        stroke: STYLE.grid, 'stroke-width': PX }));
+      g.appendChild(mk('text', { x: x, y: BAND_TOP + BAND_H + 24, fill: STYLE.tick.color,
+        'font-size': STYLE.tick.size, 'text-anchor': 'middle' }, String(v)));
+    });
+    Y_TICKS.forEach(([v, label]) => {
+      const y = yOf(v);
+      grid.appendChild(mk('line', { x1: X0, x2: X1, y1: y, y2: y,
+        stroke: STYLE.grid, 'stroke-width': PX }));
+      g.appendChild(mk('text', { x: X0 - 12, y: y, fill: STYLE.tick.color,
+        'font-size': STYLE.tick.size, 'text-anchor': 'end',
+        'dominant-baseline': 'middle' }, label));
+    });
+  }
+
+  function buildAnchors(){
+    const g = $('td-anchors');
+    ANCHORS.forEach(a => {
+      const x = xOf(a.V), y = yOf(a.T);
+      g.appendChild(mk('circle', { cx: x, cy: y, r: 5, fill: a.color, 'fill-opacity': 0.85 }));
+      g.appendChild(mk('text', { x: x + a.dx, y: y + 26, fill: a.color, 'font-size': 14.5,
+        'text-anchor': a.anchor }, a.name));
+      g.appendChild(mk('text', { x: x + a.dx, y: y + 43, fill: a.color, 'fill-opacity': 0.62,
+        'font-size': 13, 'text-anchor': a.anchor }, a.sub));
+    });
+  }
+
+  /* A horizontal row above the plot, right-aligned, rather than LEG's stacked box in the
+     bottom-right corner. That corner is where the gridded band's 1100 V edge climbs to
+     its curve, and a legend sitting on top of it hides the one line that ties the strip
+     to the NSTAR point. Plotly's own convention for a legend that would cover data is
+     the same move, orientation "h" above the plotting area. */
+  function buildLegend(){
+    const g = $('td-legend');
+    const L = STYLE.legend, padX = 12, padY = 7, sw = 42, gap = 10, sep = 26;
+    const box = mk('rect', { rx: 3, fill: L.bg, stroke: L.border, 'stroke-width': PX });
+    g.appendChild(box);
+
+    const items = SERIES.map(s => {
+      const line = mk('line', { stroke: s.color, 'stroke-width': s.width, 'stroke-dasharray': s.dash });
+      const txt  = mk('text', { fill: L.color, 'font-size': L.size,
+        'dominant-baseline': 'middle' }, s.name);
+      g.appendChild(line); g.appendChild(txt);
+      return { line, txt, w: 0 };
+    });
+    items.forEach(it => { it.w = sw + gap + it.txt.getComputedTextLength(); });
+
+    const inner = items.reduce((a, it) => a + it.w, 0) + sep * (items.length - 1);
+    const bw = inner + padX * 2, bh = L.size * 1.55 + padY * 2;
+    const bx = X1 - bw, by = Y0 - 16 - bh;
+    box.setAttribute('x', bx);  box.setAttribute('y', by);
+    box.setAttribute('width', bw); box.setAttribute('height', bh);
+
+    let x = bx + padX;
+    const cy = by + bh / 2;
+    items.forEach(it => {
+      it.line.setAttribute('x1', x);            it.line.setAttribute('x2', x + sw);
+      it.line.setAttribute('y1', cy);           it.line.setAttribute('y2', cy);
+      it.txt.setAttribute('x', x + sw + gap);   it.txt.setAttribute('y', cy);
+      x += it.w + sep;
+    });
+  }
+
+  // ── Unified hover ─────────────────────────────────────────────────────────
+  /* hovermode "x unified": one box listing every series at the pointer's voltage,
+     set in Courier on HOVERSTYLE's ground. The faint pointer line is lighter than
+     the slider's cursor so the two never read as the same mark. */
+  const CH_W = 0.6 * STYLE.hover.size;        // Courier advance width
+  const hov  = { g: $('td-hover'), V: null };
+  const vis  = (n, on) => { if (on) n.removeAttribute('display'); else n.setAttribute('display', 'none'); };
+
+  function buildHover(){
+    const g = hov.g, Hv = STYLE.hover;
+    const type = { fill: Hv.color, 'font-family': Hv.family, 'font-size': Hv.size,
+                   'dominant-baseline': 'middle' };
+    hov.line = mk('line', { y1: Y0, y2: Y1, stroke: 'rgba(255,255,255,0.14)', 'stroke-width': PX });
+    g.appendChild(hov.line);
+    hov.marks = SERIES.map(s => { const c = mk('circle', { r: 4, fill: s.color }); g.appendChild(c); return c; });
+    hov.box  = mk('rect', { rx: 3, fill: Hv.bg, stroke: Hv.border, 'stroke-width': PX });
+    g.appendChild(hov.box);
+    hov.head = mk('text', Object.assign({ 'font-weight': 700 }, type));
+    g.appendChild(hov.head);
+    /* Name and value are separate runs, the value right-aligned on the box, because
+       SVG text collapses the run of spaces that would otherwise column them up. */
+    hov.rows = SERIES.map(s => {
+      const dot  = mk('circle', { r: 3.5, fill: s.color });
+      const name = mk('text', type);
+      const val  = mk('text', Object.assign({ 'text-anchor': 'end' }, type));
+      g.appendChild(dot); g.appendChild(name); g.appendChild(val);
+      return { dot, name, val };
+    });
+  }
+
+  function showHover(V){
+    hov.V = V;
+    const p = params(), Hv = STYLE.hover, pad = 9, rowH = Hv.size * 1.5, cx = xOf(V);
+    const head = Math.round(V) + ' V';
+
+    hov.g.style.display = '';
+    hov.line.setAttribute('x1', cx); hov.line.setAttribute('x2', cx);
+
+    const shown = [];
+    SERIES.forEach((s, i) => {
+      const T = s.fn(V, p), y = yOf(T), on = y >= Y0 && y <= Y1;
+      const r = hov.rows[i];
+      vis(hov.marks[i], on); vis(r.dot, on); vis(r.name, on); vis(r.val, on);
+      if (!on) return;
+      hov.marks[i].setAttribute('cx', cx); hov.marks[i].setAttribute('cy', y);
+      r.name.textContent = s.short + ':';
+      r.val.textContent  = sig(T, 2) + ' N/m²';
+      shown.push({ row: r, y });
+    });
+
+    hov.head.textContent = head;
+    const nameW = Math.max(...SERIES.map(s => s.short.length + 1)) * CH_W;
+    const valW  = shown.length ? Math.max(...shown.map(s => s.row.val.textContent.length)) * CH_W : 0;
+    const bw = Math.max(pad * 2 + 16 + nameW + 14 + valW, pad * 2 + 16 + head.length * CH_W);
+    const bh = pad * 2 + rowH * (1 + shown.length);
+
+    let bx = cx + 18;
+    if (bx + bw > X1 - 6) bx = cx - 18 - bw;
+    bx = Math.max(X0 + 6, bx);
+    const mid = shown.length ? shown.reduce((a, s) => a + s.y, 0) / shown.length : (Y0 + Y1) / 2;
+    const by  = Math.max(Y0 + 6, Math.min(Y1 - 6 - bh, mid - bh / 2));
+
+    hov.box.setAttribute('x', bx);  hov.box.setAttribute('y', by);
+    hov.box.setAttribute('width', bw); hov.box.setAttribute('height', bh);
+    hov.head.setAttribute('x', bx + pad + 16);
+    hov.head.setAttribute('y', by + pad + rowH * 0.5);
+    shown.forEach((s, i) => {
+      const cy = by + pad + rowH * (i + 1.5);
+      s.row.dot.setAttribute('cx', bx + pad + 6);
+      s.row.dot.setAttribute('cy', cy);
+      s.row.name.setAttribute('x', bx + pad + 16);
+      s.row.name.setAttribute('y', cy);
+      s.row.val.setAttribute('x', bx + bw - pad);
+      s.row.val.setAttribute('y', cy);
+    });
+  }
+
+  function hideHover(){ hov.V = null; hov.g.style.display = 'none'; }
+
+  function bindHover(){
+    const hit = $('td-hit');
+    hit.addEventListener('pointermove', e => {
+      const m = svg.getScreenCTM();
+      if (!m) return;
+      const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+      const f = Math.min(1, Math.max(0, (q.x - X0) / (X1 - X0)));
+      showHover(V_MIN + f * (V_MAX - V_MIN));
+    });
+    hit.addEventListener('pointerleave', hideHover);
+    hit.addEventListener('pointercancel', hideHover);
+  }
+
+  // ── Data ──────────────────────────────────────────────────────────────────
+  /* Sampled polyline, clipped to the plot box rather than clamped: a curve that
+     runs off the top should leave the frame, not slide along its edge. */
+  function curve(fn){
+    const N = 160, pts = [];
+    let pen = 'M';
+    for (let i = 0; i <= N; i++){
+      const V = V_MIN + (V_MAX - V_MIN) * i / N;
+      const y = yOf(fn(V));
+      if (y < Y0 || y > Y1){ pen = 'M'; continue; }
+      pts.push(pen + xOf(V).toFixed(1) + ' ' + y.toFixed(1));
+      pen = 'L';
+    }
+    return pts.join(' ');
+  }
+
+  function draw(){
+    const V = +el.v.value, p = params();
+
+    el.vVal.textContent = V + ' V';
+    el.dVal.textContent = p.d.toFixed(2) + ' mm';
+    el.jVal.textContent = p.j + ' A/m²';
+
+    SERIES.forEach(s => s.node.setAttribute('d', curve(v => s.fn(v, p))));
+
+    /* Band edges meet their own curve. A curve driven off the top of the scale leaves
+       its edge at the frame rather than running out of the plot with it. */
+    BANDS.forEach(b => {
+      const s = SERIES.find(x => x.id === b.series);
+      (b.edges || []).forEach(e =>
+        e.line.setAttribute('y1', Math.max(Y0, Math.min(Y1, yOf(s.fn(e.V, p)))).toFixed(1)));
+    });
+
+    const cx = xOf(V);
+    el.cursor.setAttribute('x1', cx); el.cursor.setAttribute('x2', cx);
+    SERIES.forEach(s => {
+      const y = Math.max(Y0, Math.min(Y1, yOf(s.fn(V, p))));
+      s.dot.setAttribute('transform', 'translate(' + cx.toFixed(1) + ' ' + y.toFixed(1) + ')');
+    });
+
+    const tCl = clDensity(V, p.d), tHall = hallDensity(V, p.j);
+    el.oCl.textContent   = sig(tCl, 2);
+    el.oHall.textContent = sig(tHall, 2);
+    const r = tHall / tCl;
+    el.oRatio.textContent = r >= 1 ? sig(r, 2) + '×' : sig(1 / r, 2) + '×';
+    el.oNote.textContent  = r >= 1 ? 'Hall over gridded, at this voltage'
+                                   : 'gridded ceiling now the higher of the two';
+
+    /* One cell for both engines: same ion, same voltage, same bound. Seconds on the
+       value row, the speed it came from on the row under it. */
+    const ve = vExhaust(V);
+    el.oIsp.textContent = Math.round(ve / G0) + ' s';
+    el.oVe.textContent  = Math.round(ve) + ' m/s';
+
+    if (hov.V !== null) showHover(hov.V);   // keep an open readout honest
+  }
+
+  buildGround();
+  buildBands();
+  buildAxes();
+  buildAnchors();
+  buildLegend();
+  buildHover();
+  bindHover();
+
+  [el.v, el.d, el.j].forEach(s => s.addEventListener('input', draw));
+  draw();
+})();
+</script>
+
+<!-- ════════════════════ FIGURE: ELECTRON DIFFUSION AND THE ANODE LEAK ════════════════════
+     Skeleton. The transport physics is the finished part and is written straight from the
+     equations above it: nothing in here is fitted. What still wants a second pass is the
+     framing, which the caption's TODO lists in full: a uniform neutral density standing in
+     for a profile, a pinned E and acceleration length, one cross-section for all electron
+     temperatures, and the half-speed closure in the current ratio.
+
+     Two constants set the whole animation and both are stated on the figure: the azimuthal
+     direction is compressed against the axial one so that a full lap fits the frame, and one
+     second of animation is one microsecond in the channel. Everything else the reader sees
+     follows from phys() and the frame time. -->
+<script>
+"use strict";
+(function(){
+  const svg = document.getElementById('dz-svg');
+  if (!svg) return;
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const $  = id => document.getElementById(id);
+  const mk = (tag, attrs, text) => {
+    const n = document.createElementNS(NS, tag);
+    for (const k in attrs) if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+    if (text !== null && text !== undefined) n.textContent = text;
+    return n;
+  };
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+
+  /* ── Constants ────────────────────────────────────────────────────────────
+     Everything here is either a physical constant or an SPT-100 nominal quoted in the
+     equations above, so the figure and the prose cannot disagree. The three that are
+     stand-ins rather than measurements are F_RES, V_N and ETA_U, and each says so. */
+  const QE = 1.602176634e-19;         // C
+  const ME = 9.1093837015e-31;        // kg
+  const M_XE = 2.1801714e-25;         // kg, xenon-131.29
+
+  const D_MEAN = 0.085, W_CH = 0.015;         // m, SPT-100-class channel: mean diameter, width
+  const A_CH   = Math.PI * D_MEAN * W_CH;     // 4.0e-3 m², the annulus the propellant crosses
+  const C_ANN  = Math.PI * D_MEAN;            // 0.267 m, one lap of the annulus
+  const L_ACC  = 0.025;                       // m, anode face to exit plane
+  const E_AX   = 5000;                        // V/m, axial field in the high-B region
+  const V_I    = 16000;                       // m/s, SPT-100 exhaust speed
+  const Q_EH   = 3e-19;                       // m², electron-neutral scattering cross-section
+
+  /* Neutral bookkeeping. The injected flow divided by the channel area and a thermal neutral
+     speed gives the density at the manifold; F_RES is what is LEFT of it as gas by the time
+     the flow reaches the acceleration region, and it is a single number standing in for the
+     ionization profile the potential page computes properly. It is set so that the nominal
+     5 mg/s lands on the 7.4e18 m^-3 the lecture uses for a Hall thruster, which also makes
+     the flow ceiling below come out at that lecture's own 3.5e19 m^-3. ETA_U is mass
+     utilization, and only the thrust-density axis uses it. */
+  const V_N = 284, F_RES = 0.35, ETA_U = 0.9;
+
+  const nHof  = mdot => F_RES * (mdot * 1e-6 / M_XE) / (A_CH * V_N);
+  const cbar  = Te   => Math.sqrt(8 * QE * Te / (Math.PI * ME));
+  const FAof  = mdot => ETA_U * mdot * 1e-6 * V_I / A_CH;
+  const LEAK_TARGET = 0.2;
+
+  /* One function for the whole chain, so the animation, the plot and the six output cells
+     are reading the same numbers and no quantity is computed twice. */
+  function phys(mdot, Bg, Te, anomOn, cB){
+    const B     = Bg * 1e-4;                       // gauss to tesla
+    const wce   = QE * B / ME;
+    const nH    = nHof(mdot);
+    const nu_en = nH * cbar(Te) * Q_EH;
+    const nu_an = anomOn ? wce / cB : 0;
+    const nu    = nu_en + nu_an;
+    const vth   = Math.sqrt(2 * QE * Te / ME);
+    const De    = QE * Te / (ME * nu);
+    const beta  = wce / nu;
+    const vTheta = E_AX / B;
+    const vex   = vTheta * nu / wce;               // (E/B)(nu/omega_ce)
+    const leak  = 2 * vex / V_I;                   // v_ex / (v_i/2)
+    return {
+      B, wce, nH, nu_en, nu_an, nu, beta, De, Dperp: De / (1 + beta * beta),
+      vTheta, vex, leak, eta: 1 / (1 + leak),
+      leakClassical: 2 * (vTheta * nu_en / wce) / V_I,
+      rL: ME * vth / (QE * B),                     // random-walk step, one Larmor radius
+      rD: vTheta / wce                             // the systematic part of one step
+    };
+  }
+
+  /* ── Layout ───────────────────────────────────────────────────────────────
+     Scene and plot share their left and right edges, so the anode edge, the exit plane and
+     the two axis ends line up down the figure. */
+  const XL = 116, XR = 852;
+  const BAND_Y = 40;                                  // the "how to read this" strip
+  const SX0 = 130, SX1 = 820, SY0 = 94, SY1 = 424;   // the unrolled channel
+  const RULE_Y = 436;                                 // axial ruler under the scene
+  const DIV_Y  = 496;                                 // rule between the two panels
+  const PY0 = 549, PY1 = 749;                         // plot box
+  const M_MAX = 30;                                   // mg/s, the plot's full span
+
+  const SXm = (SX1 - SX0) / L_ACC;      // px per meter, axial (true scale)
+  const SYm = (SY1 - SY0) / C_ANN;      // px per meter, azimuthal (compressed ~30x)
+  const SPEEDUP = 1e-6;                 // thruster seconds per second of animation
+
+  const xOfM  = m => XL + m / M_MAX * (XR - XL);
+  const yOfR  = r => PY1 - clamp(r, -0.2, 1.4) * (PY1 - PY0);
+  const yRaw  = r => PY1 - r * (PY1 - PY0);
+
+  const STYLE = {
+    plotBg: '#090909',
+    grid:   'rgba(255,255,255,0.05)',
+    tick:   { color: '#bcbcbc', size: 15 },
+    axis:   { color: '#bcbcbc', size: 17 },
+    muted:  '#7a7a7a'
+  };
+  const C_ELEC = '#ffe94d', C_NEUT = '#9aa3b2', C_B = '#00DDB5', C_E = '#F5C518',
+        C_HIT  = '#e8ecf2', C_ANOM = '#cbb2ff', C_ETA = '#e8e8e8',
+        C_WARN = 'rgba(255,142,142,0.55)';
+
+  /* ── Groups. The stack is the draw order, and the two label groups exist so that a
+     legend never ends up under a particle. ─────────────────────────────────────────── */
+  svg.appendChild(mk('rect', { width: 900, height: 808, fill: '#0e0e0e' }));
+  const gScene  = svg.appendChild(mk('g', {}));
+  const gNeut   = svg.appendChild(mk('g', {}));
+  const gTrail  = svg.appendChild(mk('g', { fill: 'none', 'stroke-linecap': 'round' }));
+  const gFlash  = svg.appendChild(mk('g', {}));
+  const gElec   = svg.appendChild(mk('g', {}));
+  const gLabel  = svg.appendChild(mk('g', {}));
+  const gPlot   = svg.appendChild(mk('g', {}));
+  const gCurve  = svg.appendChild(mk('g', { fill: 'none', 'stroke-linejoin': 'round' }));
+  const gCursor = svg.appendChild(mk('g', {}));
+
+  /* A line with a solid head, rather than a marker on a def: three of these exist in the
+     figure and a def would be more machinery than the arrows are worth. */
+  function arrow(g, x1, y1, x2, y2, color, w, head, op){
+    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+    g.appendChild(mk('line', { x1, y1, x2: x2 - ux * head * 0.9, y2: y2 - uy * head * 0.9,
+      stroke: color, 'stroke-width': w, 'stroke-opacity': op }));
+    const px = -uy, py = ux;
+    g.appendChild(mk('path', { fill: color, 'fill-opacity': op,
+      d: `M${x2} ${y2} L${x2 - ux * head + px * head * 0.42} ${y2 - uy * head + py * head * 0.42}` +
+         ` L${x2 - ux * head - px * head * 0.42} ${y2 - uy * head - py * head * 0.42} Z` }));
+  }
+
+  /* ── How to read this ─────────────────────────────────────────────────────
+     A strip above the frame carrying the two things a reader has to be told before the
+     scene means anything, each as a drawing rather than a sentence: what the rectangle IS
+     (an annulus cut open and flattened) and what a mark in it MEANS (one collision, one
+     hop of about a Larmor radius toward the anode). Both were in the caption and only in
+     the caption, which is the wrong place for them: a reader looking at a moving figure is
+     not reading a paragraph two hundred pixels below it. */
+  function buildBand(){
+    const g = gScene, cy = BAND_Y;
+
+    // 1. The annulus, with the radius it is cut along picked out
+    const cx1 = 140;
+    g.appendChild(mk('circle', { cx: cx1, cy, r: 18.5, fill: 'none', stroke: '#1c1c1c',
+      'stroke-width': 11 }));
+    g.appendChild(mk('circle', { cx: cx1, cy, r: 24, fill: 'none', stroke: '#4a4a4a',
+      'stroke-width': 1.2 }));
+    g.appendChild(mk('circle', { cx: cx1, cy, r: 13, fill: 'none', stroke: '#4a4a4a',
+      'stroke-width': 1.2 }));
+    g.appendChild(mk('line', { x1: cx1, y1: cy - 24, x2: cx1, y2: cy - 13,
+      stroke: '#e8ecf2', 'stroke-width': 2.2 }));
+    g.appendChild(mk('text', { x: 174, y: cy - 5, fill: STYLE.tick.color, 'font-size': 13 },
+      'the channel annulus, cut along one radius'));
+    g.appendChild(mk('text', { x: 174, y: cy + 12, fill: STYLE.tick.color, 'font-size': 13 },
+      'and unrolled into the frame below'));
+
+    // 2. One collision, one hop. Drawn at the size the scene draws it, not magnified.
+    const cx2 = 500;
+    g.appendChild(mk('circle', { cx: cx2, cy, r: 11, fill: 'none', stroke: C_ELEC,
+      'stroke-opacity': 0.35, 'stroke-width': 1.4, 'stroke-dasharray': '3 3' }));
+    g.appendChild(mk('circle', { cx: cx2 - 26, cy, r: 11, fill: 'none', stroke: C_ELEC,
+      'stroke-opacity': 0.8, 'stroke-width': 1.4 }));
+    g.appendChild(mk('circle', { cx: cx2 - 13, cy: cy - 11, r: 3.6, fill: 'none',
+      stroke: C_HIT, 'stroke-width': 1.6 }));
+    arrow(g, cx2, cy + 19, cx2 - 26, cy + 19, C_ELEC, 1.6, 7, 0.8);
+    g.appendChild(mk('text', { x: 524, y: cy - 5, fill: STYLE.tick.color, 'font-size': 13 },
+      'one collision hops the orbit about one Larmor'));
+    g.appendChild(mk('text', { x: 524, y: cy + 12, fill: STYLE.tick.color, 'font-size': 13 },
+      'radius, biased toward the anode by E'));
+  }
+
+  // ── Scene chrome ──────────────────────────────────────────────────────────
+  function buildScene(){
+    buildBand();
+    gScene.appendChild(mk('rect', { x: SX0, y: SY0, width: SX1 - SX0, height: SY1 - SY0,
+      fill: STYLE.plotBg }));
+    // Beyond the exit plane: the plume the cathode feeds, and where a wandering electron came from
+    gScene.appendChild(mk('rect', { x: SX1, y: SY0, width: XR - SX1, height: SY1 - SY0,
+      fill: '#0b0b0b' }));
+    gScene.appendChild(mk('line', { x1: SX1, y1: SY0, x2: SX1, y2: SY1,
+      stroke: '#4a4a4a', 'stroke-width': 1.2, 'stroke-dasharray': '5 5' }));
+
+    // The anode: a bar with its collecting face picked out in the potential color
+    gScene.appendChild(mk('rect', { x: XL, y: SY0, width: SX0 - XL, height: SY1 - SY0,
+      fill: '#242424', stroke: '#3f3f3f', 'stroke-width': 1 }));
+    gScene.appendChild(mk('line', { x1: SX0, y1: SY0, x2: SX0, y2: SY1,
+      stroke: C_E, 'stroke-width': 2, 'stroke-opacity': 0.5 }));
+
+    /* The cut. Top and bottom are the same line of the annulus, so the dashes say "this is
+       not a wall" and the chevrons say which way the drift carries an electron through it. */
+    [SY0, SY1].forEach(y => gScene.appendChild(mk('line', { x1: SX0, y1: y, x2: SX1, y2: y,
+      stroke: '#3a3a3a', 'stroke-width': 1, 'stroke-dasharray': '3 6' })));
+
+    gScene.appendChild(mk('text', { x: XL - 12, y: (SY0 + SY1) / 2, fill: '#d0d0d0',
+      'font-size': 15, 'font-weight': 700, 'letter-spacing': 1.3, 'text-anchor': 'middle',
+      transform: `rotate(-90 ${XL - 12} ${(SY0 + SY1) / 2})` }, 'ANODE'));
+    gScene.appendChild(mk('text', { x: XL - 32, y: (SY0 + SY1) / 2, fill: STYLE.muted,
+      'font-size': 12.5, 'text-anchor': 'middle',
+      transform: `rotate(-90 ${XL - 32} ${(SY0 + SY1) / 2})` },
+      'azimuthal: one lap, and it wraps'));
+    gScene.appendChild(mk('text', { x: XR - 9, y: (SY0 + SY1) / 2, fill: STYLE.muted,
+      'font-size': 12.5, 'text-anchor': 'middle',
+      transform: `rotate(-90 ${XR - 9} ${(SY0 + SY1) / 2})` }, 'EXIT PLANE'));
+
+    gScene.appendChild(mk('text', { x: SX0, y: SY0 - 12, fill: C_ELEC, 'font-size': 14 },
+      'collected here, and paid for at the full discharge voltage'));
+    gScene.appendChild(mk('text', { x: XR, y: SY0 - 12, fill: STYLE.muted, 'font-size': 14,
+      'text-anchor': 'end' }, 'from the cathode'));
+
+    /* The two fields, drawn once each rather than tiled: the scene is small and a field of
+       glyphs would compete with the particles the figure is actually about. */
+    const by = SY0 + 34;
+    [SX0 + 92, SX0 + 330, SX0 + 568].forEach(x => {
+      gScene.appendChild(mk('circle', { cx: x, cy: by, r: 8.5, fill: 'none', stroke: C_B,
+        'stroke-width': 1.4, 'stroke-opacity': 0.55 }));
+      gScene.appendChild(mk('circle', { cx: x, cy: by, r: 2.2, fill: C_B, 'fill-opacity': 0.55 }));
+    });
+    gScene.appendChild(mk('text', { x: SX0 + 92, y: by - 16, fill: C_B, 'font-size': 14,
+      'fill-opacity': 0.85, 'text-anchor': 'middle' }, 'B out of the page'));
+
+    arrow(gScene, SX0 + 30, SY0 + 74, SX0 + 150, SY0 + 74, C_E, 2, 10, 0.85);
+    gScene.appendChild(mk('text', { x: SX0 + 90, y: SY0 + 64, fill: C_E, 'font-size': 14,
+      'text-anchor': 'middle' }, 'E, and the ions go this way'));
+
+    arrow(gScene, SX1 - 74, SY0 + 40, SX1 - 74, SY0 + 132, C_ELEC, 2, 10, 0.8);
+    gScene.appendChild(mk('text', { x: SX1 - 74, y: SY0 + 28, fill: C_ELEC, 'font-size': 14,
+      'text-anchor': 'middle' }, 'E × B drift'));
+
+    // Axial ruler. True scale, and the one thing in the frame that is.
+    gScene.appendChild(mk('line', { x1: SX0, y1: RULE_Y, x2: SX1, y2: RULE_Y,
+      stroke: '#3a3a3a', 'stroke-width': 1 }));
+    for (let mm = 0; mm <= 25; mm += 5){
+      const x = SX0 + mm / 25 * (SX1 - SX0);
+      gScene.appendChild(mk('line', { x1: x, y1: RULE_Y, x2: x, y2: RULE_Y + 6,
+        stroke: '#4a4a4a', 'stroke-width': 1 }));
+      gScene.appendChild(mk('text', { x: x, y: RULE_Y + 22, fill: STYLE.tick.color,
+        'font-size': 13.5, 'text-anchor': 'middle' }, String(mm)));
+    }
+    /* Left-aligned rather than centered on the ruler, so the two notes on this line can sit
+       side by side. The clock belongs here, under the only true scale in the frame. */
+    gScene.appendChild(mk('text', { x: SX0, y: RULE_Y + 42, fill: STYLE.axis.color,
+      'font-size': 15 }, 'Axial Distance From the Anode Face  [mm]'));
+    gScene.appendChild(mk('text', { x: XR, y: RULE_Y + 42, fill: STYLE.muted, 'font-size': 12.5,
+      'text-anchor': 'end' },
+      'azimuthal compressed ~30×; 1 second here ≈ 1 microsecond in the channel'));
+
+    gScene.appendChild(mk('line', { x1: XL, y1: DIV_Y, x2: XR, y2: DIV_Y,
+      stroke: '#282828', 'stroke-width': 1 }));
+  }
+
+  // ── Plot chrome ───────────────────────────────────────────────────────────
+  function buildPlot(){
+    gPlot.appendChild(mk('rect', { x: XL, y: PY0, width: XR - XL, height: PY1 - PY0,
+      fill: STYLE.plotBg }));
+
+    for (let m = 0; m <= M_MAX; m += 5){
+      const x = xOfM(m);
+      gPlot.appendChild(mk('line', { x1: x, y1: PY0, x2: x, y2: PY1,
+        stroke: STYLE.grid, 'stroke-width': 1 }));
+      gPlot.appendChild(mk('text', { x: x, y: PY1 + 20, fill: STYLE.tick.color,
+        'font-size': STYLE.tick.size, 'text-anchor': 'middle' }, String(m)));
+    }
+    for (let r = 0; r <= 1.0001; r += 0.25){
+      const y = yRaw(r);
+      gPlot.appendChild(mk('line', { x1: XL, y1: y, x2: XR, y2: y,
+        stroke: STYLE.grid, 'stroke-width': 1 }));
+      gPlot.appendChild(mk('text', { x: XL - 10, y: y, fill: STYLE.tick.color,
+        'font-size': STYLE.tick.size, 'text-anchor': 'end',
+        'dominant-baseline': 'middle' }, r.toFixed(2)));
+    }
+
+    /* A second scale on the same axis rather than a second y-axis: thrust density is
+       strictly proportional to the flow rate in this model, so it is the SAME axis read in
+       other units, and drawing it as a curve of its own would imply otherwise. */
+    for (let fa = 0; fa <= 100; fa += 25){
+      const x = xOfM(fa / (FAof(1)));
+      if (x > XR + 0.5) continue;
+      gPlot.appendChild(mk('line', { x1: x, y1: PY0 - 7, x2: x, y2: PY0,
+        stroke: '#4a4a4a', 'stroke-width': 1 }));
+      gPlot.appendChild(mk('text', { x: x, y: PY0 - 11, fill: STYLE.tick.color,
+        'font-size': 13.5, 'text-anchor': 'middle' }, String(fa)));
+    }
+    gPlot.appendChild(mk('text', { x: (XL + XR) / 2, y: PY0 - 29, fill: STYLE.axis.color,
+      'font-size': STYLE.axis.size, 'text-anchor': 'middle' })).innerHTML =
+      'Thrust Density&#160;&#160;<tspan font-family="KaTeX_Math, serif" font-style="italic">F</tspan>/' +
+      '<tspan font-family="KaTeX_Math, serif" font-style="italic">A</tspan>&#160;&#160;[N&#8202;/&#8202;m' +
+      '<tspan font-size="12" dy="-6">2</tspan><tspan dy="6">]</tspan>';
+
+    gPlot.appendChild(mk('text', { x: (XL + XR) / 2, y: PY1 + 44, fill: STYLE.axis.color,
+      'font-size': STYLE.axis.size, 'text-anchor': 'middle' })).innerHTML =
+      'Propellant Mass Flow Rate&#160;&#160;<tspan font-family="KaTeX_Math, serif" ' +
+      'font-style="italic">&#7745;</tspan>&#160;&#160;[mg&#8202;/&#8202;s]';
+
+    gPlot.appendChild(mk('text', { x: 34, y: (PY0 + PY1) / 2, fill: STYLE.axis.color,
+      'font-size': STYLE.axis.size, 'text-anchor': 'middle',
+      transform: `rotate(-90 34 ${(PY0 + PY1) / 2})` }, 'Current Ratio'));
+
+    /* The design target reads BELOW its own line: above it is where the total leak curve
+       runs at every setting worth looking at, and a label there sits on the data. Below it,
+       at the left, is the one corner of this plot nothing ever occupies. */
+    gPlot.appendChild(mk('line', { x1: XL, y1: yRaw(LEAK_TARGET), x2: XR, y2: yRaw(LEAK_TARGET),
+      stroke: C_WARN, 'stroke-width': 1.4, 'stroke-dasharray': '2 4' }));
+    const tgBg = gPlot.appendChild(mk('rect', { rx: 2, fill: 'rgba(9,9,9,0.92)' }));
+    const tgTx = gPlot.appendChild(mk('text', { x: XL + 12, y: yRaw(LEAK_TARGET) + 18,
+      fill: '#ff8e8e', 'font-size': 13.5, 'fill-opacity': 0.85 },
+      'design target on the collisional leak, 0.2'));
+    // Its own ground, the same move the bands on the figure above make: the collisional curve
+    // runs along the floor here and the label would otherwise be written across it.
+    const tgW = tgTx.getComputedTextLength();
+    tgBg.setAttribute('x', XL + 8);  tgBg.setAttribute('y', yRaw(LEAK_TARGET) + 5);
+    tgBg.setAttribute('width', tgW + 8); tgBg.setAttribute('height', 18);
+
+    /* The flight point the whole page is calibrated on, hung from the top axis rather than
+       standing on the bottom one, where the collisional curve runs along the floor. */
+    gPlot.appendChild(mk('path', { fill: '#bcbcbc', 'fill-opacity': 0.55,
+      d: `M${xOfM(5)} ${PY0 + 11} l-5 -9 l10 0 Z` }));
+    gPlot.appendChild(mk('text', { x: xOfM(5) + 9, y: PY0 + 12, fill: STYLE.muted,
+      'font-size': 13 }, 'SPT-100 nominal'));
+
+    /* Created here, AFTER the ground and the gridlines, and not with the other series
+       further down: appended before buildPlot() runs, they end up under the plot's own
+       background rect and never appear at all. */
+    shade  = gPlot.appendChild(mk('rect', { fill: '#ff8e8e', 'fill-opacity': 0.05 }));
+    ceilLn = gPlot.appendChild(mk('line', { stroke: '#ff8e8e', 'stroke-width': 1.2,
+      'stroke-opacity': 0.6, 'stroke-dasharray': '4 4' }));
+    ceilTx = gPlot.appendChild(mk('text', { fill: '#ff8e8e', 'font-size': 13.5,
+      'fill-opacity': 0.9 }));
+  }
+
+  // ── Series, cursor, and the ceiling annotation ────────────────────────────
+  const el = {
+    m: $('dz-m'), b: $('dz-b'), te: $('dz-te'), cb: $('dz-cb'), anom: $('dz-anom'),
+    mVal: $('dz-m-val'), bVal: $('dz-b-val'), teVal: $('dz-te-val'), cbVal: $('dz-cb-val'),
+    cbGroup: $('dz-cb-group'), pause: $('dz-pause'), reset: $('dz-reset'),
+    status: $('dz-status'),
+    oNh: $('dz-o-nh'), oNu: $('dz-o-nu'), oNuSub: $('dz-o-nu-sub'), oBeta: $('dz-o-beta'),
+    oDperp: $('dz-o-dperp'), oLeak: $('dz-o-leak'), oEta: $('dz-o-eta')
+  };
+
+  const pathLeak  = gCurve.appendChild(mk('path', { stroke: C_ELEC, 'stroke-width': 2.4 }));
+  const pathClass = gCurve.appendChild(mk('path', { stroke: C_ELEC, 'stroke-width': 1.8,
+    'stroke-opacity': 0.5, 'stroke-dasharray': '6 5' }));
+  const pathEta   = gCurve.appendChild(mk('path', { stroke: C_ETA, 'stroke-width': 2.2 }));
+
+  let shade, ceilLn, ceilTx;            // built in buildPlot(), which is where the order matters
+
+  /* Direct labels rather than a legend box, and each carries the symbol it is under a second
+     line, because the two curves are ratios of different pairs of currents and the axis
+     title cannot say so for both at once. */
+  function symbols(parts, attrs){
+    const t = gCursor.appendChild(mk('text', attrs));
+    let sub = false;
+    parts.forEach(([s, isSub]) => {
+      t.appendChild(mk('tspan', { 'font-size': isSub ? 10.5 : 12.5,
+        dy: (isSub ? 4 : 0) - (sub ? 4 : 0) }, s));
+      sub = isSub;
+    });
+    return t;
+  }
+  const lblLeak  = gCursor.appendChild(mk('text', { fill: C_ELEC, 'font-size': 14,
+    'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'electron leak fraction'));
+  const symLeak  = symbols([['I', 0], ['leak', 1], [' / I', 0], ['B', 1]],
+    { fill: C_ELEC, 'fill-opacity': 0.7, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+  const lblClass = gCursor.appendChild(mk('text', { fill: C_ELEC, 'font-size': 13,
+    'fill-opacity': 0.6, 'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'collisions alone'));
+  const lblEta   = gCursor.appendChild(mk('text', { fill: C_ETA, 'font-size': 14,
+    'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'anode efficiency'));
+  const symEta   = symbols([['η', 0], ['a', 1], [' = I', 0], ['B', 1], [' / I', 0], ['a', 1]],
+    { fill: C_ETA, 'fill-opacity': 0.7, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+
+  /* The operating cursor rises through the top axis so the flow rate can be read off as a
+     thrust density without a second readout. White and light, the same mark the figure above
+     this one uses for "a place the reader put". */
+  const cursor = gCursor.appendChild(mk('line', { stroke: '#ffffff', 'stroke-opacity': 0.28,
+    'stroke-width': 1, y1: PY0 - 7, y2: PY1 }));
+  const CROSS = 'M-6 -6 L6 6 M-6 6 L6 -6';
+  const dotLeak = gCursor.appendChild(mk('path', { d: CROSS, fill: 'none', stroke: C_ELEC,
+    'stroke-width': 2.6, 'stroke-linecap': 'round' }));
+  const dotEta  = gCursor.appendChild(mk('path', { d: CROSS, fill: 'none', stroke: C_ETA,
+    'stroke-width': 2.6, 'stroke-linecap': 'round' }));
+
+  // Sampled and clipped, not clamped: a curve that leaves the box should leave it.
+  function curveOf(fn){
+    const N = 150, out = [];
+    let pen = 'M';
+    for (let i = 0; i <= N; i++){
+      const m = M_MAX * i / N, y = yRaw(fn(m));
+      if (y < PY0 || y > PY1){ pen = 'M'; continue; }
+      out.push(pen + xOfM(m).toFixed(1) + ' ' + y.toFixed(1));
+      pen = 'L';
+    }
+    return out.join(' ');
+  }
+
+  // ── Particles ─────────────────────────────────────────────────────────────
+  /* Nine, which is as many as can be followed individually and enough that the spread of the
+     walk is visible. Position is kept in METERS and converted on the way to the screen, so
+     the two axis scales never leak into the physics. */
+  /* The trail is long on purpose, a couple of seconds of history rather than a streak. Over
+     that long an electron laps the annulus two or three times, and the trail draws those
+     laps as a row of near-vertical strokes each one a little further left than the last.
+     That marching-left row IS the diffusion, and it is the one thing in the figure a
+     still frame can show; at the short trail this started with, all a reader could see was
+     dots moving down. */
+  /* ONE of them is traced: a white ring, a heavier line, and several seconds of history,
+     against eight others drawn as a faint background population. Nine equally weighted
+     trails at this length is a scribble nobody can follow, and the instruction the caption
+     gives ("follow one electron") then has no answer to the reader's next question, which is
+     which one. The eight still carry the argument, because the spread of where they have got
+     to IS the diffusion; they just do not compete with the one being followed.
+
+     Stroke weights are set by looking at the figure at the size it is published, not at the
+     size it is convenient to debug at. The 1.2-wide, 0.3-opacity line this started with is a
+     clean path when you zoom into the scene and invisible at 1:1, which made the one thing
+     the figure exists to show the one thing a reader could not see. */
+  const NE = 9;
+  const elecs = [], TAU = Math.PI * 2;
+  for (let i = 0; i < NE; i++){
+    const lead = i === 0;
+    elecs.push({
+      x: 0, y: 0, trail: [], cap: lead ? 210 : 44,
+      dot: gElec.appendChild(mk('circle', lead
+        ? { r: 5.4, fill: C_ELEC, stroke: '#ffffff', 'stroke-width': 1.5 }
+        : { r: 4.2, fill: C_ELEC, 'fill-opacity': 0.75 })),
+      path: gTrail.appendChild(mk('path', lead
+        ? { stroke: C_ELEC, 'stroke-width': 2.2, 'stroke-opacity': 0.8 }
+        : { stroke: C_ELEC, 'stroke-width': 1.3, 'stroke-opacity': 0.22 }))
+    });
+  }
+  /* Placed as well as seeded. A circle with no cx/cy sits at the origin, so between the page
+     laying the figure out and the first animation frame arriving the whole population would
+     otherwise be stacked in the corner of the SVG; the loop does not start until the figure
+     is scrolled into view, which can be a while, and Pause on the first frame would hold it
+     there. */
+  function seed(){
+    elecs.forEach(e => {
+      e.x = L_ACC * (0.25 + 0.72 * Math.random());
+      e.y = C_ANN * Math.random();
+      e.trail.length = 0;
+      e.path.setAttribute('d', '');
+      e.dot.setAttribute('cx', (SX0 + e.x * SXm).toFixed(1));
+      e.dot.setAttribute('cy', (SY0 + e.y * SYm).toFixed(1));
+    });
+  }
+
+  /* Neutrals are drawn once and revealed by count, so raising the flow ADDS gas rather than
+     reshuffling all of it, and the reader can see the field thicken instead of blink. They
+     are static because they are: 284 m/s against an electron drift of 2.5e5 m/s means a
+     neutral moves about a pixel while an electron crosses the frame twice. */
+  const NEUT_MAX = 220, neut = [];
+  for (let i = 0; i < NEUT_MAX; i++){
+    const x = SX0 + Math.random() * (SX1 - SX0), y = SY0 + Math.random() * (SY1 - SY0);
+    neut.push({ x, y, node: gNeut.appendChild(mk('circle', { cx: x, cy: y, r: 2.3,
+      fill: C_NEUT, 'fill-opacity': 0.45, display: 'none' })) });
+  }
+  function showNeutrals(mdot){
+    const n = clamp(Math.round(7 * mdot), 4, NEUT_MAX);
+    neut.forEach((p, i) => p.node.setAttribute('display', i < n ? 'inline' : 'none'));
+    return n;
+  }
+
+  /* A ring buffer of marks. Past a few hundred events a second the individual marks stop
+     being distinguishable and only the walk carries information, so the buffer is allowed to
+     recycle its oldest rather than growing without bound; that recycling IS the subsampling
+     the caption owns up to. */
+  const NF = 84, flash = [];
+  for (let i = 0; i < NF; i++)
+    flash.push({ t: 1e9, kind: 0, node: gFlash.appendChild(mk('circle', { r: 0, fill: 'none',
+      'stroke-width': 2.2, display: 'none' })) });
+  let fi = 0;
+  function spark(x, y, kind){
+    const f = flash[fi]; fi = (fi + 1) % NF;
+    f.t = 0; f.kind = kind; f.x = x; f.y = y;
+  }
+  /* Two kinds of scattering event, drawn differently because they are different things and
+     the reader is asked to tell them apart: a white ring is a real collision and sits on the
+     neutral it hit, a violet one is an anomalous scatter off a plasma fluctuation with no
+     neutral involved at all. The violet is the palette's --c-photon, borrowed here for "not
+     a particle" rather than for light; nothing in this figure emits any. */
+  const FKIND = [
+    { color: C_HIT,  r0: 3.2, r1: 9.5,  life: 0.45 },   // a real collision, on the neutral it hit
+    { color: C_ANOM, r0: 2.0, r1: 5.5,  life: 0.30 },   // an anomalous scatter off a fluctuation
+    { color: C_ELEC, r0: 4.0, r1: 15.0, life: 0.70 }    // collected by the anode
+  ];
+
+  // Poisson counts, so the collisions arrive in the bunches they actually arrive in.
+  function poisson(lam){
+    if (lam <= 0) return 0;
+    if (lam > 30) return Math.round(lam);
+    const L = Math.exp(-lam);
+    let k = 0, p = 1;
+    do { k++; p *= Math.random(); } while (p > L);
+    return k - 1;
+  }
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  let P = null, anomOn = true, paused = false, nNeut = 0;
+
+  const expHTML = (v, d) => {
+    if (!isFinite(v) || v <= 0) return '0';
+    const e = Math.floor(Math.log10(v)), m = v / Math.pow(10, e);
+    return m.toFixed(d) + '&#215;10<sup>' + e + '</sup>';
+  };
+  const sig = v => v >= 100 ? v.toFixed(0) : v >= 10 ? v.toFixed(1) : v >= 1 ? v.toFixed(2)
+                 : v.toPrecision(2);
+
+  function draw(){
+    const mdot = +el.m.value, Bg = +el.b.value, Te = +el.te.value, cB = +el.cb.value;
+    P = phys(mdot, Bg, Te, anomOn, cB);
+
+    el.mVal.textContent  = mdot.toFixed(1) + ' mg/s';
+    el.bVal.textContent  = Bg + ' G';
+    el.teVal.textContent = Te.toFixed(1) + ' eV';
+    el.cbVal.textContent = String(cB);
+    el.cbGroup.classList.toggle('is-off', !anomOn);
+    el.cb.disabled = !anomOn;
+    el.anom.setAttribute('aria-pressed', anomOn ? 'true' : 'false');
+
+    nNeut = showNeutrals(mdot);
+
+    // Curves. Only the flow rate varies along the axis; everything else is held at the panel.
+    const at = m => phys(m, Bg, Te, anomOn, cB);
+    pathLeak.setAttribute('d',  curveOf(m => at(m).leak));
+    pathEta.setAttribute('d',   curveOf(m => at(m).eta));
+    pathClass.setAttribute('d', anomOn ? curveOf(m => at(m).leakClassical) : '');
+    pathClass.setAttribute('display', anomOn ? 'inline' : 'none');
+
+    const rEnd = at(M_MAX);
+    /* The top 36 px of the box is reserved for the ceiling annotation, which is anchored to
+       a place on the axis and cannot move out of the way; a curve label can, so it does. The
+       symbol line is hung off whatever y the name ended up at rather than clamped on its
+       own, or the two collide the moment both hit the same stop. */
+    const place = (node, val, dy) => {
+      const y = clamp(yRaw(val) + dy, PY0 + 36, PY1 - 26);
+      node.setAttribute('x', XR - 10);
+      node.setAttribute('y', y);
+      return y;
+    };
+    const under = (node, y) => {
+      node.setAttribute('x', XR - 10);
+      node.setAttribute('y', y + 17);
+    };
+    /* The two solid curves converge at the right-hand edge at some settings, so one label
+       hangs under its curve and the other over its own; both on the same side collide. Each
+       symbol line follows its own name. */
+    under(symLeak, place(lblLeak, rEnd.leak,  14));
+    under(symEta,  place(lblEta,  rEnd.eta,  -32));
+    lblClass.setAttribute('display', anomOn ? 'inline' : 'none');
+    if (anomOn) place(lblClass, rEnd.leakClassical, 15);
+
+    /* The ceiling is read off the COLLISIONAL curve, because the 0.2 target is a statement
+       about collisions and the anomalous term is not a knob a designer has. When the
+       collisional leak never reaches the target inside the axis, there is no ceiling to
+       mark and nothing is drawn rather than a marker pinned to the frame edge. */
+    const slope = at(1).leakClassical;
+    const mCeil = LEAK_TARGET / slope;
+    const on = mCeil < M_MAX;
+    [shade, ceilLn, ceilTx].forEach(n => n.setAttribute('display', on ? 'inline' : 'none'));
+    if (on){
+      const xc = xOfM(mCeil);
+      shade.setAttribute('x', xc); shade.setAttribute('y', PY0);
+      shade.setAttribute('width', XR - xc); shade.setAttribute('height', PY1 - PY0);
+      ceilLn.setAttribute('x1', xc); ceilLn.setAttribute('x2', xc);
+      ceilLn.setAttribute('y1', PY0); ceilLn.setAttribute('y2', PY1);
+      const right = xc > (XL + XR) / 2;
+      ceilTx.setAttribute('x', xc + (right ? -8 : 8));
+      ceilTx.setAttribute('y', PY0 + 18);
+      ceilTx.setAttribute('text-anchor', right ? 'end' : 'start');
+      ceilTx.textContent = 'collisional ceiling: ' + mCeil.toFixed(0) + ' mg/s, '
+                         + FAof(mCeil).toFixed(0) + ' N/m²';
+    }
+
+    const xc = xOfM(mdot);
+    cursor.setAttribute('x1', xc); cursor.setAttribute('x2', xc);
+    dotLeak.setAttribute('transform', `translate(${xc} ${yOfR(P.leak)})`);
+    dotLeak.setAttribute('display', P.leak <= 1.05 ? 'inline' : 'none');
+    dotEta.setAttribute('transform',  `translate(${xc} ${yOfR(P.eta)})`);
+
+    el.oNh.innerHTML    = expHTML(P.nH, 1);
+    el.oNu.innerHTML    = expHTML(P.nu, 1);
+    /* The classical form spelled out (n_H c-bar Q) sets a combining macron in Courier and
+       lands it on the wrong glyph, so both states name their terms instead. */
+    el.oNuSub.innerHTML = anomOn
+      ? 's&#8315;&#185;, &nu;<sub>eH</sub> + &nu;<sub>anom</sub>'
+      : 's&#8315;&#185;, &nu;<sub>eH</sub> alone';
+    el.oBeta.textContent  = P.beta >= 100 ? P.beta.toFixed(0) : P.beta.toFixed(1);
+    el.oDperp.textContent = sig(P.Dperp);
+    el.oLeak.textContent  = P.leak < 0.1 ? P.leak.toFixed(3) : P.leak.toFixed(2);
+    el.oEta.textContent   = P.eta.toFixed(3);
+
+    const ok = P.leak <= LEAK_TARGET;
+    el.status.className = 'dz-status ' + (ok ? 'ok' : 'warn');
+    el.status.textContent = ok
+      ? 'Leaking ' + (P.leak * 100).toFixed(0) + '% of the beam current, inside the target.'
+      : 'Leaking ' + (P.leak * 100).toFixed(0) + '% of the beam current, past the 0.2 target.';
+  }
+
+  // ── Animation ─────────────────────────────────────────────────────────────
+  let last = 0;
+  function step(ts){
+    raf = requestAnimationFrame(step);
+    const dt = last ? clamp((ts - last) / 1000, 0, 0.05) : 0;
+    last = ts;
+    if (paused || !P) { renderFlash(0); return; }
+
+    const dtr   = dt * SPEEDUP;                 // thruster seconds elapsed this frame
+    const dyM   = P.vTheta * dtr;               // azimuthal advance, metres
+    const lamC  = P.nu_en * dtr, lamA = P.nu_an * dtr;
+
+    for (const e of elecs){
+      e.y = (e.y + dyM) % C_ANN;
+
+      /* One event, one displacement: about a Larmor radius in a random direction, plus the
+         systematic piece the electric field adds. The random part is the diffusion the
+         D_perp cell reports and the systematic part is the drift the leak cell reports; they
+         are applied together because in the channel they are one motion. */
+      let drew = 0;
+      const hop = n => {
+        for (let i = 0; i < n; i++){
+          const a = Math.random() * TAU;
+          e.x += P.rL * Math.cos(a) - P.rD;
+          e.y += P.rL * Math.sin(a);
+        }
+      };
+      const nC = poisson(lamC), nA = poisson(lamA);
+      hop(nC); hop(nA);
+      if (e.y < 0) e.y += C_ANN; else if (e.y >= C_ANN) e.y %= C_ANN;
+
+      let sx = SX0 + e.x * SXm, sy = SY0 + e.y * SYm;
+      // Marks land on the neutral that was hit whenever one is close enough to have been it
+      for (let i = 0; i < nC && drew < 3; i++, drew++){
+        let bx = sx, by = sy, best = 26 * 26;
+        for (let k = 0; k < nNeut; k++){
+          const d = (neut[k].x - sx) ** 2 + (neut[k].y - sy) ** 2;
+          if (d < best){ best = d; bx = neut[k].x; by = neut[k].y; }
+        }
+        spark(bx, by, 0);
+      }
+      for (let i = 0; i < nA && drew < 4; i++, drew++) spark(sx, sy, 1);
+
+      if (e.x <= 0){
+        spark(SX0, sy, 2);
+        e.x = L_ACC * 0.985;
+        e.y = C_ANN * Math.random();
+        e.trail.length = 0;
+        sx = SX0 + e.x * SXm; sy = SY0 + e.y * SYm;
+      } else if (e.x > L_ACC){
+        // Past the exit plane is the plume the cathode feeds, which hands the electron back
+        e.x = L_ACC;
+        sx = SX1;
+      }
+
+      e.dot.setAttribute('cx', sx.toFixed(1));
+      e.dot.setAttribute('cy', sy.toFixed(1));
+      e.trail.push(sx, sy);
+      if (e.trail.length > e.cap * 2) e.trail.splice(0, e.trail.length - e.cap * 2);
+
+      // A trail that spans the cut would draw a line the electron never took, so it breaks there
+      let d = '', prev = null;
+      for (let i = 0; i < e.trail.length; i += 2){
+        const px = e.trail[i], py = e.trail[i + 1];
+        d += (prev === null || Math.abs(py - prev) > (SY1 - SY0) / 2 ? 'M' : 'L')
+           + px.toFixed(1) + ' ' + py.toFixed(1) + ' ';
+        prev = py;
+      }
+      e.path.setAttribute('d', d);
+    }
+    renderFlash(dt);
+  }
+
+  function renderFlash(dt){
+    for (const f of flash){
+      const K = FKIND[f.kind];
+      f.t += dt;
+      if (f.t >= K.life){ if (f.node.getAttribute('display') !== 'none') f.node.setAttribute('display', 'none'); continue; }
+      const u = f.t / K.life;
+      f.node.setAttribute('display', 'inline');
+      f.node.setAttribute('cx', f.x.toFixed(1));
+      f.node.setAttribute('cy', f.y.toFixed(1));
+      f.node.setAttribute('r', (K.r0 + (K.r1 - K.r0) * u).toFixed(1));
+      f.node.setAttribute('stroke', K.color);
+      f.node.setAttribute('stroke-opacity', (0.85 * (1 - u)).toFixed(3));
+    }
+  }
+
+  // ── Wiring ────────────────────────────────────────────────────────────────
+  buildScene();
+  buildPlot();
+  seed();
+
+  [el.m, el.b, el.te, el.cb].forEach(s => s.addEventListener('input', draw));
+  el.anom.addEventListener('click', () => { anomOn = !anomOn; draw(); });
+  el.pause.addEventListener('click', () => {
+    paused = !paused;
+    el.pause.textContent = paused ? 'Run' : 'Pause';
+  });
+  el.reset.addEventListener('click', () => {
+    el.m.value = 5; el.b.value = 200; el.te.value = 10; el.cb.value = 100;
+    anomOn = true;
+    seed();
+    draw();
+  });
+
+  /* Dragging the plot moves the operating point, which is the same knob as the flow slider
+     and is here because the plot is where the reader is looking when they want it. */
+  const hit = svg.appendChild(mk('rect', { x: XL, y: PY0, width: XR - XL, height: PY1 - PY0,
+    fill: 'transparent', style: 'cursor:ew-resize' }));
+  let dragging = false;
+  const setFromEvent = e => {
+    const m = svg.getScreenCTM();
+    if (!m) return;
+    const q = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    const f = clamp((q.x - XL) / (XR - XL), 0, 1);
+    const v = clamp(f * M_MAX, +el.m.min, +el.m.max);
+    el.m.value = (Math.round(v / +el.m.step) * +el.m.step).toFixed(1);
+    draw();
+  };
+  hit.addEventListener('pointerdown', e => { dragging = true; hit.setPointerCapture(e.pointerId); setFromEvent(e); });
+  hit.addEventListener('pointermove', e => { if (dragging) setFromEvent(e); });
+  hit.addEventListener('pointerup',   e => {
+    if (!dragging) return;
+    dragging = false;
+    hit.releasePointerCapture(e.pointerId);
+  });
+  hit.addEventListener('pointercancel', () => { dragging = false; });
+
+  draw();
+
+  // Off-screen the loop is pure waste, and this page carries a second animated figure above it.
+  let raf = null;
+  new IntersectionObserver(es => {
+    for (const e of es){
+      if (e.isIntersecting && raf === null){ last = 0; raf = requestAnimationFrame(step); }
+      else if (!e.isIntersecting && raf !== null){ cancelAnimationFrame(raf); raf = null; }
+    }
+  }, { threshold: 0 }).observe(svg.parentNode);
+})();
+</script>
+
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
+<script>
+"use strict";
+
+/* ── Single-answer multiple choice ─────────────────────────────── */
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      opts.forEach(o => { o.disabled = true; });
+
+      if (opt.dataset.correct === 'true') {
+        opt.classList.add('correct');
+        fb.textContent = 'Correct!';
+        fb.style.color = '#51cf66';
+      } else {
+        opt.classList.add('wrong');
+        opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
+        fb.style.color = '#ff8e8e';
+      }
+    });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct on every count.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
+  });
+});
+</script>
+</body>
+</html>
