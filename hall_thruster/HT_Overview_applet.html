@@ -292,6 +292,14 @@ details.clarify-detail > summary:focus-visible {
   margin-top: 10px;
   margin-bottom: 0;
 }
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
 .eq-caption {
   display: block;
   font-size: 18.5px;
@@ -302,6 +310,53 @@ details.clarify-detail > summary:focus-visible {
   border-top: 1px solid var(--border);
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+.deriv-inner p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+}
 
 /* ── Exemplary engines ──────────────────────────────────
    Outbound links. The engine name is NOT given a physics
@@ -339,15 +394,18 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 5px;
 }
 .ex-specs .sep { color: #3a3a3a; margin: 0 7px; }
-/* Hardware photo. The two NASA shots are landscape and portrait respectively,
-   so bound them by HEIGHT; matching widths would make the portrait tower over
-   the landscape one. */
+/* Hardware photo. Both NASA shots are 4:3 landscape, but bound them by HEIGHT
+   anyway so a future portrait shot cannot tower over its neighbor. */
 .ex-fig {
   margin: 10px 0 4px;
   /* Caption beside the photo, not under it: the page is up to 1500px wide and a
      height-bounded photo leaves most of that empty. Stacks below 900px. */
   display: flex;
-  align-items: flex-end;
+  /* Top-aligned, NOT flex-end. Bottom-aligning a 4-line caption against a 300px
+     photo parked it in the figure's bottom-right corner with an empty band above
+     it, reading as a stray block rather than as this photo's caption. The first
+     caption line now starts level with the top edge of the image. */
+  align-items: flex-start;
   gap: 18px;
 }
 .ex-fig img {
@@ -366,7 +424,9 @@ details.clarify-detail > summary:focus-visible {
   line-height: 1.5;
   color: var(--text-muted);
   max-width: 460px;
-  padding-bottom: 2px;
+  /* Optical, not geometric: the line box sits above the cap height, so a bare
+     0 leaves the first line looking high against the image's hard top edge. */
+  padding-top: 3px;
 }
 @media (max-width: 900px) {
   .ex-fig { display: block; }
@@ -549,6 +609,26 @@ details.clarify-detail > summary:focus-visible {
   text-align: center;
   transition: color 0.15s;
 }
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
 .quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
@@ -801,15 +881,59 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <p class="page-intro">
   Use this 3D model to familiarize yourself with the thruster. The cross section shows the inner components, and
   you can toggle <span class="key">component labels</span>, the
-  <span class="hl-E">electromagnetic fields</span>, and <span class="hl-q">particles</span>. The model was built
+  <span class="hl-E">electromagnetic fields</span>, the <span class="key">magnetic circuit</span>, and
+  <span class="hl-q">particles</span>. The model was built
   from a <a class="applet-link" href="#ref-model">published section drawing</a> and is proportioned after it
   rather than after any flown thruster.
 </p>
 
-<!-- ════════════════════ 3D VIEWER ════════════════════ -->
-<div class="theory-block applet-host">
+<p class="page-intro">
+  That third switch is worth a moment, because it answers where the radial
+  <span class="hl-B">field</span> comes from. Turn it on and the section draws a closed loop through the iron:
+  two windings drive <span class="hl-B">magnetic flux</span> up the center stem, out through the inner pole,
+  <em>across the discharge channel</em>, into the outer pole, and back along the return legs to the back plate.
+  It is a <span class="key">circuit</span> in the literal sense. The coils' ampere-turns play the part of the
+  supply, the <span class="hl-B">flux</span> plays the part of the current, and reluctance plays the part of the
+  resistance. Iron passes flux thousands of times more easily than air does, so nearly the whole magnetic drop
+  falls across the one stretch of the loop that is <em>not</em> iron: the channel. That is why the
+  <span class="hl-B">field</span> there is radial, why it is strongest between the pole faces at the exit plane,
+  and why moving those faces is how a designer moves the accelerating region.
+</p>
+
+<p class="page-intro">
+  Each <span class="key">solenoid core</span> carries <span class="key">N</span> and <span class="key">S</span>
+  at its two ends, the way a bar magnet's are marked, and that is what says the coils are the source rather than
+  copper that happens to be there. The center stem is a magnet pointing north downstream; each return leg is a
+  magnet pointing north upstream; and those two arrangements are what drive <span class="hl-B">flux</span> the
+  same way round the loop. It is also why the two windings' current markers come out opposite. They have to, to
+  point their cores that way.
+</p>
+
+<p class="page-intro">
+  Notice too that the crossing is not the single straight spoke the loop alone would suggest. Lighter curves run
+  either side of the exit plane, and they are the same <span class="hl-B">field</span> crossing the gap
+  everywhere else along it. Inside the channel they <em>sag toward the anode</em> at mid-channel, and that sag is
+  the <span class="key">plasma lens</span>. It is worth more than it looks: a <span class="hl-B">field line</span>
+  is very nearly an <span class="key">equipotential</span>, so the shape of these lines is the shape of the
+  accelerating <span class="hl-phi">potential</span>, and a line that sags upstream in the middle tilts
+  <span class="hl-E">E</span> outward over the channel's inner half and inward over its outer half, steering
+  <span class="hl-ion">ions</span> away from <em>both</em> walls. Since wall erosion is what limits a Hall
+  thruster's life, that curvature is not a detail of the drawing. It is one of the things the magnetic design is
+  <em>for</em>. Past the exit plane the curves go the other way, arching out into the plume: that is the
+  <span class="key">fringing field</span>, and it is why <span class="hl-B">B</span> does not stop dead at the
+  exit and why the accelerating region has any axial thickness at all.
+</p>
+
+<!-- ════════════════════ 3D VIEWER ════════════════════
+     Carries an id because the Potential page links here for the circuit diagram: this is the
+     only viewer in the series with the whole switch panel, so the Circuit diagram overlay is
+     reachable from it and nowhere else. -->
+<div class="theory-block applet-host" id="viewer">
   <div class="th-hdr">3D Viewer &amp; Cross Section</div>
-  <iframe class="applet-frame" src="hall_thruster.html?mode=overview&amp;v=1"
+  <!-- Bump `v` whenever hall_thruster.html changes in a way the reader must see. The viewer is
+       a 2.3 MB document the browser caches hard, and without a new query string an edited
+       overlay simply does not arrive - which reads as the edit not having worked. -->
+  <iframe class="applet-frame" src="hall_thruster.html?mode=overview&amp;v=4"
           title="Interactive 3D Hall thruster: cross-section, fields, and particles"
           loading="lazy"></iframe>
 </div>
@@ -870,13 +994,27 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <!-- ════════════════════ GOVERNING EQUATIONS ════════════════════
      Statements only. Thrust and specific impulse are derived on their own applet
      pages; the gyro-motion and drift results come from the Larmor and E-cross-B
-     applets. Nothing is re-derived here. -->
+     applets. Nothing is re-derived here.
+
+     NOTATION: every symbol here is spelled the way the applet that DERIVES it
+     spells it, so a reader arriving from that page recognizes the result rather
+     than having to re-map it:
+       F_N = ṁ c                     specific_impulse
+       ω_c, r_L  (not ω_ce, r_ce)    larmor. The color tokens at the top of this
+                                     file name these two symbols explicitly, so
+                                     a subscript swap here would also have cost
+                                     them their blue.
+       v_E×B     (not v_d)           ECrossB, which was RE-SPELLED to match this
+                                     page rather than the other way round.
+       μ, R = B_max/B_0, θ_max       magnetic_mirror
+     Electron mass and charge are written m_e and e because this panel is
+     specialized to electrons; the colors stay the generic mass/charge tokens. -->
 <div class="theory-block">
   <div class="th-hdr">Governing Equations<sup class="cite"><a href="#ref-1">1</a></sup></div>
 
   <div class="eq-panel">
     <span class="eq-step-label">Thrust</span>
-    $$ \boxed{\;\textcolor{#FF4400}{F} = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\;} $$
+    $$ \boxed{\;\textcolor{#FF4400}{F_N} = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\;} $$
 
     <div class="eq-divider"></div>
 
@@ -885,10 +1023,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
     <div class="eq-divider"></div>
 
-    <span class="eq-step-label">Electron Gyrofrequency and Gyroradius</span>
-    $$ \boxed{\;\omega_{ce} = \frac{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}{m_e}\;}
+    <span class="eq-step-label">Electron Cyclotron Frequency and Larmor Radius</span>
+    $$ \boxed{\;\textcolor{#3DBFFF}{\omega_c}
+       = \frac{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m_e}}\;}
        \qquad\qquad
-       \boxed{\;r_{ce} = \frac{m_e \textcolor{#3DBFFF}{v_\perp}}{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}\;} $$
+       \boxed{\;\textcolor{#3DBFFF}{r_L}
+       = \frac{\textcolor{#FF4400}{m_e}\,\textcolor{#3DBFFF}{v_\perp}}{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}\;} $$
 
     <div class="eq-divider"></div>
 
@@ -901,14 +1041,17 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <div class="eq-divider"></div>
 
     <span class="eq-step-label">Hall Parameter, How Magnetized the Electrons Are</span>
-    $$ \boxed{\;\Omega_e = \frac{\omega_{ce}}{\nu_e}\;} $$
+    $$ \boxed{\;\Omega_e = \frac{\textcolor{#3DBFFF}{\omega_c}}{\nu_e}\;} $$
 
     <div class="eq-divider"></div>
 
     <span class="eq-step-label">Magnetic Moment and the Loss Cone</span>
-    $$ \boxed{\;\mu = \frac{m_e \textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}} = \text{const}\;}
+    $$ \boxed{\;\textcolor{#C060FF}{\mu}
+       = \frac{\textcolor{#FF4400}{m_e}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
+       = \text{const}\;}
        \qquad\qquad
-       \boxed{\;\sin^{2}\theta_{lc} = \frac{\textcolor{#00DDB5}{B_{min}}}{\textcolor{#00DDB5}{B_{max}}}\;} $$
+       \boxed{\;R = \frac{\textcolor{#00DDB5}{B_{max}}}{\textcolor{#00DDB5}{B_0}}
+       \qquad \theta_{max} = \arcsin\sqrt{\frac{1}{R}}\;} $$
 
     <div class="eq-divider"></div>
 
@@ -922,9 +1065,9 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   </div>
 </div>
 
-<!-- ════════════════════ STAGE: THE BUZZSAW ════════════════════ -->
+<!-- ════════════════════ STAGE: THE HALL CURRENT ════════════════════ -->
 <div class="theory-block">
-  <div class="th-hdr">The Electron Buzzsaw</div>
+  <div class="th-hdr">The Hall Current</div>
   <p class="th-body">
     Electrons entering the channel from the cathode meet a radial <span class="hl-B">magnetic field</span> strong
     enough to grip them and far too weak to grip a xenon <span class="hl-ion">ion</span>. Trapped on the field,
@@ -932,7 +1075,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <span class="hl-electron">electrons</span> is the <span class="key">Hall current</span> the thruster is named
     for.<sup class="cite"><a href="#ref-2">2</a></sup> Any
     <span class="hl-neutral">neutral atom</span> heading down the channel has to cross it.
-    <a class="applet-link" href="HT_Buzzsaw_applet.html">Continue to the buzzsaw &rarr;</a>
+    <a class="applet-link" href="HT_Buzzsaw_applet.html">Continue to the Hall current &rarr;</a>
   </p>
 </div>
 
@@ -1049,6 +1192,17 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <li id="ref-3">V. Kim et al., &ldquo;History of the Hall Thrusters Development in USSR,&rdquo; IEPC-2007-142,
       30th International Electric Propulsion Conference, Florence (2007). The Soviet line that produced the
       stationary plasma thruster.</li>
+    <li id="ref-4">M. Mart&iacute;nez-S&aacute;nchez &amp; P. Lozano, <em>Space Propulsion</em> (16.522) lecture
+      notes, MIT OpenCourseWare. The three-factor form of the Hall thruster efficiency used on the
+      <a href="HT_Potential_applet.html#efficiency-fig">Potential Distribution</a> page (utilization, anode
+      back-streaming, and energy), and the integral over the ion birth-potential distribution that the last of
+      them is.
+      <!-- TODO: pin this to the specific lecture and year, and give the OCW permalink. The
+           decomposition also appears in ref-1 ch. 7 under a different grouping (current,
+           voltage, mass and divergence utilization); saying how the two line up would be worth
+           a sentence, since a reader who owns Goebel & Katz will otherwise think one of the two
+           is wrong. -->
+    </li>
   </ol>
 </details>
 

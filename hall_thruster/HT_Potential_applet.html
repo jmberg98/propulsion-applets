@@ -292,6 +292,14 @@ details.clarify-detail > summary:focus-visible {
   margin-top: 10px;
   margin-bottom: 0;
 }
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
 .eq-caption {
   display: block;
   font-size: 18.5px;
@@ -302,6 +310,53 @@ details.clarify-detail > summary:focus-visible {
   border-top: 1px solid var(--border);
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+.deriv-inner p {
+  font-size: 18px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 6px 0;
+}
 
 /* ── Exemplary engines ──────────────────────────────────
    Outbound links. The engine name is NOT given a physics
@@ -549,6 +604,26 @@ details.clarify-detail > summary:focus-visible {
   text-align: center;
   transition: color 0.15s;
 }
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
 .quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
@@ -767,22 +842,28 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   gap: 5px;
 }
 .sl-label {
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-muted);
   letter-spacing: .7px;
   text-transform: uppercase;
 }
-.sl-row { display: flex; align-items: center; gap: 9px; }
+.sl-row { display: flex; align-items: center; gap: 8px; }
 .sl-row input[type=range] {
   flex: 1 1 auto;
   min-width: 0;
   accent-color: var(--c-accent);
 }
 .sl-val {
-  flex: 0 0 92px;
+  /* Wide enough that the longest readout THAT CARRIES ITS UNIT ("850 A/m²",
+     8 Courier characters at 17.5px) stays on one line. The corpus sets every
+     number in Courier, and Courier is wide; a box sized to the digits alone
+     wraps the unit onto a second line and the slider row grows a step taller
+     than its neighbours. */
+  flex: 0 0 106px;
+  white-space: nowrap;
   padding: 3px 4px;
   font-family: 'Courier New', monospace;
-  font-size: 16.5px;
+  font-size: 17.5px;
   text-align: center;
   background: var(--bg-panel-4);
   color: var(--c-accent);
@@ -815,6 +896,203 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 }
 .fig-toggle:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
 
+/* ── Figure shell: figure left, controls right, results under ──
+   The house arrangement for a demo with its own knobs (design-system §4.5, and
+   specific_impulse_applet.html's demo): the figure takes the room it can use, the
+   controls stand beside it in a fixed column, and the numbers those controls move
+   run underneath in an output bar spanning both. Every figure in this folder that
+   carries controls is built this way, whether what fills the frame is an inline SVG
+   or a WebGL canvas, so a reader who has learned where the knobs live on one page
+   does not have to learn it again on the next. */
+.fig-app {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid var(--border);
+}
+/* Flexes to whatever the panel leaves. min-width:0 lets it shrink below the figure's
+   intrinsic width, which a flex item otherwise refuses to do.
+   Deliberately left on the default align-self:stretch. The figure sets the row's height
+   whenever it is the taller of the two, and the panel stretches to match; when the
+   CONTROLS are taller the frame stretches instead. That leaves a band under a
+   fixed-aspect SVG, and the band is invisible: --bg-diagram and --bg-panel-1 are the
+   same #0e0e0e and the SVGs paint that same ground themselves. Pinning the frame to
+   flex-start instead looks correct until the panel outgrows a CANVAS figure, whose
+   ground is a different tone, and there the band does show. */
+.fig-app > .fig-frame {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border-top: none;
+}
+
+/* 240px, nearly the viewers' 210px panel of switches rather than the 360px the standalone
+   applets give a slider column, because the figure is what the block is for and every
+   pixel not spent here goes to it. What sets the number is the longest slider row: a name
+   and its readout want to stay on one line, and at 15px that is about the 200px of content
+   this width leaves. The panel type drops a step to buy that (see .fig-panel .sl-label),
+   still above the 13px a standalone applet's panel uses. A name too long for the line wraps
+   under its own readout, which is fine; a verdict runs to several lines and is also fine,
+   it is a sentence and not a label.
+   Content is vertically centered against the figure, so a short stack sits level with the
+   figure rather than hanging off the top edge. */
+.fig-panel {
+  flex: 0 0 240px;
+  width: 240px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* 20px between groups, as in both viewers' #panel. Padding is symmetric rather than
+     the panels' 20/20/40: that deep bottom pad exists to keep the last line of a
+     full-height SCROLLING column off the frame edge, and this column is centered in a
+     figure instead, where it would just push everything visibly high. */
+  gap: 20px;
+  padding: 20px 20px;
+  background: var(--bg-panel-1);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+}
+/* The controls keep their markup; in the panel they stack instead of running across. */
+.fig-panel .fig-controls {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
+  padding: 0;
+  border-top: none;
+  background: none;
+}
+.fig-panel .sl-group { flex: 0 0 auto; min-width: 0; gap: 0; }
+
+/* ── Panel vocabulary ────────────────────────────────────
+   A control column is not a row of controls under a figure, and the corpus styles the
+   two differently. Everything below takes the side-panel treatment its equivalent has
+   in sheath / debye / particle_collisions (the other 360px panels) and in the two
+   viewers, at the type sizes a LESSON page uses for a control column
+   (specific_impulse_applet.html's #rp). Sizes scale with the page; structure and color
+   do not. */
+
+/* Group heading, the viewers' .sect-hdr. A panel with more than one section says so
+   with these; a bare label is what a control row under a figure uses. A column of
+   sliders alone needs no heading, and does not get one. */
+.fig-panel .sect-hdr {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+/* Slider row: [name .......... value] over [track]. sheath's .ix-slider, structure and
+   colors unchanged. The readout is a flex sibling of the name rather than a boxed span
+   beside the track, and it is bare blue bold rather than sitting in a bordered well: a
+   well says "you can type in me", and this is a readout. */
+.fig-panel .sl-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 15px;
+  color: var(--text-secondary);
+  letter-spacing: 0;
+  text-transform: none;
+  margin-bottom: 2px;
+}
+.fig-panel .sl-val {
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  text-align: right;
+  color: var(--c-ve);
+}
+.fig-panel .sl-row { display: block; }
+/* Blue, like the accent on every other slider in this codebase. Grey is what the
+   lesson pages use for a control sitting on the page itself. */
+.fig-panel .sl-row input[type=range] {
+  display: block;
+  width: 100%;
+  accent-color: var(--c-ve);
+  cursor: pointer;
+  /* Height and padding give the thumb a forgiving grab target; sheath's note applies
+     here too, a bare track is ~4px tall and a drag starting a few pixels off does
+     nothing. */
+  height: 22px;
+  margin: 2px 0 0;
+  padding: 0;
+}
+
+/* Pills, stacked and full width. A one-of-N chooser stays a row of pills: the switch
+   below is for a layer that is independently on or off, and choosing among five loops
+   is not that. Stacked because five pills wrapping inside a 200px column read as a
+   ragged paragraph of buttons rather than as one control. */
+.fig-panel .fig-toggles { flex-direction: column; gap: 7px; }
+.fig-panel .fig-toggle { width: 100%; text-align: center; }
+
+/* Layer switches, the viewers' .vtog. Keyed off aria-pressed, the toggle-button pattern
+   these figures already maintain, rather than the viewers' .on class, so the switch is
+   driven by the state the page keeps and needs no second source of truth. A switch shows
+   its own state, so its label names the layer and never the action: "Sheath", not
+   "Sheath on", which reads as a lie the moment the switch is off. */
+.fig-panel .vtoglist { display: flex; flex-direction: column; }
+.fig-panel .vtog {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%;
+  font-family: 'Barlow', sans-serif; font-size: 15px; color: var(--text-secondary);
+  background: none; border: none; padding: 7px 0; cursor: pointer;
+  user-select: none; text-align: left;
+  transition: color 0.15s ease;
+}
+.fig-panel .vtog:hover { color: var(--text-heading); }
+.fig-panel .vtog .vsw {
+  flex: 0 0 auto; width: 34px; height: 19px; border-radius: 19px;
+  background: var(--bg-panel-3); border: 1px solid var(--border); position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .vtog .vsw::after {
+  content: ''; position: absolute; top: 2px; left: 2px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.fig-panel .vtog[aria-pressed="true"] { color: var(--text-heading); }
+.fig-panel .vtog[aria-pressed="true"] .vsw { background: var(--c-ve); border-color: var(--c-ve); }
+.fig-panel .vtog[aria-pressed="true"] .vsw::after { transform: translateX(15px); background: #fff; }
+.fig-panel .vtog:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* Reset and friends, the viewers' .btn / .btn-row. */
+.fig-panel .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.fig-panel .btn {
+  flex: 1 1 0;
+  font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 600;
+  padding: 9px 8px;
+  background: var(--bg-panel-2); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 5px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.fig-panel .btn:hover {
+  background: var(--bg-panel-3); color: var(--text-heading); border-color: var(--c-accent);
+}
+.fig-panel .btn:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+
+/* Below 980px the panel drops under the figure rather than squeezing it (§4.5). */
+@media (max-width: 980px) {
+  .fig-app { flex-wrap: wrap; }
+  .fig-app > .fig-frame { flex: 1 1 100%; }
+  .fig-panel {
+    flex: 1 1 100%; width: 100%;
+    border-left: none; border-top: 1px solid var(--border);
+  }
+}
+
 .fig-out {
   display: flex;
   flex-wrap: wrap;
@@ -828,20 +1106,32 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   border-right: 1px solid var(--border);
 }
 .fig-out .out-cell:last-child { border-right: none; }
+/* Output cells carry the house .out-label / .out-val / .out-sub trio, at the
+   sizes a LESSON page uses (the 9/19/11.5 locked spec is the 210px viewer
+   panel's; a full-width page scales it the way specific_impulse_applet.html
+   already does). The one thing that does NOT scale is the typeface: every
+   number in this corpus is set in Courier New, so these are too. */
 .out-label {
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--text-muted);
   letter-spacing: .7px;
   text-transform: uppercase;
-  margin-bottom: 2px;
+  margin-bottom: 3px;
 }
 .out-val {
-  font-size: 23px;
+  font-size: 26px;
   font-weight: 600;
+  font-family: 'Courier New', monospace;
+  /* Cells that name a quantity set their own color inline (§4.6); this is the
+     fallback for the ones that are a bare ratio and belong to no quantity. */
   color: var(--text-heading);
-  font-variant-numeric: tabular-nums;
 }
-.out-sub { font-size: 14.5px; color: var(--text-muted); }
+.out-sub {
+  font-size: 18.5px;
+  font-family: 'Courier New', monospace;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
 </style>
 </head>
 <body>
@@ -911,6 +1201,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <div class="theory-block applet-host">
   <div class="th-hdr">Move the Field, Move the Fall</div>
+  <div class="fig-app">
   <div class="fig-frame">
     <svg id="mf-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" role="img"
          font-family="Barlow, sans-serif"
@@ -1012,39 +1303,38 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     </svg>
   </div>
 
+  <aside class="fig-panel">
   <div class="fig-controls">
     <div class="sl-group">
-      <div class="sl-label">Field peak position</div>
+      <div class="sl-label">Field peak position<span class="sl-val" id="mf-zpk-val">18.0 mm</span></div>
       <div class="sl-row">
         <input type="range" id="mf-zpk" min="2" max="28" step="0.5" value="18"
                aria-label="Position of the magnetic field peak, in millimeters from the anode">
-        <span class="sl-val" id="mf-zpk-val">18.0 mm</span>
       </div>
     </div>
     <div class="sl-group">
-      <div class="sl-label">Peak field</div>
+      <div class="sl-label">Peak field<span class="sl-val" id="mf-bmax-val">150 G</span></div>
       <div class="sl-row">
         <input type="range" id="mf-bmax" min="50" max="250" step="5" value="150"
                aria-label="Peak radial magnetic field in gauss">
-        <span class="sl-val" id="mf-bmax-val">150 G</span>
       </div>
     </div>
     <div class="sl-group">
-      <div class="sl-label">Peak width</div>
+      <div class="sl-label">Peak width<span class="sl-val" id="mf-sig-val">5.00 mm</span></div>
       <div class="sl-row">
         <input type="range" id="mf-sig" min="2" max="9" step="0.25" value="5"
                aria-label="Width of the magnetic field peak in millimeters">
-        <span class="sl-val" id="mf-sig-val">5.00 mm</span>
       </div>
     </div>
     <div class="sl-group">
-      <div class="sl-label">Discharge voltage</div>
+      <div class="sl-label">Discharge voltage<span class="sl-val" id="mf-vd-val">300 V</span></div>
       <div class="sl-row">
         <input type="range" id="mf-vd" min="150" max="600" step="10" value="300"
                aria-label="Discharge voltage in volts">
-        <span class="sl-val" id="mf-vd-val">300 V</span>
       </div>
     </div>
+  </div>
+  </aside>
   </div>
 
   <div class="fig-out">
@@ -1089,12 +1379,38 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   </p>
 </div>
 
-<!-- ════════════════════ 3D VIEWER ════════════════════ -->
+<!-- ════════════════════ 3D VIEWER ════════════════════
+     The viewer's own Potential stage, which is what this slot held a placeholder for. It is the
+     figure above, moved onto the hardware: the same Gaussian B_r, the same E_z proportional to
+     B_r squared, the same phi integrated back from downstream, the same three readouts by the
+     same definitions - but authored in model millimeters and projected through the section
+     camera, so every feature lands on the part that causes it. One model, two figures, which is
+     the only way a page and its viewer can be kept from disagreeing about where the thruster
+     accelerates. -->
 <div class="theory-block applet-host">
   <div class="th-hdr">The Axial Potential on the Hardware</div>
-  <iframe class="applet-frame" src="hall_thruster.html?mode=potential&amp;v=1"
-          title="Axial potential distribution registered against the thruster cross-section"
+  <iframe class="applet-frame" src="hall_thruster.html?mode=potential&amp;v=4"
+          title="Axial potential and radial magnetic field registered against the thruster cross-section"
           loading="lazy"></iframe>
+  <p class="fig-caption">
+    The plot is drawn IN the thruster, on the thruster's own axis: the two dashed planes are the real
+    <span class="key">anode</span> face and the real <span class="key">exit plane</span>, and the shaded band is
+    the middle 80% of the fall. Notice where it lands. Roughly two thirds of the
+    <span class="hl-phi">potential</span> drop is inside the channel and the last third is out in the
+    <span class="hl-ion">beam</span>, in open plasma with no hardware anywhere near it. Switch to
+    <span class="key">Electron potential</span> and the same curve is climbed the other way, from the
+    <span class="key">cathode</span> up to the <span class="key">anode</span>, and it only gets back to where it
+    started by going round the outside through the supply, which is the
+    <a class="applet-link" href="HT_Overview_applet.html#viewer">circuit diagram</a> drawn as a potential
+    instead of as wires. Switch to
+    <span class="key">Radial field</span> and the reason the band sits where it does is underneath it: the peak of
+    <span class="hl-B">B<sub>r</sub></span>. Drag that peak and the band goes with it.
+    <!-- TODO (skeleton): the profile is the classical closure, so it is qualitatively right and
+         quantitatively soft; the panel's own footer note says so. Fit it to a published axial
+         potential measurement (Haas and Gallimore's emissive-probe maps of the SPT-100) and cite
+         it, and take the 150 G peak and the 15 V coupling voltage from the same source rather
+         than leaving them as round numbers of the right order. -->
+  </p>
 </div>
 
 <!-- ════════════════════ THE CIRCUIT ════════════════════ -->
@@ -1121,154 +1437,119 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   </p>
 </div>
 
-<div class="theory-block applet-host">
-  <div class="th-hdr">Circuit Diagram</div>
-  <div class="fig-frame">
-    <svg id="ck-svg" viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" role="img"
-         font-family="Barlow, sans-serif"
-         aria-label="Schematic of the thruster's four power supplies. The discharge supply runs between the
-                     anode at the base of the channel and the cathode, and its circuit closes through the
-                     plasma. The keeper supply and the cathode heater both reference the cathode. The magnet
-                     coil supply drives the inner and outer coils in series and touches neither the anode nor
-                     the cathode, so no discharge current passes through it.">
-
-      <rect width="900" height="520" fill="#0e0e0e"/>
-
-      <!-- ══ Hardware, drawn schematically. The registered cross-section is the
-           3-D viewer's job; here the geometry only has to place the nodes. ══ -->
-      <rect x="120" y="150" width="230" height="90" fill="#0b0b0b" stroke="#3a3a3a" stroke-width="1.4"/>
-      <rect x="122" y="151" width="11" height="88" fill="#4a4a4a"/>
-      <text x="140" y="143" fill="#9a9a9a" font-size="14.5">anode</text>
-      <text x="245" y="200" fill="#6a6a6a" font-size="14" text-anchor="middle">discharge channel</text>
-      <line x1="350" y1="140" x2="350" y2="250" stroke="#5a5a5a" stroke-width="1.2" stroke-dasharray="6 5"/>
-      <text x="356" y="264" fill="#7a7a7a" font-size="13.5">exit plane</text>
-
-      <rect x="160" y="100" width="100" height="26" fill="#161616" stroke="#4a4a4a" stroke-width="1.3"/>
-      <text x="210" y="93" fill="#00DDB5" font-size="14" text-anchor="middle">outer coil</text>
-      <rect x="160" y="264" width="100" height="26" fill="#161616" stroke="#4a4a4a" stroke-width="1.3"/>
-      <text x="210" y="306" fill="#00DDB5" font-size="14" text-anchor="middle">inner coil</text>
-
-      <rect x="560" y="60" width="120" height="90" rx="4" fill="none" stroke="#4a4a4a" stroke-width="1.3"
-            stroke-dasharray="5 4"/>
-      <text x="620" y="52" fill="#9a9a9a" font-size="14.5" text-anchor="middle">cathode assembly</text>
-      <rect x="585" y="82" width="70" height="38" fill="#1a1a1a" stroke="#5a5a5a" stroke-width="1.3"/>
-      <text x="620" y="106" fill="#9a9a9a" font-size="14" text-anchor="middle">emitter</text>
-      <text x="694" y="76" fill="#7a7a7a" font-size="13">keeper</text>
-
-      <!-- ══ Cathode common. Everything that references zero volts hangs off this. ══ -->
-      <g id="ck-g-common">
-        <path d="M 680 105 L 720 105 L 720 450 M 60 450 L 800 450" fill="none" stroke="#6a6a6a"
-              stroke-width="1.6"/>
-        <circle cx="720" cy="450" r="3.5" fill="#6a6a6a"/>
-        <text x="400" y="472" fill="#7a7a7a" font-size="14" text-anchor="middle">cathode common,
-          0 V reference</text>
-      </g>
-
-      <!-- ══ Discharge supply: anode to cathode, closing through the plasma ══ -->
-      <g id="ck-g-discharge">
-        <path d="M 127 240 L 127 330 L 60 330 L 60 372 M 60 388 L 60 450" fill="none" stroke="#F5C518"
-              stroke-width="1.8"/>
-        <line x1="44" y1="372" x2="76" y2="372" stroke="#F5C518" stroke-width="2.6"/>
-        <line x1="51" y1="388" x2="69" y2="388" stroke="#F5C518" stroke-width="2.6"/>
-        <text x="86" y="374" fill="#F5C518" font-size="15.5" font-weight="600">discharge supply</text>
-        <text x="86" y="394" fill="#8f8258" font-size="13.5">300 V, and every volt the ions fall through</text>
-        <circle cx="60" cy="450" r="3.5" fill="#F5C518"/>
-        <!-- The half of the loop that is not wire: cathode electrons streaming back
-             through the plasma to the anode. Without this the supply has no circuit. -->
-        <path d="M 560 140 C 500 152 430 172 364 190" fill="none" stroke="#ffe94d" stroke-width="1.6"
-              stroke-dasharray="6 5" stroke-opacity="0.85"/>
-        <text x="490" y="214" fill="#8f8a6e" font-size="13.5" text-anchor="middle">electrons back
-          through the plasma</text>
-        <text x="137" y="168" fill="#F5C518" font-size="14" font-weight="600">+300 V</text>
-      </g>
-
-      <!-- ══ Keeper: holds the cathode discharge alive ══ -->
-      <g id="ck-g-keeper">
-        <path d="M 620 60 L 620 30 L 800 30 L 800 232 M 800 248 L 800 450" fill="none" stroke="#6a6a6a"
-              stroke-width="1.8"/>
-        <line x1="784" y1="232" x2="816" y2="232" stroke="#a0a0a0" stroke-width="2.6"/>
-        <line x1="791" y1="248" x2="809" y2="248" stroke="#a0a0a0" stroke-width="2.6"/>
-        <text x="774" y="222" fill="#c0c0c0" font-size="15.5" font-weight="600" text-anchor="end">keeper
-          supply</text>
-        <text x="774" y="242" fill="#8a8a8a" font-size="13.5" text-anchor="end">tens of volts, keeps the
-          cathode lit</text>
-        <circle cx="800" cy="450" r="3.5" fill="#6a6a6a"/>
-      </g>
-
-      <!-- ══ Heater: startup only ══ -->
-      <g id="ck-g-heater">
-        <path d="M 600 150 L 600 300 L 612 300 M 628 300 L 640 300 L 640 150" fill="none" stroke="#6a6a6a"
-              stroke-width="1.8"/>
-        <line x1="612" y1="290" x2="612" y2="310" stroke="#a0a0a0" stroke-width="2.6"/>
-        <line x1="628" y1="294" x2="628" y2="306" stroke="#a0a0a0" stroke-width="2.6"/>
-        <text x="620" y="332" fill="#c0c0c0" font-size="15.5" font-weight="600"
-              text-anchor="middle">cathode heater</text>
-        <text x="620" y="351" fill="#8a8a8a" font-size="13.5" text-anchor="middle">on to start, off once the
-          cathode runs</text>
-      </g>
-
-      <!-- ══ Magnet coils: the supply that sets where the potential falls ══ -->
-      <g id="ck-g-magnet">
-        <path d="M 260 113 L 390 113 L 390 400 L 349 400" fill="none" stroke="#00DDB5" stroke-width="1.8"/>
-        <path d="M 260 277 L 300 277 L 300 400 L 337 400" fill="none" stroke="#00DDB5" stroke-width="1.8"/>
-        <path d="M 160 113 L 95 113 L 95 277 L 160 277" fill="none" stroke="#00DDB5" stroke-width="1.8"/>
-        <line x1="337" y1="390" x2="337" y2="410" stroke="#00DDB5" stroke-width="2.6"/>
-        <line x1="349" y1="394" x2="349" y2="406" stroke="#00DDB5" stroke-width="2.6"/>
-        <text x="372" y="380" fill="#00DDB5" font-size="15.5" font-weight="600">magnet coil supply</text>
-        <text x="372" y="400" fill="#5f8f85" font-size="13.5">a few amperes, coils in series</text>
-        <text x="372" y="419" fill="#5f8f85" font-size="13.5">it sets B, and B sets where &#966; falls</text>
-      </g>
-
-      <!-- Running note, rewritten by the buttons below -->
-      <text id="ck-note" x="450" y="504" fill="#9a9a9a" font-size="16" text-anchor="middle"></text>
-    </svg>
-  </div>
-
-  <div class="fig-controls">
-    <div class="sl-group" style="flex:1 1 100%">
-      <div class="sl-label">Trace one loop</div>
-      <div class="fig-toggles" id="ck-btns">
-        <button type="button" class="fig-toggle" data-loop="all" aria-pressed="true">All</button>
-        <button type="button" class="fig-toggle" data-loop="discharge" aria-pressed="false">Discharge</button>
-        <button type="button" class="fig-toggle" data-loop="keeper" aria-pressed="false">Keeper</button>
-        <button type="button" class="fig-toggle" data-loop="heater" aria-pressed="false">Heater</button>
-        <button type="button" class="fig-toggle" data-loop="magnet" aria-pressed="false">Magnets</button>
-      </div>
-    </div>
-  </div>
-
-  <p class="fig-caption">
-    Four supplies, and only one of them is in the <span class="hl-ion">ion's</span> path. The
-    <span class="key">discharge supply</span> does all of the accelerating work, and notice that half of its
-    loop is not wire at all: the return leg is <span class="hl-electron">electrons</span> streaming back through
-    the plasma from the <span class="key">cathode</span>. The <span class="key">keeper</span> and the
-    <span class="key">heater</span> only keep the cathode itself running. The
-    <span class="key">magnet supply</span> touches neither electrode, carries none of the discharge current,
-    and is still the one that decides where the <span class="hl-phi">potential</span> falls, because it sets
-    <span class="hl-B">B</span>. That is the loop this page has been closing.
-    <!-- TODO (skeleton): three things left. (1) Port the gridded-ion viewer's overlay
-         instead of this stand-alone schematic, so every node sits at its true position in
-         model space and projects through the section camera (CIRC / clbl in
-         gridded_ion.html). Until then the geometry here is only suggestive. (2) Put current
-         arrows on each loop, with the discharge loop's split into beam and back-streaming
-         legs matching the ledger on the neutralization page. (3) Real numbers per supply,
-         with citations, rather than the round figures printed now. -->
-  </p>
+<!-- ════════════════════ WHY THE BEAM FALLS SHORT ════════════════════
+     This slot used to hold the CIRCUIT DIAGRAM figure (hall_thruster.html?circuit=1). That
+     figure is gone rather than moved, and deliberately: the potential viewer directly above it
+     already draws the same loop as a potential, and its caption says so, so the schematic was
+     the page's third consecutive framing of one circuit. The overlay itself is untouched and is
+     still reachable from the Overview page's viewer, which is the only one in the series
+     carrying the full switch panel; the link in the caption above points there. -->
+<div class="transition-line">
+  So the supply holds a few hundred volts and the field decides where they fall. Now ask what the beam
+  actually leaves with, which turns out not to be either of those numbers.
 </div>
 
-<!-- ════════════════════ WHY THE BEAM FALLS SHORT ════════════════════ -->
 <div class="theory-block">
   <div class="th-hdr">Why the Beam Energy Is Less Than the Discharge Voltage</div>
   <p class="th-body">
-    <!-- TODO: account for the difference, step by step on the profile:
-           - cathode coupling voltage, from the neutralization page
-           - ions born downstream of the start of the fall, so they never see all of it
-           - the resulting spread in ion energy, which is the same spread the acceleration
-             page raised
-         Close by contrasting with GIE IV, where the neutralizer voltage was LARGER than the
-         net accelerating voltage, and say why the two lessons come out differently. -->
-    TODO: add up the losses. The <span class="key">cathode coupling voltage</span> from the previous page, plus
-    the fact that an <span class="hl-ion">ion</span> born partway down the fall never sees the whole of it.
+    A reader who has followed the profile this far can be forgiven for expecting an
+    <span class="hl-ion">ion</span> to arrive with $eV_\mathrm{d}$ of energy. None of them do, and there are two
+    separate reasons stacked on top of each other.
+  </p>
+  <p class="th-body">
+    The first is the <span class="key">cathode coupling voltage</span> from
+    <a class="applet-link" href="HT_Neutralization_applet.html">the previous page</a>. The cathode floats below
+    the plasma it feeds, so the supply's $V_\mathrm{d}$ is measured anode-to-cathode while the fall an ion
+    actually gets is anode-to-plume. The difference, $V_\mathrm{cc}$, is voltage the supply pays for and no
+    <span class="hl-ion">ion</span> ever falls through. It is around 5% at the profile's default settings, and it
+    is a ceiling rather than a spread: it applies to every ion equally, including one born on the anode itself.
+  </p>
+  <p class="th-body">
+    The second is the one <a class="applet-link" href="HT_Acceleration_applet.html">the acceleration page</a>
+    raised and could not yet put a number on. An ion is created wherever its parent
+    <span class="hl-neutral">neutral</span> happened to be ionized, and if that station is partway down the fall
+    then the ion only gets the part below it. So the exhaust does not leave at one energy. It leaves with a
+    <span class="key">distribution</span> of energies, $f(\varphi)$, and $f$ is not a second thing to be
+    measured: it is the ionization rate along the channel pushed through the very curve above, since
+    $f(\varphi)\,d\varphi = \dot n_i(z)\,dz$ with $\varphi = \varphi(z)$. Move the field peak and you have moved
+    $\varphi(z)$, which moves $f$, whether you meant to or not.
+  </p>
+  <p class="th-body">
+    Both losses are factors in the same product. Writing the thrust efficiency out and grouping the terms by
+    what each one penalizes<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup> gives
+  </p>
+  <div class="eq-panel">
+    <span class="eq-step-label">Thrust efficiency, factored</span>
+    $$ \boxed{\;\eta \;=\;
+       \underbrace{\left(\frac{\textcolor{#9aa3b2}{\dot m_i}}{\textcolor{#9aa3b2}{\dot m}}\right)}_{\eta_u}\;
+       \underbrace{\left(\frac{\textcolor{#3DBFFF}{I_B}}{\textcolor{#F5C518}{I_a}}\right)}_{\eta_a}\;
+       \underbrace{\left(\int_0^1 \sqrt{\varphi}\,f(\varphi)\,d\varphi\right)^{\!2}}_{\eta_E}\;} $$
+    <span class="eq-caption">$\varphi$ is the birth potential normalized on the discharge voltage, so
+      every factor is at most one.</span>
+  </div>
+  <p class="th-body">
+    Each factor is less than one, and each is the unfinished business of a different page in this series.
+    <span class="key">Utilization</span> $\eta_u$ is propellant that left as gas, which is
+    <a class="applet-link" href="HT_Buzzsaw_applet.html">the Hall current's</a> job to prevent.
+    <span class="key">Anode efficiency</span> $\eta_a$ is <span class="hl-electron">electrons</span> that crossed
+    the field to the anode and were paid for at the full discharge voltage without pushing anything, which is
+    what the <span class="hl-B">magnetic field</span> exists to make hard.
+    <span class="key">Energy efficiency</span> $\eta_E$ is the spread this page has just accounted for, and it is
+    the only one of the three that is a functional of a distribution rather than a ratio of two numbers.
+  </p>
+  <p class="th-body">
+    The <a class="applet-link" href="../gridded_ion/GIE_Potential_applet.html">gridded engine</a> is the useful
+    contrast on the third factor, because it has almost no third factor. Essentially every
+    <span class="hl-ion">ion</span> there is born in the discharge chamber and starts its fall at the
+    <span class="key">screen grid</span>, so $f(\varphi)$ is very nearly a spike, the integral is very nearly
+    one, and $\eta_E$ is not a quantity anyone has to draw. That is what a hardware-defined starting potential
+    buys you. Giving it up is part of the price of
+    <a class="applet-link" href="HT_Acceleration_applet.html">escaping the space-charge limit</a>: accelerating
+    through a plasma instead of between two grids means the plasma decides where each ion enters the field, and
+    nothing in the thruster is holding it to one answer.
+  </p>
+</div>
+
+<!-- ════════════════════ EFFICIENCY ════════════════════
+     A stage of the same viewer (?mode=efficiency), framed about twice as close as the Potential
+     stage above and cropped to the upper half of the section, because the whole argument happens
+     between the anode face and a few centimeters past the exit plane.
+
+     It is on THIS page and not a page of its own because f(phi) is the subject of both, and
+     because eta_E cannot be computed without the fall this page has just derived. The stage does
+     not re-derive it: it calls the Potential stage's own potPhi/potFrac, so the two figures bin
+     and draw the same curve and cannot drift apart. -->
+<div class="theory-block applet-host" id="efficiency-fig">
+  <div class="th-hdr">What the Spread Costs</div>
+  <iframe class="applet-frame" src="hall_thruster.html?mode=efficiency&amp;v=4"
+          title="Ion birth potential, propellant utilization and the discharge current split, drawn on the thruster cross-section"
+          loading="lazy"></iframe>
+  <p class="fig-caption">
+    Three views of one model, with the panel reporting all four numbers on every one of them. On
+    <span class="key">Birth potential</span>, every <span class="hl-ion">ion</span> appears ON the curve at the
+    height its birth station maps to and rides the rest of the fall down; the bars up the right-hand edge are
+    those heights counted into bins, which is to say they are $f(\varphi)$ and they are nothing but this scatter
+    projected sideways. Drag <span class="key">Zone center</span> upstream, away from the fall, and the bars
+    gather at the top and $\eta_E$ climbs: that separation of the ionization region from the acceleration region
+    is the design principle, not an accident of the model. Drag it downstream into the fall and the distribution
+    smears down the axis. <span class="key">Propellant</span> is the same ionization rate read the other way, as
+    a bite taken out of the <span class="hl-neutral">neutral</span> flux, and whatever is still gas at the
+    right-hand edge is the $1-\eta_u$ that left at a few hundred meters per second.
+    <span class="key">Currents</span> is the split the equation above calls $I_B/I_a$, with the leak drawn as
+    what it physically is: <span class="hl-electron">electrons</span> crossing the acceleration band the wrong
+    way to reach the anode.
+    <!-- TODO (skeleton): three quantitative gaps, all named in the panel's own footer note.
+         (1) The back-streaming law is 1/B^2 from classical mobility, calibrated to land eta_a
+         near 0.77 at 150 G. Real cross-field transport is anomalous and much faster, and this
+         is the one factor where that matters most; fit it to a published I_b/I_d curve
+         (Hofer's SPT-100 / NASA-173Mv2 performance maps) and cite it.
+         (2) The ionization zone is a free Gaussian with a strength slider. It could be computed
+         from the same magnetic circuit the field profile comes from, since T_e peaks where B
+         does and that is what sets <sigma v>.
+         (3) The product is three factors, not five: beam divergence and multiply-charged ions
+         are missing, which is why it reads high against a flown thruster's ~50%. Add both as
+         a fourth and fifth factor, or state the omission inside the figure rather than only in
+         the panel footer. -->
   </p>
 </div>
 
@@ -1446,45 +1727,6 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
   [el.zpk, el.bmax, el.sig, el.vd].forEach(s => s.addEventListener('input', draw));
   draw();
-})();
-</script>
-
-<!-- ════════════════════ FIGURE: CIRCUIT DIAGRAM ════════════════════
-     Skeleton, and a stand-alone one: the finished version should be the gridded-ion
-     viewer's overlay, laid out in model space. See the TODO in the caption. -->
-<script>
-"use strict";
-(function(){
-  const svg = document.getElementById('ck-svg');
-  if (!svg) return;
-
-  const NOTE = {
-    all:       'Four supplies. Only the discharge supply is in the ion’s path.',
-    discharge: 'Anode to cathode, and back through the plasma. This is the loop the ions fall down.',
-    keeper:    'Cathode to keeper. It keeps the cathode discharge lit and carries no beam current.',
-    heater:    'Across the cathode heater. Used to start, then switched off in steady state.',
-    magnet:    'Coils in series, referenced to nothing. It carries no discharge current, and it still decides where the potential falls.'
-  };
-  const GROUPS = ['discharge', 'keeper', 'heater', 'magnet'];
-
-  const note = document.getElementById('ck-note');
-  const btns = [...document.querySelectorAll('#ck-btns .fig-toggle')];
-
-  function select(which){
-    for (const g of GROUPS){
-      const node = document.getElementById('ck-g-' + g);
-      node.setAttribute('opacity', (which === 'all' || which === g) ? '1' : '0.13');
-    }
-    /* The common rail belongs to every supply that references it, so it stays lit
-       for all of them except the magnet loop, which never touches it. */
-    document.getElementById('ck-g-common')
-            .setAttribute('opacity', which === 'magnet' ? '0.13' : '1');
-    note.textContent = NOTE[which];
-    btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.loop === which)));
-  }
-
-  btns.forEach(b => b.addEventListener('click', () => select(b.dataset.loop)));
-  select('all');
 })();
 </script>
 
