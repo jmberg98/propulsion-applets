@@ -271,6 +271,13 @@ details.clarify-detail > summary:focus-visible {
   border-bottom: 1px solid var(--border);
   margin-bottom: 12px;
 }
+/* A stage heading that IS its own link. It keeps the accent color and the uppercase
+   treatment every other .th-hdr has, so the four stage headings still read as one row
+   of section titles; only the rule underneath and the hover say "link". Giving it
+   .applet-link's white would have made these four the loudest headings on the page. */
+.th-hdr a.applet-link { color: inherit; border-bottom-color: currentColor; }
+.th-hdr a.applet-link:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+
 .th-body {
   font-size: 20.5px;
   line-height: 1.70;
@@ -310,6 +317,35 @@ details.clarify-detail > summary:focus-visible {
   border-top: 1px solid var(--border);
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ── Callout box ────────────────────
+   Ported verbatim from larmor_applet.html, which is where the imported
+   derivation blocks on these pages come from. A callout has to look the
+   same wherever the reader meets the same derivation, so these values
+   are copied rather than re-chosen. */
+.eq-callout {
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
+}
 
 details.deriv-detail {
   border: 1px solid var(--border);
@@ -616,7 +652,14 @@ details.deriv-detail > summary:focus-visible {
    is short enough that hiding it buys nothing. */
 .quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
 .quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
-.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
   font-size: 16px;
   font-weight: 400;
@@ -841,16 +884,17 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The <a class="applet-link" href="../gridded_ion/GIE_Overview_applet.html">gridded ion engine</a> was one of the
-  two <span class="key">electrostatic thrusters</span> the Cold War split produced. This is the other one. Where
-  the American program pursued the gridded engine, the Soviet program pursued the
-  <span class="key">Hall-effect thruster</span>, and it is the Soviet line that produced the
-  <span class="key">stationary plasma thruster</span> flying on satellites
-  today.<sup class="cite"><a href="#ref-3">3</a></sup>
+  Before we look into the physics, it is important to acknowledge the history under which
+  <span class="key">electrostatic thrusters</span> were developed. Nearly all electric propulsion devices used
+  today are electrostatic devices, meaning they use solely <span class="hl-E">electric fields</span> to
+  accelerate charged particles for <span class="hl-thrust">thrust</span>. During the Cold War, the United States
+  and Soviet Union began research on two such electrostatic thrusters: the
+  <a class="applet-link" href="../gridded_ion/GIE_Overview_applet.html">gridded ion engine</a> and the
+  <span class="key">Hall-Effect thruster</span>. While the United States began early theoretical research on the
+  Hall-Effect thruster, its intrinsic plasma instabilities dissuaded further development efforts. The United
+  States would go on to focus on the development of the gridded ion engine, while the Soviet Union would continue
+  to research the Hall-Effect thruster.<sup class="cite"><a href="#ref-3">3</a></sup>
 </p>
-
-<!-- TODO: one more intro paragraph on why the Hall thruster displaced the gridded engine
-     commercially (thrust density and cost per newton, not efficiency). Cite ref-2. -->
 
 <div class="color-key">
   <span class="ck-lead">Color key</span>
@@ -863,71 +907,29 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 </div>
 
 <p class="page-intro">
-  A Hall thruster has three characteristic features. An annular <span class="key">discharge channel</span> with an
-  <span class="key">anode</span> at its base, which is also the gas distributor. A
-  <span class="key">magnetic circuit</span>, coils and a core and two pole pieces, that lays a radial
-  <span class="hl-B">magnetic field</span> across that channel near its exit. And a hollow
-  <span class="key">cathode</span> outside the body, which sustains the discharge and neutralizes the beam at the
-  same time.<sup class="cite"><a href="#ref-1">1</a></sup> Notice what is absent: there are
-  <em>no grids</em>. Nothing in the hardware sits where the accelerating field goes.
+  Hall-Effect thrusters are the most used electric propulsion devices today, particularly in satellite
+  constellations such as Starlink or Amazon LEO. Compared to gridded ion engines, Hall-Effect thrusters have a
+  higher <span class="hl-thrust">thrust density</span> and lower
+  <span class="hl-ve">specific impulse</span>. Additionally, the Hall-Effect thruster's ionization and
+  acceleration stages are coupled, occurring in the same stage of the thruster rather than in discrete areas.
+  Most visibly distinct is the massive glowing ring of <span class="hl-electron">electrons</span> at the end of
+  the <span class="key">discharge channel</span> instead of the grids found in gridded ion engines.
 </p>
 
 <p class="page-intro">
-  So the guiding question for this whole lesson is a simple one. If no electrode makes the accelerating field,
-  what does? The short answer is that the <span class="hl-B">magnetic field</span> takes the place of the
-  <span class="key">accelerator grid</span>, and the four pages that follow unpack how.
-</p>
-
-<p class="page-intro">
-  Use this 3D model to familiarize yourself with the thruster. The cross section shows the inner components, and
-  you can toggle <span class="key">component labels</span>, the
-  <span class="hl-E">electromagnetic fields</span>, the <span class="key">magnetic circuit</span>, and
-  <span class="hl-q">particles</span>. The model was built
-  from a <a class="applet-link" href="#ref-model">published section drawing</a> and is proportioned after it
-  rather than after any flown thruster.
-</p>
-
-<p class="page-intro">
-  That third switch is worth a moment, because it answers where the radial
-  <span class="hl-B">field</span> comes from. Turn it on and the section draws a closed loop through the iron:
-  two windings drive <span class="hl-B">magnetic flux</span> up the center stem, out through the inner pole,
-  <em>across the discharge channel</em>, into the outer pole, and back along the return legs to the back plate.
-  It is a <span class="key">circuit</span> in the literal sense. The coils' ampere-turns play the part of the
-  supply, the <span class="hl-B">flux</span> plays the part of the current, and reluctance plays the part of the
-  resistance. Iron passes flux thousands of times more easily than air does, so nearly the whole magnetic drop
-  falls across the one stretch of the loop that is <em>not</em> iron: the channel. That is why the
-  <span class="hl-B">field</span> there is radial, why it is strongest between the pole faces at the exit plane,
-  and why moving those faces is how a designer moves the accelerating region.
-</p>
-
-<p class="page-intro">
-  Each <span class="key">solenoid core</span> carries <span class="key">N</span> and <span class="key">S</span>
-  at its two ends, the way a bar magnet's are marked, and that is what says the coils are the source rather than
-  copper that happens to be there. The center stem is a magnet pointing north downstream; each return leg is a
-  magnet pointing north upstream; and those two arrangements are what drive <span class="hl-B">flux</span> the
-  same way round the loop. It is also why the two windings' current markers come out opposite. They have to, to
-  point their cores that way.
-</p>
-
-<p class="page-intro">
-  Notice too that the crossing is not the single straight spoke the loop alone would suggest. Lighter curves run
-  either side of the exit plane, and they are the same <span class="hl-B">field</span> crossing the gap
-  everywhere else along it. Inside the channel they <em>sag toward the anode</em> at mid-channel, and that sag is
-  the <span class="key">plasma lens</span>. It is worth more than it looks: a <span class="hl-B">field line</span>
-  is very nearly an <span class="key">equipotential</span>, so the shape of these lines is the shape of the
-  accelerating <span class="hl-phi">potential</span>, and a line that sags upstream in the middle tilts
-  <span class="hl-E">E</span> outward over the channel's inner half and inward over its outer half, steering
-  <span class="hl-ion">ions</span> away from <em>both</em> walls. Since wall erosion is what limits a Hall
-  thruster's life, that curvature is not a detail of the drawing. It is one of the things the magnetic design is
-  <em>for</em>. Past the exit plane the curves go the other way, arching out into the plume: that is the
-  <span class="key">fringing field</span>, and it is why <span class="hl-B">B</span> does not stop dead at the
-  exit and why the accelerating region has any axial thickness at all.
+  Use this 3D model to familiarize yourself with the Hall-Effect thruster. The
+  <span class="key">cross section</span> feature allows you to see the inner components and workings of the
+  thruster. You can also toggle the visibility of elements such as <span class="key">component labels</span>,
+  <span class="hl-E">electromagnetic fields</span>, and <span class="hl-q">particles</span>. Unique to the Hall
+  thruster is the <span class="key">magnetic circuit</span>, which facilitates the radial
+  <span class="hl-B">magnetic field</span>.
 </p>
 
 <!-- ════════════════════ 3D VIEWER ════════════════════
-     Carries an id because the Potential page links here for the circuit diagram: this is the
-     only viewer in the series with the whole switch panel, so the Circuit diagram overlay is
-     reachable from it and nowhere else. -->
+     Carries an id because other pages link to it: this is the only viewer in the series with
+     the whole switch panel, so every overlay is reachable from here. The Potential & Field
+     Distribution page no longer links here for the circuit specifically - it frames the same
+     overlay directly as its Power Supply demo (hall_thruster.html?circuit=1). -->
 <div class="theory-block applet-host" id="viewer">
   <div class="th-hdr">3D Viewer &amp; Cross Section</div>
   <!-- Bump `v` whenever hall_thruster.html changes in a way the reader must see. The viewer is
@@ -938,215 +940,84 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
           loading="lazy"></iframe>
 </div>
 
-<!-- ════════════════════ EXEMPLARY THRUSTERS ════════════════════
-     Two flown Hall thrusters, so the abstraction has hardware attached to it
-     before the equations start. Same shape as the gridded-ion overview's list.
-     Both photos are NASA/JPL-Caltech, public domain. The SPT-100 entry carries an
-     SPT-140 photo because no open-license shot of the SPT-100 itself firing turned
-     up; the caption says so rather than letting the reader assume otherwise.
-     TODO: fill each .ex-specs from the operator's own published page. -->
+<!-- ════════════════════ STAGE: THE HALL CURRENT ════════════════════
+     One block per lesson in the series, in reading order. The heading IS the link, so
+     the four headings here and the four <h1>s they point at are the same four names. -->
 <div class="theory-block">
-  <div class="th-hdr">Exemplary Hall Thrusters</div>
-
-  <ul class="ex-list">
-    <li class="ex-item">
-      <div class="ex-name">
-        <a href="https://www.fakel-russia.com/" target="_blank" rel="noopener noreferrer">SPT-100<span class="ext">&#8599;&nbsp;operator&nbsp;page</span></a>
-      </div>
-      <div class="ex-specs">
-        OKB Fakel<span class="sep">|</span>100&nbsp;mm channel<span class="sep">|</span>TODO: power, thrust, <span class="hl-ve">I<sub>sp</sub></span>
-      </div>
-      <figure class="ex-fig">
-        <img src="img/spt140_firing.jpg" loading="lazy"
-             alt="An SPT-140 Hall thruster firing head-on in a vacuum chamber. The annular
-                  discharge channel glows as a bright white-blue ring around a dark center pole,
-                  a broad blue plume streams toward the camera, and a small separate jet burns at
-                  the cathode mounted above the ring."/>
-        <figcaption>An <span class="key">SPT-140</span> firing at JPL. No open-license photo of the
-          SPT-100 itself was available, so this is its 4.5&nbsp;kW sibling from the same Fakel SPT
-          line, two of which fly on Psyche. The glowing ring is the annular
-          <span class="key">discharge channel</span>, and the small jet above it is the
-          <span class="hl-electron">cathode</span>. <span class="credit">NASA / JPL-Caltech</span></figcaption>
-      </figure>
-    </li>
-
-    <li class="ex-item">
-      <div class="ex-name">
-        <a href="https://www1.grc.nasa.gov/space/sep/" target="_blank" rel="noopener noreferrer">HERMeS / AEPS<span class="ext">&#8599;&nbsp;NASA&nbsp;page</span></a>
-      </div>
-      <div class="ex-specs">
-        NASA Glenn &amp; JPL, magnetically shielded<span class="sep">|</span>TODO: power, thrust, <span class="hl-ve">I<sub>sp</sub></span>
-      </div>
-      <figure class="ex-fig">
-        <img src="img/hermes_firing.jpg" loading="lazy"
-             alt="The HERMeS TDU-2 Hall thruster firing at 12.5 kilowatts. A thick white-blue ring
-                  of light marks the discharge channel, the center pole sits dark inside it, and the
-                  exhaust fades away to the left across the vacuum chamber."/>
-        <figcaption><span class="key">HERMeS</span> TDU-2 running at 600&nbsp;V and 12.5&nbsp;kW at
-          JPL. The bright ring is the <span class="key">discharge channel</span> seen end-on, and the
-          <span class="hl-ion">xenon ions</span> leaving it fade out to the left.
-          <span class="credit">NASA / JPL-Caltech</span></figcaption>
-      </figure>
-    </li>
-  </ul>
+  <div class="th-hdr"><a class="applet-link" href="HT_Buzzsaw_applet.html">The Hall Current &rarr;</a></div>
+  <p class="th-body">
+    The most visually distinct feature of the Hall Thruster is also its namesake: the glowing ring of
+    <span class="hl-electron">electrons</span>, the electron &ldquo;buzzsaw&rdquo;, or the
+    <span class="key">Hall current</span>. A strong axial <span class="hl-E">electric field</span> accelerates
+    <span class="hl-ion">ions</span> in the discharge chamber while also collecting electrons emitted from the
+    external <span class="key">cathode</span>. A strong radial <span class="hl-B">magnetic field</span> increases
+    the path length of electrons emitted from the external cathode. It does so by confining the electrons to
+    <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirrors</a>. Because
+    these fields are perpendicular to each other, the electrons start drifting in the
+    <span class="key">E cross B</span> direction, forming the Hall current!
+  </p>
 </div>
 
-<!-- ════════════════════ GOVERNING EQUATIONS ════════════════════
-     Statements only. Thrust and specific impulse are derived on their own applet
-     pages; the gyro-motion and drift results come from the Larmor and E-cross-B
-     applets. Nothing is re-derived here.
-
-     NOTATION: every symbol here is spelled the way the applet that DERIVES it
-     spells it, so a reader arriving from that page recognizes the result rather
-     than having to re-map it:
-       F_N = ṁ c                     specific_impulse
-       ω_c, r_L  (not ω_ce, r_ce)    larmor. The color tokens at the top of this
-                                     file name these two symbols explicitly, so
-                                     a subscript swap here would also have cost
-                                     them their blue.
-       v_E×B     (not v_d)           ECrossB, which was RE-SPELLED to match this
-                                     page rather than the other way round.
-       μ, R = B_max/B_0, θ_max       magnetic_mirror
-     Electron mass and charge are written m_e and e because this panel is
-     specialized to electrons; the colors stay the generic mass/charge tokens. -->
+<!-- ════════════════════ STAGE: THRUST DENSITY & ELECTRON DIFFUSION ════════════════════ -->
 <div class="theory-block">
-  <div class="th-hdr">Governing Equations<sup class="cite"><a href="#ref-1">1</a></sup></div>
+  <div class="th-hdr"><a class="applet-link" href="HT_Acceleration_applet.html">Thrust Density &amp; Electron
+    Diffusion &rarr;</a></div>
+  <p class="th-body">
+    Unlike gridded ion engines, Hall Thrusters do not have a hard limit to the
+    <span class="hl-thrust">thrust</span> they can produce for a given engine size. This means that they are
+    viable options for both miniaturized thrusters and high power, high thrust engines. Active research is done
+    in both of these areas. This makes Hall thrusters very appealing options for satellite constellations and,
+    possibly, Mars missions. The greatest obstacles to increasing the thrust of Hall thrusters is
+    <span class="hl-electron">electron diffusion</span> and the political challenges in using nuclear power in
+    space.
+  </p>
+</div>
 
-  <div class="eq-panel">
-    <span class="eq-step-label">Thrust</span>
-    $$ \boxed{\;\textcolor{#FF4400}{F_N} = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\;} $$
+<!-- ════════════════════ STAGE: THE CATHODE ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr"><a class="applet-link" href="HT_Neutralization_applet.html">The Cathode &rarr;</a></div>
+  <p class="th-body">
+    The <span class="key">cathode</span> serves two roles: it provides the required
+    <span class="hl-electron">electron current</span> to neutralize the outgoing beam of
+    <span class="hl-ion">ions</span> (just like the gridded ion engine), and ionizes the
+    <span class="hl-neutral">neutral propellant particles</span> injected into the discharge channel. The cathode
+    can be configured either externally, like a gridded ion engine, or it can be placed coaxially in the center
+    of the thruster.
+  </p>
+</div>
 
-    <div class="eq-divider"></div>
+<!-- ════════════════════ STAGE: POTENTIAL & FIELD DISTRIBUTION ════════════════════ -->
+<div class="theory-block">
+  <div class="th-hdr"><a class="applet-link" href="HT_Potential_applet.html">Potential &amp; Field
+    Distribution &rarr;</a></div>
+  <p class="th-body">
+    Unlike gridded ion engines, the <span class="hl-ve">exhaust velocities</span> of the expelled
+    <span class="hl-ion">ions</span> are not uniform. This is because
+    <span class="hl-neutral">neutral particles</span> are ionized at different parts along the discharge chamber.
+    Particles ionized &ldquo;earlier&rdquo; experience a greater <span class="hl-phi">voltage drop</span> and thus
+    have a greater exhaust velocity. Because of this, the distribution of the
+    <span class="hl-phi">electric potential</span> and <span class="hl-B">radial magnetic field</span> strength
+    through the thruster channel is important to thruster performance.
+  </p>
+</div>
 
-    <span class="eq-step-label">Specific Impulse</span>
-    $$ \boxed{\;\textcolor{#3DBFFF}{I_{sp}} = \frac{\textcolor{#3DBFFF}{c}}{g_0} \qquad[\mathrm{s}]\;} $$
-
-    <div class="eq-divider"></div>
-
-    <span class="eq-step-label">Electron Cyclotron Frequency and Larmor Radius</span>
-    $$ \boxed{\;\textcolor{#3DBFFF}{\omega_c}
-       = \frac{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}{\textcolor{#FF4400}{m_e}}\;}
-       \qquad\qquad
-       \boxed{\;\textcolor{#3DBFFF}{r_L}
-       = \frac{\textcolor{#FF4400}{m_e}\,\textcolor{#3DBFFF}{v_\perp}}{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}\;} $$
-
-    <div class="eq-divider"></div>
-
-    <span class="eq-step-label">Azimuthal Drift, the Hall Current</span>
-    $$ \boxed{\;\textcolor{#3DBFFF}{\vec{v}_{E\times B}}
-       = \frac{\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}}{\textcolor{#00DDB5}{B}^{2}}
-       \qquad \left|\textcolor{#3DBFFF}{v_{E\times B}}\right|
-       = \frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}\;} $$
-
-    <div class="eq-divider"></div>
-
-    <span class="eq-step-label">Hall Parameter, How Magnetized the Electrons Are</span>
-    $$ \boxed{\;\Omega_e = \frac{\textcolor{#3DBFFF}{\omega_c}}{\nu_e}\;} $$
-
-    <div class="eq-divider"></div>
-
-    <span class="eq-step-label">Magnetic Moment and the Loss Cone</span>
-    $$ \boxed{\;\textcolor{#C060FF}{\mu}
-       = \frac{\textcolor{#FF4400}{m_e}\,\textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
-       = \text{const}\;}
-       \qquad\qquad
-       \boxed{\;R = \frac{\textcolor{#00DDB5}{B_{max}}}{\textcolor{#00DDB5}{B_0}}
-       \qquad \theta_{max} = \arcsin\sqrt{\frac{1}{R}}\;} $$
-
-    <div class="eq-divider"></div>
-
-    <span class="eq-step-label">Axial Field and the Force It Exerts</span>
-    $$ \boxed{\;\textcolor{#F5C518}{E_z} = -\frac{d\textcolor{#F5C518}{\phi}}{dz}\;}
-       \qquad\qquad
-       \boxed{\;\textcolor{#FF4400}{F_z} = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{E_z}\;} $$
-
-    <!-- TODO: add the thrust-density statement once the Acceleration page settles which
-         form it uses, so the two pages quote the same expression. -->
+<!-- ════════════════════ GUIDING QUESTION ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
+    <p class="quiz-q">Hall thrusters seem to be less complex component-wise than gridded ion engines. They also
+    have no hard limit to their <span class="hl-thrust">thrust densities</span>, so why are gridded ion engines
+    generally preferable for deep space probes like the Dawn mission?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span><span class="quiz-opt-text">Gridded ion engines have a higher $I_{sp}$ for a given thrust and power level, giving the mission more $\Delta V$.</span>
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>Hall thrusters have greater erosion concerns from electron backstreaming, limiting their lifespan.
+      </button>
+    </div>
+    <div class="quiz-feedback"></div>
   </div>
-</div>
-
-<!-- ════════════════════ STAGE: THE HALL CURRENT ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">The Hall Current</div>
-  <p class="th-body">
-    Electrons entering the channel from the cathode meet a radial <span class="hl-B">magnetic field</span> strong
-    enough to grip them and far too weak to grip a xenon <span class="hl-ion">ion</span>. Trapped on the field,
-    they drift azimuthally around the annulus, and that closed ring of drifting
-    <span class="hl-electron">electrons</span> is the <span class="key">Hall current</span> the thruster is named
-    for.<sup class="cite"><a href="#ref-2">2</a></sup> Any
-    <span class="hl-neutral">neutral atom</span> heading down the channel has to cross it.
-    <a class="applet-link" href="HT_Buzzsaw_applet.html">Continue to the Hall current &rarr;</a>
-  </p>
-</div>
-
-<!-- ════════════════════ STAGE: ACCELERATION ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Acceleration</div>
-  <p class="th-body">
-    Because the accelerating region is full of <span class="hl-electron">electrons</span> as well as
-    <span class="hl-ion">ions</span>, the plasma there is <span class="key">quasineutral</span>, and the
-    space-charge limit that caps a gridded engine simply does not
-    apply.<sup class="cite"><a href="#ref-1">1</a></sup> That is the single biggest
-    consequence of losing the grids, and it is why a Hall thruster makes far more
-    <span class="hl-thrust">thrust</span> per unit area.
-    <a class="applet-link" href="HT_Acceleration_applet.html">Continue to acceleration &rarr;</a>
-  </p>
-</div>
-
-<!-- ════════════════════ STAGE: NEUTRALIZATION ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Neutralization</div>
-  <p class="th-body">
-    One hollow <span class="key">cathode</span> does two jobs: it supplies the
-    <span class="hl-electron">electrons</span> that sustain the discharge inside the channel, and it neutralizes
-    the <span class="hl-ion">ion beam</span> on the way out. The gridded engine needed a separate neutralizer for
-    the second job.
-    <a class="applet-link" href="HT_Neutralization_applet.html">Continue to neutralization &rarr;</a>
-  </p>
-</div>
-
-<!-- ════════════════════ STAGE: POTENTIAL ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Potential Distribution</div>
-  <p class="th-body">
-    Most of the anode-to-cathode <span class="hl-phi">potential drop</span> sits in the last few millimeters
-    before the exit plane, and its position is set by where the radial
-    <span class="hl-B">field</span> peaks rather than by any piece of
-    hardware.<sup class="cite"><a href="#ref-2">2</a></sup> This is the page where the
-    claim that the <span class="hl-B">magnetic field</span> is the accelerator grid gets cashed out.
-    <a class="applet-link" href="HT_Potential_applet.html">Continue to the potential distribution &rarr;</a>
-  </p>
-</div>
-
-<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
-<div class="clarify-section">
-  <div class="clarify-hdr">Conceptual Questions</div>
-
-  <details class="clarify-detail">
-    <summary>A gridded ion engine makes its accelerating field between two electrodes you could point at. A Hall
-    thruster has no such electrode anywhere near where its ions pick up speed. So what plays the part of the
-    accelerator grid?</summary>
-    <div class="clarify-body">
-      The <span class="hl-B">magnetic field</span> does. Electrons are so mobile along a field line, and so
-      restricted across one, that a field line is very nearly an
-      <span class="key">equipotential</span>.<sup class="cite"><a href="#ref-2">2</a></sup> Shaping
-      <span class="hl-B">B</span> therefore shapes <span class="hl-phi">&phi;</span>, and the sharp axial
-      potential gradient forms wherever the radial field is strongest, which designers place near the exit plane.
-      <!-- TODO: expand, and forward-reference the Potential page's draggable B-peak figure. -->
-    </div>
-  </details>
-
-  <details class="clarify-detail">
-    <summary>For a gridded ion engine, the accelerator grid is usually the lifetime-limiting component. A Hall
-    thruster has no grid to erode. What limits its life instead?</summary>
-    <div class="clarify-body">
-      <!-- TODO: channel-wall erosion by ion bombardment, and how magnetic shielding lifted
-           the ceiling by moving the field lines off the wall. Cite once the shielding
-           reference is verified and added to Sources. -->
-      TODO: the <span class="key">discharge channel</span> walls, and what
-      <span class="key">magnetic shielding</span> did about it.
-    </div>
-  </details>
 </div>
 
 <!-- ════════════════════ MODEL REFERENCE ════════════════════
@@ -1192,16 +1063,20 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <li id="ref-3">V. Kim et al., &ldquo;History of the Hall Thrusters Development in USSR,&rdquo; IEPC-2007-142,
       30th International Electric Propulsion Conference, Florence (2007). The Soviet line that produced the
       stationary plasma thruster.</li>
-    <li id="ref-4">M. Mart&iacute;nez-S&aacute;nchez &amp; P. Lozano, <em>Space Propulsion</em> (16.522) lecture
-      notes, MIT OpenCourseWare. The three-factor form of the Hall thruster efficiency used on the
-      <a href="HT_Potential_applet.html#efficiency-fig">Potential Distribution</a> page (utilization, anode
-      back-streaming, and energy), and the integral over the ion birth-potential distribution that the last of
-      them is.
-      <!-- TODO: pin this to the specific lecture and year, and give the OCW permalink. The
-           decomposition also appears in ref-1 ch. 7 under a different grouping (current,
-           voltage, mass and divergence utilization); saying how the two line up would be worth
-           a sentence, since a reader who owns Goebel & Katz will otherwise think one of the two
-           is wrong. -->
+    <li id="ref-4">M. Mart&iacute;nez-S&aacute;nchez &amp; P. Lozano, &ldquo;Session 38: Hall Thrusters,&rdquo;
+      <em>16.522 Space Propulsion</em>, Spring 2015, MIT OpenCourseWare,
+      <a href="https://ocw.mit.edu/courses/16-522-space-propulsion-spring-2015/" target="_blank"
+      rel="noopener noreferrer">ocw.mit.edu</a>. The standing source for every derivation block in this lesson:
+      cross-field electron diffusion and the Hall parameter (eqs. 5&ndash;14), Bohm and anomalous diffusion
+      (eqs. 15&ndash;17) and the leak current and anode efficiency (eqs. 18&ndash;20) on the
+      <a href="HT_Acceleration_applet.html">Thrust Density &amp; Electron Diffusion</a> and
+      <a href="HT_Potential_applet.html#efficiency-fig">Potential &amp; Field Distribution</a> pages, together
+      with the three-factor form of the Hall thruster efficiency (utilization, anode back-streaming, and energy)
+      and the integral over the ion birth-potential distribution that the last of them is.
+      <!-- TODO: the decomposition also appears in ref-1 ch. 7 under a different grouping
+           (current, voltage, mass and divergence utilization); saying how the two line up
+           would be worth a sentence, since a reader who owns Goebel & Katz will otherwise
+           think one of the two is wrong. -->
     </li>
   </ol>
 </details>
@@ -1276,7 +1151,7 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
     submit.disabled = true;
 
     if (allCorrect) {
-      fb.textContent = 'Correct on every count.';
+      fb.textContent = 'Correct.';
       fb.style.color = '#51cf66';
     } else {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';

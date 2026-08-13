@@ -321,6 +321,35 @@ details.clarify-detail > summary:focus-visible {
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
 
+/* ── Callout box ────────────────────
+   Ported verbatim from larmor_applet.html, which is where the imported
+   derivation blocks on these pages come from. A callout has to look the
+   same wherever the reader meets the same derivation, so these values
+   are copied rather than re-chosen. */
+.eq-callout {
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
+}
+
 details.deriv-detail {
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -621,7 +650,14 @@ details.deriv-detail > summary:focus-visible {
    is short enough that hiding it buys nothing. */
 .quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
 .quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
-.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
   font-size: 16px;
   font-weight: 400;
@@ -1358,12 +1394,9 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  In the <a class="applet-link" href="../gridded_ion/GIE_Acceleration_applet.html">gridded ion engine</a>, two
-  metal grids held the accelerating <span class="hl-E">field</span>, and the electrons were kept out of the gap
-  by the <span class="key">screen grid</span>. A Hall thruster has no grids. Its
-  <span class="key">anode</span> sits in plain view at the base of an open channel, a couple of centimeters from
-  the exit. Left alone, the <span class="hl-electron">electrons</span> would run straight to it, the discharge
-  would short out, and nothing would accelerate.
+  The most visually distinct feature of the Hall Thruster is also its namesake: the glowing ring of
+  <span class="hl-electron">electrons</span>, the electron &ldquo;buzzsaw&rdquo;, or the
+  <span class="key">Hall current</span>. But what exactly facilitates this azimuthal drift?
 </p>
 
 <div class="color-key">
@@ -1377,430 +1410,67 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 </div>
 
 <p class="page-intro">
-  What stops them is a radial <span class="hl-B">magnetic field</span> laid across the channel. It grips the
-  <span class="hl-electron">electrons</span> and effectively ignores the much heavier
-  <span class="hl-ion">ions</span>, and the trapped electrons end up drifting around the annulus in a closed
-  ring: the <span class="key">Hall current</span>, or in the literature the
-  <span class="key">closed drift</span> that gives this thruster family its other
-  name.<sup class="cite"><a href="HT_Overview_applet.html#ref-2">2</a></sup>
+  A strong axial <span class="hl-E">electric field</span> accelerates <span class="hl-ion">ions</span> in the
+  discharge chamber while also collecting <span class="hl-electron">electrons</span> emitted from the external
+  <span class="key">cathode</span>. This electric field is caused by a large
+  <span class="hl-phi">discharge voltage</span> applied to the <span class="key">anode</span> sitting just above
+  the propellant injector.
 </p>
 
 <p class="page-intro">
-  On this page we will call that ring the <span class="key">buzzsaw</span>, because an electron in it does not
-  simply circle. It also bounces rapidly in and out along the field, so its path saws back and forth as it goes
-  around, and every <span class="hl-neutral">neutral atom</span> heading down the channel has to pass through
-  the blade. The name is ours, for teaching. If you go looking in the literature, look for
-  <span class="key">closed drift</span> and <span class="key">Hall current</span>.
+  A strong radial <span class="hl-B">magnetic field</span> increases the path length of
+  <span class="hl-electron">electrons</span> emitted from the external <span class="key">cathode</span>. It does
+  so by confining the electrons to
+  <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirrors</a>. The
+  <span class="hl-B">magnetic field lines</span> travel from the core to the outer body due to the
+  implementation of a <span class="key">magnetic circuit</span>, seen below.
 </p>
 
-<!-- ════════════════════ 3D VIEWER ════════════════════
-     Moved here from further down the page, and it leads now for a reason: everything below
-     this point is about a field, and a reader who has not yet seen the iron that makes the
-     field has nowhere to put any of it. So the hardware comes first and the physics is hung
-     on it, which is also the order the Overview page uses.
+<!-- ════════════════════ MAGNETIC CIRCUIT DEMO ════════════════════
+     The layout document's "[Insert magnetic circuit demo]" slot, and it leads for a reason:
+     everything below this point is about a field, and a reader who has not yet seen the iron
+     that makes the field has nowhere to put any of it. So the hardware comes first and the
+     physics is hung on it, which is also the order the Overview page uses.
 
      It is the viewer's own magnetic-circuit overlay framed as a figure - hall_thruster.html
      ?magcircuit=1 boots into the cross-section with the thruster off, the flux loop on, the
      control panel gone and the pointer disabled. There is nothing to drive: this is a
-     reference figure, not a demo. The buzzsaw stage the old placeholder here described (one
-     tagged electron gyrating, bouncing and drifting until the three motions add up to the
-     closed Hall current) is still unwritten; when it is written it belongs further down, next
-     to "The Buzzsaw, One Motion at a Time", not in this slot.
+     reference figure, not a demo.
 
      The section is rolled a quarter turn there so the thrust axis runs up the page. See
      SECTION_ROLL in hall_thruster.html: the silhouette is portrait and this frame is 1.8 : 1,
      so head on the thruster fills a third of the slot. -->
 <div class="theory-block applet-host" id="mag-fig">
-  <div class="th-hdr">The Hardware the Blade Runs In</div>
+  <div class="th-hdr">Magnetic Circuit</div>
   <iframe class="applet-frame" src="hall_thruster.html?magcircuit=1&amp;v=4"
           title="Hall thruster cross-section with the magnetic circuit overlay, exit plane at the top"
           loading="lazy"></iframe>
-  <p class="fig-caption">
-    The cross-section turned on its side, exit plane at the top, with the
-    <span class="key">magnetic circuit</span> drawn on the iron that carries it. The loop is closed and almost
-    all of it is metal: soft iron from the <span class="key">center stem</span> out along the
-    <span class="key">back plate</span>, up one of the four outer legs and back in across the front
-    <span class="key">pole</span>, with a single short gap where it crosses the channel at the exit plane. That
-    gap is the only part of the path that does any work. Everything else is there to get the flux around again
-    as cheaply as possible, so that where the field does cross open space it crosses in one place, radially,
-    exactly where the blade runs. The <span class="key">windings</span> drive it, and the cross and dot marks on
-    them read the usual way: current into the page, and out of it. There is nothing to set here. The controls,
-    the beam and the plume are all switched off so the figure shows one thing.
-  </p>
 </div>
 
-<!-- ════════════════════ Q1: WHAT HOLDS THE ELECTRONS ════════════════════ -->
+<p class="page-intro">
+  Permanent magnets or, in the demo's case, <span class="key">solenoid inductors</span> (wire wrapped in a
+  coil), have <span class="hl-B">magnetic field lines</span> connecting from north to south. The solenoid
+  inductors can be thought of as bar magnets for simplicity. Notice that the center solenoid is running current
+  in the opposite way as the outer solenoids, producing a <span class="hl-B">magnetic field</span> running in the
+  opposite direction. This is crucial! It enables the radial <span class="hl-B">magnetic field</span> to form, as
+  the magnetic field lines seek to connect north to south.
+</p>
+
+<!-- ════════════════════ Q1: WHO GYRATES ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">There is no <span class="key">screen grid</span> between the discharge and the anode. What
-    keeps <span class="hl-electron">electrons</span> from crossing the last two centimeters to the
-    <span class="key">anode</span> and shorting out the discharge?</p>
+    <p class="quiz-q">When charged particles travel perpendicularly across a
+    <span class="hl-B">magnetic field line</span>, they start to gyrate or orbit those field lines. What is the
+    best explanation for why an <span class="hl-electron">electron</span> tends to easily exhibit this
+    cyclotron/gyration motion, but an <span class="hl-ion">ion</span> in the same field tends to deflect only
+    slightly?</p>
     <div class="quiz-options">
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>The anode is recessed at the base of the channel, so most electrons never travel toward it in the first place.
-      </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>A radial magnetic field magnetizes them. Their gyroradius is far smaller than the channel, so they are stuck on the field lines and can only work their way across by colliding.
+        <span class="quiz-opt-label">a</span>An ion is many orders of magnitude more massive than an electron.
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>The axial electric field points the wrong way for electrons, so it pushes them out of the channel before they can reach the anode.
-      </button>
-    </div>
-    <div class="quiz-feedback"></div>
-  </div>
-</div>
-
-<!-- ════════════════════ THREE MOTIONS ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Three Motions, One Electron</div>
-  <p class="th-body">
-    A single <span class="hl-electron">electron</span> in the channel is doing three things at once, and each one
-    has already had an applet of its own. It
-    <a class="applet-link" href="../larmor/larmor_applet.html">gyrates</a> tightly about the radial field line. It
-    slides along that line toward one wall, meets a stronger
-    <span class="hl-B">field</span> near the pole piece, and
-    <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">reflects</a>. And the crossed
-    fields make the whole guiding center
-    <a class="applet-link" href="../ECrossB/ECrossB_applet.html">drift</a> azimuthally.
-  </p>
-  <p class="th-body">
-    What makes the picture tractable is that the three separate cleanly in both time and space.
-  </p>
-
-  <div class="eq-panel">
-    <span class="eq-step-label">1. Gyration about the field line</span>
-    $$ r_{ce} = \frac{m_e \textcolor{#3DBFFF}{v_\perp}}{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}}
-       \qquad\qquad \tau_{c} = \frac{2\pi}{\omega_{ce}}
-       = \frac{2\pi m_e}{\textcolor{#C060FF}{e}\,\textcolor{#00DDB5}{B}} $$
-
-    <div class="eq-divider"></div>
-
-    <span class="eq-step-label">2. Mirror bounce across the channel, inner pole to outer pole</span>
-    $$ \tau_{b} \approx \frac{2\,w}{\textcolor{#3DBFFF}{v_\parallel}}
-       \qquad\qquad w = r_{out} - r_{in}
-       \qquad\qquad \mu = \frac{m_e \textcolor{#3DBFFF}{v_\perp}^{2}}{2\,\textcolor{#00DDB5}{B}}
-       = \text{const} $$
-    <span class="eq-caption">The first expression is an estimate and a generous one. It has the electron cross
-      the whole gap at its full parallel speed and turn instantly at the wall, when what actually turns it is the
-      <span class="key">mirror force</span> <span class="hl-B">$-\mu\,\partial B/\partial s$</span>, which slows it
-      the whole way in and reverses it early. The figure below integrates the second expression instead.</span>
-
-    <div class="eq-divider"></div>
-
-    <span class="eq-step-label">3. Azimuthal drift around the annulus</span>
-    $$ \textcolor{#3DBFFF}{v_{E\times B}} = \frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}
-       \qquad\qquad \tau_{d} = \frac{2\pi r_{mid}}{\textcolor{#3DBFFF}{v_{E\times B}}} $$
-  </div>
-
-  <p class="th-body">
-    Put the channel's own numbers in and the separation is stark. Taking the geometry of the model in this lesson
-    (<span class="key">r</span> from 38 to 62 millimeters, so a 24 millimeter channel), a
-    <span class="hl-B">field</span> around 150 gauss at mid-channel, an
-    <span class="hl-electron">electron</span> carrying about 20 electronvolts and roughly 300 volts falling across
-    the last 20 millimeters, the three come out near 0.9 millimeters and 2 nanoseconds, 17 millimeters and 41
-    nanoseconds, and 314 millimeters and 360 nanoseconds. Each stage is roughly an order of magnitude slower and
-    wider than the one before it.
-  </p>
-  <p class="th-body">
-    One quantity has to be named before those numbers mean anything, and the figure below makes it a slider: the
-    <span class="key">pitch angle</span>, which is how the electron's one speed divides between the
-    <span class="hl-ve">$v_\perp$</span> that sets the gyroradius and the <span class="hl-ve">$v_\parallel$</span>
-    that carries it along the field line. They are not independent, and an electron cannot have all of its energy
-    in both. The numbers above are for 60 degrees, which is a typical value and, more to the point, is outside the
-    <span class="key">loss cone</span>, so it describes an electron the <span class="key">mirror</span> can
-    actually hold.
-  </p>
-  <p class="th-body">
-    That ordering is not a coincidence of this thruster. It is the
-    <span class="key">guiding-center hierarchy</span>, one timescale per adiabatic invariant, and a Hall thruster
-    is an unusually clean place to see all three at once.
-  </p>
-</div>
-
-<!-- ════════════════════ COUNTING THE TEETH ════════════════════ -->
-<div class="transition-line">
-  If an electron bounces radially far faster than it travels around the annulus, then its path around the channel
-  is not a circle. It is a sawtooth. So how many teeth does the blade have?
-</div>
-
-<div class="theory-block">
-  <div class="th-hdr">Counting the Teeth</div>
-  <p class="th-body">
-    Divide one lap by one bounce and the answer falls straight out of the two timescales above.
-  </p>
-
-  <div class="eq-panel">
-    <span class="eq-step-label">Radial bounces per trip around the annulus</span>
-    $$ \boxed{\;N = \frac{\tau_{d}}{\tau_{b}}
-       = \frac{2\pi r_{mid}}{\textcolor{#3DBFFF}{v_{E\times B}}}
-         \cdot \frac{\textcolor{#3DBFFF}{v_\parallel}}{2\,w}\;} $$
-  </div>
-
-  <p class="th-body">
-    With the numbers quoted above, roughly 360 nanoseconds per lap against 41 nanoseconds per bounce, that is
-    about <b>nine teeth per lap</b>. The blade is a real object with a countable number of teeth, and the count
-    moves when you move the <span class="hl-B">field</span>, the
-    <span class="hl-electron">electron</span>'s energy or its <span class="key">pitch angle</span>.
-  </p>
-  <p class="th-body">
-    It is worth knowing where the larger number you may have seen for this comes from. Estimate the bounce as
-    $\tau_b \approx 2w/v_\parallel$ with the electron's <em>whole</em> speed taken as
-    <span class="hl-ve">$v_\parallel$</span>, and the count comes out nearer twenty. That estimate is not wrong
-    arithmetic; it is a different electron. An electron with all of its energy along the field line has no
-    <span class="hl-ve">$v_\perp$</span>, therefore no <span class="key">magnetic moment</span> to be pushed back
-    by, therefore sits squarely in the <span class="key">loss cone</span> and is on a wall before it has finished
-    a lap. The electrons that stay are the ones carrying most of their energy across the field, and they cross the
-    channel slowly. Fewer teeth, cut deeper, by an electron that is still there to cut them.
-  </p>
-  <p class="th-body">
-    The figure below builds that blade one motion at a time, on the annulus it actually runs around. One detail
-    it holds still for you: the <span class="hl-electron">electron</span> is also creeping slowly toward the
-    <span class="key">anode</span> the whole time, so the real object is not a flat disk of teeth but a slowly
-    advancing serrated helix. That axial creep is the subject of the
-    <a class="applet-link" href="HT_Acceleration_applet.html">next page</a>.
-  </p>
-</div>
-
-<div class="theory-block applet-host">
-  <div class="th-hdr">The Buzzsaw, One Motion at a Time</div>
-  <div class="fig-app">
-  <div class="fig-frame bz-frame" id="bz-frame">
-    <canvas id="bz-canvas" role="img"
-            aria-label="A Hall thruster seen from above and to one side, its annular discharge
-                        channel glowing, with one electron traced through it. The radial magnetic
-                        field is drawn as three field lines at each of eight stations around the
-                        annulus: a straight one on the exit plane and two arched ones, one bowing
-                        downstream into the plume and one bowing upstream into the channel, all
-                        six converging on the two pole pieces. Three switches add one motion at a
-                        time: the gyration about the field line, drawn as a magnified helix; the
-                        mirror bounce, integrated from the conservation of the magnetic moment so
-                        the electron turns smoothly where the field is strong enough to turn it;
-                        and the azimuthal E cross B drift. With all three switched on the path is
-                        a sawtooth closing on itself around the ring, and its teeth can be
-                        counted directly. Drag to orbit the thruster."></canvas>
-    <div class="bz-fallback" id="bz-fallback">
-      This figure needs WebGL, which this browser has not made available. The three motions and
-      their timescales are set out as equations above.
-    </div>
-    <!-- Floating field labels, positioned each frame from the scene. aria-hidden because
-         the scene key in the panel already names all three as real text. -->
-    <div class="bz-annot" id="bz-annot" aria-hidden="true"></div>
-    <!-- Nothing sits over the canvas but the field labels. A clock reporting simulated
-         time against real time was tried here, then a card disclosing the gyro-orbit's
-         magnification; the output bar carries the three timescales and the orbit's TRUE
-         radius already, and this figure is about the shape of the path, not its scale. -->
-    <!-- Two clauses, not the viewers' three: this figure sets controls.enablePan = false. -->
-    <div class="bz-hint">
-      <span class="hbit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 2v20M2 12h20"/>
-          <path d="M12 2l-2.4 2.4M12 2l2.4 2.4"/>
-          <path d="M12 22l-2.4-2.4M12 22l2.4-2.4"/>
-          <path d="M2 12l2.4-2.4M2 12l2.4 2.4"/>
-          <path d="M22 12l-2.4-2.4M22 12l-2.4 2.4"/>
-        </svg><span>Drag to orbit</span>
-      </span>
-      <span class="hsep">·</span>
-      <span class="hbit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="6.5" y="3.75" width="11" height="16.5" rx="5.5"/>
-          <path d="M12 7.4v3.3"/>
-          <path d="M10.3 2.4L12 0.9l1.7 1.5"/>
-          <path d="M10.3 21.6L12 23.1l1.7-1.5"/>
-        </svg><span>Scroll to zoom</span>
-      </span>
-    </div>
-  </div>
-
-  <aside class="fig-panel">
-  <!-- Switch rows, not the pill buttons a control strip under a figure uses: these three
-       add and remove a layer of the scene, which is what the viewers' .vtog answers.
-       They keep aria-pressed, the toggle-button pattern the figure's JS already reads,
-       so the switch and the state have one source of truth between them.
-
-       THREE switches, and only the three motions. The field lines, the field labels and the
-       discharge glow used to have switches of their own and no longer do: they are the
-       setting the three motions happen in, not a fourth, fifth and sixth thing to take
-       apart, and every one of them was on in every state worth looking at. A switch that is
-       never worth throwing is a switch that costs the reader a decision for nothing. They
-       are now simply always drawn. -->
-  <div>
-    <div class="sect-hdr">Take it apart</div>
-    <div class="vtoglist">
-      <button type="button" class="vtog" id="bz-t1" aria-pressed="true">
-        <span>1. Gyration</span><span class="vsw"></span></button>
-      <button type="button" class="vtog" id="bz-t2" aria-pressed="true">
-        <span>2. Mirror bounce</span><span class="vsw"></span></button>
-      <button type="button" class="vtog" id="bz-t3" aria-pressed="true">
-        <span>3. E&times;B drift</span><span class="vsw"></span></button>
-    </div>
-    <div class="btn-row"><button type="button" class="btn" id="bz-reset">Reset view</button></div>
-  </div>
-
-  <div class="fig-controls">
-    <div class="sl-group">
-      <div class="sl-label">Magnetic Field Strength in Air Gap<span class="sl-val"><input
-             class="sl-num" id="bz-b-val" type="text" inputmode="decimal" autocomplete="off"
-             spellcheck="false" value="150"
-             aria-label="Magnetic field strength in the air gap, in gauss"><span
-             class="sl-unit">G</span></span></div>
-      <div class="sl-row">
-        <input type="range" id="bz-b" min="50" max="300" step="5" value="150"
-               aria-label="Magnetic field strength in the air gap, in gauss">
-      </div>
-    </div>
-    <div class="sl-group">
-      <div class="sl-label">Electron energy<span class="sl-val"><input
-             class="sl-num" id="bz-te-val" type="text" inputmode="decimal" autocomplete="off"
-             spellcheck="false" value="20"
-             aria-label="Electron energy in electronvolts"><span
-             class="sl-unit">eV</span></span></div>
-      <div class="sl-row">
-        <input type="range" id="bz-te" min="5" max="40" step="1" value="20"
-               aria-label="Electron energy in electronvolts">
-      </div>
-    </div>
-    <!-- 0 to 90, the whole range the angle can physically take, rather than the 10 to 85 the
-         slider used to allow. Both ends are real electrons and both are worth seeing: at 90
-         the velocity is entirely perpendicular, so the guiding center stands still at
-         mid-channel and there is nothing but gyration, and at 0 it is entirely parallel, so
-         there is no magnetic moment, no mirror, and the electron streams straight into the
-         ceramic. The closed-form bounce is singular at exactly 0, so the physics clamps the
-         angle a twentieth of a degree off it; see recompute(). -->
-    <div class="sl-group">
-      <div class="sl-label">Pitch angle<span class="sl-val"><input
-             class="sl-num" id="bz-pa-val" type="text" inputmode="decimal" autocomplete="off"
-             spellcheck="false" value="60"
-             aria-label="Pitch angle at mid-channel, in degrees from the field direction"><span
-             class="sl-unit">&deg;</span></span></div>
-      <div class="sl-row">
-        <input type="range" id="bz-pa" min="0" max="90" step="1" value="60"
-               aria-label="Pitch angle at mid-channel, in degrees from the field direction">
-      </div>
-    </div>
-    <div class="sl-group">
-      <div class="sl-label">Axial Electric Field Strength<span class="sl-val"><input
-             class="sl-num" id="bz-e-val" type="text" inputmode="decimal" autocomplete="off"
-             spellcheck="false" value="15"
-             aria-label="Axial electric field strength in volts per millimeter"><span
-             class="sl-unit">V/mm</span></span></div>
-      <div class="sl-row">
-        <input type="range" id="bz-e" min="5" max="30" step="1" value="15"
-               aria-label="Axial electric field strength in volts per millimeter">
-      </div>
-    </div>
-  </div>
-
-  <!-- The three fields named themselves in the key until they got labels on the canvas.
-       A key entry and a floating label are two answers to one question, and the label is
-       the better one: it is ON the thing it names instead of asking the reader to match a
-       swatch to an arrow. What is left is the electron, which is the one object in the
-       scene with nothing written beside it. -->
-  <div>
-    <div class="sect-hdr">Scene key</div>
-    <div class="bz-legend">
-      <span><i style="background:#ffe94d;color:#2a2405">&minus;</i>electron</span>
-    </div>
-  </div>
-
-  <div class="bz-status" id="bz-status"></div>
-  <div class="bz-note" id="bz-note"></div>
-  </aside>
-  </div>
-
-  <!-- The three quantities the sliders actually set, rather than the five derived ones this
-       bar used to carry. All three are the electron's, so all three take its yellow; the
-       sub-line under each is the definition it is computed from, so the cell says where its
-       number came from without the reader having to scroll back to the equations. Each cell
-       dims with the motion it belongs to: the radius and the frequency describe the gyration,
-       the drift velocity describes the drift. -->
-  <div class="fig-out">
-    <div class="out-cell" id="bz-c-rl">
-      <div class="out-label">Larmor radius</div>
-      <div class="out-val" id="bz-o-rl" style="color:#ffe94d">&nbsp;</div>
-      <div class="out-sub">r<sub>L</sub> = m<sub>e</sub>v<sub>&perp;</sub> / eB</div>
-    </div>
-    <div class="out-cell" id="bz-c-fc">
-      <div class="out-label">Cyclotron frequency</div>
-      <div class="out-val" id="bz-o-fc" style="color:#ffe94d">&nbsp;</div>
-      <div class="out-sub">f<sub>ce</sub> = eB / 2&pi;m<sub>e</sub></div>
-    </div>
-    <div class="out-cell" id="bz-c-vd">
-      <div class="out-label">Electron drift velocity</div>
-      <div class="out-val" id="bz-o-vd" style="color:#ffe94d">&nbsp;</div>
-      <div class="out-sub">v = E&times;B / B&sup2;</div>
-    </div>
-  </div>
-
-  <p class="fig-caption">
-    Three motions, three orders of magnitude, one electron, drawn on the annulus it actually
-    lives in. All three run to start with; switch them off in turn and the blade comes apart,
-    switch them back on in order and it assembles. The bounce is integrated from the conservation
-    of the <span class="key">magnetic moment</span> rather than imposed as a triangle wave, so
-    the electron slows as it climbs into the strong <span class="hl-B">field</span> at a pole and
-    turns smoothly, and it turns <em>early</em>, before the wall, whenever the mirror is strong
-    enough to turn it at all. Take the <span class="key">pitch angle</span> below about 52 degrees
-    and it stops turning early: that is the <span class="key">loss cone</span>, and what sends the
-    electron back is then the <a class="applet-link" href="../sheath/sheath_applet.html">wall
-    sheath</a>, not the mirror. Every place the path reaches the ceramic is marked with a small
-    red-orange &times;, twice a bounce and all the way around, so an electron the
-    <span class="key">mirror</span> cannot hold is not merely labelled as such: you can see where
-    it goes instead, and count the strikes. A confined electron puts none on the figure at all.
-    The slider runs the full 0 to 90 degrees, so both edges of that
-    argument can be looked at directly: at 90 the velocity is entirely across the field, the
-    guiding center stands still at mid-channel and there is nothing left but the gyration, and at
-    0 it is entirely along the field, there is no <span class="key">magnetic moment</span> for the
-    mirror to push back on, and the electron runs flat into the ceramic. Push the pitch angle down
-    toward zero and the teeth per lap climb back toward the twenty that the estimate
-    $\tau_b \approx 2w/v_\parallel$ gives, because that estimate quietly assumes an electron with
-    all of its energy along the field, which is exactly the electron the mirror cannot hold. Count
-    the teeth off the path itself and the point of the whole figure is there to be counted: an
-    <span class="hl-electron">electron</span> that would have crossed the gap once in a straight
-    line covers that distance many times over instead, and it has that many chances to find a
-    <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">neutral</a>
-    before anything collects it. The three cells under the figure are the numbers those teeth are
-    cut from: the radius the <span class="hl-electron">electron</span> gyrates on, the frequency it
-    gyrates at, and the $\vec{E}\times\vec{B}$ drift that carries the whole orbit around the ring.
-    Two things are drawn kindly rather than faithfully, and both are
-    stated on the figure: the gyro-orbit is magnified, since at true scale it is under a
-    millimeter on a thruster 180 millimeters across, and the discharge glow is held below the
-    brightness a photograph would record, because at full strength it buries the path this figure
-    exists to show. The blade is also pinned to the exit plane; in the hardware the electron is
-    creeping slowly toward the <span class="key">anode</span> the whole time, so the real object
-    is a serrated helix.
-    <!-- TODO (skeleton): the mirror profile is a parabolic stand-in, B(s)/B_mid = 1 + (R-1)(2s/w)^2,
-         with R fixed at the 1.63 the prose derives from a 1/r field. That is the right SHAPE
-         (strong at both poles, weakest at mid-channel) and it makes the loss cone come out at
-         the 52 degrees the prose quotes, but it is not this thruster's B(r).
-         Read the profile off build_thruster.py's magnetic circuit instead, and then R stops
-         being a constant and becomes a function of the coil current.
-         Second: one pitch angle and one energy, which the page's own clarifying note says is
-         wrong. The count is a mean over a spread. Draw a band rather than a line.
-         Third: all three output cells are read at MID-CHANNEL, where B is weakest. The Larmor
-         radius and the drift velocity both move by the mirror ratio across the gap, so a single
-         number for either is the value at one point on the bounce and not the value over it. -->
-  </p>
-</div>
-
-<!-- ════════════════════ Q2: WHO IS MAGNETIZED ════════════════════ -->
-<div class="quiz-section">
-  <div class="quiz-hdr">Guiding Question</div>
-  <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">The same <span class="hl-B">magnetic field</span> threads the channel for both species. Why
-    does it confine the <span class="hl-electron">electrons</span> while leaving the
-    <span class="hl-ion">xenon ions</span> free to accelerate straight out?</p>
-    <div class="quiz-options">
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>The ions carry the opposite sign of charge, so the magnetic force on them points out of the channel.
-      </button>
-      <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Gyroradius grows with mass. A xenon ion is well over a hundred thousand times heavier than an electron, so its gyroradius dwarfs the channel while the electron's is a fraction of a millimeter.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Ions move too quickly for the field to deflect them.
+        <span class="quiz-opt-label">b</span>Ions, unlike electrons, don't have the sufficient kinetic energy to exhibit cyclotron motion.
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -1808,7 +1478,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 </div>
 
 <div class="theory-block applet-host">
-  <div class="th-hdr">Who Is Magnetized</div>
+  <div class="th-hdr">What Is Magnetized</div>
   <div class="fig-app">
   <div class="fig-frame">
     <svg id="wm-svg" viewBox="0 0 900 610" xmlns="http://www.w3.org/2000/svg" role="img"
@@ -2124,129 +1794,454 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     </div>
   </div>
 
-  <p class="fig-caption">
-    Same field, same channel, one species held and the other ignored. Gyroradius is
-    $r_c = m v_\perp / qB$, so it scales with $\sqrt{m}$ at a given energy and with $\sqrt{E}$ at a given mass.
-    A xenon ion outweighs an <span class="hl-electron">electron</span> by about 240,000, and it is falling
-    through hundreds of volts rather than carrying tens of electronvolts of thermal energy, so its circle comes
-    out meters across while the electron's is a fraction of a millimeter. Push the field as high as the slider
-    goes and the <span class="hl-ion">ion</span> still will not fit. That is what lets one field confine the
-    electrons and leave the beam alone.
-    <!-- TODO (skeleton): both radii use a single characteristic speed, sqrt(2E/m), rather than
-         an average over a distribution. For the electron that is the same simplification the
-         gridded-ion Maxwellian figure warns about, and the honest version averages r_c over
-         the distribution. Worth doing here since this page later leans on the tail. -->
-  </p>
 </div>
 
-<!-- ════════════════════ THE MIRROR IS LEAKY ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">The Mirror Is Leaky</div>
-  <p class="th-body">
-    It is tempting to stop here and say the <span class="key">magnetic mirror</span> keeps the
-    <span class="hl-electron">electrons</span> off the walls. Work out the
-    <span class="key">loss cone</span>, though, and that story does not close. If the radial field falls roughly
-    as one over <span class="key">r</span> across the gap, the ratio from the outer to the inner pole is only
-    about 62 over 38, near 1.6, which puts the loss cone somewhere around 50 degrees and leaves a large fraction
-    of a <span class="key">Maxwellian</span> population <em>inside</em> it. Those are the electrons the mirror
-    cannot turn, and they reach the wall on their first pass. Set the pitch angle in the figure above below 52
-    degrees and you are looking at one of them: the teeth run flat against the ceramic instead of turning short
-    of it.
-    <!-- TODO: state the trapped fraction properly, from an integral over a Maxwellian rather
-         than from the cone angle alone, and note that the real field is neither purely
-         radial nor one-over-r. -->
-  </p>
-  <p class="th-body">
-    What finishes the job is the <a class="applet-link" href="../sheath/sheath_applet.html">wall sheath</a>. The
-    channel wall charges negative with respect to the plasma, and the resulting
-    <span class="hl-E">field</span> repels most of the <span class="hl-electron">electrons</span> that the mirror
-    failed to turn around. The honest division of labor is worth stating plainly: the
-    <span class="hl-B">magnetic field</span> is what confines electrons <em>axially</em>, by magnetizing them;
-    the <span class="key">sheath</span> is what mostly confines them <em>radially</em>; and the
-    <span class="key">mirror</span> assists with the radial job without being sufficient for it.
-  </p>
-</div>
-
-<!-- ════════════════════ Q3: WHAT KEEPS THEM OFF THE WALLS ════════════════════ -->
+<!-- ════════════════════ Q2: COMPONENTS OF THE MOTION ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
-  <!-- Single-answer now, not select-all: the question names the mirror in its own stem and
-       asks what ELSE does the job, so there is exactly one thing left to name. -->
-  <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">Besides the <span class="key">magnetic mirror</span> many
-    <span class="hl-electron">electrons</span> are trapped by, what else keeps
-    <span class="hl-electron">electrons</span> from coming in contact with the
-    <span class="key">discharge channel</span> walls and losing their charge?</p>
+  <div class="quiz-block" data-quiz="multi">
+    <p class="quiz-q">Because both an axial <span class="hl-E">electric field</span> and radial
+    <span class="hl-B">magnetic field</span> are applied to the charged particles in a Hall thruster, they will
+    exhibit <span class="key">E cross B drift</span> azimuthally (a ring shape). Which of the following is a
+    correct component of an <span class="hl-electron">electron</span>'s motion in the ring of electrons?</p>
+    <p class="quiz-hint">Select all that apply, then submit.</p>
     <div class="quiz-options">
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>The azimuthal E&times;B drift, which carries electrons around the annulus and therefore away from the walls.
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>Azimuthal Drift (the E cross B drift)
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>The sheath at the wall, which charges negative with respect to the plasma and repels most electrons that the mirror does not turn around.
+        <span class="quiz-opt-label">b</span>Cyclotron Motion
       </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Their gyroradius is a fraction of a millimeter, so a magnetized electron cannot cross the last millimeters to the ceramic.
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">c</span>Reflection across a Magnetic Mirror
       </button>
     </div>
+    <button class="quiz-submit" type="button">Submit</button>
     <div class="quiz-feedback"></div>
   </div>
 </div>
 
-<!-- ════════════════════ PATH AMPLIFICATION ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Why the Blade Ionizes So Well</div>
-  <p class="th-body">
-    Now the payoff. An <span class="hl-electron">electron</span> that crossed the channel in a straight line
-    would travel 24 millimeters and be collected. Sawing its way around instead, it covers that distance once per
-    tooth and keeps going for many laps before <span class="key">collisions</span> work it across to the
-    <span class="key">anode</span>. The
-    <a class="applet-link" href="../particle_collisions/particle_collisions_applet.html">ionizing collision</a>
-    it needs becomes overwhelmingly likely somewhere along that path, which is why a channel a couple of
-    centimeters deep can ionize nearly all the propellant fed into it.
-  </p>
-  <p class="th-body">
-    Compare the <a class="applet-link" href="../gridded_ion/GIE_Ionization_applet.html">gridded engine</a>, which
-    needed <span class="hl-B">ring-cusp fields</span> to reach roughly 80 percent
-    <span class="key">utilization</span>. The Hall thruster gets there and further with a much simpler magnetic
-    circuit, because the closed drift is a far better path-lengthening trick than a cusp
-    is.<sup class="cite"><a href="HT_Overview_applet.html#ref-2">2</a></sup>
-    <!-- TODO: put a number on the effective path length, N times w times the number of laps,
-         and turn it into an ionization probability with the xenon cross-section the
-         particle-collisions applet already uses. Then state the utilization figure with a
-         verified citation rather than the qualitative claim above. -->
-  </p>
+<div class="theory-block applet-host">
+  <div class="th-hdr">Motion Components</div>
+  <div class="fig-app">
+  <div class="fig-frame bz-frame" id="bz-frame">
+    <canvas id="bz-canvas" role="img"
+            aria-label="A Hall thruster seen from above and to one side, its annular discharge
+                        channel glowing, with one electron traced through it. The radial magnetic
+                        field is drawn as three field lines at each of eight stations around the
+                        annulus: a straight one on the exit plane and two arched ones, one bowing
+                        downstream into the plume and one bowing upstream into the channel, all
+                        six converging on the two pole pieces. Three switches add one motion at a
+                        time: the gyration about the field line, drawn as a magnified helix; the
+                        mirror bounce, integrated from the conservation of the magnetic moment so
+                        the electron turns smoothly where the field is strong enough to turn it;
+                        and the azimuthal E cross B drift. With all three switched on the path is
+                        a sawtooth closing on itself around the ring, and its teeth can be
+                        counted directly. Drag to orbit the thruster."></canvas>
+    <div class="bz-fallback" id="bz-fallback">
+      This figure needs WebGL, which this browser has not made available. The three motions and
+      their timescales are set out as equations above.
+    </div>
+    <!-- Floating field labels, positioned each frame from the scene. aria-hidden because
+         the scene key in the panel already names all three as real text. -->
+    <div class="bz-annot" id="bz-annot" aria-hidden="true"></div>
+    <!-- Nothing sits over the canvas but the field labels. A clock reporting simulated
+         time against real time was tried here, then a card disclosing the gyro-orbit's
+         magnification; the output bar carries the three timescales and the orbit's TRUE
+         radius already, and this figure is about the shape of the path, not its scale. -->
+    <!-- Two clauses, not the viewers' three: this figure sets controls.enablePan = false. -->
+    <div class="bz-hint">
+      <span class="hbit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 2v20M2 12h20"/>
+          <path d="M12 2l-2.4 2.4M12 2l2.4 2.4"/>
+          <path d="M12 22l-2.4-2.4M12 22l2.4-2.4"/>
+          <path d="M2 12l2.4-2.4M2 12l2.4 2.4"/>
+          <path d="M22 12l-2.4-2.4M22 12l-2.4 2.4"/>
+        </svg><span>Drag to orbit</span>
+      </span>
+      <span class="hsep">·</span>
+      <span class="hbit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="6.5" y="3.75" width="11" height="16.5" rx="5.5"/>
+          <path d="M12 7.4v3.3"/>
+          <path d="M10.3 2.4L12 0.9l1.7 1.5"/>
+          <path d="M10.3 21.6L12 23.1l1.7-1.5"/>
+        </svg><span>Scroll to zoom</span>
+      </span>
+    </div>
+  </div>
+
+  <aside class="fig-panel">
+  <!-- Switch rows, not the pill buttons a control strip under a figure uses: these three
+       add and remove a layer of the scene, which is what the viewers' .vtog answers.
+       They keep aria-pressed, the toggle-button pattern the figure's JS already reads,
+       so the switch and the state have one source of truth between them.
+
+       THREE switches, and only the three motions. The field lines, the field labels and the
+       discharge glow used to have switches of their own and no longer do: they are the
+       setting the three motions happen in, not a fourth, fifth and sixth thing to take
+       apart, and every one of them was on in every state worth looking at. A switch that is
+       never worth throwing is a switch that costs the reader a decision for nothing. They
+       are now simply always drawn. -->
+  <div>
+    <div class="sect-hdr">Take it apart</div>
+    <div class="vtoglist">
+      <button type="button" class="vtog" id="bz-t1" aria-pressed="true">
+        <span>1. Gyration</span><span class="vsw"></span></button>
+      <button type="button" class="vtog" id="bz-t2" aria-pressed="true">
+        <span>2. Mirror bounce</span><span class="vsw"></span></button>
+      <button type="button" class="vtog" id="bz-t3" aria-pressed="true">
+        <span>3. E&times;B drift</span><span class="vsw"></span></button>
+    </div>
+    <div class="btn-row"><button type="button" class="btn" id="bz-reset">Reset view</button></div>
+  </div>
+
+  <div class="fig-controls">
+    <div class="sl-group">
+      <div class="sl-label">Magnetic Field Strength in Air Gap<span class="sl-val"><input
+             class="sl-num" id="bz-b-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="150"
+             aria-label="Magnetic field strength in the air gap, in gauss"><span
+             class="sl-unit">G</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-b" min="50" max="300" step="5" value="150"
+               aria-label="Magnetic field strength in the air gap, in gauss">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Electron energy<span class="sl-val"><input
+             class="sl-num" id="bz-te-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="20"
+             aria-label="Electron energy in electronvolts"><span
+             class="sl-unit">eV</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-te" min="5" max="40" step="1" value="20"
+               aria-label="Electron energy in electronvolts">
+      </div>
+    </div>
+    <!-- 0 to 90, the whole range the angle can physically take, rather than the 10 to 85 the
+         slider used to allow. Both ends are real electrons and both are worth seeing: at 90
+         the velocity is entirely perpendicular, so the guiding center stands still at
+         mid-channel and there is nothing but gyration, and at 0 it is entirely parallel, so
+         there is no magnetic moment, no mirror, and the electron streams straight into the
+         ceramic. The closed-form bounce is singular at exactly 0, so the physics clamps the
+         angle a twentieth of a degree off it; see recompute(). -->
+    <div class="sl-group">
+      <div class="sl-label">Pitch angle<span class="sl-val"><input
+             class="sl-num" id="bz-pa-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="60"
+             aria-label="Pitch angle at mid-channel, in degrees from the field direction"><span
+             class="sl-unit">&deg;</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-pa" min="0" max="90" step="1" value="60"
+               aria-label="Pitch angle at mid-channel, in degrees from the field direction">
+      </div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-label">Axial Electric Field Strength<span class="sl-val"><input
+             class="sl-num" id="bz-e-val" type="text" inputmode="decimal" autocomplete="off"
+             spellcheck="false" value="15"
+             aria-label="Axial electric field strength in volts per millimeter"><span
+             class="sl-unit">V/mm</span></span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-e" min="5" max="30" step="1" value="15"
+               aria-label="Axial electric field strength in volts per millimeter">
+      </div>
+    </div>
+  </div>
+
+  <!-- The three fields named themselves in the key until they got labels on the canvas.
+       A key entry and a floating label are two answers to one question, and the label is
+       the better one: it is ON the thing it names instead of asking the reader to match a
+       swatch to an arrow. What is left is the electron, which is the one object in the
+       scene with nothing written beside it. -->
+  <div>
+    <div class="sect-hdr">Scene key</div>
+    <div class="bz-legend">
+      <span><i style="background:#ffe94d;color:#2a2405">&minus;</i>electron</span>
+    </div>
+  </div>
+
+  <div class="bz-status" id="bz-status"></div>
+  <div class="bz-note" id="bz-note"></div>
+  </aside>
+  </div>
+
+  <!-- The three quantities the sliders actually set, rather than the five derived ones this
+       bar used to carry. All three are the electron's, so all three take its yellow; the
+       sub-line under each is the definition it is computed from, so the cell says where its
+       number came from without the reader having to scroll back to the equations. Each cell
+       dims with the motion it belongs to: the radius and the frequency describe the gyration,
+       the drift velocity describes the drift. -->
+  <div class="fig-out">
+    <div class="out-cell" id="bz-c-rl">
+      <div class="out-label">Larmor radius</div>
+      <div class="out-val" id="bz-o-rl" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub">r<sub>L</sub> = m<sub>e</sub>v<sub>&perp;</sub> / eB</div>
+    </div>
+    <div class="out-cell" id="bz-c-fc">
+      <div class="out-label">Cyclotron frequency</div>
+      <div class="out-val" id="bz-o-fc" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub">f<sub>ce</sub> = eB / 2&pi;m<sub>e</sub></div>
+    </div>
+    <div class="out-cell" id="bz-c-vd">
+      <div class="out-label">Electron drift velocity</div>
+      <div class="out-val" id="bz-o-vd" style="color:#ffe94d">&nbsp;</div>
+      <div class="out-sub">v = E&times;B / B&sup2;</div>
+    </div>
+  </div>
+
 </div>
 
-<!-- ════════════════════ WHERE THE METAPHOR BREAKS ════════════════════ -->
-<div class="clarify-section">
-  <div class="clarify-hdr">Where the Metaphor Breaks Down</div>
+<p class="page-intro">
+  Try to experiment with the different initial conditions of the
+  <span class="hl-electron">electron</span> and the field strengths of the thruster. Feel free to analyze one
+  component of motion at a time, or combine multiple!
+</p>
 
-  <details class="clarify-detail">
-    <summary>A buzzsaw blade has rigid teeth in a fixed pattern. Real electrons do not. How far should the
-    picture be pushed?</summary>
-    <div class="clarify-body">
-      The teeth are a <span class="key">statistical envelope</span>, not hardware. Every electron has its own
-      pitch angle and its own energy, so the tooth count computed above is a typical value across a spread, and
-      the electrons in the <span class="key">loss cone</span> never complete a tooth at all. The ionizing is done
-      disproportionately by the high-energy tail of the distribution, exactly as it was in the
-      <a class="applet-link" href="../gridded_ion/GIE_Ionization_applet.html">gridded engine</a>, so the
-      electrons that matter most for ionization are not the typical ones the blade is drawn from.
+<!-- ════════════════════ Q3: HOW THEY ESCAPE ════════════════════ -->
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="multi">
+    <p class="quiz-q">If most particles are trapped in the <span class="key">magnetic mirror</span>, how do a
+    sufficient number eventually escape the electron &ldquo;buzzsaw&rdquo; and reach the
+    <span class="key">anode</span>? What physical mechanism might permit
+    <span class="key">electron backstreaming</span> into the anode?</p>
+    <p class="quiz-hint">Select all that apply, then submit.</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span>Collisions
+      </button>
+      <button class="quiz-opt" data-correct="false">
+        <span class="quiz-opt-label">b</span>Pressure Gradients
+      </button>
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">c</span>Plasma Fluctuations
+      </button>
     </div>
-  </details>
+    <button class="quiz-submit" type="button">Submit</button>
+    <div class="quiz-feedback"></div>
+  </div>
+</div>
 
-  <details class="clarify-detail">
-    <summary>The picture says electrons cross to the anode by collisions. Measured Hall thrusters pass far more
-    current across the field than collisions alone can explain. What is missing?</summary>
-    <div class="clarify-body">
-      <!-- TODO: anomalous cross-field transport. Keep it qualitative and honest: turbulent
-           fluctuations and near-wall effects move electrons across B faster than classical
-           collisions predict, this is still an active research question, and every number on
-           this page that depends on how long an electron survives in the channel is affected
-           by it. Cite Zhurin (ref-2) and add a modern review once verified. -->
-      TODO: <span class="key">anomalous cross-field transport</span>, and why the classical collision estimate
-      is a lower bound rather than an answer.
-    </div>
-  </details>
+<p class="page-intro">
+  Recall that in the derivation for the <a class="applet-link"
+  href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirror</a> trapping, the key assumption was that
+  the <span class="hl-moment">magnetic moment</span> was constant. If a particle collides with an
+  <span class="hl-electron">electron</span> in <span class="key">cyclotron motion</span>, it stops gyrating,
+  losing its magnetic moment. It will then accelerate toward the <span class="key">anode</span>, gaining velocity
+  until it is magnetized, and is trapped again. The electron will move toward the anode by approximately one
+  <span class="hl-ve">Larmor radius</span> each collision.
+</p>
+
+<!-- ════════════════════ DERIVATIONS ════════════════════
+     Both blocks are ported class-for-class from the applets that DERIVE them, so a reader
+     arriving from either page meets the same symbols and the same steps:
+       Larmor radius   <- larmor/larmor_applet.html
+       E x B drift     <- ECrossB/ECrossB_applet.html
+     Jordan's own derivations replace these later; until then the imported ones are the
+     canonical statements on this site rather than a second telling of them. -->
+<div class="theory-block">
+  <div class="th-hdr">Larmor Radius</div>
+
+  <p class="th-body">
+    The <span class="hl-ve">Larmor radius</span> is the radius of a particle's circular orbit in a uniform
+    <span class="hl-B">magnetic field</span>. The greater the <span class="hl-mass">mass</span> of the
+    particle, the <span class="key">larger</span> the radius. Conversely, the greater the
+    <span class="hl-q">charge</span> and magnetic field strength, the
+    <span class="key">smaller</span> the radius.
+  </p>
+
+  $$
+  \boxed{
+  \textcolor{#3DBFFF}{r_L}
+  =
+  \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+  }
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-step-label">Setup &mdash; particle parameters</span>
+        <span class="eq-note">
+          Apply the <span class="hl-thrust">Lorentz force</span> to a particle of
+          <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>
+          traveling at total speed $|\textcolor{#3DBFFF}{v}|$ at pitch angle $\theta$ to
+          $\textcolor{#00DDB5}{\vec{B}}$, decomposed into perpendicular and parallel components:
+        </span>
+        $$
+        \textcolor{#3DBFFF}{v_\perp} = |\textcolor{#3DBFFF}{v}|\cos\theta
+        \qquad
+        \textcolor{#3DBFFF}{v_\parallel} = |\textcolor{#3DBFFF}{v}|\sin\theta
+        $$
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Lorentz Force &amp; Newton's Second Law</span>
+        $$
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        \qquad
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#FF4400}{m}\,\vec{a}
+        $$
+
+        <span class="eq-step-label">For $\textcolor{#3DBFFF}{\vec{E}} = 0$ with $\textcolor{#00DDB5}{\vec{B}} = B\hat{z}$</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+
+        <div class="eq-callout">
+          The <span class="hl-thrust">magnetic force</span> is always <strong>perpendicular</strong>
+          to the particle's velocity, so it provides centripetal acceleration.
+        </div>
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Equate magnetic force to centripetal force</span>
+        $$
+        \underbrace{|\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}}_{\text{magnetic}}
+        \;=\;
+        \underbrace{\frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}}_{\text{centripetal}}
+        $$
+
+        <span class="eq-step-label">Solve for $r_L$</span>
+        $$
+        \boxed{
+        \textcolor{#3DBFFF}{r_L}
+        =
+        \frac{\textcolor{#FF4400}{m}\,\textcolor{#3DBFFF}{v_\perp}}{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}
+        }
+        $$
+
+        <div class="eq-callout highlight-blue">
+          A heavier <span class="hl-ion">ion</span> gyrates with a
+          <strong>larger</strong> radius than a light <span class="hl-electron">electron</span>
+          at the same speed. A stronger <span class="hl-B">field</span> or larger
+          <span class="hl-q">charge</span> tightens the orbit.
+        </div>
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">E Cross B Drift</div>
+
+  <p class="th-body">
+    The <span class="key">E Cross B Drift</span> occurs due to the nature of acceleration of the
+    <span class="hl-E">electric field</span>. At the halfway point of the
+    <span class="key">cyclotron motion</span>, the electric field prevents the
+    trajectory from making a full circle, instead forcing the particle into starting the next circle. The greater the
+    strength of the electric field, the greater the
+    <span class="hl-ve">drift velocity</span>. The greater the strength of the
+    <span class="hl-B">magnetic field</span>, the smaller the
+    drift velocity.
+  </p>
+
+  $$
+  \boxed{\;
+  \textcolor{#3DBFFF}{\vec{v}_{E\times B}}
+  =
+  \frac{\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}}{\textcolor{#00DDB5}{B}^2}
+  \;}
+  $$
+
+  <div class="eq-panel">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+
+        <span class="eq-note">
+          Apply the <span class="hl-thrust">Lorentz force</span> to a stationary particle with
+          <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>, where
+          $\textcolor{#F5C518}{\vec{E}}, \textcolor{#00DDB5}{\vec{B}} \neq \vec{0}$.
+        </span>
+
+        <span class="eq-step-label">Lorentz Force &amp; Newton's Second Law</span>
+        $$
+        \vec{\textcolor{#FF4400}{F}} = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        \qquad
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}} \times \textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+
+        <span class="eq-note">
+          Suppose $\textcolor{#3DBFFF}{\vec{v}} = \textcolor{#3DBFFF}{\vec{v}_L}(t) + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}$,
+          where $\textcolor{#3DBFFF}{\vec{v}_L}(t)$ is time-varying cyclotron motion about the
+          <span class="hl-B">magnetic field</span> and $\textcolor{#3DBFFF}{\vec{v}_{E\times B}}$ is constant motion assumed
+          perpendicular to the magnetic field.
+        </span>
+
+        <span class="eq-step-label">Decompose the velocity</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d}{dt}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\right)
+        = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\vec{E}}
+        + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\right)\times\textcolor{#00DDB5}{\vec{B}}
+        $$
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}_L}}{dt} + 0
+        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+
+        <span class="eq-step-label">Recall the solution for cyclotron motion</span>
+        $$
+        \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}_L}}{dt} = \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        $$
+        $$
+        \cancel{\textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)}
+        = \textcolor{#C060FF}{q}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        + \cancel{\textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)}
+        $$
+        $$
+        0 = \cancel{\textcolor{#C060FF}{q}}\!\left(\textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)
+        \;\Longrightarrow\;
+        \textcolor{#F5C518}{\vec{E}} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}} = 0
+        $$
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Take the cross product of both sides with $\textcolor{#00DDB5}{\vec{B}}$</span>
+        $$
+        \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
+        + \left(\textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)\times\textcolor{#00DDB5}{\vec{B}} = 0
+        $$
+
+        <span class="eq-step-label">Use the vector identity $(\vec{A}\times\vec{B})\times\vec{C} = \vec{B}(\vec{A}\cdot\vec{C}) - \vec{A}(\vec{B}\cdot\vec{C})$</span>
+        $$
+        \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
+        + \textcolor{#00DDB5}{\vec{B}}\underbrace{\left(\textcolor{#3DBFFF}{\vec{v}_{E\times B}}\cdot\textcolor{#00DDB5}{\vec{B}}\right)}_{=\,0}
+        - \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\left(\textcolor{#00DDB5}{\vec{B}}\cdot\textcolor{#00DDB5}{\vec{B}}\right) = 0
+        $$
+        $$
+        \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
+        - \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\,\textcolor{#00DDB5}{B}^2 = 0
+        $$
+
+        <span class="eq-step-label">Solve for the drift velocity</span>
+        $$
+        \boxed{\;
+        \textcolor{#3DBFFF}{\vec{v}_{E\times B}}
+        =
+        \frac{\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}}{\textcolor{#00DDB5}{B}^2}
+        \;}
+        $$
+
+        <div class="eq-callout highlight-blue">
+          The drift is perpendicular to <strong>both</strong> fields, and is independent of the particle's
+          <span class="hl-mass">mass</span> and <span class="hl-q">charge</span>: ions and electrons drift
+          together. A stronger <span class="hl-E">electric field</span> speeds up the drift; a stronger
+          <span class="hl-B">magnetic field</span> slows it down.
+        </div>
+
+      </div>
+    </details>
+  </div>
 </div>
 
 <!-- ════════════════════ SOURCES ════════════════════
@@ -3640,7 +3635,7 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
     submit.disabled = true;
 
     if (allCorrect) {
-      fb.textContent = 'Correct on every count.';
+      fb.textContent = 'Correct.';
       fb.style.color = '#51cf66';
     } else {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Hall Thruster IV: Potential Distribution</title>
+<title>Hall Thruster IV: Potential &amp; Field Distribution</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -311,6 +311,35 @@ details.clarify-detail > summary:focus-visible {
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
 
+/* ── Callout box ────────────────────
+   Ported verbatim from larmor_applet.html, which is where the imported
+   derivation blocks on these pages come from. A callout has to look the
+   same wherever the reader meets the same derivation, so these values
+   are copied rather than re-chosen. */
+.eq-callout {
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
+}
+
 details.deriv-detail {
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -611,7 +640,14 @@ details.deriv-detail > summary:focus-visible {
    is short enough that hiding it buys nothing. */
 .quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
 .quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
-.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
   font-size: 16px;
   font-weight: 400;
@@ -1145,17 +1181,18 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Hall Thruster IV: Potential Distribution</h1>
+  <h1>Hall Thruster IV: Potential &amp; Field Distribution</h1>
   <span class="badge">Electric Propulsion</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  Everything so far has pointed at one question. The
-  <a class="applet-link" href="../gridded_ion/GIE_Potential_applet.html">gridded engine's potential profile</a>
-  could be read straight off its hardware: every rise and drop sat on a grid or an electrode you could point to.
-  A Hall thruster's <span class="hl-phi">potential</span> falls in open space, in the last few millimeters before
-  the exit plane, with nothing there to mark the spot.
+  Not every <span class="hl-ion">ion</span> ejected from a Hall thruster is expelled at the same
+  <span class="hl-ve">exhaust velocity</span>. Because the <span class="hl-phi">electric potential</span> varies
+  along the <span class="key">discharge channel</span>, and because
+  <span class="hl-neutral">neutrals</span> are ionized at various points along the channel, newly formed ions
+  experience different <span class="hl-phi">potential drops</span> through the channel. Because of this, it is
+  important to understand where ionization and acceleration occur in the thruster.
 </p>
 
 <div class="color-key">
@@ -1168,39 +1205,33 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
 </div>
 
-<p class="page-intro">
-  What puts it there is the <span class="hl-B">magnetic field</span>.
-  <span class="hl-electron">Electrons</span> move along a field line almost freely and across one only with
-  difficulty, which makes a field line very nearly an <span class="key">equipotential</span>. Shape
-  <span class="hl-B">B</span> and you have shaped <span class="hl-phi">&phi;</span>: the steep axial gradient
-  forms where the radial field is strongest, and designers put that peak just inside the exit
-  plane.<sup class="cite"><a href="HT_Overview_applet.html#ref-2">2</a></sup> This is the sense in which a Hall thruster's accelerator
-  grid is made of magnetic field.
-</p>
-
-<!-- ════════════════════ Q1: WHAT LOCATES THE FALL ════════════════════ -->
+<!-- ════════════════════ Q1: WHERE ACCELERATION HAPPENS ════════════════════
+     BOTH options are marked correct, because both are marked correct in the layout
+     document this page is written from. Flagged for Jordan: if only one was meant to
+     be, flip the other to data-correct="false" here and the quiz JS does the rest. -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
-  <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">No electrode sits where a Hall thruster's <span class="hl-phi">potential</span> drop
-    happens. What fixes its position along the channel?</p>
+  <div class="quiz-block" data-quiz="multi">
+    <p class="quiz-q">Through careful configuration of permanent magnets or solenoid design, the
+    <span class="hl-B">magnetic field distribution</span> can be changed. There is a peak in magnetic field
+    strength in this distribution. Does <span class="hl-ion">ion</span> acceleration take place before or after
+    the peak?</p>
+    <p class="quiz-hint">Select all that apply, then submit.</p>
     <div class="quiz-options">
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>The exit plane itself: the plasma potential must fall to the ambient value at the open end, so the drop sits at the lip of the channel as a matter of geometry.
+      <button class="quiz-opt" data-correct="true">
+        <span class="quiz-opt-label">a</span><span class="quiz-opt-text">Before the $B_r$ peak</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>The peak of the radial magnetic field. Electrons short out any potential difference along a field line but not across one, so the axial gradient concentrates where crossing the field is hardest.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>The position of the cathode, since the potential must fall from the anode to whatever the cathode sits at, and the drop forms along the line joining them.
+        <span class="quiz-opt-label">b</span><span class="quiz-opt-text">After the $B_r$ peak</span>
       </button>
     </div>
+    <button class="quiz-submit" type="button">Submit</button>
     <div class="quiz-feedback"></div>
   </div>
 </div>
 
 <div class="theory-block applet-host">
-  <div class="th-hdr">Move the Field, Move the Fall</div>
+  <div class="th-hdr">Radial Field &amp; Potential Distribution</div>
   <div class="fig-app">
   <div class="fig-frame">
     <svg id="mf-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" role="img"
@@ -1360,154 +1391,101 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     </div>
   </div>
 
-  <p class="fig-caption">
-    Drag the peak and the whole acceleration region goes with it. The link between the two panels is the one
-    assumption this figure makes: <span class="hl-electron">electrons</span> cross the field with a mobility that
-    falls as $1/B^2$, so holding their current fixed puts the axial field where crossing is hardest,
-    $E_z \propto B_r^2$, and $\varphi$ is that field integrated back from the exit. Pull the peak upstream and
-    more of the fall happens inside the channel, where the <span class="hl-ion">ions</span> it produces are
-    still close enough to the walls to hit them. Push it downstream and the beam is born outside the channel,
-    more divergent and less well confined. Where designers actually put it, just inside the exit plane, is the
-    settlement between those two.
-    <!-- TODO (skeleton): the 1/B^2 mobility is CLASSICAL, and this page's own sibling admits
-         that measured cross-field transport is anomalous and much faster. The shape here is
-         therefore qualitatively right and quantitatively soft. Either state that inside the
-         figure or fit the profile to a published axial potential measurement (Haas and
-         Gallimore's emissive-probe maps of the SPT-100 are the standard reference) and cite
-         it. Also: the Gaussian B(z) is a stand-in. The real profile comes from the magnetic
-         circuit in build_thruster.py and could be computed from it. -->
-  </p>
 </div>
 
-<!-- ════════════════════ 3D VIEWER ════════════════════
-     The viewer's own Potential stage, which is what this slot held a placeholder for. It is the
-     figure above, moved onto the hardware: the same Gaussian B_r, the same E_z proportional to
-     B_r squared, the same phi integrated back from downstream, the same three readouts by the
-     same definitions - but authored in model millimeters and projected through the section
-     camera, so every feature lands on the part that causes it. One model, two figures, which is
-     the only way a page and its viewer can be kept from disagreeing about where the thruster
-     accelerates. -->
+<p class="page-intro">
+  The <span class="hl-phi">electric potential</span> and <span class="hl-B">radial magnetic field</span>
+  distributions of the thruster are very closely linked. Before the peak magnetic field strength,
+  <span class="hl-ion">ions</span> and <span class="hl-electron">electrons</span> are both free moving. Even
+  though the <span class="key">anode</span> is set at a high potential, the ions cannot experience a
+  <span class="hl-phi">potential drop</span> due to the shielding provided by the nearby, mobile electrons. As
+  the ion drifts toward the peak <span class="hl-B">$B_r$</span> strength, however, a greater number of the
+  electrons are trapped in the <span class="key">Hall current</span>'s
+  <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirrors</a>. The
+  electrons can no longer shield the ions from the anode voltage. Most of the ions have already been or are just
+  ionized from the electron ring and incoming electrons, so they accelerate into the exhaust plume.
+</p>
+
 <div class="theory-block applet-host">
-  <div class="th-hdr">The Axial Potential on the Hardware</div>
+  <div class="th-hdr">The Distributions on the Hardware</div>
   <iframe class="applet-frame" src="hall_thruster.html?mode=potential&amp;v=4"
           title="Axial potential and radial magnetic field registered against the thruster cross-section"
           loading="lazy"></iframe>
-  <p class="fig-caption">
-    The plot is drawn IN the thruster, on the thruster's own axis: the two dashed planes are the real
-    <span class="key">anode</span> face and the real <span class="key">exit plane</span>, and the shaded band is
-    the middle 80% of the fall. Notice where it lands. Roughly two thirds of the
-    <span class="hl-phi">potential</span> drop is inside the channel and the last third is out in the
-    <span class="hl-ion">beam</span>, in open plasma with no hardware anywhere near it. Switch to
-    <span class="key">Electron potential</span> and the same curve is climbed the other way, from the
-    <span class="key">cathode</span> up to the <span class="key">anode</span>, and it only gets back to where it
-    started by going round the outside through the supply, which is the
-    <a class="applet-link" href="HT_Overview_applet.html#viewer">circuit diagram</a> drawn as a potential
-    instead of as wires. Switch to
-    <span class="key">Radial field</span> and the reason the band sits where it does is underneath it: the peak of
-    <span class="hl-B">B<sub>r</sub></span>. Drag that peak and the band goes with it.
-    <!-- TODO (skeleton): the profile is the classical closure, so it is qualitatively right and
-         quantitatively soft; the panel's own footer note says so. Fit it to a published axial
-         potential measurement (Haas and Gallimore's emissive-probe maps of the SPT-100) and cite
-         it, and take the 150 G peak and the 15 V coupling voltage from the same source rather
-         than leaving them as round numbers of the right order. -->
-  </p>
 </div>
 
-<!-- ════════════════════ THE CIRCUIT ════════════════════ -->
-<div class="transition-line">
-  Read the same thing a second way. Not as a profile an ion falls down, but as a set of supplies that each have
-  to close a circuit.
+<p class="page-intro">
+  There are fewer <span class="hl-power">power supplies</span> in a Hall thruster than in a
+  <a class="applet-link" href="../gridded_ion/GIE_Potential_applet.html">gridded ion engine</a>. The one primary
+  power source of a Hall thruster is for the <span class="hl-phi">anode discharge voltage</span>, as a large
+  current of <span class="hl-electron">electrons</span> must be pumped through a large
+  <span class="hl-phi">potential drop</span> to neutralize outgoing <span class="hl-ion">ions</span> and feed the
+  azimuthal <span class="key">Hall current</span>.
+</p>
+
+<!-- ════════════════════ POWER SUPPLY DEMO ════════════════════
+     The viewer's ?circuit=1 embed: the cross-section with the electrical circuit
+     overlay on and the control panel hidden. It is a flag rather than a ?mode= stage
+     because the schematic is already a cumulative overlay on this section; see the
+     note beside EMBED_CIRCUIT in hall_thruster.html. -->
+<div class="theory-block applet-host" id="circuit-fig">
+  <div class="th-hdr">Power Supply</div>
+  <iframe class="applet-frame" src="hall_thruster.html?circuit=1&amp;v=4"
+          title="Hall thruster cross-section with the discharge circuit drawn on it"
+          loading="lazy"></iframe>
 </div>
 
+<p class="page-intro">
+  At the same time, there are various components of <span class="key">efficiency</span> to be considered in a
+  Hall thruster.
+</p>
+
+<!-- ════════════════════ EFFICIENCY COMPONENTS ════════════════════ -->
 <div class="theory-block">
-  <div class="th-hdr">The Supplies, and What Each One Closes</div>
-  <p class="th-body">
-    <!-- TODO: one paragraph per supply, in the shape GIE_Potential_applet.html uses:
-           - discharge supply, anode positive with respect to cathode, carries the discharge
-             current, does essentially all the accelerating work
-           - cathode heater, used to start and then usually turned off in steady state
-           - keeper, holds the cathode discharge alive
-           - magnet coil supply, sets B and therefore sets where the potential falls, which is
-             the loop back to the top of this page
-         Then say which of these a student would be surprised to find is NOT in the ion's path. -->
-    TODO: the <span class="key">discharge supply</span>, the <span class="key">cathode heater</span>, the
-    <span class="key">keeper</span>, and the <span class="key">magnet coils</span>. The last of these is the one
-    that makes this page circular in a useful way: it sets <span class="hl-B">B</span>, and
-    <span class="hl-B">B</span> sets where the <span class="hl-phi">potential</span> falls.
-  </p>
-</div>
+  <div class="th-hdr">Mass Utilization</div>
 
-<!-- ════════════════════ WHY THE BEAM FALLS SHORT ════════════════════
-     This slot used to hold the CIRCUIT DIAGRAM figure (hall_thruster.html?circuit=1). That
-     figure is gone rather than moved, and deliberately: the potential viewer directly above it
-     already draws the same loop as a potential, and its caption says so, so the schematic was
-     the page's third consecutive framing of one circuit. The overlay itself is untouched and is
-     still reachable from the Overview page's viewer, which is the only one in the series
-     carrying the full switch panel; the link in the caption above points there. -->
-<div class="transition-line">
-  So the supply holds a few hundred volts and the field decides where they fall. Now ask what the beam
-  actually leaves with, which turns out not to be either of those numbers.
-</div>
-
-<div class="theory-block">
-  <div class="th-hdr">Why the Beam Energy Is Less Than the Discharge Voltage</div>
-  <p class="th-body">
-    A reader who has followed the profile this far can be forgiven for expecting an
-    <span class="hl-ion">ion</span> to arrive with $eV_\mathrm{d}$ of energy. None of them do, and there are two
-    separate reasons stacked on top of each other.
-  </p>
-  <p class="th-body">
-    The first is the <span class="key">cathode coupling voltage</span> from
-    <a class="applet-link" href="HT_Neutralization_applet.html">the previous page</a>. The cathode floats below
-    the plasma it feeds, so the supply's $V_\mathrm{d}$ is measured anode-to-cathode while the fall an ion
-    actually gets is anode-to-plume. The difference, $V_\mathrm{cc}$, is voltage the supply pays for and no
-    <span class="hl-ion">ion</span> ever falls through. It is around 5% at the profile's default settings, and it
-    is a ceiling rather than a spread: it applies to every ion equally, including one born on the anode itself.
-  </p>
-  <p class="th-body">
-    The second is the one <a class="applet-link" href="HT_Acceleration_applet.html">the acceleration page</a>
-    raised and could not yet put a number on. An ion is created wherever its parent
-    <span class="hl-neutral">neutral</span> happened to be ionized, and if that station is partway down the fall
-    then the ion only gets the part below it. So the exhaust does not leave at one energy. It leaves with a
-    <span class="key">distribution</span> of energies, $f(\varphi)$, and $f$ is not a second thing to be
-    measured: it is the ionization rate along the channel pushed through the very curve above, since
-    $f(\varphi)\,d\varphi = \dot n_i(z)\,dz$ with $\varphi = \varphi(z)$. Move the field peak and you have moved
-    $\varphi(z)$, which moves $f$, whether you meant to or not.
-  </p>
-  <p class="th-body">
-    Both losses are factors in the same product. Writing the thrust efficiency out and grouping the terms by
-    what each one penalizes<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup> gives
-  </p>
   <div class="eq-panel">
-    <span class="eq-step-label">Thrust efficiency, factored</span>
-    $$ \boxed{\;\eta \;=\;
-       \underbrace{\left(\frac{\textcolor{#9aa3b2}{\dot m_i}}{\textcolor{#9aa3b2}{\dot m}}\right)}_{\eta_u}\;
-       \underbrace{\left(\frac{\textcolor{#3DBFFF}{I_B}}{\textcolor{#F5C518}{I_a}}\right)}_{\eta_a}\;
-       \underbrace{\left(\int_0^1 \sqrt{\varphi}\,f(\varphi)\,d\varphi\right)^{\!2}}_{\eta_E}\;} $$
-    <span class="eq-caption">$\varphi$ is the birth potential normalized on the discharge voltage, so
-      every factor is at most one.</span>
+    $$ \boxed{\;\eta_u
+       = \frac{\textcolor{#FF4400}{\dot m_i}}{\textcolor{#FF4400}{\dot m}}\;} $$
   </div>
-  <p class="th-body">
-    Each factor is less than one, and each is the unfinished business of a different page in this series.
-    <span class="key">Utilization</span> $\eta_u$ is propellant that left as gas, which is
-    <a class="applet-link" href="HT_Buzzsaw_applet.html">the Hall current's</a> job to prevent.
-    <span class="key">Anode efficiency</span> $\eta_a$ is <span class="hl-electron">electrons</span> that crossed
-    the field to the anode and were paid for at the full discharge voltage without pushing anything, which is
-    what the <span class="hl-B">magnetic field</span> exists to make hard.
-    <span class="key">Energy efficiency</span> $\eta_E$ is the spread this page has just accounted for, and it is
-    the only one of the three that is a functional of a distribution rather than a ratio of two numbers.
+
+  <p class="th-body" style="margin-top:14px">
+    As in a <a class="applet-link" href="../gridded_ion/GIE_Ionization_applet.html">gridded ion engine</a>, the
+    <span class="key">mass utilization</span> is the fraction of <span class="hl-m">mass flow rate</span> that
+    results in a mass flow rate of <span class="hl-ion">ions</span> out of the engine. This is important because
+    only ions can be accelerated to the desired <span class="hl-ve">exhaust speed</span> required for the
+    mission.
   </p>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Backstreaming</div>
   <p class="th-body">
-    The <a class="applet-link" href="../gridded_ion/GIE_Potential_applet.html">gridded engine</a> is the useful
-    contrast on the third factor, because it has almost no third factor. Essentially every
-    <span class="hl-ion">ion</span> there is born in the discharge chamber and starts its fall at the
-    <span class="key">screen grid</span>, so $f(\varphi)$ is very nearly a spike, the integral is very nearly
-    one, and $\eta_E$ is not a quantity anyone has to draw. That is what a hardware-defined starting potential
-    buys you. Giving it up is part of the price of
-    <a class="applet-link" href="HT_Acceleration_applet.html">escaping the space-charge limit</a>: accelerating
-    through a plasma instead of between two grids means the plasma decides where each ion enters the field, and
-    nothing in the thruster is holding it to one answer.
+    The more <span class="hl-electron">electron current</span> directed toward the
+    <span class="hl-ion">ion beam</span> as opposed to leaking to the <span class="key">anode</span>, the more
+    efficient the anode. <span class="hl-power">Power</span> is wasted on electrons that do not neutralize ions.
+    Additionally, power is wasted on electrons that <span class="key">backstream</span> and yet do not ionize any
+    <span class="hl-neutral">neutral particles</span>.
   </p>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Energy Efficiency</div>
+  <p class="th-body">
+    Not all <span class="hl-ion">ions</span> are born before or at the
+    <span class="hl-phi">potential drop</span> of the thruster, some are born afterward. These constitute a loss.
+    As the fraction of ions formed before or at the potential drop increases, so does the
+    <span class="key">energy efficiency</span> of the thruster.
+  </p>
+</div>
+
+<p class="page-intro">
+  The total efficiency of the thruster is the product of all three.
+</p>
+
+<div class="theory-block">
+  <div class="eq-panel">
+    $$ \boxed{\;\eta \;=\; \eta_u\,\eta_a\,\eta_E\;} $$
+  </div>
 </div>
 
 <!-- ════════════════════ EFFICIENCY ════════════════════
@@ -1520,58 +1498,167 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
      not re-derive it: it calls the Potential stage's own potPhi/potFrac, so the two figures bin
      and draw the same curve and cannot drift apart. -->
 <div class="theory-block applet-host" id="efficiency-fig">
-  <div class="th-hdr">What the Spread Costs</div>
+  <div class="th-hdr">Efficiency</div>
   <iframe class="applet-frame" src="hall_thruster.html?mode=efficiency&amp;v=4"
           title="Ion birth potential, propellant utilization and the discharge current split, drawn on the thruster cross-section"
           loading="lazy"></iframe>
-  <p class="fig-caption">
-    Three views of one model, with the panel reporting all four numbers on every one of them. On
-    <span class="key">Birth potential</span>, every <span class="hl-ion">ion</span> appears ON the curve at the
-    height its birth station maps to and rides the rest of the fall down; the bars up the right-hand edge are
-    those heights counted into bins, which is to say they are $f(\varphi)$ and they are nothing but this scatter
-    projected sideways. Drag <span class="key">Zone center</span> upstream, away from the fall, and the bars
-    gather at the top and $\eta_E$ climbs: that separation of the ionization region from the acceleration region
-    is the design principle, not an accident of the model. Drag it downstream into the fall and the distribution
-    smears down the axis. <span class="key">Propellant</span> is the same ionization rate read the other way, as
-    a bite taken out of the <span class="hl-neutral">neutral</span> flux, and whatever is still gas at the
-    right-hand edge is the $1-\eta_u$ that left at a few hundred meters per second.
-    <span class="key">Currents</span> is the split the equation above calls $I_B/I_a$, with the leak drawn as
-    what it physically is: <span class="hl-electron">electrons</span> crossing the acceleration band the wrong
-    way to reach the anode.
-    <!-- TODO (skeleton): three quantitative gaps, all named in the panel's own footer note.
-         (1) The back-streaming law is 1/B^2 from classical mobility, calibrated to land eta_a
-         near 0.77 at 150 G. Real cross-field transport is anomalous and much faster, and this
-         is the one factor where that matters most; fit it to a published I_b/I_d curve
-         (Hofer's SPT-100 / NASA-173Mv2 performance maps) and cite it.
-         (2) The ionization zone is a free Gaussian with a strength slider. It could be computed
-         from the same magnetic circuit the field profile comes from, since T_e peaks where B
-         does and that is what sets <sigma v>.
-         (3) The product is three factors, not five: beam divergence and multiply-charged ions
-         are missing, which is why it reads high against a flown thruster's ~50%. Add both as
-         a fourth and fifth factor, or state the omission inside the figure rather than only in
-         the panel footer. -->
+</div>
+
+<!-- ════════════════════ EFFICIENCY DERIVATIONS ════════════════════
+     One block per factor of eta = eta_u eta_a eta_E, from Martinez-Sanchez & Lozano
+     16.522 Session 38 (ref-4): the leak-current chain is eqs. 18 through 20, and the
+     birth-potential integral is the lecture's energy-efficiency factor.
+     Jordan's own derivations replace these later. -->
+<div class="theory-block">
+  <div class="th-hdr">Anode Efficiency</div>
+
+  <p class="th-body">
+    <span class="hl-electron">Electrons</span> that cross the <span class="hl-B">magnetic barrier</span> and
+    reach the <span class="key">anode</span> were pumped through the full
+    <span class="hl-phi">discharge voltage</span> and pushed on nothing. The
+    <span class="key">anode efficiency</span> is the fraction of the discharge current that actually left as
+    <span class="hl-ion">beam</span>.<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup>
   </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Anode Efficiency</span>
+    $$ \boxed{\;\eta_a = \frac{\textcolor{#3DBFFF}{I_B}}{\textcolor{#F5C518}{I_a}}
+       = \frac{1}{1 + \textcolor{#ffe94d}{I_\mathrm{leak}}/\textcolor{#3DBFFF}{I_B}}\;} $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+        <span class="eq-step-label">Cross-field electron speed</span>
+        <span class="eq-note">
+          When the scattering collision frequency $\nu_{eH}$ with heavy particles becomes comparable to the
+          cyclotron frequency $\omega_{ce}$, electrons can no longer maintain pure azimuthal drift: each
+          collision lets the <span class="hl-E">electric field</span> nudge them toward the anode by about one
+          <span class="hl-ve">Larmor radius</span>, at a velocity similar to the azimuthal drift velocity.
+        </span>
+        $$ v_{e_x} \;\approx\; \frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}\,
+           \frac{\nu_{eH}}{\omega_{ce}}
+           \qquad\qquad
+           \nu_{eH} = \textcolor{#9aa3b2}{n_H}\,\bar{c}_e\,Q_{eH} $$
+        <span class="eq-caption">$\nu_{eH}/\omega_{ce}$ is $1/\beta$: one over the gyrations completed between
+          collisions.</span>
+
+        <span class="eq-step-label">Leak current</span>
+        $$ \textcolor{#ffe94d}{I_\mathrm{leak}}
+           = \textcolor{#C060FF}{e}\,n_e\,\frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}
+             \frac{\nu_{eH}}{\omega_{ce}} $$
+        <span class="eq-note">
+          The electron density $n_e$ in the acceleration region is governed by the flow of ions from the
+          upstream ionization region, so it increases in the same proportion as
+          <span class="hl-m">$\dot m$</span> or $\textcolor{#3DBFFF}{I_B}$. But
+          $\textcolor{#ffe94d}{I_\mathrm{leak}}$ carries <em>both</em> $n_e$ and $\nu_{eH}$, so it rises as the
+          square: the ratio of the two grows linearly with flow.
+        </span>
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Current balance, ignoring wall losses</span>
+        $$ \textcolor{#3DBFFF}{I_B} = \textcolor{#F5C518}{I_a} - \textcolor{#ffe94d}{I_\mathrm{leak}}
+           \qquad\Longrightarrow\qquad
+           \eta_a = 1 - \frac{\textcolor{#ffe94d}{I_\mathrm{leak}}}{\textcolor{#F5C518}{I_a}}
+           = \frac{1}{1 + \textcolor{#ffe94d}{I_\mathrm{leak}}/\textcolor{#3DBFFF}{I_B}} $$
+
+        <span class="eq-step-label">The flow ceiling this implies</span>
+        <span class="eq-note">
+          Assume the ions constituting $\textcolor{#3DBFFF}{I_B}$ cross the magnetic barrier at about half their
+          eventual speed $\textcolor{#3DBFFF}{v_i}$, and ask for a leak no worse than a fifth of the beam:
+        </span>
+        $$ \frac{\textcolor{#ffe94d}{I_\mathrm{leak}}}{\textcolor{#3DBFFF}{I_B}}
+           = \frac{v_{e_x}}{\textcolor{#3DBFFF}{v_i}/2}
+           = \frac{2}{\textcolor{#3DBFFF}{v_i}}\frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}
+             \frac{\nu_{eH}}{\omega_{ce}} \;\le\; 0.2
+           \qquad\Longrightarrow\qquad
+           \nu_{eH} \;\le\; 0.1\,\frac{\textcolor{#3DBFFF}{v_i}\,\textcolor{#00DDB5}{B}\,\omega_{ce}}
+           {\textcolor{#F5C518}{E}} $$
+        $$ \textcolor{#9aa3b2}{n_H} = \frac{\nu_{eH}}{\bar{c}_e Q_{eH}}
+           \;\le\; 3.5\times10^{19}\ \mathrm{m^{-3}} $$
+        <span class="eq-caption">SPT-100 numbers: $\textcolor{#3DBFFF}{v_i} = 16\,000$ m/s,
+          $\textcolor{#00DDB5}{B} \approx 0.02$ T, $\omega_{ce} \approx 3.5\times10^{9}$ rad/s,
+          $\textcolor{#F5C518}{E} \approx 5$ kV/m, $T_e \approx 10$ eV,
+          $Q_{eH} \approx 3\times10^{-19}$ m&sup2;. Measured neutral densities in this type of thruster are
+          still significantly lower than this
+          value.<sup class="cite"><a href="HT_Overview_applet.html#ref-4">4</a></sup></span>
+
+        <div class="eq-callout highlight-blue">
+          Higher electron collisionality hurts efficiency, and raising
+          <span class="hl-B">$B$</span> (where feasible) is the way to counteract it. This is the same
+          <span class="hl-B">$B^{-2}$</span> confinement the
+          <a class="applet-link" href="HT_Acceleration_applet.html">diffusion derivation</a> gives, read as a
+          current rather than as a diffusivity.
+        </div>
+      </div>
+    </details>
+  </div>
 </div>
 
-<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
-<div class="clarify-section">
-  <div class="clarify-hdr">Conceptual Questions</div>
+<div class="theory-block">
+  <div class="th-hdr">Energy Efficiency Factor</div>
 
-  <details class="clarify-detail">
-    <summary>If the accelerating field is set by where the magnetic field peaks, what happens to the thruster
-    when the magnet current is changed at a fixed discharge voltage?</summary>
-    <div class="clarify-body">
-      <!-- TODO: the acceleration region moves and changes shape, which moves where ions are
-           born relative to where they are accelerated, which changes divergence, wall
-           impingement and efficiency. This is the hook for the magnetic-lens applet, so
-           forward-reference it once that page exists. -->
-      TODO. This is the hook for a magnetic lens and shielding page.
-    </div>
-  </details>
+  <p class="th-body">
+    An <span class="hl-ion">ion</span> is created wherever its parent
+    <span class="hl-neutral">neutral</span> happened to be ionized, so the exhaust does not leave at one energy.
+    It leaves with a <span class="key">distribution</span> of birth potentials
+    <span class="hl-phi">$f(\varphi)$</span>, and $f$ is not a second thing to be measured: it is the ionization
+    rate along the channel pushed through the potential profile above, since
+    $f(\varphi)\,d\varphi = \dot n_i(z)\,dz$ with $\varphi = \varphi(z)$.
+  </p>
+
+  <div class="eq-panel">
+    <span class="eq-step-label">Energy Efficiency</span>
+    $$ \boxed{\;\eta_E
+       = \left(\int_0^1 \sqrt{\varphi}\,f(\varphi)\,d\varphi\right)^{\!2}\;} $$
+
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
+        <span class="eq-step-label">Exit velocity of an ion born at potential $\varphi$</span>
+        <span class="eq-note">
+          $\varphi$ is the birth potential normalized on the
+          <span class="hl-phi">discharge voltage</span>, so it runs from $0$ to $1$ and every factor below is at
+          most one.
+        </span>
+        $$ \textcolor{#3DBFFF}{v_i}(\varphi)
+           = \sqrt{\frac{2\textcolor{#C060FF}{e}\,\varphi\,\textcolor{#F5C518}{V_d}}{\textcolor{#FF4400}{m_i}}}
+           = \sqrt{\varphi}\;\textcolor{#3DBFFF}{v_{i,\max}} $$
+
+        <span class="eq-step-label">Thrust is the first moment, power is the second</span>
+        <span class="eq-note">
+          <span class="hl-thrust">Thrust</span> goes as the mean of $\textcolor{#3DBFFF}{v_i}$ over the
+          distribution, while the <span class="hl-power">beam power</span> goes as the mean of
+          $\textcolor{#3DBFFF}{v_i}^2$, which is just $\varphi$ itself:
+        </span>
+        $$ \left\langle \textcolor{#3DBFFF}{v_i} \right\rangle
+           = \textcolor{#3DBFFF}{v_{i,\max}}\int_0^1 \sqrt{\varphi}\,f(\varphi)\,d\varphi
+           \qquad
+           \left\langle \textcolor{#3DBFFF}{v_i}^{2} \right\rangle
+           = \textcolor{#3DBFFF}{v_{i,\max}}^{2}\int_0^1 \varphi\,f(\varphi)\,d\varphi $$
+
+        <span class="eq-step-label">The efficiency is the ratio of the two</span>
+        <span class="eq-note">
+          A thruster is judged on the <span class="hl-thrust">thrust</span> it makes for the
+          <span class="hl-power">power</span> it spends, so the penalty for a spread is the square of the mean
+          against the mean of the square:
+        </span>
+        $$ \eta_E = \frac{\left\langle \textcolor{#3DBFFF}{v_i} \right\rangle^{2}}
+                         {\left\langle \textcolor{#3DBFFF}{v_i}^{2} \right\rangle}
+           \cdot \int_0^1 \varphi\,f(\varphi)\,d\varphi
+           \;=\; \left(\int_0^1 \sqrt{\varphi}\,f(\varphi)\,d\varphi\right)^{\!2} $$
+
+        <div class="eq-callout highlight-blue">
+          If every ion were born at the top of the fall, $f$ would be a spike at $\varphi = 1$, the integral
+          would be one, and $\eta_E$ would cost nothing. That is what a
+          <a class="applet-link" href="../gridded_ion/GIE_Potential_applet.html">gridded engine</a> gets from
+          starting every ion at the screen grid, and it is what a Hall thruster gives up in exchange for
+          escaping the space-charge limit.
+        </div>
+      </div>
+    </details>
+  </div>
 </div>
-
-<!-- ════════════════════ SOURCES ════════════════════
-     TODO: same as the other stage pages. -->
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
@@ -1787,7 +1874,7 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
     submit.disabled = true;
 
     if (allCorrect) {
-      fb.textContent = 'Correct on every count.';
+      fb.textContent = 'Correct.';
       fb.style.color = '#51cf66';
     } else {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';

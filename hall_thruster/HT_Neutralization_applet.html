@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Hall Thruster III: Neutralization</title>
+<title>Hall Thruster III: The Cathode</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -311,6 +311,35 @@ details.clarify-detail > summary:focus-visible {
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
 
+/* ── Callout box ────────────────────
+   Ported verbatim from larmor_applet.html, which is where the imported
+   derivation blocks on these pages come from. A callout has to look the
+   same wherever the reader meets the same derivation, so these values
+   are copied rather than re-chosen. */
+.eq-callout {
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
+}
+
 details.deriv-detail {
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -611,7 +640,14 @@ details.deriv-detail > summary:focus-visible {
    is short enough that hiding it buys nothing. */
 .quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
 .quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
-.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
   font-size: 16px;
   font-weight: 400;
@@ -1145,17 +1181,21 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Hall Thruster III: Neutralization</h1>
+  <h1>Hall Thruster III: The Cathode</h1>
   <span class="badge">Electric Propulsion</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The argument for neutralizing the beam is the same one the
-  <a class="applet-link" href="../gridded_ion/GIE_Neutralization_applet.html">gridded engine</a> made.
-  <span class="key">Charge is conserved</span>: expel positive <span class="hl-ion">ions</span> and do nothing
-  about it, and the spacecraft is left negatively charged, which endangers its electronics and eventually pulls
-  the <span class="hl-ion">exhaust</span> back, canceling <span class="hl-thrust">thrust</span>.
+  The <span class="key">cathode</span> serves two roles: it provides the required
+  <span class="hl-electron">electron current</span> to neutralize the outgoing beam of
+  <span class="hl-ion">ions</span> (just like the
+  <a class="applet-link" href="../gridded_ion/GIE_Neutralization_applet.html">gridded ion engine</a>), and
+  ionizes the <span class="hl-neutral">neutral propellant particles</span> injected into the
+  <span class="key">discharge channel</span>. Recall that the <span class="hl-ion">exhaust jet</span> must leave
+  <span class="key">quasineutral</span> or it will eventually travel back to the spacecraft. The cathode can be
+  configured either externally, like a gridded ion engine, or it can be placed coaxially in the center of the
+  thruster.
 </p>
 
 <div class="color-key">
@@ -1168,133 +1208,27 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
 </div>
 
-<p class="page-intro">
-  What is different here is the hardware doing it. The gridded engine carried a
-  <span class="key">neutralizer cathode</span> whose only job was the beam. A Hall thruster has one hollow
-  <span class="key">cathode</span> mounted outside the body, and it does two jobs at once: it supplies the
-  <span class="hl-electron">electrons</span> that stream back into the channel to sustain the discharge and feed
-  the buzzsaw, and it supplies the electrons that neutralize the
-  <span class="hl-ion">beam</span>.<sup class="cite"><a href="HT_Overview_applet.html#ref-1">1</a></sup>
-</p>
-
-<!-- ════════════════════ Q1: WHY NEUTRALIZE ════════════════════ -->
-<div class="quiz-section">
-  <div class="quiz-hdr">Guiding Question</div>
-  <div class="quiz-block" data-quiz="multi">
-    <p class="quiz-q">Why must the <span class="hl-ion">exhaust</span> leave
-    <span class="key">quasineutral</span>?</p>
-    <p class="quiz-hint">Select all that apply, then submit.</p>
-    <div class="quiz-options">
-      <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>By conservation of charge the spacecraft would otherwise be left negatively charged, which can damage onboard electronics.
-      </button>
-      <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>A charged spacecraft eventually pulls its own exhaust back toward it, canceling the thrust it just produced.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>The electrons add momentum of their own to the exhaust, so the beam produces more thrust once they are added.
-      </button>
-      <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">d</span>Recombining the ions with electrons releases energy that the thruster recovers to run its magnets.
-      </button>
-    </div>
-    <button class="quiz-submit" type="button">Submit</button>
-    <div class="quiz-feedback"></div>
-  </div>
-</div>
-
-<!-- ════════════════════ 3D VIEWER ════════════════════ -->
+<!-- ════════════════════ NEUTRALIZATION DEMO ════════════════════ -->
 <div class="theory-block applet-host">
   <div class="th-hdr">Neutralization</div>
   <iframe class="applet-frame" src="hall_thruster.html?mode=neu&amp;v=4"
           title="Neutralization: one cathode feeding both the discharge and the beam"
           loading="lazy"></iframe>
-  <p class="fig-caption">
-    The thruster from the side, locked, with the <span class="hl-ion">beam</span> running to the right. The
-    <span class="key">cathode</span> outside the body feeds two streams at once: one downstream into the
-    <span class="hl-ion">beam</span>, one hooking back over the exit plane to sustain the discharge. The dashed
-    box out in the plume is a real sample volume, counting the <span class="hl-ion">ions</span> and
-    <span class="hl-electron">electrons</span> actually inside it. Cut the cathode and watch what the beam does
-    to the spacecraft it just left.
-  </p>
 </div>
 
-<!-- ════════════════════ CURRENT BOOKKEEPING ════════════════════ -->
-<div class="transition-line">
-  One cathode, two destinations. So how does the emitted electron current divide between them, and what fixes the
-  split?
-</div>
-
-<div class="theory-block">
-  <div class="th-hdr">Where the Electrons Go</div>
-  <p class="th-body">
-    Every <span class="hl-ion">ion</span> that leaves takes one positive charge with it, so the same current has
-    to leave as <span class="hl-electron">electrons</span>: that is the beam-neutralizing share,
-    $I_b$. The rest of the cathode's emission streams back upstream into the channel and is collected at the
-    <span class="key">anode</span>, which is the current the discharge supply actually reads. The cathode's total
-    emission is the two together,
-    <!-- TODO: this states the balance and the constraint that closes it. Still to write:
-           - which of these an operator SETS (the discharge supply's current) and which settles
-             itself (the split, through the beam's own space charge)
-           - current utilization eta = I_b / I_d as a named efficiency, with a cited SPT-100
-             number, and a pointer to where it reappears on the acceleration page
-           - the cathode-off transient properly: the viewer draws the instant AFTER, with the
-             ions still leaving; in reality the discharge extinguishes a moment later -->
-  </p>
-  <div class="eq-panel">
-    $$ I_c \;=\; I_b \;+\; I_{e,\text{back}} \;=\; I_d $$
-    <span class="eq-caption">Cathode emission equals the beam current plus the back-streaming current, and
-      that sum is the discharge current.</span>
-  </div>
-  <p class="th-body" style="margin-top:14px">
-    The constraint that closes it is that the spacecraft draws <span class="key">no net current</span> in steady
-    state. Cut the cathode in the viewer above and the books stop closing: the
-    <span class="hl-ion">ions</span> keep leaving, nothing replaces the charge they carry away, and the
-    <span class="hl-electron">negative charge</span> left behind grows on the hull until it is pulling the beam
-    back. That is the same failure the
-    <a class="applet-link" href="../gridded_ion/GIE_Neutralization_applet.html">gridded engine</a> had, reached
-    by the same arithmetic.
-  </p>
-</div>
-
-<!-- ════════════════════ CATHODE COUPLING ════════════════════ -->
-<div class="theory-block">
-  <div class="th-hdr">Cathode Coupling Voltage</div>
-  <p class="th-body">
-    Getting <span class="hl-electron">electrons</span> from the cathode into the plasma is not free. The cathode
-    sits at a <span class="hl-phi">potential</span> somewhat below the plasma it is feeding, and that difference,
-    the <span class="key">cathode coupling voltage</span>, is voltage the
-    <span class="hl-ion">ions</span> never get to fall
-    through.<sup class="cite"><a href="HT_Overview_applet.html#ref-1">1</a></sup> It is small next to the
-    <span class="key">discharge voltage</span> but it is not negligible, and it is one reason the beam energy
-    does not equal the discharge voltage.
-    <!-- TODO: typical magnitude with a citation, and hand off to the potential page, which
-         is where this appears as a labeled step on the axial profile. -->
-  </p>
-</div>
-
-<!-- ════════════════════ CONCEPTUAL QUESTIONS ════════════════════ -->
-<div class="clarify-section">
-  <div class="clarify-hdr">Conceptual Questions</div>
-
-  <details class="clarify-detail">
-    <summary>The gridded engine needed a dedicated neutralizer cathode. A Hall thruster gets both jobs from one
-    cathode. Is that just a parts saving, or does it follow from the physics?</summary>
-    <div class="clarify-body">
-      <!-- TODO: it follows from the physics. The gridded engine's discharge cathode sits
-           INSIDE the discharge chamber, upstream of a screen grid that deliberately blocks
-           electrons, so it cannot reach the beam. A Hall thruster's channel is open, and the
-           same field that lets cathode electrons stream upstream into the channel also leaves
-           them free to join the beam. One cathode can serve both because nothing separates
-           the two regions. -->
-      TODO: it follows from the physics. The gridded engine's discharge is walled off from its beam by the
-      <span class="key">screen grid</span>; a Hall thruster's channel is open at the exit.
-    </div>
-  </details>
-</div>
-
-<!-- ════════════════════ SOURCES ════════════════════
-     TODO: same as the other stage pages. -->
+<!-- ════════════════════ THE LEAK CURRENT ════════════════════ -->
+<p class="page-intro">
+  A significant portion of the <span class="key">cathode</span> current enters the thruster as leak current
+  <span class="hl-electron">$I_\mathrm{leak}$</span>. This provides the
+  <span class="hl-electron">electrons</span> necessary to form the <span class="key">Hall current</span>. The
+  electrons that escape their <a class="applet-link"
+  href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirrors</a> additionally have a chance to
+  accelerate upstream toward higher <span class="hl-phi">potential</span>, giving them greater energy and thus a
+  higher chance to ionize a <span class="hl-neutral">neutral</span>. Thus, while these
+  <span class="key">backstreaming</span> electrons are a loss mechanism, they help ionize neutrals and ensure
+  that the power spent on their potential drop was not wasted. This helps improve both
+  <span class="key">mass utilization</span> and <span class="key">energy efficiency</span> respectively.
+</p>
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
@@ -1361,7 +1295,7 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
     submit.disabled = true;
 
     if (allCorrect) {
-      fb.textContent = 'Correct on every count.';
+      fb.textContent = 'Correct.';
       fb.style.color = '#51cf66';
     } else {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';
