@@ -388,6 +388,33 @@ footer {
   text-align: center;
   transition: color 0.15s;
 }
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
 .quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
@@ -517,7 +544,7 @@ footer .foot-cred {
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>electron</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
 </div>
 <p class="page-intro">
   If we instead neutralize the beam by shooting <span class="hl-electron">electrons</span> at it with a
@@ -536,16 +563,20 @@ footer .foot-cred {
     <p class="quiz-hint">Select all that apply, then submit.</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Electrons add additional momentum to the exhaust jet, increasing thrust.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Electrons add additional momentum to the exhaust jet, increasing thrust.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Recombining electrons and ions releases energy, which can be used by the thruster to power the accelerating grids, increasing efficiency.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Recombining electrons and ions releases energy, which can be used by the thruster to power the accelerating grids, increasing efficiency.</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">c</span>By conservation of charge, the spacecraft will be left with a net negative charge, which can damage onboard electronics.
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">By conservation of charge, the spacecraft will be left with a net negative charge, which can damage onboard electronics.</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">d</span>Eventually, the expelled ions will travel back to the negatively charged spacecraft, canceling all generated thrust.
+        <span class="quiz-opt-label">d</span>
+        <span class="quiz-opt-text">Eventually, the expelled ions will travel back to the negatively charged spacecraft, canceling all generated thrust.</span>
       </button>
     </div>
     <button class="quiz-submit" type="button">Submit</button>
@@ -557,7 +588,7 @@ footer .foot-cred {
 <div class="theory-block applet-host">
   <div class="th-hdr">Neutralization</div>
   <iframe class="applet-frame" src="gridded_ion.html?mode=neu&v=18"
-          title="Neutralization — quasineutral plume and spacecraft charge"
+          title="Neutralization: quasineutral plume and spacecraft charge"
           loading="lazy"></iframe>
 </div>
 
@@ -589,7 +620,7 @@ document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
       } else {
         opt.classList.add('wrong');
         opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
-        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
         fb.style.color = '#ff8e8e';
       }
     });
@@ -626,10 +657,10 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
     submit.disabled = true;
 
     if (allCorrect) {
-      fb.textContent = 'Correct! Both effects leave the spacecraft charged.';
+      fb.textContent = 'Correct.';
       fb.style.color = '#51cf66';
     } else {
-      fb.textContent = 'Not quite — the correct choices are highlighted in green.';
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
       fb.style.color = '#ff8e8e';
     }
   });

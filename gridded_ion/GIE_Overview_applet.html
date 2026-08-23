@@ -548,6 +548,33 @@ details.clarify-detail > summary:focus-visible {
   text-align: center;
   transition: color 0.15s;
 }
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
 .quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
@@ -719,7 +746,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ APPLET NAV ════════════════════ -->
 <nav class="applet-nav">
-  <a class="nav-prev" href="../magnetic_mirror/magnetic_mirror_applet.html">&larr; Prev</a>
+  <a class="nav-prev" href="../particle_collisions/particle_collisions_applet.html">&larr; Prev</a>
   <a class="nav-home" href="../index.html">Home</a>
   <a class="nav-next" href="GIE_Ionization_applet.html">Next &rarr;</a>
 </nav>
@@ -751,7 +778,8 @@ footer .foot-cred {
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, power</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
   <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
   <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
@@ -779,7 +807,7 @@ footer .foot-cred {
 <div class="theory-block applet-host">
   <div class="th-hdr">3D Viewer &amp; Cross Section</div>
   <iframe id="viewer-frame" class="applet-frame" src="gridded_ion.html?mode=overview&v=18"
-          title="Interactive 3D gridded ion engine — cross-section, fields, and particles"
+          title="Interactive 3D gridded ion engine: cross-section, fields, and particles"
           loading="lazy"></iframe>
 </div>
 

@@ -37,6 +37,11 @@
   --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
   --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
   --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
   --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
@@ -111,7 +116,8 @@ footer {
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
-.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
@@ -175,7 +181,7 @@ footer {
   font-size: 20.5px;
   line-height: 1.72;
   color: var(--text-main);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -376,7 +382,11 @@ details.deriv-detail > summary:focus-visible {
    APPLET — CHARTS (left column)
    ════════════════════════════════════════════════════════ */
 #charts {
-  flex: 0 0 62%;
+  /* 62 + 38, not 62 + 40. The old pair summed to 102% and the
+     control frame's last 2% was silently eaten by the block's
+     overflow:hidden, so its right padding rendered short.     */
+  flex: 1 1 62%;
+  min-width: 0;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr 1fr;
@@ -395,7 +405,7 @@ details.deriv-detail > summary:focus-visible {
    APPLET — CONTROL FRAME (right column)
    ════════════════════════════════════════════════════════ */
 .control-frame {
-  flex: 0 0 40%;
+  flex: 1 1 38%;
   min-width: 0;
   overflow-y: auto;
   margin: 0;
@@ -424,17 +434,25 @@ details.deriv-detail > summary:focus-visible {
 .cf-body {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: flex-start;
 }
+/* The inputs panel cannot usefully go below 240px: the parameter
+   row is 24 + 84 + 36 px of fixed columns plus three 8px gaps plus
+   whatever "Mission time" needs. Declaring that as min-width means
+   a too-narrow frame pushes the outputs panel out (and, with wrap,
+   onto its own line) instead of letting the two draw on top of
+   each other, which is what used to happen.                      */
 .cf-panel {
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 240px;
   display: flex;
   flex-direction: column;
   padding-right: 16px;
 }
 .cf-panel:last-child {
-  flex: 0 0 auto;  /* Changed from no flex specification to this */
+  flex: 0 1 200px;
+  min-width: 190px;
   max-width: 200px;
   padding-right: 0;
   padding-left: 16px;
@@ -538,9 +556,7 @@ details.deriv-detail > summary:focus-visible {
 }
 
 /* ── KaTeX font sizing ──────────────────────────────── */
-.katex {
-  font-size: 1.2em !important;
-}
+.katex { font-size: 1.15em !important; }
 .katex-display {
   font-size: 1.2em !important;
 }
@@ -577,6 +593,83 @@ details.deriv-detail > summary:focus-visible {
   position: absolute; top: 0;
   font-size: 11px; color: #444;
   white-space: nowrap; user-select: none;
+}
+
+/* ── Responsive ───────────────────────────────────────────
+   Two wide things sit side by side here: 62% of charts, and a
+   control frame that is itself two columns. Both columns have a
+   floor (240px of inputs grid, 200px of Courier output values),
+   so below ~1680px of viewport they no longer fit and used to
+   overlap. Give up one axis at a time instead:
+
+     > 1680px   charts | inputs | outputs      (unchanged)
+     ≤ 1680px   charts | inputs / outputs
+     ≤ 1150px   charts / inputs | outputs      (applet stacks)
+     ≤  780px   charts / inputs / outputs
+
+   The first and last stages stack the control frame the same
+   way, so they share one rule set. Specificity, not the media
+   query, decides who wins: .cf-panel:last-child beats .cf-panel
+   regardless of the query, so every property the base last-child
+   rule sets has to be re-stated here rather than in .cf-panel. */
+@media (max-width: 1680px) and (min-width: 1151px),
+       (max-width: 780px) {
+  /* One column of controls is taller than 720px of charts, so let
+     the charts stretch to the frame instead of leaving a band of
+     dead ground under them. Overridden again below 1150px, where
+     the applet stacks and the charts get an explicit height.     */
+  #charts { height: auto; align-self: stretch; }
+  .cf-body { flex-direction: column; align-items: stretch; }
+  .cf-panel { flex: 0 0 auto; min-width: 0; padding-right: 0; }
+  .cf-panel:last-child {
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: none;
+    padding-left: 0;
+    padding-top: 12px;
+    margin-top: 12px;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 1150px) {
+  .applet-body { flex-direction: column; }
+  #charts {
+    flex: 0 0 auto;
+    width: 100%;
+    /* Full page width, so the plots need less height to stay
+       readable and the stacked applet stays a sane length. */
+    height: 640px;
+    min-height: 0;
+  }
+  .control-frame {
+    flex: 0 0 auto;
+    width: 100%;
+    overflow-y: visible;
+    border-left: none;
+    border-top: 1px solid #252525;
+  }
+}
+
+/* Full page width to share, so the outputs get more than the 200px
+   they are rationed to when they sit beside the charts. Ranged, not
+   just capped at 1150: 240 + 32 + 320 needs a 900px page to sit on
+   one line, and below 781px the panels stack anyway, where a 320px
+   cap would leave the outputs a short block in a wide frame.      */
+@media (max-width: 1150px) and (min-width: 900px) {
+  .cf-panel:last-child { flex: 0 1 320px; max-width: 320px; }
+}
+
+@media (max-width: 780px) {
+  .control-frame { padding: 14px 18px 18px; }
+  /* Narrower fixed columns buy back the ~26px the input row
+     needs once the frame is only a phone wide. */
+  .cf-param-row {
+    grid-template-columns: 22px 1fr 72px 32px;
+    column-gap: 6px;
+  }
+  #charts { height: 560px; }
 }
 
 /* ── Plotly modebar dark skin ── */
@@ -658,7 +751,7 @@ footer .foot-cred {
 <nav class="applet-nav">
   <a class="nav-prev" href="../rocket_equation/rocket_equation_applet.html">&larr; Prev</a>
   <a class="nav-home" href="../index.html">Home</a>
-  <a class="nav-next" href="../debye/debye_applet.html">Next &rarr;</a>
+  <a class="nav-next" href="../electrostatic/electrostatic_applet.html">Next &rarr;</a>
 </nav>
 
 <!-- ════════════════════ HEADER ════════════════════ -->
@@ -952,7 +1045,7 @@ footer .foot-cred {
       <summary>Show derivation</summary>
       <div class="deriv-inner">
 
-        <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
+        <span class="eq-step-label">Assume No Drag, No Gravity Such That Momentum Is Conserved</span>
 
         <span class="eq-step-label">Conservation of Mass</span>
         $$
@@ -1034,7 +1127,7 @@ footer .foot-cred {
     $$
 
     <details class="deriv-detail">
-      <summary>Show mass breakdown</summary>
+      <summary>Show derivation</summary>
       <div class="deriv-inner">
         <span class="eq-step-label">Wet Mass</span>
         $$ \textcolor{#FF4400}{m_0} = \textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p}+\textcolor{#FF4400}{m_s}+\textcolor{#FF4400}{m_{pay}} $$
@@ -1092,7 +1185,7 @@ footer .foot-cred {
     $$
 
     <details class="deriv-detail">
-      <summary>Show Stuhlinger velocity derivation</summary>
+      <summary>Show derivation</summary>
       <div class="deriv-inner">
       <span class="eq-step-label">Derivation</span>
       <p>Seek to minimize mass of power + propulsion system w/ respect to <span class="hl-ve">c</span></p>
@@ -1112,7 +1205,7 @@ footer .foot-cred {
     <span class="eq-caption">(Maximum at $\textcolor{#3DBFFF}{c_{opt}}$)</span>
 
     <details class="deriv-detail">
-      <summary>Show optimum exhaust velocity derivation</summary>
+      <summary>Show derivation</summary>
       <div class="deriv-inner">
       <span class="eq-step-label">Derivation</span>
       <p>Seek to maximize mass of structure + payload w/ respect to <span class="hl-ve">c</span></p>

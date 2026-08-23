@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Delta-V &amp; The Ideal Rocket Equation - In-Space</title>
+<title>Delta-V &amp; The Ideal Rocket Equation</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +35,11 @@
   --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
   --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
   --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
   --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
@@ -57,6 +62,9 @@
   --text-secondary: #aaaaaa;
   --text-muted:     #7a7a7a;
   --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
 
   --page-w: min(1500px, calc(100vw - 192px));
 }
@@ -95,7 +103,8 @@ footer {
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
-.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
@@ -141,7 +150,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -159,7 +168,7 @@ footer {
   font-size: 20.5px;
   line-height: 1.72;
   color: var(--text-main);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -288,9 +297,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 0;
 }
 
-.eq-panel {
-  margin-top: 8px;
-}
+.eq-panel { margin-top: 8px; }
 
 .eq-step-label {
   display: block;
@@ -372,9 +379,7 @@ details.deriv-detail > summary:focus-visible {
   margin: 0 18px 12px;
 }
 
-.katex {
-  font-size: 1.2em !important;
-}
+.katex { font-size: 1.15em !important; }
 
 .katex-display {
   font-size: 1.2em !important;
@@ -579,13 +584,8 @@ details.deriv-detail > summary:focus-visible {
   column-gap: 8px;
   margin-bottom: 7px;
 }
-#subway-applet .cf-param-row-meta {
-  margin-top: -1px;
+#subway-applet .cf-param-row-pair {
   margin-bottom: 10px;
-}
-#subway-applet .cf-param-row-meta .cf-desc {
-  font-size: 16px;
-  color: #5b5b5b;
 }
 #subway-applet .cf-sym {
   text-align: center;
@@ -613,17 +613,6 @@ details.deriv-detail > summary:focus-visible {
   outline: none;
   border-color: #484848;
   background: #202020;
-}
-#subway-applet .cf-derived {
-  width: 100%;
-  padding: 5px 7px;
-  text-align: right;
-  font-family: 'Courier New', monospace;
-  font-size: 15px;
-  color: #cfcfcf;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid #242424;
-  border-radius: 4px;
 }
 #subway-applet .cf-unit {
   font-size: 17px;
@@ -958,8 +947,7 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 5px;
 }
 
-#subway-applet .cf-param-row-meta {
-  margin-top: -1px;
+#subway-applet .cf-param-row-pair {
   margin-bottom: 8px;
 }
 
@@ -972,12 +960,7 @@ details.deriv-detail > summary:focus-visible {
   line-height: 1.18;
 }
 
-#subway-applet .cf-param-row-meta .cf-desc {
-  font-size: 12.5px;
-}
-
-#subway-applet .cf-inp,
-#subway-applet .cf-derived {
+#subway-applet .cf-inp {
   font-size: 12.5px;
   padding: 4px 6px;
   border-radius: 4px;
@@ -1452,15 +1435,15 @@ footer .foot-cred {
 
               <div class="cf-param-row">
                 <div class="cf-sym">\(c\)</div>
-                <div class="cf-desc">Specific impulse</div>
+                <div class="cf-desc">Exhaust velocity</div>
                 <input type="number" id="c" value="4413" step="1" min="1" class="cf-inp">
                 <div class="cf-unit">m/s</div>
               </div>
 
-              <div class="cf-param-row cf-param-row-meta">
-                <div class="cf-sym"></div>
-                <div class="cf-desc">\(I_{sp}\)</div>
-                <div class="cf-derived" id="ispSeconds">450.0</div>
+              <div class="cf-param-row cf-param-row-pair">
+                <div class="cf-sym">\(I_{sp}\)</div>
+                <div class="cf-desc">Specific impulse</div>
+                <input type="number" id="isp" value="450.0" step="0.1" min="0.1" class="cf-inp">
                 <div class="cf-unit">s</div>
               </div>
 
@@ -1581,7 +1564,7 @@ footer .foot-cred {
       <summary>Show derivation</summary>
       <div class="deriv-inner">
 
-        <span class="eq-step-label">Assume no drag, no gravity such that momentum is conserved</span>
+        <span class="eq-step-label">Assume No Drag, No Gravity Such That Momentum Is Conserved</span>
 
         <span class="eq-step-label">Conservation of Mass</span>
         $$
@@ -1646,7 +1629,7 @@ footer .foot-cred {
     <summary>Show derivation</summary>
     <div class="deriv-inner">
 
-      <span class="eq-step-label">Total impulse</span>
+      <span class="eq-step-label">Total Impulse</span>
       $$
       \begin{aligned}
       \text{Impulse}
@@ -1657,14 +1640,14 @@ footer .foot-cred {
       \end{aligned}
       $$
 
-      <span class="eq-step-label">Normalize by propellant mass</span>
+      <span class="eq-step-label">Normalize by Propellant Mass</span>
       $$
       \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}}
       =
       \textcolor{#3DBFFF}{c}
       $$
 
-      <span class="eq-step-label">Specific impulse</span>
+      <span class="eq-step-label">Specific Impulse</span>
       $$
       \boxed{
         \textcolor{#3DBFFF}{I_{sp}}
@@ -1823,24 +1806,30 @@ footer .foot-cred {
     el.textContent = "N/A";
   }
 
-  function updateIspSecondsDisplay() {
-    const el = document.getElementById('ispSeconds');
-    const raw = document.getElementById('c').value.trim().replace(/,/g, "");
+  function readPositiveField(id) {
+    const raw = document.getElementById(id).value.trim().replace(/,/g, "");
     const value = parseFloat(raw);
+    if (!raw || !isFinite(value) || value <= 0) return null;
+    return value;
+  }
 
-    if (!raw || !isFinite(value) || value <= 0) {
-      el.textContent = "--";
-      return;
-    }
+  // c and Isp are the same quantity in different units, so each field writes the
+  // other. Setting .value in script fires no input event, so this cannot loop.
+  function syncIspFromC() {
+    const c = readPositiveField('c');
+    document.getElementById('isp').value = c === null ? '' : (c / G0).toFixed(1);
+  }
 
-    el.textContent = (value / G0).toFixed(1);
+  function syncCFromIsp() {
+    const isp = readPositiveField('isp');
+    document.getElementById('c').value = isp === null ? '' : Math.round(isp * G0);
   }
 
   function clearRocketParameters() {
     document.getElementById('lambda').value = '';
     document.getElementById('epsilon').value = '';
     document.getElementById('c').value = '';
-    document.getElementById('ispSeconds').textContent = '-';
+    document.getElementById('isp').value = '';
     setMRUnavailable();
   }
 
@@ -2681,7 +2670,7 @@ footer .foot-cred {
     buildMapData();
     computeShortestPathsFromLeo();
     initStars();
-    updateIspSecondsDisplay();
+    syncIspFromC();
     drawMap();
   }
 
@@ -2690,7 +2679,8 @@ footer .foot-cred {
   window.applyPreset         = applyPreset;
   window.clearHighlights     = clearHighlights;
 
-  document.getElementById('c').addEventListener('input', updateIspSecondsDisplay);
+  document.getElementById('c').addEventListener('input', syncIspFromC);
+  document.getElementById('isp').addEventListener('input', syncCFromIsp);
 
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(initializeSubwayApp);

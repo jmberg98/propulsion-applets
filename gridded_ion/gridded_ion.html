@@ -2042,6 +2042,10 @@ function buildModel(data){
   cutOffset   = modelHalfZ;                              // park the cut at the front face (nothing cut) for the initial 3-D view
   distSolid   = fitDistance(rFull, FOV_SOLID) * 1.12;
   distSection = rFull * 3.0;                             // stand-off for the ortho section camera
+  /* Zoom stops, set from the fit distance so they can never exclude the framing the
+     viewer picks for itself. The span also has to admit distSection above. */
+  controls.minDistance = distSolid * 0.22;
+  controls.maxDistance = distSolid * 4.0;
   orthoHalfX  = 0.5 * sz[0] * SECTION_MARGIN;            // X is the thruster axis (screen horizontal)
   orthoHalfY  = 0.5 * sz[1] * SECTION_MARGIN;            // Y is screen vertical
 

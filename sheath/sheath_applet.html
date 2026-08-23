@@ -35,6 +35,11 @@
   --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
   --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
   --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
   --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
@@ -47,7 +52,9 @@
   --bg-panel-3:  #171717;
   --bg-panel-4:  #1d1d1d;
   --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
   --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
 
   --border: #282828;
 
@@ -103,25 +110,67 @@ footer { width: var(--page-w); }
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
-.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
 .hl-photon                                  { color: var(--c-photon); }
 .key { font-weight: 700; font-style: italic; }
 
+/* ── Color key ───────────────────────────────────────────
+   States the code instead of leaving it to be inferred.
+   Muted and small: it is a reference, not a headline.     */
+.color-key {
+  width: var(--page-w);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 5px 15px;
+  margin: 0 0 18px; padding: 7px 12px;
+  border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-panel-1);
+  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  /* Hidden. The markup is kept so the code stays documented in the source and
+     the key can come back by deleting this one line. */
+  display: none;
+}
+.color-key .ck-lead {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  text-transform: uppercase; color: var(--c-accent);
+}
+.color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
+.color-key .ck i {
+  width: 9px; height: 9px; border-radius: 2px; flex: 0 0 auto;
+}
+
 /* ── Header ──────────────────────────────────────────── */
 #hdr { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
-#hdr h1 { font-size: 25px; font-weight: 700; color: var(--text-heading); letter-spacing: .3px; }
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
 
 .badge {
-  font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-  padding: 2px 8px; border: 1px solid var(--c-accent); border-radius: 3px;
-  color: var(--c-accent); background: var(--c-accent-bg); white-space: nowrap; flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Page intro ──────────────────────────────────────── */
-.page-intro { font-size: 20.5px; line-height: 1.72; color: var(--text-main); margin-bottom: 18px; }
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 18px;
+}
 .page-intro + .page-intro { margin-top: -4px; }
 .page-intro.section-lead {
   border-top: 1px solid var(--border);
@@ -140,10 +189,21 @@ footer { width: var(--page-w); }
   background: var(--bg-panel-1); padding: 16px 18px; margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
-  text-transform: uppercase; padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
 }
-.th-body { font-size: 20.5px; line-height: 1.70; color: var(--text-main); margin-bottom: 14px; }
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
 .theory-block > .th-body:last-child { margin-bottom: 0; }
 
 .theory-block.applet-host {
@@ -171,68 +231,251 @@ a.applet-link {
 a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 /* ══════════ DERIVATIONS ══════════ */
-details.deriv-detail { border: 1px solid var(--border); border-radius: 4px; margin: 10px 0 0; }
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
 details.deriv-detail > summary {
-  cursor: pointer; list-style: none; display: block;
-  background: var(--bg-input); padding: 8px 14px;
-  font-size: 12px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase;
-  color: var(--c-accent); user-select: none;
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
 }
 details.deriv-detail > summary::-webkit-details-marker { display: none; }
 details.deriv-detail > summary::before {
-  content: '\25B6'; font-size: 9px; color: var(--c-accent);
-  display: inline-block; margin-right: 6px; transition: transform .15s ease;
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
 }
 details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
-.deriv-inner { padding: 10px 16px 16px; background: var(--bg-panel-1); border-top: 1px solid var(--border); }
-
-.eq-step-label {
-  display: block; font-size: 11px; letter-spacing: .8px; text-transform: uppercase;
-  color: #8a8b8c; margin-top: 12px;
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
 }
-.eq-note { display: block; font-size: 17px; line-height: 1.6; color: var(--text-secondary); margin-top: 4px; }
+
+/* ── Equation panels ────────────────────────────────
+   Same metrics as the stage pages (GIE_Acceleration), so an
+   equation looks identical wherever the reader meets it.  */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-note {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.55;
+  margin: 4px 0 6px;
+}
 .eq-caption {
-  display: block; font-size: 14.5px; color: var(--text-muted); text-align: center;
-  margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border);
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 .eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
 .eq-callout {
-  background: #141414; border-left: 3px solid #383838;
-  padding: 9px 13px; margin: 10px 0 0; border-radius: 0 3px 3px 0;
-  font-size: 17px; line-height: 1.55; color: var(--text-secondary);
+  margin: 12px 0 4px;
+  padding: 8px 14px;
+  background: rgba(160,160,160,0.05);
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #404040;
+  border-radius: 4px;
+  font-size: 18.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
 }
-.eq-callout.highlight-blue  { border-left-color: var(--c-ve); }
-.eq-callout.highlight-green { border-left-color: var(--c-press); }
+.eq-callout.highlight-blue {
+  background: rgba(61,191,255,0.05);
+  border-color: rgba(61,191,255,0.18);
+  border-left-color: rgba(61,191,255,0.55);
+  color: var(--hi-blue-soft);
+}
+.eq-callout.highlight-green {
+  background: rgba(81,207,102,0.05);
+  border-color: rgba(81,207,102,0.18);
+  border-left-color: rgba(81,207,102,0.55);
+  color: #a3d9a5;
+}
 
-/* ══════════ QUIZ ══════════ */
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
 .quiz-section {
-  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
-  background: var(--bg-panel-1); margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
-  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border); background: var(--bg-panel-1);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
 }
-.quiz-block { padding: 14px 18px 16px; background: var(--bg-panel-1); }
-.quiz-block + .quiz-block { border-top: 1px solid var(--border); background: var(--bg-panel-2); }
-.quiz-q { font-size: 20.5px; font-weight: 600; color: var(--text-heading); margin-bottom: 6px; line-height: 1.55; }
-.quiz-options { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
 .quiz-opt {
-  display: flex; align-items: center; gap: 12px; padding: 9px 14px;
-  background: var(--bg-panel-4); border: 1px solid var(--border); border-radius: 4px;
-  color: var(--text-main); font-family: 'Barlow', sans-serif; font-size: 19px; font-weight: 500;
-  cursor: pointer; text-align: left; transition: background 0.15s, border-color 0.15s, color 0.15s; width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
 }
-.quiz-opt:hover:not(:disabled):not(.selected) { background: #222222; border-color: #3a3a3a; }
+.quiz-opt:hover:not(:disabled):not(.selected) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
 .quiz-opt:disabled { cursor: default; }
-.quiz-opt.correct { background: rgba(81,207,102,0.09); border-color: rgba(81,207,102,0.38); color: #51cf66; }
-.quiz-opt.wrong   { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.28); color: #ff8e8e; }
-.quiz-opt-label {
-  font-size: 17px; font-weight: 700; color: #444; flex-shrink: 0; width: 20px; text-align: center; transition: color 0.15s;
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
 }
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
-.quiz-feedback { font-size: 18px; color: var(--text-muted); min-height: 22px; font-style: italic; margin-top: 8px; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
 
 /* ══════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ══════════ */
 .clarify-section {
@@ -240,27 +483,49 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   background: var(--bg-panel-1); margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
-  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
 }
 details.clarify-detail { border-top: 1px solid var(--border); }
 details.clarify-detail:first-of-type { border-top: none; }
 details.clarify-detail > summary {
-  cursor: pointer; list-style: none; display: block;
-  padding: 12px 14px 12px 34px; font-size: 20.5px; font-weight: 600;
-  color: var(--text-heading); background: var(--bg-panel-2); user-select: none; line-height: 1.5;
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
 }
 details.clarify-detail > summary::-webkit-details-marker { display: none; }
 details.clarify-detail > summary::before {
-  content: '\25B6'; font-size: 10px; color: var(--c-accent); display: inline-block;
-  width: 12px; margin-left: -20px; margin-right: 8px; text-align: center;
-  transition: transform 0.15s ease; transform-origin: 50% 50%;
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
 }
 details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
 details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-accent); outline-offset: -2px; }
 .clarify-body {
-  padding: 12px 18px 15px; border-top: 1px solid var(--border);
-  font-size: 20.5px; line-height: 1.70; color: var(--text-main); background: var(--bg-panel-1);
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
 }
 
 /* ── Reference list ─────────────────────────────────── */
@@ -329,7 +594,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ APPLET NAV ════════════════════ -->
 <nav class="applet-nav">
-  <a class="nav-prev" href="../debye/debye_applet.html">&larr; Prev</a>
+  <a class="nav-prev" href="../optimum_isp/optimum_isp_applet.html">&larr; Prev</a>
   <a class="nav-home" href="../index.html">Home</a>
   <a class="nav-next" href="../electrostatic/electrostatic_applet.html">Next &rarr;</a>
 </nav>
@@ -343,7 +608,7 @@ footer .foot-cred {
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   Every plasma we care about is in a box. It touches a discharge-chamber wall, an accelerator grid, a Hall thruster
-  channel, a Langmuir probe, a cathode keeper. The bulk of that plasma is quasineutral &mdash; but the boundary cannot
+  channel, a Langmuir probe, a cathode keeper. The bulk of that plasma is quasineutral, but the boundary cannot
   be, and the thin non-neutral layer that forms there is called the <span class="key">sheath</span>. Almost everything
   a plasma does to its container happens inside it: the wall losses that eat into efficiency, the ion energies that
   sputter away ceramic, the current a probe collects, the field that pulls a beam out of a grid.
@@ -359,6 +624,16 @@ footer .foot-cred {
   as ions do. The wall has found its <span class="key">floating potential</span>, and the plasma has grown a sheath.
 </p>
 
+
+<div class="color-key">
+  <span class="ck-lead">Color key</span>
+  <span class="ck"><i style="background:var(--c-ve)"></i>ion, Bohm speed</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, n<sub>e</sub>, power</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
+  <span class="ck"><i style="background:var(--c-efield)"></i>potential &phi;</span>
+  <span class="ck"><i style="background:var(--c-thrust)"></i>mass</span>
+</div>
+
 <!-- ════════════════════ QUIZ 1 ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
@@ -367,13 +642,16 @@ footer .foot-cred {
     the net electrical current flowing into it?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>A large negative current, because electrons are so much faster than ions.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">A large negative current, because electrons are so much faster than ions.</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Zero &mdash; it is isolated, so it must charge up until the two fluxes match.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Zero. It is isolated, so it must charge up until the two fluxes match.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>A small positive current, because ions are attracted to the negative wall.
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">A small positive current, because ions are attracted to the negative wall.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -382,7 +660,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ DEMO 1 ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 1 &mdash; Why the Wall Goes Negative</div>
+  <div class="th-hdr">Demo 1: Why the Wall Goes Negative</div>
   <iframe class="applet-frame" src="sheath.html?mode=wall"
           title="A plasma against a wall: electrons and ions stream toward it, the wall charges negative, and the two fluxes come into balance"
           loading="lazy"></iframe>
@@ -390,10 +668,10 @@ footer .foot-cred {
 
 <p class="demo-blurb">
   The wall starts at the plasma potential, where the <span class="hl-electron">electron</span> flux is more than three
-  hundred times the <span class="hl-ion">ion</span> flux &mdash; watch the two pins on the logarithmic axis. As the
+  hundred times the <span class="hl-ion">ion</span> flux. Watch the two pins on the logarithmic axis. As the
   wall charges down, more and more electrons are turned back at the sheath edge and the electron pin slides left until
   the two meet. Change the ion species: a lighter ion moves faster, closes the gap on its own, and needs a shallower
-  well to balance it. Then uncheck <em>floating</em> and bias the wall by hand &mdash; that is a Langmuir probe, and
+  well to balance it. Then uncheck <em>floating</em> and bias the wall by hand. That is a Langmuir probe, and
   the floating potential is simply where its current-voltage curve crosses zero.
 </p>
 
@@ -403,7 +681,7 @@ footer .foot-cred {
   the fast tail of the distribution gets through; because they are in thermal equilibrium in the retarding field,
   their density follows the Boltzmann relation and their flux is the ordinary one-sided random flux multiplied by an
   exponential factor. The <span class="hl-ion">ions</span> are accelerated by the wall, so their flux is not thermal
-  at all &mdash; it is set by the speed at which they arrive at the sheath edge, which we come back to in the next
+  at all: it is set by the speed at which they arrive at the sheath edge, which we come back to in the next
   section.
 </p>
 
@@ -414,113 +692,116 @@ footer .foot-cred {
     on nothing but the electron temperature and the ion-to-electron mass ratio:
   </p>
 
-  $$
-  \boxed{\;
-    \textcolor{#F5C518}{\phi_w} - \textcolor{#F5C518}{\phi_p} \;=\;
-    -\,\frac{kT_e}{2\textcolor{#C060FF}{e}}
-    \left[\, \ln\!\left(\frac{\textcolor{#FF4400}{m_i}}{2\pi \textcolor{#FF4400}{m_e}}\right) + 1 \right]
-  \;}
-  $$
+  <div class="eq-panel">
+    <span class="eq-step-label">Floating Potential</span>
+    $$
+    \boxed{\;
+      \textcolor{#F5C518}{\phi_w} - \textcolor{#F5C518}{\phi_p} \;=\;
+      -\,\frac{kT_e}{2\textcolor{#C060FF}{e}}
+      \left[\, \ln\!\left(\frac{\textcolor{#FF4400}{m_i}}{2\pi \textcolor{#FF4400}{m_e}}\right) + 1 \right]
+    \;}
+    $$
 
-  <span class="eq-caption">
-    for xenon this is $-5.77\,kT_e/\textcolor{#C060FF}{e}$ &nbsp;&middot;&nbsp;
-    argon $-5.18$ &nbsp;&middot;&nbsp; hydrogen $-3.34$
-  </span>
+    <span class="eq-caption">
+      for xenon this is $-5.77\,kT_e/\textcolor{#C060FF}{e}$ &nbsp;&middot;&nbsp;
+      argon $-5.18$ &nbsp;&middot;&nbsp; hydrogen $-3.34$
+    </span>
 
-  <details class="deriv-detail">
-    <summary>Show derivation</summary>
-    <div class="deriv-inner">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
 
-      <span class="eq-step-label">Electron flux to the wall</span>
-      <span class="eq-note">
-        In the retarding field of the sheath the <span class="hl-electron">electrons</span> stay Boltzmann-distributed,
-        $\textcolor{#C060FF}{n_e} = \textcolor{#C060FF}{n_s}\,e^{\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi}/kT_e}$,
-        measuring $\textcolor{#F5C518}{\phi}$ from the sheath edge. The one-sided random flux of a Maxwellian through
-        a plane is $\tfrac14 n\bar{v}$, so
-      </span>
+        <span class="eq-step-label">Electron Flux to the Wall</span>
+        <span class="eq-note">
+          In the retarding field of the sheath the <span class="hl-electron">electrons</span> stay Boltzmann-distributed,
+          $\textcolor{#C060FF}{n_e} = \textcolor{#C060FF}{n_s}\,e^{\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi}/kT_e}$,
+          measuring $\textcolor{#F5C518}{\phi}$ from the sheath edge. The one-sided random flux of a Maxwellian through
+          a plane is $\tfrac14 n\bar{v}$, so
+        </span>
 
-      $$
-      \textcolor{#C060FF}{\Gamma_e} \;=\; \tfrac{1}{4}\,\textcolor{#C060FF}{n_s}\,\bar{v}_e\,
-        e^{\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi_w}/kT_e},
-      \qquad
-      \bar{v}_e = \sqrt{\frac{8kT_e}{\pi \textcolor{#FF4400}{m_e}}}
-      $$
+        $$
+        \textcolor{#C060FF}{\Gamma_e} \;=\; \tfrac{1}{4}\,\textcolor{#C060FF}{n_s}\,\bar{v}_e\,
+          e^{\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi_w}/kT_e},
+        \qquad
+        \bar{v}_e = \sqrt{\frac{8kT_e}{\pi \textcolor{#FF4400}{m_e}}}
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Ion flux to the wall</span>
-      <span class="eq-note">
-        Ions are not repelled, so nothing suppresses them: every ion that reaches the sheath edge is collected. Their
-        flux is therefore fixed by the density and speed there. As the next section shows, that speed is the Bohm
-        speed $\textcolor{#3DBFFF}{c_s}$, so
-      </span>
+        <span class="eq-step-label">Ion Flux to the Wall</span>
+        <span class="eq-note">
+          Ions are not repelled, so nothing suppresses them: every ion that reaches the sheath edge is collected. Their
+          flux is therefore fixed by the density and speed there. As the next section shows, that speed is the Bohm
+          speed $\textcolor{#3DBFFF}{c_s}$, so
+        </span>
 
-      $$
-      \textcolor{#3DBFFF}{\Gamma_i} \;=\; \textcolor{#C060FF}{n_s}\,\textcolor{#3DBFFF}{c_s},
-      \qquad
-      \textcolor{#3DBFFF}{c_s} = \sqrt{\frac{kT_e}{\textcolor{#FF4400}{m_i}}}
-      $$
+        $$
+        \textcolor{#3DBFFF}{\Gamma_i} \;=\; \textcolor{#C060FF}{n_s}\,\textcolor{#3DBFFF}{c_s},
+        \qquad
+        \textcolor{#3DBFFF}{c_s} = \sqrt{\frac{kT_e}{\textcolor{#FF4400}{m_i}}}
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Balance them</span>
-      <span class="eq-note">
-        A floating wall carries no net current, so $\textcolor{#C060FF}{\Gamma_e} = \textcolor{#3DBFFF}{\Gamma_i}$.
-        The density $\textcolor{#C060FF}{n_s}$ cancels from both sides &mdash; the answer will not depend on how dense
-        the plasma is:
-      </span>
+        <span class="eq-step-label">Balance Them</span>
+        <span class="eq-note">
+          A floating wall carries no net current, so $\textcolor{#C060FF}{\Gamma_e} = \textcolor{#3DBFFF}{\Gamma_i}$.
+          The density $\textcolor{#C060FF}{n_s}$ cancels from both sides, so the answer will not depend on how dense
+          the plasma is:
+        </span>
 
-      $$
-      e^{\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi_w}/kT_e}
-        \;=\; \frac{4\,\textcolor{#3DBFFF}{c_s}}{\bar{v}_e}
-        \;=\; \sqrt{\frac{2\pi \textcolor{#FF4400}{m_e}}{\textcolor{#FF4400}{m_i}}}
-      $$
+        $$
+        e^{\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi_w}/kT_e}
+          \;=\; \frac{4\,\textcolor{#3DBFFF}{c_s}}{\bar{v}_e}
+          \;=\; \sqrt{\frac{2\pi \textcolor{#FF4400}{m_e}}{\textcolor{#FF4400}{m_i}}}
+        $$
 
-      <span class="eq-note">
-        Taking the logarithm gives the drop across the sheath itself, measured from the sheath edge:
-      </span>
+        <span class="eq-note">
+          Taking the logarithm gives the drop across the sheath itself, measured from the sheath edge:
+        </span>
 
-      $$
-      \textcolor{#F5C518}{\phi_w} \;=\; -\,\frac{kT_e}{2\textcolor{#C060FF}{e}}\,
-        \ln\!\left(\frac{\textcolor{#FF4400}{m_i}}{2\pi \textcolor{#FF4400}{m_e}}\right)
-      $$
+        $$
+        \textcolor{#F5C518}{\phi_w} \;=\; -\,\frac{kT_e}{2\textcolor{#C060FF}{e}}\,
+          \ln\!\left(\frac{\textcolor{#FF4400}{m_i}}{2\pi \textcolor{#FF4400}{m_e}}\right)
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Refer it back to the bulk plasma</span>
-      <span class="eq-note">
-        The sheath edge is not at the plasma potential either. Getting the ions up to
-        $\textcolor{#3DBFFF}{c_s}$ costs another $kT_e/2\textcolor{#C060FF}{e}$ of potential drop across the
-        pre-sheath, which is the $+1$ in the boxed result:
-      </span>
+        <span class="eq-step-label">Refer It Back to the Bulk Plasma</span>
+        <span class="eq-note">
+          The sheath edge is not at the plasma potential either. Getting the ions up to
+          $\textcolor{#3DBFFF}{c_s}$ costs another $kT_e/2\textcolor{#C060FF}{e}$ of potential drop across the
+          pre-sheath, which is the $+1$ in the boxed result:
+        </span>
 
-      $$
-      \boxed{\;
-        \textcolor{#F5C518}{\phi_w} - \textcolor{#F5C518}{\phi_p} \;=\;
-        -\,\frac{kT_e}{2\textcolor{#C060FF}{e}}
-        \left[\, \ln\!\left(\frac{\textcolor{#FF4400}{m_i}}{2\pi \textcolor{#FF4400}{m_e}}\right) + 1 \right]
-      \;}
-      $$
+        $$
+        \boxed{\;
+          \textcolor{#F5C518}{\phi_w} - \textcolor{#F5C518}{\phi_p} \;=\;
+          -\,\frac{kT_e}{2\textcolor{#C060FF}{e}}
+          \left[\, \ln\!\left(\frac{\textcolor{#FF4400}{m_i}}{2\pi \textcolor{#FF4400}{m_e}}\right) + 1 \right]
+        \;}
+        $$
 
-      <div class="eq-callout highlight-blue">
-        <b>Heavier ions dig a deeper well.</b> The mass ratio sits inside a logarithm, so the dependence is weak: going
-        from hydrogen to xenon multiplies $\textcolor{#FF4400}{m_i}$ by 130 but only deepens the well from
-        $3.3\,kT_e/\textcolor{#C060FF}{e}$ to $5.8\,kT_e/\textcolor{#C060FF}{e}$. The floating potential is a stubborn
-        few times the electron temperature, essentially always.
+        <div class="eq-callout highlight-blue">
+          <b>Heavier ions dig a deeper well.</b> The mass ratio sits inside a logarithm, so the dependence is weak: going
+          from hydrogen to xenon multiplies $\textcolor{#FF4400}{m_i}$ by 130 but only deepens the well from
+          $3.3\,kT_e/\textcolor{#C060FF}{e}$ to $5.8\,kT_e/\textcolor{#C060FF}{e}$. The floating potential is a stubborn
+          few times the electron temperature, essentially always.
+        </div>
+        <div class="eq-callout highlight-green">
+          <b>Density does not appear.</b> The floating potential is set by $T_e$ and the mass ratio alone. Density
+          controls <em>how thick</em> the sheath is, through the Debye length, but not <em>how deep</em> it is.
+        </div>
+        <div class="eq-callout">
+          A real wall also emits secondary electrons when ions and electrons strike it. Those leave the wall and count as
+          a positive current, so they make the sheath <em>shallower</em>. In a Hall thruster with hot electrons and a
+          boron-nitride channel the emission can approach unit yield, and the sheath collapses into a
+          <span class="key">space-charge saturated</span> state that no longer obeys the formula above.
+        </div>
+
       </div>
-      <div class="eq-callout highlight-green">
-        <b>Density does not appear.</b> The floating potential is set by $T_e$ and the mass ratio alone. Density
-        controls <em>how thick</em> the sheath is, through the Debye length, but not <em>how deep</em> it is.
-      </div>
-      <div class="eq-callout">
-        A real wall also emits secondary electrons when ions and electrons strike it. Those leave the wall and count as
-        a positive current, so they make the sheath <em>shallower</em>. In a Hall thruster with hot electrons and a
-        boron-nitride channel the emission can approach unit yield, and the sheath collapses into a
-        <span class="key">space-charge saturated</span> state that no longer obeys the formula above.
-      </div>
-
-    </div>
-  </details>
+    </details>
+  </div>
 </div>
 
 <!-- ════════════════════ TRANSITION ════════════════════ -->
@@ -535,7 +816,7 @@ footer .foot-cred {
   <span class="hl-electron">electrons</span> are repelled, so their density falls off <em>exponentially</em>, as
   $e^{-\chi}$. The <span class="hl-ion">ions</span> are accelerated, so by flux conservation their density falls off
   only as an inverse square root of the potential. For a sheath to exist, the ion density must stay
-  <em>above</em> the electron density everywhere &mdash; that net positive charge is what holds the potential down.
+  <em>above</em> the electron density everywhere, and that net positive charge is what holds the potential down.
   Whether it does depends entirely on how fast the ions were going when they arrived.
 </p>
 
@@ -546,97 +827,100 @@ footer .foot-cred {
     by David Bohm in 1949:
   </p>
 
-  $$
-  \boxed{\;
-    \textcolor{#3DBFFF}{u_s} \;\ge\; \textcolor{#3DBFFF}{c_s} \;=\;
-    \sqrt{\frac{kT_e}{\textcolor{#FF4400}{m_i}}}
-  \;}
-  $$
+  <div class="eq-panel">
+    <span class="eq-step-label">Bohm Criterion</span>
+    $$
+    \boxed{\;
+      \textcolor{#3DBFFF}{u_s} \;\ge\; \textcolor{#3DBFFF}{c_s} \;=\;
+      \sqrt{\frac{kT_e}{\textcolor{#FF4400}{m_i}}}
+    \;}
+    $$
 
-  <span class="eq-caption">
-    the ion-acoustic speed &mdash; for xenon at $T_e = 5$ eV, $\textcolor{#3DBFFF}{c_s} \approx 1900$ m/s
-  </span>
+    <span class="eq-caption">
+      the ion-acoustic speed. For xenon at $T_e = 5$ eV, $\textcolor{#3DBFFF}{c_s} \approx 1900$ m/s
+    </span>
 
-  <details class="deriv-detail">
-    <summary>Show derivation</summary>
-    <div class="deriv-inner">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
 
-      <span class="eq-step-label">Set up the two densities</span>
-      <span class="eq-note">
-        Write $\chi = -\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi}/kT_e$, so $\chi$ grows from zero at the sheath
-        edge into the sheath. Electrons are Boltzmann; ions conserve energy and flux, entering with speed
-        $\textcolor{#3DBFFF}{u_s}$:
-      </span>
+        <span class="eq-step-label">Set Up the Two Densities</span>
+        <span class="eq-note">
+          Write $\chi = -\textcolor{#C060FF}{e}\textcolor{#F5C518}{\phi}/kT_e$, so $\chi$ grows from zero at the sheath
+          edge into the sheath. Electrons are Boltzmann; ions conserve energy and flux, entering with speed
+          $\textcolor{#3DBFFF}{u_s}$:
+        </span>
 
-      $$
-      \textcolor{#C060FF}{n_e} = \textcolor{#C060FF}{n_s}\,e^{-\chi},
-      \qquad
-      \textcolor{#3DBFFF}{n_i} = \textcolor{#C060FF}{n_s}
-        \left(1 + \frac{2\chi}{M^{2}}\right)^{-1/2},
-      \qquad M \equiv \frac{\textcolor{#3DBFFF}{u_s}}{\textcolor{#3DBFFF}{c_s}}
-      $$
+        $$
+        \textcolor{#C060FF}{n_e} = \textcolor{#C060FF}{n_s}\,e^{-\chi},
+        \qquad
+        \textcolor{#3DBFFF}{n_i} = \textcolor{#C060FF}{n_s}
+          \left(1 + \frac{2\chi}{M^{2}}\right)^{-1/2},
+        \qquad M \equiv \frac{\textcolor{#3DBFFF}{u_s}}{\textcolor{#3DBFFF}{c_s}}
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Poisson's equation</span>
-      <span class="eq-note">
-        Measuring distance in Debye lengths, $\xi = x/\textcolor{#3DBFFF}{\lambda_D}$, Poisson's equation becomes
-      </span>
+        <span class="eq-step-label">Poisson's Equation</span>
+        <span class="eq-note">
+          Measuring distance in Debye lengths, $\xi = x/\textcolor{#3DBFFF}{\lambda_D}$, Poisson's equation becomes
+        </span>
 
-      $$
-      \frac{d^{2}\chi}{d\xi^{2}}
-        \;=\; \left(1 + \frac{2\chi}{M^{2}}\right)^{-1/2} - e^{-\chi}
-      $$
+        $$
+        \frac{d^{2}\chi}{d\xi^{2}}
+          \;=\; \left(1 + \frac{2\chi}{M^{2}}\right)^{-1/2} - e^{-\chi}
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Linearise at the sheath edge</span>
-      <span class="eq-note">
-        Just inside the edge $\chi$ is small. Expanding both terms to first order, the constant parts cancel &mdash;
-        that is quasineutrality &mdash; and what is left is
-      </span>
+        <span class="eq-step-label">Linearize at the Sheath Edge</span>
+        <span class="eq-note">
+          Just inside the edge $\chi$ is small. Expanding both terms to first order, the constant parts cancel,
+          which is quasineutrality, and what is left is
+        </span>
 
-      $$
-      \frac{d^{2}\chi}{d\xi^{2}}
-        \;=\; \left(1 - \frac{1}{M^{2}}\right)\chi
-      $$
+        $$
+        \frac{d^{2}\chi}{d\xi^{2}}
+          \;=\; \left(1 - \frac{1}{M^{2}}\right)\chi
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Read off the condition</span>
-      <span class="eq-note">
-        This is the equation of exponential growth if the bracket is positive and of a sine if it is negative. A sine
-        would carry $\chi$ negative, meaning the <span class="hl-phi">potential</span> rises <em>above</em> the plasma
-        potential inside the sheath &mdash; a barrier that repels the ions the sheath is supposed to be collecting.
-        Only the growing solution is physical, so
-      </span>
+        <span class="eq-step-label">Read Off the Condition</span>
+        <span class="eq-note">
+          This is the equation of exponential growth if the bracket is positive and of a sine if it is negative. A sine
+          would carry $\chi$ negative, meaning the <span class="hl-phi">potential</span> rises <em>above</em> the plasma
+          potential inside the sheath, a barrier that repels the ions the sheath is supposed to be collecting.
+          Only the growing solution is physical, so
+        </span>
 
-      $$
-      1 - \frac{1}{M^{2}} \ge 0
-      \quad\Longrightarrow\quad
-      \boxed{\;\textcolor{#3DBFFF}{u_s} \ge \textcolor{#3DBFFF}{c_s} = \sqrt{kT_e/\textcolor{#FF4400}{m_i}}\;}
-      $$
+        $$
+        1 - \frac{1}{M^{2}} \ge 0
+        \quad\Longrightarrow\quad
+        \boxed{\;\textcolor{#3DBFFF}{u_s} \ge \textcolor{#3DBFFF}{c_s} = \sqrt{kT_e/\textcolor{#FF4400}{m_i}}\;}
+        $$
 
-      <div class="eq-callout highlight-blue">
-        <b>The plasma takes the equality.</b> Nothing in the sheath forces $M$ to be any particular value above one,
-        but the pre-sheath that supplies the ions cannot over-deliver: its own solution runs out at $M = 1$. Real
-        plasmas therefore sit exactly at the marginal case, which is why $\textcolor{#3DBFFF}{c_s}$ and not some
-        larger speed appears in every wall-loss formula.
+        <div class="eq-callout highlight-blue">
+          <b>The plasma takes the equality.</b> Nothing in the sheath forces $M$ to be any particular value above one,
+          but the pre-sheath that supplies the ions cannot over-deliver: its own solution runs out at $M = 1$. Real
+          plasmas therefore sit exactly at the marginal case, which is why $\textcolor{#3DBFFF}{c_s}$ and not some
+          larger speed appears in every wall-loss formula.
+        </div>
+        <div class="eq-callout highlight-green">
+          <b>Notice which temperature appears.</b> $\textcolor{#3DBFFF}{c_s}$ is built from the <em>electron</em>
+          temperature and the <em>ion</em> mass. The ions are usually cold (near room temperature in an ion
+          thruster discharge), and yet they arrive at the wall moving at kilometers per second. They are not
+          pushed there by their own pressure; they are pulled by the electrons' pressure through the ambipolar field.
+        </div>
+        <div class="eq-callout">
+          The argument above treats the ions as a cold beam. Hutchinson gives the kinetic generalisation, in which the
+          criterion becomes a statement about $\langle 1/v^{2}\rangle$ over the ion distribution. For the cold-ion
+          plasmas of electric propulsion the two agree.
+        </div>
+
       </div>
-      <div class="eq-callout highlight-green">
-        <b>Notice which temperature appears.</b> $\textcolor{#3DBFFF}{c_s}$ is built from the <em>electron</em>
-        temperature and the <em>ion</em> mass. The ions are usually cold &mdash; near room temperature in an ion
-        thruster discharge &mdash; and yet they arrive at the wall moving at kilometers per second. They are not
-        pushed there by their own pressure; they are pulled by the electrons' pressure through the ambipolar field.
-      </div>
-      <div class="eq-callout">
-        The argument above treats the ions as a cold beam. Hutchinson gives the kinetic generalisation, in which the
-        criterion becomes a statement about $\langle 1/v^{2}\rangle$ over the ion distribution. For the cold-ion
-        plasmas of electric propulsion the two agree.
-      </div>
-
-    </div>
-  </details>
+    </details>
+  </div>
 </div>
 
 <!-- ════════════════════ QUIZ 2 ════════════════════ -->
@@ -646,14 +930,17 @@ footer .foot-cred {
     <p class="quiz-q">Suppose ions drifted into the sheath edge more slowly than the Bohm speed. What goes wrong?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Nothing goes wrong; the sheath simply becomes thicker.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Nothing goes wrong; the sheath simply becomes thicker.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>The ions would never reach the wall, so no current could flow.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">The ions would never reach the wall, so no current could flow.</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">c</span>The electron density would fall faster than the ion density, and the
-        potential would oscillate instead of decaying &mdash; no sheath solution exists.
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">The electron density would fall faster than the ion density, and the
+          potential would oscillate instead of decaying, so no sheath solution exists.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -662,7 +949,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ DEMO 2 ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 2 &mdash; The Bohm Criterion</div>
+  <div class="th-hdr">Demo 2: The Bohm Criterion</div>
   <iframe class="applet-frame" src="sheath.html?mode=bohm"
           title="The sheath potential solution as a function of the ion entry Mach number, showing oscillation below M = 1 and monotonic growth above it"
           loading="lazy"></iframe>
@@ -670,21 +957,21 @@ footer .foot-cred {
 
 <p class="demo-blurb">
   Drag the entry Mach number down through 1. Above it, the <span class="hl-phi">potential</span> climbs away
-  monotonically and the dashed non-linear solution runs off the top of the plot into the wall &mdash; a real sheath.
+  monotonically and the dashed non-linear solution runs off the top of the plot into the wall, a real sheath.
   Below it, the same equation gives a cosine that dives straight into the shaded forbidden region where
   <span class="hl-phi">&phi;</span> sits above the plasma potential. There is no way to patch it: a sub-sonic ion
-  stream simply cannot support a sheath. Sit exactly at $M = 1$ and the linear term vanishes altogether &mdash; that
+  stream simply cannot support a sheath. Sit exactly at $M = 1$ and the linear term vanishes altogether, and that
   knife-edge is where nature actually operates.
 </p>
 
 <!-- ════════════════════ THEORY: PRESHEATH ════════════════════ -->
 <p class="page-intro section-lead">
   So the ions must already be supersonic when they reach the sheath. They are cold, and the sheath cannot reach out to
-  accelerate them &mdash; it is only a few Debye lengths thick and its field is screened off beyond that. The
+  accelerate them: it is only a few Debye lengths thick and its field is screened off beyond that. The
   acceleration therefore has to happen in the quasineutral plasma itself, over a much longer region called the
   <span class="key">pre-sheath</span>. There the charge densities are still equal to a very good approximation, but
   <em>not exactly</em> equal, and the small residual field does the work. Its length is not set by the Debye length
-  at all: it is set by whatever supplies the ions &mdash; the ionization mean free path, the ion-neutral collision
+  at all: it is set by whatever supplies the ions: the ionization mean free path, the ion-neutral collision
   length, or the size of the device, whichever is shortest.
 </p>
 
@@ -695,84 +982,87 @@ footer .foot-cred {
     ions from rest to <span class="hl-ve">c<sub>s</sub></span>.
   </p>
 
-  $$
-  \boxed{\;
-    \textcolor{#F5C518}{\phi_s} - \textcolor{#F5C518}{\phi_p} = -\frac{kT_e}{2\textcolor{#C060FF}{e}},
-    \qquad
-    \textcolor{#C060FF}{n_s} = \textcolor{#C060FF}{n_0}\,e^{-1/2} \approx 0.61\,\textcolor{#C060FF}{n_0}
-  \;}
-  $$
-
-  <details class="deriv-detail">
-    <summary>Show derivation</summary>
-    <div class="deriv-inner">
-
-      <span class="eq-step-label">Energy, for an ion born at rest</span>
-      <span class="eq-note">
-        An ion created in the bulk falls through the pre-sheath potential. When it has reached
-        $\textcolor{#3DBFFF}{c_s}$,
-      </span>
-
-      $$
-      \tfrac{1}{2}\textcolor{#FF4400}{m_i}\textcolor{#3DBFFF}{c_s}^{2}
-        = \textcolor{#C060FF}{e}\,|\Delta\textcolor{#F5C518}{\phi}|
-      \quad\Longrightarrow\quad
-      |\Delta\textcolor{#F5C518}{\phi}| = \frac{kT_e}{2\textcolor{#C060FF}{e}}
-      $$
-
-      <span class="eq-note">
-        which is one half of an electron-volt per volt of electron temperature &mdash; 2.5 V for a 5 eV discharge.
-      </span>
-
-      <div class="eq-divider"></div>
-
-      <span class="eq-step-label">Density at the sheath edge</span>
-      <span class="eq-note">
-        The pre-sheath is quasineutral, so the electrons set the density everywhere in it through the Boltzmann
-        relation, and the ions must follow:
-      </span>
-
-      $$
-      \frac{\textcolor{#C060FF}{n_s}}{\textcolor{#C060FF}{n_0}}
-        = e^{\textcolor{#C060FF}{e}\Delta\textcolor{#F5C518}{\phi}/kT_e}
-        = e^{-1/2} = 0.6065
-      $$
-
-      <span class="eq-caption">
-        the origin of the factor 0.61 that appears in every wall-loss and Bohm-current estimate
-      </span>
-
-      <div class="eq-divider"></div>
-
-      <span class="eq-step-label">The shape of the pre-sheath</span>
-      <span class="eq-note">
-        Adding ion continuity with a volume ionization source, $d(nu)/dx = \nu_{iz} n$, and using the two relations
-        above gives a closed form for the Mach number &mdash; the Tonks&ndash;Langmuir free-fall pre-sheath, and the
-        curve plotted in the demo below:
-      </span>
-
-      $$
-      \frac{x}{L} = \frac{3M - M^{3}}{2},
+  <div class="eq-panel">
+    <span class="eq-step-label">Pre-Sheath Drop</span>
+    $$
+    \boxed{\;
+      \textcolor{#F5C518}{\phi_s} - \textcolor{#F5C518}{\phi_p} = -\frac{kT_e}{2\textcolor{#C060FF}{e}},
       \qquad
-      \chi = \frac{M^{2}}{2},
-      \qquad
-      L = \frac{2}{3}\,\frac{\textcolor{#3DBFFF}{c_s}}{\nu_{iz}}
-      $$
+      \textcolor{#C060FF}{n_s} = \textcolor{#C060FF}{n_0}\,e^{-1/2} \approx 0.61\,\textcolor{#C060FF}{n_0}
+    \;}
+    $$
 
-      <div class="eq-callout highlight-blue">
-        <b>The quasineutral solution ends in a singularity.</b> Differentiating, $dM/dx \to \infty$ as $M \to 1$: the
-        field the pre-sheath needs becomes infinite right at the sheath edge. That is not a failure of arithmetic, it
-        is the pre-sheath telling us that quasineutrality has stopped being a valid approximation. What happens past
-        that point is the sheath.
-      </div>
-      <div class="eq-callout highlight-green">
-        The two regions therefore live on completely different scales: the pre-sheath on the ionization or collision
-        length, typically millimeters to centimeters, and the sheath on the Debye length, typically tens of microns.
-        In the figure below the sheath has to be drawn magnified by a factor of tens just to be visible.
-      </div>
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
 
-    </div>
-  </details>
+        <span class="eq-step-label">Energy, for an Ion Born at Rest</span>
+        <span class="eq-note">
+          An ion created in the bulk falls through the pre-sheath potential. When it has reached
+          $\textcolor{#3DBFFF}{c_s}$,
+        </span>
+
+        $$
+        \tfrac{1}{2}\textcolor{#FF4400}{m_i}\textcolor{#3DBFFF}{c_s}^{2}
+          = \textcolor{#C060FF}{e}\,|\Delta\textcolor{#F5C518}{\phi}|
+        \quad\Longrightarrow\quad
+        |\Delta\textcolor{#F5C518}{\phi}| = \frac{kT_e}{2\textcolor{#C060FF}{e}}
+        $$
+
+        <span class="eq-note">
+          which is one half of an electron-volt per volt of electron temperature, or 2.5 V for a 5 eV discharge.
+        </span>
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">Density at the Sheath Edge</span>
+        <span class="eq-note">
+          The pre-sheath is quasineutral, so the electrons set the density everywhere in it through the Boltzmann
+          relation, and the ions must follow:
+        </span>
+
+        $$
+        \frac{\textcolor{#C060FF}{n_s}}{\textcolor{#C060FF}{n_0}}
+          = e^{\textcolor{#C060FF}{e}\Delta\textcolor{#F5C518}{\phi}/kT_e}
+          = e^{-1/2} = 0.6065
+        $$
+
+        <span class="eq-caption">
+          the origin of the factor 0.61 that appears in every wall-loss and Bohm-current estimate
+        </span>
+
+        <div class="eq-divider"></div>
+
+        <span class="eq-step-label">The Shape of the Pre-Sheath</span>
+        <span class="eq-note">
+          Adding ion continuity with a volume ionization source, $d(nu)/dx = \nu_{iz} n$, and using the two relations
+          above gives a closed form for the Mach number: the Tonks&ndash;Langmuir free-fall pre-sheath, and the
+          curve plotted in the demo below:
+        </span>
+
+        $$
+        \frac{x}{L} = \frac{3M - M^{3}}{2},
+        \qquad
+        \chi = \frac{M^{2}}{2},
+        \qquad
+        L = \frac{2}{3}\,\frac{\textcolor{#3DBFFF}{c_s}}{\nu_{iz}}
+        $$
+
+        <div class="eq-callout highlight-blue">
+          <b>The quasineutral solution ends in a singularity.</b> Differentiating, $dM/dx \to \infty$ as $M \to 1$: the
+          field the pre-sheath needs becomes infinite right at the sheath edge. That is not a failure of arithmetic, it
+          is the pre-sheath telling us that quasineutrality has stopped being a valid approximation. What happens past
+          that point is the sheath.
+        </div>
+        <div class="eq-callout highlight-green">
+          The two regions therefore live on completely different scales: the pre-sheath on the ionization or collision
+          length, typically millimeters to centimeters, and the sheath on the Debye length, typically tens of microns.
+          In the figure below the sheath has to be drawn magnified by a factor of tens just to be visible.
+        </div>
+
+      </div>
+    </details>
+  </div>
 </div>
 
 <!-- ════════════════════ THEORY: SHEATH THICKNESS ════════════════════ -->
@@ -784,76 +1074,79 @@ footer .foot-cred {
     equal to the Bohm current fixes the gap:
   </p>
 
-  $$
-  \boxed{\;
-    s \;=\; \frac{\sqrt{2}}{3}\,\textcolor{#3DBFFF}{\lambda_{Ds}}
-    \left(\frac{2\,\textcolor{#C060FF}{e}\,|\textcolor{#F5C518}{V_0}|}{kT_e}\right)^{3/4}
-  \;}
-  $$
+  <div class="eq-panel">
+    <span class="eq-step-label">Sheath Thickness</span>
+    $$
+    \boxed{\;
+      s \;=\; \frac{\sqrt{2}}{3}\,\textcolor{#3DBFFF}{\lambda_{Ds}}
+      \left(\frac{2\,\textcolor{#C060FF}{e}\,|\textcolor{#F5C518}{V_0}|}{kT_e}\right)^{3/4}
+    \;}
+    $$
 
-  <p class="th-body" style="margin-top:14px">
-    For a floating wall $\textcolor{#C060FF}{e}|\textcolor{#F5C518}{V_0}| \approx 5\,kT_e$, and the formula returns
-    $s \approx 3\,\textcolor{#3DBFFF}{\lambda_{Ds}}$ &mdash; the rule of thumb that a sheath is
-    &ldquo;a few Debye lengths thick&rdquo;. Bias the wall hard negative and it grows as
-    $|\textcolor{#F5C518}{V_0}|^{3/4}$: this is the same law that sets the gap you need between accelerator grids, and
-    the same law that limits the current density an ion engine can extract.
-  </p>
+    <p class="th-body" style="margin-top:14px">
+      For a floating wall $\textcolor{#C060FF}{e}|\textcolor{#F5C518}{V_0}| \approx 5\,kT_e$, and the formula returns
+      $s \approx 3\,\textcolor{#3DBFFF}{\lambda_{Ds}}$, the rule of thumb that a sheath is
+      &ldquo;a few Debye lengths thick&rdquo;. Bias the wall hard negative and it grows as
+      $|\textcolor{#F5C518}{V_0}|^{3/4}$: this is the same law that sets the gap you need between accelerator grids, and
+      the same law that limits the current density an ion engine can extract.
+    </p>
 
-  <details class="deriv-detail">
-    <summary>Show derivation</summary>
-    <div class="deriv-inner">
+    <details class="deriv-detail">
+      <summary>Show derivation</summary>
+      <div class="deriv-inner">
 
-      <span class="eq-step-label">Child&ndash;Langmuir current in the gap</span>
-      <span class="eq-note">
-        A space-charge-limited flow of ions of mass $\textcolor{#FF4400}{m_i}$ across a gap $s$ held at
-        $\textcolor{#F5C518}{V_0}$ carries
-      </span>
+        <span class="eq-step-label">Child&ndash;Langmuir Current in the Gap</span>
+        <span class="eq-note">
+          A space-charge-limited flow of ions of mass $\textcolor{#FF4400}{m_i}$ across a gap $s$ held at
+          $\textcolor{#F5C518}{V_0}$ carries
+        </span>
 
-      $$
-      J \;=\; \frac{4}{9}\,\varepsilon_0
-        \sqrt{\frac{2\textcolor{#C060FF}{e}}{\textcolor{#FF4400}{m_i}}}\,
-        \frac{|\textcolor{#F5C518}{V_0}|^{3/2}}{s^{2}}
-      $$
+        $$
+        J \;=\; \frac{4}{9}\,\varepsilon_0
+          \sqrt{\frac{2\textcolor{#C060FF}{e}}{\textcolor{#FF4400}{m_i}}}\,
+          \frac{|\textcolor{#F5C518}{V_0}|^{3/2}}{s^{2}}
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">But the plasma decides the current</span>
-      <span class="eq-note">
-        The sheath cannot draw more ions than the pre-sheath delivers, and the pre-sheath delivers the Bohm flux:
-      </span>
+        <span class="eq-step-label">But the Plasma Decides the Current</span>
+        <span class="eq-note">
+          The sheath cannot draw more ions than the pre-sheath delivers, and the pre-sheath delivers the Bohm flux:
+        </span>
 
-      $$
-      J \;=\; \textcolor{#C060FF}{e}\,\textcolor{#C060FF}{n_s}\,\textcolor{#3DBFFF}{c_s}
-      $$
+        $$
+        J \;=\; \textcolor{#C060FF}{e}\,\textcolor{#C060FF}{n_s}\,\textcolor{#3DBFFF}{c_s}
+        $$
 
-      <div class="eq-divider"></div>
+        <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Equate and solve for the gap</span>
-      <span class="eq-note">
-        Every constant collapses into the Debye length at the sheath edge,
-        $\textcolor{#3DBFFF}{\lambda_{Ds}}^2 = \varepsilon_0 kT_e/\textcolor{#C060FF}{e}^2\textcolor{#C060FF}{n_s}$:
-      </span>
+        <span class="eq-step-label">Equate and Solve for the Gap</span>
+        <span class="eq-note">
+          Every constant collapses into the Debye length at the sheath edge,
+          $\textcolor{#3DBFFF}{\lambda_{Ds}}^2 = \varepsilon_0 kT_e/\textcolor{#C060FF}{e}^2\textcolor{#C060FF}{n_s}$:
+        </span>
 
-      $$
-      \boxed{\;
-        s = \frac{\sqrt{2}}{3}\,\textcolor{#3DBFFF}{\lambda_{Ds}}
-        \left(\frac{2\textcolor{#C060FF}{e}|\textcolor{#F5C518}{V_0}|}{kT_e}\right)^{3/4}
-      \;}
-      $$
+        $$
+        \boxed{\;
+          s = \frac{\sqrt{2}}{3}\,\textcolor{#3DBFFF}{\lambda_{Ds}}
+          \left(\frac{2\textcolor{#C060FF}{e}|\textcolor{#F5C518}{V_0}|}{kT_e}\right)^{3/4}
+        \;}
+        $$
 
-      <div class="eq-callout">
-        The exact collisionless sheath solution actually approaches the sheath edge asymptotically, so &ldquo;where the
-        sheath begins&rdquo; is a matter of convention rather than a sharp boundary. The Child&ndash;Langmuir estimate
-        is the standard convention, and it is the one the demo reports.
+        <div class="eq-callout">
+          The exact collisionless sheath solution actually approaches the sheath edge asymptotically, so &ldquo;where the
+          sheath begins&rdquo; is a matter of convention rather than a sharp boundary. The Child&ndash;Langmuir estimate
+          is the standard convention, and it is the one the demo reports.
+        </div>
+        <div class="eq-callout highlight-blue">
+          Turned around, this is the <span class="key">perveance limit</span> of an ion optics system: for a chosen grid
+          gap and voltage there is a maximum extractable current density. Push past it and the sheath at the screen grid
+          moves, the beamlet defocuses, and ions start hitting the accelerator grid.
+        </div>
+
       </div>
-      <div class="eq-callout highlight-blue">
-        Turned around, this is the <span class="key">perveance limit</span> of an ion optics system: for a chosen grid
-        gap and voltage there is a maximum extractable current density. Push past it and the sheath at the screen grid
-        moves, the beamlet defocuses, and ions start hitting the accelerator grid.
-      </div>
-
-    </div>
-  </details>
+    </details>
+  </div>
 </div>
 
 <!-- ════════════════════ QUIZ 3 ════════════════════ -->
@@ -863,15 +1156,18 @@ footer .foot-cred {
     <p class="quiz-q">Inside the sheath, how do the ion and electron densities compare, and why?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>$n_i &gt; n_e$ &mdash; electrons are repelled and thin out exponentially,
-        while ions are only sped up, so a net positive charge is left behind.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">$n_i &gt; n_e$. Electrons are repelled and thin out exponentially,
+          while ions are only sped up, so a net positive charge is left behind.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>$n_e &gt; n_i$ &mdash; the wall is negative, so it must have attracted a
-        surplus of electrons in front of it.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">$n_e &gt; n_i$. The wall is negative, so it must have attracted a
+          surplus of electrons in front of it.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>They stay equal &mdash; quasineutrality holds everywhere in a plasma.
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">They stay equal. Quasineutrality holds everywhere in a plasma.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -880,7 +1176,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ DEMO 3 ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Demo 3 &mdash; The Full Structure</div>
+  <div class="th-hdr">Demo 3: The Full Structure</div>
   <iframe class="applet-frame" src="sheath.html?mode=structure"
           title="Potential and density profiles through the pre-sheath and sheath up to the wall, with species, temperature, density, pre-sheath length and wall bias controls"
           loading="lazy"></iframe>
@@ -890,7 +1186,7 @@ footer .foot-cred {
   This is the whole picture at once: <span class="hl-phi">&phi;(x)</span> above, the two densities below, the sheath
   edge marked by the dotted line, and the wall on the right. In the pre-sheath the two density curves lie on top of
   one another; past the sheath edge <span class="hl-power">n<sub>e</sub></span> collapses while
-  <span class="hl-ve">n<sub>i</sub></span> merely sags &mdash; and that gap is the space charge holding the potential
+  <span class="hl-ve">n<sub>i</sub></span> merely sags, and that gap is the space charge holding the potential
   down. Raise the density and watch the sheath thin while the drop stays put; raise
   <span class="hl-electron">T<sub>e</sub></span> and everything deepens together. Note the horizontal scale is split:
   the sheath is drawn magnified, and the panel tells you by how much.
@@ -900,7 +1196,7 @@ footer .foot-cred {
 <p class="page-intro section-lead">
   None of this is bookkeeping. The sheath sets three numbers a thruster designer cannot escape. It fixes the
   <span class="key">ion current lost to the walls</span> at $0.61\,\textcolor{#C060FF}{e}\,\textcolor{#C060FF}{n_0}
-  \textcolor{#3DBFFF}{c_s}$ per unit area &mdash; every one of those ions cost roughly 20&ndash;40 eV to make and
+  \textcolor{#3DBFFF}{c_s}$ per unit area, and every one of those ions cost roughly 20&ndash;40 eV to make and
   produces no thrust. It fixes the <span class="key">energy each ion carries into the wall</span> at about
   $5.8\,kT_e$, which for a Hall thruster running at $T_e \sim 25$ eV is roughly 150 eV: comfortably above the
   sputtering threshold of boron nitride, and the reason channel erosion is a life-limiting failure mode. And through
@@ -922,7 +1218,7 @@ footer .foot-cred {
     <summary>If the plasma is quasineutral, how can there be a
     <span class="hl-phi">potential</span> drop across it at all?</summary>
     <div class="clarify-body">
-      Quasineutral means $n_i - n_e$ is small compared with $n_e$ &mdash; not that it is zero. Poisson's equation only
+      Quasineutral means $n_i - n_e$ is small compared with $n_e$, not that it is zero. Poisson's equation only
       needs a tiny fractional imbalance to sustain a field over a long distance. Across a pre-sheath of length $L$ the
       required imbalance is of order $(\textcolor{#3DBFFF}{\lambda_D}/L)^2$, which for a 67 &micro;m Debye length and
       a 10 mm pre-sheath is about one part in twenty thousand. The plasma is quasineutral to four decimal places and
@@ -936,7 +1232,7 @@ footer .foot-cred {
     <em>ion</em> mass?</summary>
     <div class="clarify-body">
       Because the <span class="hl-ion">ions</span> are not pushing themselves. In a typical discharge the ions are
-      nearly cold &mdash; a fraction of an eV &mdash; while the electrons are at several eV. The electrons want to run
+      nearly cold (a fraction of an eV) while the electrons are at several eV. The electrons want to run
       to the wall and cannot, because that would leave a charge imbalance; instead they set up an ambipolar field that
       drags the ions along with them. So the energy scale of the motion comes from the
       <span class="hl-electron">electrons</span> and the inertia comes from the
@@ -949,7 +1245,7 @@ footer .foot-cred {
     <summary>Why does a heavier propellant give a deeper sheath but a smaller wall loss?</summary>
     <div class="clarify-body">
       The two effects come from the same mass, entering in different places. The floating potential depends on
-      $\ln(\textcolor{#FF4400}{m_i})$, so a heavier ion deepens the well &mdash; but only logarithmically, which is
+      $\ln(\textcolor{#FF4400}{m_i})$, so a heavier ion deepens the well, but only logarithmically, which is
       why xenon and argon differ by less than 15%. The wall loss depends on
       $\textcolor{#3DBFFF}{c_s} \propto \textcolor{#FF4400}{m_i}^{-1/2}$, which is a power law: xenon ions crawl to
       the wall about 2.8 times more slowly than argon ions at the same $T_e$, so the Bohm flux is 2.8 times smaller.
@@ -961,7 +1257,7 @@ footer .foot-cred {
     <summary>The demo shows <span class="hl-ve">n<sub>i</sub></span> staying finite at the wall while
     <span class="hl-power">n<sub>e</sub></span> goes to nothing. Shouldn't both fall to zero?</summary>
     <div class="clarify-body">
-      No &mdash; and the reason is a good check on the whole model. The ions are carrying a current to the wall, and
+      No, and the reason is a good check on the whole model. The ions are carrying a current to the wall, and
       current is $\textcolor{#C060FF}{e}\,n_i u_i$. Since $u_i$ is finite, $n_i$ must be too, or no current would flow.
       Flux conservation gives $n_i = \textcolor{#C060FF}{n_s}(1 + 2\chi)^{-1/2}$: the ions thin out because they speed
       up, not because they disappear. The electrons are a different story: they are being turned back, so their density
@@ -975,8 +1271,8 @@ footer .foot-cred {
     <div class="clarify-body">
       The roles swap. Now the <span class="hl-electron">electrons</span> are the attracted species and the
       <span class="hl-ion">ions</span> are repelled, and an <span class="key">electron sheath</span> forms with the
-      opposite sign of space charge. Because electrons are so mobile, the surface draws an enormous current &mdash;
-      roughly the 200&times; ratio we started with &mdash; which is why a positively biased probe can perturb or even
+      opposite sign of space charge. Because electrons are so mobile, the surface draws an enormous current,
+      roughly the 200&times; ratio we started with, which is why a positively biased probe can perturb or even
       extinguish the discharge it is measuring, and why a Langmuir probe sweep is normally kept close to the floating
       potential. It is also why the cathode keeper and the anode in a real thruster carry very different current
       densities for the same area.
@@ -986,7 +1282,7 @@ footer .foot-cred {
   <details class="clarify-detail">
     <summary>Where does secondary electron emission fit in?</summary>
     <div class="clarify-body">
-      An electron or ion striking a surface can knock loose one or more secondaries, and those leave the wall &mdash;
+      An electron or ion striking a surface can knock loose one or more secondaries, and those leave the wall:
       an outgoing negative current is indistinguishable from an incoming positive one. The wall therefore does not need
       to charge as deeply to reach balance, so the sheath gets <em>shallower</em> and the ions arrive with
       <em>less</em> energy. Boron nitride, the usual Hall thruster channel material, has a high yield, and above a
@@ -1001,12 +1297,12 @@ footer .foot-cred {
     <summary>How does a <span class="hl-B">magnetic field</span> change the picture?</summary>
     <div class="clarify-body">
       If the field is strong enough that the electron Larmor radius is smaller than the Debye length, the electrons can
-      no longer stream freely to the wall &mdash; they have to cross field lines to do it, and their flux is reduced.
+      no longer stream freely to the wall: they have to cross field lines to do it, and their flux is reduced.
       The sheath then becomes shallower, and if the field meets the wall obliquely a second, thicker, quasineutral
       layer appears in front of the sheath: the <span class="key">magnetic presheath</span>, or Chodura layer, whose
       scale is the ion Larmor radius rather than the Debye length. In a Hall thruster, where the radial field is
-      designed to hold electrons off the walls, this is exactly the regime, and it is why magnetic shielding &mdash;
-      shaping the field so its lines never terminate on the channel wall &mdash; so dramatically extends thruster life.
+      designed to hold electrons off the walls, this is exactly the regime, and it is why magnetic shielding,
+      shaping the field so its lines never terminate on the channel wall, so dramatically extends thruster life.
     </div>
   </details>
 </div>
@@ -1015,15 +1311,15 @@ footer .foot-cred {
 <div class="refs">
   <div class="refs-hdr">Sources &amp; further reading</div>
   <ul>
-    <li>I. H. Hutchinson, <em>Introduction to Plasma Physics</em> (MIT 22.611 / 6.651 course notes) &mdash; sheath and
+    <li>I. H. Hutchinson, <em>Introduction to Plasma Physics</em> (MIT 22.611 / 6.651 course notes). Sheath and
       presheath, and the kinetic form of the Bohm criterion.</li>
-    <li>I. H. Hutchinson, <em>Principles of Plasma Diagnostics</em>, ch. 3 &mdash; Langmuir probes and sheath theory.</li>
+    <li>I. H. Hutchinson, <em>Principles of Plasma Diagnostics</em>, ch. 3. Langmuir probes and sheath theory.</li>
     <li>M. A. Lieberman &amp; A. J. Lichtenberg, <em>Principles of Plasma Discharges and Materials Processing</em>,
-      ch. 6 &mdash; the Bohm criterion, the Child law sheath, and the 0.61 edge-density factor.</li>
-    <li>D. Bohm, in <em>The Characteristics of Electrical Discharges in Magnetic Fields</em> (1949) &mdash; the original
+      ch. 6. The Bohm criterion, the Child law sheath, and the 0.61 edge-density factor.</li>
+    <li>D. Bohm, in <em>The Characteristics of Electrical Discharges in Magnetic Fields</em> (1949). The original
       criterion.</li>
-    <li>L. Tonks &amp; I. Langmuir, <em>Phys. Rev.</em> <b>34</b>, 876 (1929) &mdash; the free-fall presheath solution.</li>
-    <li>D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion</em>, ch. 3 &amp; 7 &mdash; sheaths, wall
+    <li>L. Tonks &amp; I. Langmuir, <em>Phys. Rev.</em> <b>34</b>, 876 (1929). The free-fall presheath solution.</li>
+    <li>D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion</em>, ch. 3 &amp; 7. Sheaths, wall
       losses and erosion in ion and Hall thrusters.</li>
   </ul>
 </div>
@@ -1039,12 +1335,16 @@ footer .foot-cred {
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>
 "use strict";
+
+/* ── Single-answer multiple choice ─────────────────────────────── */
 document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
   const opts = block.querySelectorAll('.quiz-opt');
   const fb   = block.querySelector('.quiz-feedback');
+
   opts.forEach(opt => {
     opt.addEventListener('click', () => {
       opts.forEach(o => { o.disabled = true; });
+
       if (opt.dataset.correct === 'true') {
         opt.classList.add('correct');
         fb.textContent = 'Correct!';
@@ -1052,10 +1352,49 @@ document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
       } else {
         opt.classList.add('wrong');
         opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
-        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
         fb.style.color = '#ff8e8e';
       }
     });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
   });
 });
 </script>

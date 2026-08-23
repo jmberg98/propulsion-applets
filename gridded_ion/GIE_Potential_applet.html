@@ -539,14 +539,20 @@ details.deriv-detail > summary:focus-visible {
   transition: color 0.15s;
 }
 /* ── Option with a "dropdown arrow" note ─────────────────
-   The layout doc gives each choice a one-line gloss of what
-   that supply actually does. Rendered as a muted second line
-   inside the button rather than a real disclosure: a
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
    <details> nested in a <button> is invalid, and the gloss
    is short enough that hiding it buys nothing. */
 .quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
 .quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
-.quiz-opt-text { display: flex; flex-direction: column; gap: 3px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
   font-size: 16px;
   font-weight: 400;
@@ -687,7 +693,8 @@ footer .foot-cred {
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, power</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
   <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
 </div>
@@ -730,7 +737,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ CIRCUIT CROSS-SECTION ════════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Cross Section &mdash; Circuit Diagram</div>
+  <div class="th-hdr">Cross Section: Circuit Diagram</div>
   <iframe id="circuit-frame" class="applet-frame" src="gridded_ion.html?mode=overview&amp;circuit=1&amp;v=22"
           title="Gridded ion engine cross-section with the circuit diagram overlay"
           loading="lazy"></iframe>
@@ -819,7 +826,7 @@ footer .foot-cred {
   <div class="th-hdr">The Voltages</div>
 
   <p class="th-body">
-    <span class="hl-E">$V_{discharge}$</span> &mdash; Provides <span class="hl-electron">electrons</span> the
+    <span class="hl-E">$V_{discharge}$</span>: Provides <span class="hl-electron">electrons</span> the
     necessary energy to drop in <span class="hl-E">electric potential</span>, allowing them to gain kinetic energy as
     their potential raises to the bulk plasma potential <span class="hl-E">$V_{net}$</span>.
     <span class="hl-ion">Ions</span> born from these ionizing electrons are at the bulk plasma potential
@@ -827,7 +834,7 @@ footer .foot-cred {
   </p>
 
   <p class="th-body">
-    <span class="hl-E">$V_{neutralizer}$</span> &mdash; Provides <span class="hl-electron">electrons</span> the
+    <span class="hl-E">$V_{neutralizer}$</span>: Provides <span class="hl-electron">electrons</span> the
     necessary energy to drop in <span class="hl-E">electric potential</span> to 0&nbsp;V, allowing them to join the
     <span class="hl-ion">ion jet</span> downstream. Consumes the bulk of the thruster&rsquo;s
     <span class="hl-power">power</span>, due to needing to provide a large voltage drop to a large current of
@@ -835,7 +842,7 @@ footer .foot-cred {
   </p>
 
   <p class="th-body">
-    <span class="hl-E">$V_{total}$</span> &mdash; The <span class="hl-E">voltage drop</span> between the
+    <span class="hl-E">$V_{total}$</span>: The <span class="hl-E">voltage drop</span> between the
     <span class="key">screen</span> and <span class="key">accelerator grid</span>. Dictates the
     <span class="key">space charge limit</span>
     (<a class="applet-link" href="GIE_Acceleration_applet.html">GIE II: Acceleration</a>) and thus mass flow rate of
@@ -843,7 +850,7 @@ footer .foot-cred {
   </p>
 
   <p class="th-body">
-    <span class="hl-E">$V_{accel}$</span> &mdash; Set at (not recommended) or below the plasma beam&rsquo;s
+    <span class="hl-E">$V_{accel}$</span>: Set at (not recommended) or below the plasma beam&rsquo;s
     <span class="hl-E">potential</span> to prevent <span class="hl-electron">electrons</span> from
     &ldquo;<span class="key">back-streaming</span>&rdquo; into the grid.
     <span class="hl-E">$V_{accel}$</span> adversely affects
@@ -890,7 +897,7 @@ footer .foot-cred {
           <span class="hl-E">electric potential $\phi$ or $V$</span> by energy balance.
         </span>
 
-        <span class="eq-step-label">Work done on charge = Change in electric potential energy</span>
+        <span class="eq-step-label">Work Done on Charge = Change in Electric Potential Energy</span>
         $$
         -\!\int \textcolor{#FF4400}{F_e}\,dz = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
         $$
@@ -956,10 +963,49 @@ document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
       } else {
         opt.classList.add('wrong');
         opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
-        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
         fb.style.color = '#ff8e8e';
       }
     });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
   });
 });
 </script>

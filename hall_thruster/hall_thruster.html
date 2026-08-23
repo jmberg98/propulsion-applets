@@ -1875,6 +1875,13 @@ function computeDistSolid(){
   const halfV = THREE.MathUtils.degToRad(FOV_SOLID / 2);
   const halfH = Math.atan(Math.tan(halfV) * viewAspect());
   distSolid = rFull / Math.sin(Math.min(halfV, halfH)) * 0.92;
+  /* Zoom stops. They live HERE rather than beside the OrbitControls constructor
+     because distSolid is re-derived on every resize, and a stop that did not move
+     with it could exclude the framing the viewer picks for itself. The span also
+     has to admit distSection (rFull * 3), which the section morph dollies to: at
+     the widest aspect distSolid bottoms out near rFull * 2.57, so 4x clears it. */
+  controls.minDistance = distSolid * 0.22;
+  controls.maxDistance = distSolid * 4.0;
 }
 
 /* Size the ortho frustum so the whole XY silhouette (plus margin) fits the viewport
