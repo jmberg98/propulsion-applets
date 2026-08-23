@@ -284,13 +284,14 @@ details.clarify-detail > summary:focus-visible {
    stage is the thing that can afford to give ground: it re-fits its camera on
    every resize, so it loses width without losing the model. */
 #cv-wrap {
-  /* basis 760, shrink-only. Growth is the PANEL's job (below), so the stage never
-     exceeds its budget and the leftover on a wide page lands in the controls. The
-     basis has to be a length: `auto` resolves against a child that is itself
-     flexible, which measures as nothing and hands the stage away.
+  /* The STAGE is the grower. Slack on a wide page belongs to the demo, not to the
+     controls: three sliders and four radios do not get better at 800px, they just
+     get stretched, while the model gets straightforwardly bigger.
+     Basis 0, never auto: `auto` resolves against a child that is itself flexible,
+     measures as nothing, and hands the stage away.
      display:flex is here so the stage below can stretch to the ROW's height. */
-  flex: 0 1 760px;
-  min-width: 0;
+  flex: 1 1 0;
+  min-width: 420px;
   display: flex;
   background: var(--bg-canvas);
   border-right: 1px solid var(--border);
@@ -362,10 +363,14 @@ canvas {
    and #rp carries 16px of padding either side. Below that the slider track starts
    collapsing before anything else visibly gives. */
 #rp {
-  /* The only grower in the row, floored at 340. So: stage = min(760, page - 340),
-     panel = whatever is left, and the panel is what widens on a large screen. */
-  flex: 1 1 340px;
-  min-width: 340px;
+  /* Capped, and NOT a grower. 360px is what the content wants: the widest radio row
+     ("Hydrazine  (32.04 g/mol)" at 19px) is ~240px, the value box is a fixed 66px,
+     and #rp carries 16px of padding either side. So: panel = 360, stage = the rest,
+     and the two floors (420 + 320) still clear the 788px page the 980px stacking
+     breakpoint lands on. */
+  flex: 0 1 360px;
+  width: 360px;
+  min-width: 320px;
   overflow: hidden;
   padding: 14px 16px;
   display: flex;
@@ -1479,7 +1484,7 @@ const EXIT_R   =  0.300 * SCENE_R;
    was 2.77 until the arrows were shortened below; carrying the old number forward
    would have left the ship at a third of the frame with the slack all sky. */
 const FIT_HALF_W = 2.30 * SCENE_R;
-const FIT_HALF_H = 1.15 * SCENE_R;
+const FIT_HALF_H = 1.25 * SCENE_R;
 const FOV        = 34;
 
 // Plume: spawns across the exit plane, travels +î, FADES OUT downstream.
