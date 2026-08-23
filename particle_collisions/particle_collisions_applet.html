@@ -35,6 +35,11 @@
   --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
   --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
   --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
   --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
@@ -47,7 +52,9 @@
   --bg-panel-3:  #171717;
   --bg-panel-4:  #1d1d1d;
   --bg-input:    #191919;
+  --bg-out-cell: #0c0c0c;
   --bg-canvas:   #090909;
+  --bg-diagram:  #0e0e0e;
 
   --border: #282828;
 
@@ -97,7 +104,8 @@ footer { width: var(--page-w); }
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
-.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
@@ -129,16 +137,34 @@ footer { width: var(--page-w); }
 
 /* ── Header ──────────────────────────────────────────── */
 #hdr { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
-#hdr h1 { font-size: 25px; font-weight: 700; color: var(--text-heading); letter-spacing: .3px; }
+#hdr h1 {
+  font-size: 25px;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: .3px;
+}
 
 .badge {
-  font-size: 14px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-  padding: 2px 8px; border: 1px solid var(--c-accent); border-radius: 3px;
-  color: var(--c-accent); background: var(--c-accent-bg); white-space: nowrap; flex-shrink: 0;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid var(--c-accent);
+  border-radius: 3px;
+  color: var(--c-accent);
+  background: var(--c-accent-bg);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ── Page intro ──────────────────────────────────────── */
-.page-intro { font-size: 20.5px; line-height: 1.72; color: var(--text-main); margin-bottom: 18px; }
+.page-intro {
+  font-size: 20.5px;
+  line-height: 1.72;
+  color: var(--text-main);
+  margin-bottom: 18px;
+}
 .page-intro + .page-intro { margin-top: -4px; }
 .page-intro.section-lead {
   border-top: 1px solid var(--border);
@@ -157,10 +183,21 @@ footer { width: var(--page-w); }
   background: var(--bg-panel-1); padding: 16px 18px; margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
-  text-transform: uppercase; padding-bottom: 5px; border-bottom: 1px solid var(--border); margin-bottom: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
 }
-.th-body { font-size: 20.5px; line-height: 1.70; color: var(--text-main); margin-bottom: 14px; }
+.th-body {
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  margin-bottom: 14px;
+}
 .theory-block > .th-body:last-child { margin-bottom: 0; }
 
 .theory-block.applet-host {
@@ -224,35 +261,159 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 .prop-pro .pm { color: #51cf66; }
 .prop-con .pm { color: #ff6b6b; }
 
-/* ══════════ QUIZ ══════════ */
+/* ══════════════════════════════════════════════════════
+   QUIZ SECTION
+   ══════════════════════════════════════════════════════ */
 .quiz-section {
-  border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
-  background: var(--bg-panel-1); margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
-  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border); background: var(--bg-panel-1);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel-1);
 }
-.quiz-block { padding: 14px 18px 16px; background: var(--bg-panel-1); }
-.quiz-block + .quiz-block { border-top: 1px solid var(--border); background: var(--bg-panel-2); }
-.quiz-q { font-size: 20.5px; font-weight: 600; color: var(--text-heading); margin-bottom: 6px; line-height: 1.55; }
-.quiz-options { display: flex; flex-direction: column; gap: 7px; margin-bottom: 8px; }
+.quiz-block {
+  padding: 14px 18px 16px;
+  background: var(--bg-panel-1);
+}
+.quiz-block + .quiz-block {
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel-2);
+}
+.quiz-q {
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  margin-bottom: 12px;
+  line-height: 1.55;
+}
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+.quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-bottom: 8px;
+}
 .quiz-opt {
-  display: flex; align-items: center; gap: 12px; padding: 9px 14px;
-  background: var(--bg-panel-4); border: 1px solid var(--border); border-radius: 4px;
-  color: var(--text-main); font-family: 'Barlow', sans-serif; font-size: 19px; font-weight: 500;
-  cursor: pointer; text-align: left; transition: background 0.15s, border-color 0.15s, color 0.15s; width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  background: var(--bg-panel-4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-main);
+  font-family: 'Barlow', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  width: 100%;
 }
-.quiz-opt:hover:not(:disabled):not(.selected) { background: #222222; border-color: #3a3a3a; }
+.quiz-opt:hover:not(:disabled):not(.selected) {
+  background: #222222;
+  border-color: #3a3a3a;
+}
 .quiz-opt:disabled { cursor: default; }
-.quiz-opt.correct { background: rgba(81,207,102,0.09); border-color: rgba(81,207,102,0.38); color: #51cf66; }
-.quiz-opt.wrong   { background: rgba(255,107,107,0.08); border-color: rgba(255,107,107,0.28); color: #ff8e8e; }
-.quiz-opt-label {
-  font-size: 17px; font-weight: 700; color: #444; flex-shrink: 0; width: 20px; text-align: center; transition: color 0.15s;
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
 }
+.quiz-opt.correct {
+  background: rgba(81,207,102,0.09);
+  border-color: rgba(81,207,102,0.38);
+  color: #51cf66;
+}
+.quiz-opt.wrong {
+  background: rgba(255,107,107,0.08);
+  border-color: rgba(255,107,107,0.28);
+  color: #ff8e8e;
+}
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
+.quiz-opt-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #444;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+  transition: color 0.15s;
+}
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
 .quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
 .quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
-.quiz-feedback { font-size: 18px; color: var(--text-muted); min-height: 22px; font-style: italic; margin-top: 8px; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
+.quiz-feedback {
+  font-size: 18px;
+  color: var(--text-muted);
+  min-height: 22px;
+  font-style: italic;
+  margin-top: 6px;
+}
 
 /* ══════════ CONCEPTUAL QUESTIONS (DROPDOWNS) ══════════ */
 .clarify-section {
@@ -260,27 +421,49 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   background: var(--bg-panel-1); margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px; font-weight: 700; color: var(--c-accent); letter-spacing: 1.2px;
-  text-transform: uppercase; padding: 8px 14px 7px; border-bottom: 1px solid var(--border);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
 }
 details.clarify-detail { border-top: 1px solid var(--border); }
 details.clarify-detail:first-of-type { border-top: none; }
 details.clarify-detail > summary {
-  cursor: pointer; list-style: none; display: block;
-  padding: 12px 14px 12px 34px; font-size: 20.5px; font-weight: 600;
-  color: var(--text-heading); background: var(--bg-panel-2); user-select: none; line-height: 1.5;
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 20.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
 }
 details.clarify-detail > summary::-webkit-details-marker { display: none; }
 details.clarify-detail > summary::before {
-  content: '\25B6'; font-size: 10px; color: var(--c-accent); display: inline-block;
-  width: 12px; margin-left: -20px; margin-right: 8px; text-align: center;
-  transition: transform 0.15s ease; transform-origin: 50% 50%;
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
 }
 details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
 details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-accent); outline-offset: -2px; }
 .clarify-body {
-  padding: 12px 18px 15px; border-top: 1px solid var(--border);
-  font-size: 20.5px; line-height: 1.70; color: var(--text-main); background: var(--bg-panel-1);
+  padding: 10px 18px 14px;
+  border-top: 1px solid var(--border);
+  font-size: 20.5px;
+  line-height: 1.70;
+  color: var(--text-main);
+  background: var(--bg-panel-1);
 }
 
 /* ── KaTeX font sizing ──────────────────────────────── */
@@ -341,9 +524,9 @@ footer .foot-cred {
 
 <!-- ════════════════════ APPLET NAV ════════════════════ -->
 <nav class="applet-nav">
-  <span class="nav-disabled">&larr; Prev</span>
+  <a class="nav-prev" href="../magnetic_mirror/magnetic_mirror_applet.html">&larr; Prev</a>
   <a class="nav-home" href="../index.html">Home</a>
-  <a class="nav-next" href="../gridded_ion/GIE_Ionization_applet.html">Next &rarr;</a>
+  <a class="nav-next" href="../gridded_ion/GIE_Overview_applet.html">Next &rarr;</a>
 </nav>
 
 <!-- ════════════════════ HEADER ════════════════════ -->
@@ -366,7 +549,7 @@ footer .foot-cred {
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>velocity, ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>electron</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
   <span class="ck"><i style="background:var(--c-photon)"></i>light</span>
 </div>
@@ -388,10 +571,12 @@ footer .foot-cred {
     <p class="quiz-q">Does ionization require or release energy?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>Ionization requires energy.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Ionization requires energy.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Ionization releases energy.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Ionization releases energy.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -402,7 +587,7 @@ footer .foot-cred {
 <div class="theory-block applet-host">
   <div class="th-hdr">Ionization</div>
   <iframe class="applet-frame" src="particle_collisions.html?mode=ionization"
-          title="Ionizing collision — a fast electron knocks an electron loose from a neutral atom"
+          title="Ionizing collision: a fast electron knocks an electron loose from a neutral atom"
           loading="lazy"></iframe>
 </div>
 
@@ -422,10 +607,12 @@ footer .foot-cred {
     <p class="quiz-q">Does recombination require or release energy?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Recombination requires energy.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Recombination requires energy.</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Recombination releases energy.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Recombination releases energy.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -436,7 +623,7 @@ footer .foot-cred {
 <div class="theory-block applet-host">
   <div class="th-hdr">Recombination</div>
   <iframe class="applet-frame" src="particle_collisions.html?mode=recombination"
-          title="Radiative recombination — a slow electron is captured by an ion, emitting a photon"
+          title="Radiative recombination: a slow electron is captured by an ion, emitting a photon"
           loading="lazy"></iframe>
 </div>
 
@@ -458,13 +645,16 @@ footer .foot-cred {
     energy?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Halogens
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Halogens</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Noble gases
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Noble gases</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Alkaline Earth Metals
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Alkaline Earth Metals</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -608,12 +798,16 @@ footer .foot-cred {
 <!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>
 "use strict";
+
+/* ── Single-answer multiple choice ─────────────────────────────── */
 document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
   const opts = block.querySelectorAll('.quiz-opt');
   const fb   = block.querySelector('.quiz-feedback');
+
   opts.forEach(opt => {
     opt.addEventListener('click', () => {
       opts.forEach(o => { o.disabled = true; });
+
       if (opt.dataset.correct === 'true') {
         opt.classList.add('correct');
         fb.textContent = 'Correct!';
@@ -621,10 +815,49 @@ document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
       } else {
         opt.classList.add('wrong');
         opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
-        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
         fb.style.color = '#ff8e8e';
       }
     });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
   });
 });
 </script>

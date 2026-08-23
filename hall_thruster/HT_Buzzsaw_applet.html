@@ -1232,7 +1232,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   color: var(--c-ve);
 }
 .fig-panel .sl-row { display: block; }
-/* Blue, like the accent on every other slider in this codebase. Grey is what the
+/* Blue, like the accent on every other slider in this codebase. Gray is what the
    lesson pages use for a control sitting on the page itself. */
 .fig-panel .sl-row input[type=range] {
   display: block;
@@ -1403,7 +1403,8 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, power</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
   <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
   <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
@@ -1467,10 +1468,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     slightly?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>An ion is many orders of magnitude more massive than an electron.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">An ion is many orders of magnitude more massive than an electron.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Ions, unlike electrons, don't have the sufficient kinetic energy to exhibit cyclotron motion.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Ions, unlike electrons, don't have the sufficient kinetic energy to exhibit cyclotron motion.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -1488,12 +1491,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
                      feed, the 24 millimeter channel between the liner faces, and the exit plane with plume
                      beyond it. Inside the channel the electron's gyro-orbit is a small circle at true size,
                      and the xenon ion enters flat past the anode with its arc peeling away from the dashed
-                     straight line it came in on. Both radii are labelled together, in the channel.
+                     straight line it came in on. Both radii are labeled together, in the channel.
                      Bottom: a logarithmic
                      ruler running seven decades from ten
                      micrometers to a hundred meters, banded into magnetized below a tenth of the channel
                      width, marginal, and not magnetized above the channel width. Both gyroradii are marked
-                     on it as species glyphs, and the span between them is braced and labelled with the
+                     on it as species glyphs, and the span between them is braced and labeled with the
                      ratio.">
 
       <rect width="900" height="610" fill="#0e0e0e"/>
@@ -1631,7 +1634,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
            line. They are static, because the channel is 24 mm whatever the sliders do;
            only the two markers move across them. -->
 
-      <!-- Regions shaded and labelled in their own hue, the way the loss-cone figure
+      <!-- Regions shaded and labeled in their own hue, the way the loss-cone figure
            shaded its cone: a wash at low opacity with its name sitting in it, sentence
            case, at the size that figure gave its region label. The three hues are the
            corpus verdict trio (.out-verdict below / at / over), not the physics tokens. A band is a
@@ -1807,13 +1810,16 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <p class="quiz-hint">Select all that apply, then submit.</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>Azimuthal Drift (the E cross B drift)
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Azimuthal Drift (the E cross B drift)</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Cyclotron Motion
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Cyclotron Motion</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">c</span>Reflection across a Magnetic Mirror
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Reflection across a Magnetic Mirror</span>
       </button>
     </div>
     <button class="quiz-submit" type="button">Submit</button>
@@ -2013,13 +2019,16 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <p class="quiz-hint">Select all that apply, then submit.</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>Collisions
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Collisions</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Pressure Gradients
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Pressure Gradients</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">c</span>Plasma Fluctuations
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Plasma Fluctuations</span>
       </button>
     </div>
     <button class="quiz-submit" type="button">Submit</button>
@@ -2068,7 +2077,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       <summary>Show derivation</summary>
       <div class="deriv-inner">
 
-        <span class="eq-step-label">Setup &mdash; particle parameters</span>
+        <span class="eq-step-label">Setup: Particle Parameters</span>
         <span class="eq-note">
           Apply the <span class="hl-thrust">Lorentz force</span> to a particle of
           <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>
@@ -2102,7 +2111,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Equate magnetic force to centripetal force</span>
+        <span class="eq-step-label">Equate Magnetic Force to Centripetal Force</span>
         $$
         \underbrace{|\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}}_{\text{magnetic}}
         \;=\;
@@ -2177,7 +2186,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
           perpendicular to the magnetic field.
         </span>
 
-        <span class="eq-step-label">Decompose the velocity</span>
+        <span class="eq-step-label">Decompose the Velocity</span>
         $$
         \textcolor{#FF4400}{m}\,\frac{d}{dt}\!\left(\textcolor{#3DBFFF}{\vec{v}_L} + \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\right)
         = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{\vec{E}}
@@ -2189,7 +2198,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         + \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)
         $$
 
-        <span class="eq-step-label">Recall the solution for cyclotron motion</span>
+        <span class="eq-step-label">Recall the Solution for Cyclotron Motion</span>
         $$
         \textcolor{#FF4400}{m}\,\frac{d\textcolor{#3DBFFF}{\vec{v}_L}}{dt} = \textcolor{#C060FF}{q}\!\left(\textcolor{#3DBFFF}{\vec{v}_L}\times\textcolor{#00DDB5}{\vec{B}}\right)
         $$
@@ -2206,13 +2215,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Take the cross product of both sides with $\textcolor{#00DDB5}{\vec{B}}$</span>
+        <span class="eq-step-label">Take the Cross Product of Both Sides with $\textcolor{#00DDB5}{\vec{B}}$</span>
         $$
         \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
         + \left(\textcolor{#3DBFFF}{\vec{v}_{E\times B}}\times\textcolor{#00DDB5}{\vec{B}}\right)\times\textcolor{#00DDB5}{\vec{B}} = 0
         $$
 
-        <span class="eq-step-label">Use the vector identity $(\vec{A}\times\vec{B})\times\vec{C} = \vec{B}(\vec{A}\cdot\vec{C}) - \vec{A}(\vec{B}\cdot\vec{C})$</span>
+        <span class="eq-step-label">Use the Vector Identity $(\vec{A}\times\vec{B})\times\vec{C} = \vec{B}(\vec{A}\cdot\vec{C}) - \vec{A}(\vec{B}\cdot\vec{C})$</span>
         $$
         \textcolor{#F5C518}{\vec{E}}\times\textcolor{#00DDB5}{\vec{B}}
         + \textcolor{#00DDB5}{\vec{B}}\underbrace{\left(\textcolor{#3DBFFF}{\vec{v}_{E\times B}}\cdot\textcolor{#00DDB5}{\vec{B}}\right)}_{=\,0}
@@ -2223,7 +2232,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         - \textcolor{#3DBFFF}{\vec{v}_{E\times B}}\,\textcolor{#00DDB5}{B}^2 = 0
         $$
 
-        <span class="eq-step-label">Solve for the drift velocity</span>
+        <span class="eq-step-label">Solve for the Drift Velocity</span>
         $$
         \boxed{\;
         \textcolor{#3DBFFF}{\vec{v}_{E\times B}}
@@ -2316,7 +2325,7 @@ function wireNumBox(rangeId, boxId, apply){
      triangle wave between the two walls, which is a picture of an electron that carries
      all of its energy along the field, reverses instantaneously at each wall and is
      therefore in the loss cone at both ends - that is, of the one electron a mirror
-     cannot hold. What is drawn now is the guiding-centre motion under a conserved
+     cannot hold. What is drawn now is the guiding-center motion under a conserved
      magnetic moment, so the electron decelerates as it climbs into the strong field at a
      pole, turns where mu*B reaches its total energy, and only reaches a wall when its
      pitch angle puts it inside the loss cone. Everything else on the figure - the tooth
@@ -3298,7 +3307,7 @@ const FIELD_LABELS = [
   { k: 'E', tex: '\\vec{E}', txt: 'E',
     pos: rHat(THETA0 + Math.PI / 2).multiplyScalar(R_MID).setY(52),
     vis: () => true },
-  // The drift is a velocity, so it is labelled as one, and it takes the white of the arc
+  // The drift is a velocity, so it is labeled as one, and it takes the white of the arc
   // it names rather than the velocity blue the equations give v_ExB: in the scene the
   // chip's job is to say which arrow it belongs to. Set a little past the arc's head, not
   // radially outboard of it, so the chip trails the arrow instead of sitting on its point.

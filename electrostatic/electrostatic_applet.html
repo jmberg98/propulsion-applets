@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Electrostatic Acceleration — Plasma Physics</title>
+<title>Electrostatic Acceleration</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +35,11 @@
   --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
   --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
   --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
   --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
@@ -103,7 +108,8 @@ footer {
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
-.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
@@ -167,7 +173,7 @@ footer {
   font-size: 20.5px;
   line-height: 1.72;
   color: var(--text-main);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -267,7 +273,7 @@ details.clarify-detail > summary:focus-visible {
   text-transform: uppercase;
   color: #8a8b8c;
   margin-top: 10px;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 .eq-note {
   display: block;
@@ -369,14 +375,14 @@ details.deriv-detail > summary:focus-visible {
 /* ── callout box ─────────────────────────────────────── */
 .eq-callout {
   margin: 12px 0 4px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   background: rgba(160,160,160,0.05);
   border: 1px solid #2e2e2e;
   border-left: 3px solid #404040;
   border-radius: 4px;
   font-size: 18.5px;
   color: var(--text-secondary);
-  line-height: 2.1;
+  line-height: 1.55;
 }
 /* inline relations such as ΔV = |E| d / |E| = ΔV/d carry tall display fractions —
    trim their size a touch so the extra line-height gives them clear breathing room */
@@ -415,7 +421,7 @@ details.deriv-detail > summary:focus-visible {
   justify-content: center;
   gap: 10px;
   width: 100%;
-  height: 480px;
+  height: 460px;
   border-top: 1px solid var(--border);
   background:
     repeating-linear-gradient(
@@ -492,6 +498,12 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 12px;
   line-height: 1.55;
 }
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
 .quiz-options {
   display: flex;
   flex-direction: column;
@@ -515,11 +527,16 @@ details.deriv-detail > summary:focus-visible {
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   width: 100%;
 }
-.quiz-opt:hover:not(:disabled) {
+.quiz-opt:hover:not(:disabled):not(.selected) {
   background: #222222;
   border-color: #3a3a3a;
 }
 .quiz-opt:disabled { cursor: default; }
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
+}
 .quiz-opt.correct {
   background: rgba(81,207,102,0.09);
   border-color: rgba(81,207,102,0.38);
@@ -530,6 +547,11 @@ details.deriv-detail > summary:focus-visible {
   border-color: rgba(255,107,107,0.28);
   color: #ff8e8e;
 }
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
 .quiz-opt-label {
   font-size: 17px;
   font-weight: 700;
@@ -539,8 +561,54 @@ details.deriv-detail > summary:focus-visible {
   text-align: center;
   transition: color 0.15s;
 }
-.quiz-opt.correct .quiz-opt-label { color: #51cf66; }
-.quiz-opt.wrong   .quiz-opt-label { color: #ff8e8e; }
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
   font-size: 18px;
   color: var(--text-muted);
@@ -550,7 +618,7 @@ details.deriv-detail > summary:focus-visible {
 }
 
 /* ── KaTeX font sizing ──────────────────────────────── */
-.katex { font-size: 1.2em !important; }
+.katex { font-size: 1.15em !important; }
 .katex-display { font-size: 1.2em !important; }
 .theory-block .katex { font-size: 1.25em !important; }
 
@@ -626,7 +694,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ APPLET NAV ════════════════════ -->
 <nav class="applet-nav">
-  <a class="nav-prev" href="../debye/debye_applet.html">&larr; Prev</a>
+  <a class="nav-prev" href="../optimum_isp/optimum_isp_applet.html">&larr; Prev</a>
   <a class="nav-home" href="../index.html">Home</a>
   <a class="nav-next" href="../larmor/larmor_applet.html">Next &rarr;</a>
 </nav>
@@ -660,16 +728,18 @@ footer .foot-cred {
 <!-- ════════════════════ Q1 ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
-  <div class="quiz-block" data-unlocks="demo1-frame">
+  <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">Is it possible to exceed the specific impulse of a chemical rocket by accelerating a
     <span class="hl-q">charged particle</span> with an <span class="hl-E">electric field</span>? Recall that the
     theoretical maximum specific impulse is roughly 500 seconds, or 4905 m/s.</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>True
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">True</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>False
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">False</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -738,7 +808,7 @@ footer .foot-cred {
     <summary>Show derivation</summary>
     <div class="deriv-inner">
 
-      <span class="eq-step-label">Energy per unit mass</span>
+      <span class="eq-step-label">Energy per Unit Mass</span>
       $$
       \textcolor{#C060FF}{E}=\frac{1}{2}\textcolor{#3DBFFF}{c}^2
       \qquad\Rightarrow\qquad
@@ -747,7 +817,7 @@ footer .foot-cred {
       }
       $$
 
-      <span class="eq-step-label">For chemical rockets, the power is coupled to the propellant</span>
+      <span class="eq-step-label">For Chemical Rockets, the Power Is Coupled to the Propellant</span>
       <p class="th-body" style="margin-top:8px; margin-bottom:8px;">
         Suppose we use <span class="hl-thrust">LH$_2$ &amp; LOX combustion</span>
       </p>
@@ -756,7 +826,7 @@ footer .foot-cred {
       2H_2 + O_2 \rightarrow 2H_2O
       $$
 
-      <span class="eq-step-label">The reaction has energy per unit mass</span>
+      <span class="eq-step-label">The Reaction Has Energy per Unit Mass</span>
       $$
       \textcolor{#C060FF}{E} = 1.34\times10^7\ \mathrm{J/kg}
       $$
@@ -768,7 +838,7 @@ footer .foot-cred {
       \textcolor{#3DBFFF}{I_{sp}} = 502\ \mathrm{s}
       $$
 
-      <span class="eq-step-label">For electric rockets, however, power and propellant are decoupled from each other</span>
+      <span class="eq-step-label">For Electric Rockets, However, Power and Propellant Are Decoupled from Each Other</span>
       <p class="th-body" style="margin-top:8px; margin-bottom:0;">
         <span class="hl-ve">$c$</span> can be made higher by applying a large amount of <span class="hl-E">voltage</span> to a small amount of <span class="hl-mass">gas</span>.
       </p>
@@ -854,14 +924,14 @@ footer .foot-cred {
             \frac{d\textcolor{#3DBFFF}{\vec{v}}}{dt} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,\textcolor{#F5C518}{\vec{E}}
             $$
 
-            <span class="eq-step-label">For uniform, constant $\textcolor{#F5C518}{\vec{E}}$</span>
+            <span class="eq-step-label">For Uniform, Constant $\textcolor{#F5C518}{\vec{E}}$</span>
             $$
             \textcolor{#3DBFFF}{v} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t
             \qquad
             x = \tfrac{1}{2}\,\frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t^2
             $$
 
-            <span class="eq-step-label">Use variables at desired $v_e$ &amp; distance $d$</span>
+            <span class="eq-step-label">Use Variables at Desired $v_e$ &amp; Distance $d$</span>
             $$
             \textcolor{#3DBFFF}{v_e} = \frac{\textcolor{#C060FF}{q}}{\textcolor{#FF4400}{m}}\,|\textcolor{#F5C518}{E}|\,t_e
             $$
@@ -954,7 +1024,7 @@ footer .foot-cred {
           <span class="hl-E">electric potential $\phi$ or $V$</span> by energy balance.
         </span>
 
-        <span class="eq-step-label">Work done on charge = Change in electric potential energy</span>
+        <span class="eq-step-label">Work Done on Charge = Change in Electric Potential Energy</span>
         $$
         -\!\int \textcolor{#FF4400}{F_e}\,dx = \textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}
         $$
@@ -987,53 +1057,19 @@ footer .foot-cred {
   <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
 </footer>
 
-<!-- ════════════════════ QUIZ + DEMO-UNLOCK JAVASCRIPT ════════════════════ -->
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>
 "use strict";
 
-/**
- * Calls markQuizComplete() inside the target demo (iframe).
- * Retries after short delays to handle demos that are still loading
- * when the quiz is answered. Gracefully no-ops for placeholder demos
- * that are not yet implemented as iframes.
- */
-function unlockFrame(frameId) {
-  const attempts = [0, 300, 800, 2000];          // ms after click to try
-  let done = false;
-
-  const tryUnlock = () => {
-    if (done) return;
-    const frame = document.getElementById(frameId);
-    if (!frame) return;
-    try {
-      if (frame.contentWindow && typeof frame.contentWindow.markQuizComplete === 'function') {
-        frame.contentWindow.markQuizComplete();
-        done = true;
-      }
-    } catch(e) { /* cross-origin guard — shouldn't happen for same-folder files */ }
-  };
-
-  attempts.forEach(delay => setTimeout(tryUnlock, delay));
-
-  // Also fire on the iframe's own load event in case it hasn't finished yet
-  const frame = document.getElementById(frameId);
-  if (frame && typeof frame.addEventListener === 'function' && !done) {
-    frame.addEventListener('load', tryUnlock, { once: true });
-  }
-}
-
-// Each .quiz-block carries a data-unlocks attribute naming the demo to unlock.
-document.querySelectorAll('.quiz-block').forEach(block => {
-  const opts        = block.querySelectorAll('.quiz-opt');
-  const fb          = block.querySelector('.quiz-feedback');
-  const targetFrame = block.dataset.unlocks;   // e.g. "demo1-frame"
+/* ── Single-answer multiple choice ─────────────────────────────── */
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
 
   opts.forEach(opt => {
     opt.addEventListener('click', () => {
-      // Lock all options
       opts.forEach(o => { o.disabled = true; });
 
-      // Show result
       if (opt.dataset.correct === 'true') {
         opt.classList.add('correct');
         fb.textContent = 'Correct!';
@@ -1041,14 +1077,49 @@ document.querySelectorAll('.quiz-block').forEach(block => {
       } else {
         opt.classList.add('wrong');
         opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
-        fb.textContent = 'Not quite — the correct answer is highlighted.';
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
         fb.style.color = '#ff8e8e';
       }
-
-      // Unlock the associated demo (regardless of correct/incorrect —
-      // the correct answer is always revealed, so the gate has been engaged)
-      if (targetFrame) unlockFrame(targetFrame);
     });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
   });
 });
 </script>

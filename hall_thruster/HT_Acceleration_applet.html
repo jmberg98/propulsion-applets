@@ -1061,7 +1061,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   color: var(--c-ve);
 }
 .fig-panel .sl-row { display: block; }
-/* Blue, like the accent on every other slider in this codebase. Grey is what the
+/* Blue, like the accent on every other slider in this codebase. Gray is what the
    lesson pages use for a control sitting on the page itself. */
 .fig-panel .sl-row input[type=range] {
   display: block;
@@ -1255,7 +1255,8 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, power</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
   <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
   <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
@@ -1270,10 +1271,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     might this be?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>Acceleration takes place in a quasineutral fluid (a plasma). An ion is not repelled by charge upstream, since it is quasineutral.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Acceleration takes place in a quasineutral fluid (a plasma). An ion is not repelled by charge upstream, since it is quasineutral.</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Acceleration takes place over a much longer distance, meaning downstream ions are less of an issue than in gridded ion engines.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Acceleration takes place over a much longer distance, meaning downstream ions are less of an issue than in gridded ion engines.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -1458,13 +1461,16 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     maximum thrust densities?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Mass flow rate
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Mass flow rate</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Power
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Power</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Efficiency
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Efficiency</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -1500,10 +1506,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     thruster?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Higher mass flow puts greater strain on the discharge anode power supply, as it requires more electrons for neutralization.
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Higher mass flow puts greater strain on the discharge anode power supply, as it requires more electrons for neutralization.</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Higher mass flow means a greater number density of particles in the discharge channel, causing electrons to be collected by the anode sooner.
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Higher mass flow means a greater number density of particles in the discharge channel, causing electrons to be collected by the anode sooner.</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -1692,10 +1700,10 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <details class="deriv-detail">
       <summary>Show derivation</summary>
       <div class="deriv-inner">
-        <span class="eq-step-label">Thrust from the ion mass flow</span>
+        <span class="eq-step-label">Thrust from the Ion Mass Flow</span>
         $$ \textcolor{#FF4400}{F} = \textcolor{#FF4400}{\dot{m}_i}\,\textcolor{#3DBFFF}{v_i} $$
 
-        <span class="eq-step-label">Exit velocity of an ion born at potential $\textcolor{#F5C518}{V}$</span>
+        <span class="eq-step-label">Exit Velocity of an Ion Born at Potential $\textcolor{#F5C518}{V}$</span>
         <span class="eq-note">
           The ion is simply accelerated by the electrostatic field, so all of the
           <span class="hl-phi">potential</span> it falls through becomes kinetic energy:
@@ -1705,7 +1713,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
            \;\;\rightarrow\;\;
            \textcolor{#3DBFFF}{v_i} = \sqrt{\frac{2\,\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}}{\textcolor{#FF4400}{m_i}}} $$
 
-        <span class="eq-step-label">Ion mass flow from the beam current density</span>
+        <span class="eq-step-label">Ion Mass Flow from the Beam Current Density</span>
         <span class="eq-note">
           Each ion carries one charge $\textcolor{#C060FF}{q}$ and one mass
           $\textcolor{#FF4400}{m_i}$, so a current density
@@ -1714,7 +1722,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         $$ \textcolor{#FF4400}{\dot{m}_i}
            = \frac{\textcolor{#FF4400}{m_i}}{\textcolor{#C060FF}{q}}\,\textcolor{#3DBFFF}{j}\,A $$
 
-        <span class="eq-step-label">Combine and divide by the area</span>
+        <span class="eq-step-label">Combine and Divide by the Area</span>
         $$ \frac{\textcolor{#FF4400}{F}}{A}
            = \frac{\textcolor{#FF4400}{m_i}}{\textcolor{#C060FF}{q}}\,\textcolor{#3DBFFF}{j}
              \sqrt{\frac{2\,\textcolor{#C060FF}{q}\,\textcolor{#F5C518}{V}}{\textcolor{#FF4400}{m_i}}} $$
@@ -1752,7 +1760,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
        \frac{\textcolor{#F5C518}{V_T}^{3/2}}{d^{2}}\;} $$
 
     <details class="deriv-detail">
-      <summary>Show Child&ndash;Langmuir derivation</summary>
+      <summary>Show derivation</summary>
       <div class="deriv-inner">
         <span class="eq-step-label">Poisson&rsquo;s Equation</span>
         $$ \nabla^{2}\phi = \frac{d^{2}\phi}{dx^{2}} = -\frac{\rho}{\varepsilon_0} $$
@@ -1830,7 +1838,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <details class="deriv-detail">
       <summary>Show derivation</summary>
       <div class="deriv-inner">
-        <span class="eq-step-label">Momentum balance with no magnetic field</span>
+        <span class="eq-step-label">Momentum Balance with No Magnetic Field</span>
         <span class="eq-note">
           Neglect electron inertia and ignore the <span class="hl-E">electric field</span> (linear acceleration
           does not affect the conclusion), leaving the <span class="hl-press">pressure</span> gradient against
@@ -1839,7 +1847,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         $$ \nabla p_e \;\approx\; -\,n_e m_e \nu_e \vec{v}_e
            \qquad \nu_e = \sum_j n_j \bar{c}_e Q_{ej} $$
 
-        <span class="eq-step-label">Solve for the electron flux (Fick's law)</span>
+        <span class="eq-step-label">Solve for the Electron Flux (Fick's Law)</span>
         <span class="eq-note">
           With $p_e = n_e kT_e$ and near-isothermal conditions, $\nabla p_e = kT_e \nabla n_e$:
         </span>
@@ -1856,11 +1864,11 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Add a magnetic field perpendicular to $\nabla p_e$</span>
+        <span class="eq-step-label">Add a Magnetic Field Perpendicular to $\nabla p_e$</span>
         $$ kT_e\nabla n_e \;\approx\; -\,n_e m_e \nu_e \vec{v}_e
            - \textcolor{#C060FF}{e} n_e \vec{v}_e \times \textcolor{#00DDB5}{\vec{B}} $$
 
-        <span class="eq-step-label">Cross the whole balance with $\textcolor{#00DDB5}{\vec{B}}$</span>
+        <span class="eq-step-label">Cross the Whole Balance with $\textcolor{#00DDB5}{\vec{B}}$</span>
         <span class="eq-note">
           One equation in two unknowns, $\vec{v}_e$ and $\vec{v}_e\times\vec{B}$, so a second is needed.
           Using the identity below, which holds because the flux being solved for is perpendicular to
@@ -1873,13 +1881,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
            \;\approx\; -\,n_e m_e \nu_e \vec{v}_e \times \textcolor{#00DDB5}{\vec{B}}
            + \textcolor{#C060FF}{e} n_e \vec{v}_e \textcolor{#00DDB5}{B}^{2} $$
 
-        <span class="eq-step-label">Eliminate $\vec{v}_e\times\vec{B}$ between the two</span>
+        <span class="eq-step-label">Eliminate $\vec{v}_e\times\vec{B}$ Between the Two</span>
         $$ n_e\vec{v}_e \;\approx\;
            \frac{-\dfrac{kT_e}{m_e\nu_e}\nabla n_e
                  + \dfrac{\textcolor{#C060FF}{e}\,kT_e}{m_e^{2}\nu_e^{2}}\nabla n_e \times \textcolor{#00DDB5}{\vec{B}}}
                 {1+\left(\dfrac{\textcolor{#C060FF}{e}\textcolor{#00DDB5}{B}}{m_e\nu_e}\right)^{2}} $$
 
-        <span class="eq-step-label">Define the Hall parameter</span>
+        <span class="eq-step-label">Define the Hall Parameter</span>
         $$ \beta = \frac{\textcolor{#C060FF}{e}\textcolor{#00DDB5}{B}}{m_e\nu_e} = \frac{\omega_{ce}}{\nu_e}
            \qquad\Longrightarrow\qquad
            n_e\vec{v}_e \approx
@@ -1899,7 +1907,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">The strongly magnetized limit, $\beta \gg 1$</span>
+        <span class="eq-step-label">The Strongly Magnetized Limit, $\beta \gg 1$</span>
         $$ \textcolor{#ffe94d}{D_\perp} \approx \frac{\textcolor{#ffe94d}{D_e}}{\beta^{2}}
            = \frac{kT_e}{m_e}\frac{\nu_e}{\omega_{ce}^{2}}
            = \frac{m_e kT_e}{\textcolor{#C060FF}{e}^{2}}\,\frac{\nu_e}{\textcolor{#00DDB5}{B}^{2}} $$
@@ -1923,7 +1931,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Anomalous, or Bohm, diffusion</span>
+        <span class="eq-step-label">Anomalous, or Bohm, Diffusion</span>
         <span class="eq-note">
           Electrons are measured crossing the field faster than this. The reason appears to be the
           <em>equivalent collisionality</em> produced by scattering off small-scale plasma density fluctuations,
@@ -1935,7 +1943,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
            D_\mathrm{anom} = \frac{kT_e}{c_B\,\textcolor{#C060FF}{e}\textcolor{#00DDB5}{B}}
            \qquad (c_B \sim 16\ \text{to}\ 100) $$
 
-        <span class="eq-step-label">Written as an equivalent collision frequency</span>
+        <span class="eq-step-label">Written as an Equivalent Collision Frequency</span>
         $$ \frac{kT_e}{c_B \textcolor{#C060FF}{e}\textcolor{#00DDB5}{B}}
            = \frac{m_e kT_e}{\textcolor{#C060FF}{e}^{2}}\frac{\nu_\mathrm{anom}}{\textcolor{#00DDB5}{B}^{2}}
            \qquad\Longrightarrow\qquad
@@ -2080,7 +2088,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       ribbon: 'rgba(171,71,188,0.22)', line: C_GRIDDED }
   ];
   /* The strip carries the engine names alone, spelled as the index and the lesson titles
-     spell them. It used to be labelled "runs at" out in the y-axis gutter; the ribbons
+     spell them. It used to be labeled "runs at" out in the y-axis gutter; the ribbons
      say what they are, and the label only put words where the tick labels live. */
   const BAND_TOP = Y1 + 9, BAND_H = 24;
 
@@ -3019,7 +3027,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     if (paused || !P) { renderFlash(0); return; }
 
     const dtr   = dt * SPEEDUP;                 // thruster seconds elapsed this frame
-    const dyM   = P.vTheta * dtr;               // azimuthal advance, metres
+    const dyM   = P.vTheta * dtr;               // azimuthal advance, meters
     const lamC  = P.nu_en * dtr, lamA = P.nu_an * dtr;
 
     for (const e of elecs){

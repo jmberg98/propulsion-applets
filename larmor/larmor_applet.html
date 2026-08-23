@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Larmor Motion &amp; Cyclotron Orbits — Plasma Physics</title>
+<title>Larmor Motion</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +35,11 @@
   --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
   --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
   --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
   --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
 
   --c-accent:      #a0a0a0;
@@ -103,7 +108,8 @@ footer {
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
-.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
@@ -167,7 +173,7 @@ footer {
   font-size: 20.5px;
   line-height: 1.72;
   color: var(--text-main);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -267,7 +273,7 @@ details.clarify-detail > summary:focus-visible {
   text-transform: uppercase;
   color: #8a8b8c;
   margin-top: 10px;
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 .eq-note {
   display: block;
@@ -449,6 +455,12 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 12px;
   line-height: 1.55;
 }
+.quiz-hint {
+  font-size: 16px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
 .quiz-options {
   display: flex;
   flex-direction: column;
@@ -472,11 +484,16 @@ details.deriv-detail > summary:focus-visible {
   transition: background 0.15s, border-color 0.15s, color 0.15s;
   width: 100%;
 }
-.quiz-opt:hover:not(:disabled) {
+.quiz-opt:hover:not(:disabled):not(.selected) {
   background: #222222;
   border-color: #3a3a3a;
 }
 .quiz-opt:disabled { cursor: default; }
+.quiz-opt.selected {
+  background: rgba(61,191,255,0.08);
+  border-color: rgba(61,191,255,0.35);
+  color: var(--hi-blue-soft);
+}
 .quiz-opt.correct {
   background: rgba(81,207,102,0.09);
   border-color: rgba(81,207,102,0.38);
@@ -487,6 +504,11 @@ details.deriv-detail > summary:focus-visible {
   border-color: rgba(255,107,107,0.28);
   color: #ff8e8e;
 }
+.quiz-opt.missed {
+  background: rgba(81,207,102,0.045);
+  border-color: rgba(81,207,102,0.22);
+  color: #7fb98a;
+}
 .quiz-opt-label {
   font-size: 17px;
   font-weight: 700;
@@ -496,8 +518,54 @@ details.deriv-detail > summary:focus-visible {
   text-align: center;
   transition: color 0.15s;
 }
-.quiz-opt.correct .quiz-opt-label { color: #51cf66; }
-.quiz-opt.wrong   .quiz-opt-label { color: #ff8e8e; }
+/* ── Option with a "dropdown arrow" note ─────────────────
+   A one-line gloss under a choice. Rendered as a muted second
+   line inside the button rather than a real disclosure: a
+   <details> nested in a <button> is invalid, and the gloss
+   is short enough that hiding it buys nothing. */
+.quiz-opt:has(.quiz-opt-note) { align-items: flex-start; }
+.quiz-opt:has(.quiz-opt-note) .quiz-opt-label { padding-top: 2px; }
+/* The option body, as ONE flex item. .quiz-opt is a flex container, so a bare run
+   of text with inline math in it comes apart: each KaTeX span becomes its own flex
+   item and lands BESIDE the text instead of inline within it. Wrapping the body
+   gives the math a normal inline formatting context again. It is only a column
+   when it actually holds a gloss - otherwise a plain block, so a wrapped option
+   reads the same as an unwrapped one. */
+.quiz-opt-text { display: block; }
+.quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
+.quiz-opt-note {
+  font-size: 16px;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.quiz-opt.correct .quiz-opt-note,
+.quiz-opt.wrong   .quiz-opt-note,
+.quiz-opt.missed  .quiz-opt-note,
+.quiz-opt.selected .quiz-opt-note { color: inherit; opacity: .78; }
+
+.quiz-opt.selected .quiz-opt-label { color: var(--hi-blue); }
+.quiz-opt.correct .quiz-opt-label  { color: #51cf66; }
+.quiz-opt.wrong   .quiz-opt-label  { color: #ff8e8e; }
+.quiz-opt.missed  .quiz-opt-label  { color: #7fb98a; }
+.quiz-submit {
+  margin-top: 4px;
+  padding: 8px 18px;
+  background: var(--bg-input);
+  border: 1px solid #3a3a3a;
+  border-radius: 4px;
+  color: var(--text-heading);
+  font-family: 'Barlow', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
+.quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
   font-size: 18px;
   color: var(--text-muted);
@@ -507,7 +575,7 @@ details.deriv-detail > summary:focus-visible {
 }
 
 /* ── KaTeX font sizing ──────────────────────────────── */
-.katex { font-size: 1.2em !important; }
+.katex { font-size: 1.15em !important; }
 .katex-display { font-size: 1.2em !important; }
 .theory-block .katex { font-size: 1.25em !important; }
 
@@ -608,24 +676,28 @@ footer .foot-cred {
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust, mass</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>velocity, ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, power</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
   <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
 </div>
 <!-- ════════════════════ Q1 ════════════════════ -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
-  <div class="quiz-block" data-unlocks="demo1-frame">
+  <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
     travels entirely <em>perpendicular</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Straight line
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Straight line</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">b</span>Circular path
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Circular path</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Helical path
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Helical path</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -658,38 +730,46 @@ footer .foot-cred {
 
 <!-- ════════════════════ Q2 + Q3 ════════════════════ -->
 <div class="quiz-section">
-  <div class="quiz-hdr">Guiding Questions</div>
-
-  <div class="quiz-block" data-unlocks="demo2-frame">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
     travels entirely <em>parallel</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">a</span>Straight line
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Straight line</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Circular path
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Circular path</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">c</span>Helical path
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Helical path</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
   </div>
+</div>
 
-  <div class="quiz-block" data-unlocks="demo2-frame">
+<div class="quiz-section">
+  <div class="quiz-hdr">Guiding Question</div>
+  <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
     travels <em>neither entirely parallel nor entirely perpendicular</em> to a uniform
     <span class="hl-B">magnetic field</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">a</span>Straight line
+        <span class="quiz-opt-label">a</span>
+        <span class="quiz-opt-text">Straight line</span>
       </button>
       <button class="quiz-opt" data-correct="false">
-        <span class="quiz-opt-label">b</span>Circular path
+        <span class="quiz-opt-label">b</span>
+        <span class="quiz-opt-text">Circular path</span>
       </button>
       <button class="quiz-opt" data-correct="true">
-        <span class="quiz-opt-label">c</span>Helical path
+        <span class="quiz-opt-label">c</span>
+        <span class="quiz-opt-text">Helical path</span>
       </button>
     </div>
     <div class="quiz-feedback"></div>
@@ -713,8 +793,8 @@ footer .foot-cred {
   <div class="th-hdr">Ion vs. Electron Behavior</div>
   <p class="th-body">
     Let's compare the behavior of <span class="hl-ion">ions</span> and
-    <span class="hl-electron">electrons</span>. <span class="hl-q">Ions</span> are far more
-    <span class="hl-mass">massive</span> than electrons — by three to
+    <span class="hl-electron">electrons</span>. <span class="hl-ion">Ions</span> are far more
+    <span class="hl-mass">massive</span> than electrons, by three to
     five orders of magnitude! How might this affect their <span class="key">cyclotron motion</span>? Assume that
     the electron and ion are in isolation of
     each other. They are shown together for visual purposes only.
@@ -814,7 +894,7 @@ footer .foot-cred {
       <summary>Show derivation</summary>
       <div class="deriv-inner">
 
-        <span class="eq-step-label">Setup — particle parameters</span>
+        <span class="eq-step-label">Setup: Particle Parameters</span>
         <span class="eq-note">
           Apply the <span class="hl-thrust">Lorentz force</span> to a particle of
           <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>
@@ -848,7 +928,7 @@ footer .foot-cred {
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Equate magnetic force to centripetal force</span>
+        <span class="eq-step-label">Equate Magnetic Force to Centripetal Force</span>
         $$
         \underbrace{|\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}}_{\text{magnetic}}
         \;=\;
@@ -901,19 +981,19 @@ footer .foot-cred {
       <summary>Show derivation</summary>
       <div class="deriv-inner">
 
-        <span class="eq-step-label">Starting point — centripetal balance (from Larmor radius)</span>
+        <span class="eq-step-label">Starting Point: Centripetal Balance (from Larmor Radius)</span>
         $$
         \textcolor{#FF4400}{m}\,\frac{\textcolor{#3DBFFF}{v_\perp}^2}{\textcolor{#3DBFFF}{r_L}}
         =
         |\textcolor{#C060FF}{q}|\,\textcolor{#3DBFFF}{v_\perp}\,\textcolor{#00DDB5}{B}
         $$
 
-        <span class="eq-step-label">Centripetal motion has angular velocity $\omega_c = v_\perp / r_L$</span>
+        <span class="eq-step-label">Centripetal Motion Has Angular Velocity $\omega_c = v_\perp / r_L$</span>
         $$
         \textcolor{#3DBFFF}{v_\perp} = \textcolor{#3DBFFF}{\omega_c}\,\textcolor{#3DBFFF}{r_L}
         $$
 
-        <span class="eq-step-label">Substitute into the centripetal balance</span>
+        <span class="eq-step-label">Substitute into the Centripetal Balance</span>
         $$
         \textcolor{#FF4400}{m}\,\frac{(\textcolor{#3DBFFF}{\omega_c}\,\textcolor{#3DBFFF}{r_L})^2}{\textcolor{#3DBFFF}{r_L}}
         =
@@ -937,7 +1017,7 @@ footer .foot-cred {
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Linear frequency &amp; period</span>
+        <span class="eq-step-label">Linear Frequency &amp; Period</span>
         $$
         f_c = \frac{\textcolor{#3DBFFF}{\omega_c}}{2\pi} = \frac{|\textcolor{#C060FF}{q}|\,\textcolor{#00DDB5}{B}}{2\pi\,\textcolor{#FF4400}{m}}
         \qquad
@@ -957,52 +1037,19 @@ footer .foot-cred {
   <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
 </footer>
 
-<!-- ════════════════════ QUIZ + IFRAME-UNLOCK JAVASCRIPT ════════════════════ -->
+<!-- ════════════════════ QUIZ JAVASCRIPT ════════════════════ -->
 <script>
 "use strict";
 
-/**
- * Calls markQuizComplete() inside the target iframe.
- * Retries after short delays to handle iframes that are still loading
- * when the quiz is answered.
- */
-function unlockFrame(frameId) {
-  const attempts = [0, 300, 800, 2000];          // ms after click to try
-  let done = false;
-
-  const tryUnlock = () => {
-    if (done) return;
-    const frame = document.getElementById(frameId);
-    if (!frame) return;
-    try {
-      if (frame.contentWindow && typeof frame.contentWindow.markQuizComplete === 'function') {
-        frame.contentWindow.markQuizComplete();
-        done = true;
-      }
-    } catch(e) { /* cross-origin guard — shouldn't happen for same-folder files */ }
-  };
-
-  attempts.forEach(delay => setTimeout(tryUnlock, delay));
-
-  // Also fire on the iframe's own load event in case it hasn't finished yet
-  const frame = document.getElementById(frameId);
-  if (frame && !done) {
-    frame.addEventListener('load', tryUnlock, { once: true });
-  }
-}
-
-// Each .quiz-block carries a data-unlocks attribute naming the iframe to unlock.
-document.querySelectorAll('.quiz-block').forEach(block => {
-  const opts       = block.querySelectorAll('.quiz-opt');
-  const fb         = block.querySelector('.quiz-feedback');
-  const targetFrame = block.dataset.unlocks;   // e.g. "demo1-frame"
+/* ── Single-answer multiple choice ─────────────────────────────── */
+document.querySelectorAll('.quiz-block[data-quiz="single"]').forEach(block => {
+  const opts = block.querySelectorAll('.quiz-opt');
+  const fb   = block.querySelector('.quiz-feedback');
 
   opts.forEach(opt => {
     opt.addEventListener('click', () => {
-      // Lock all options
       opts.forEach(o => { o.disabled = true; });
 
-      // Show result
       if (opt.dataset.correct === 'true') {
         opt.classList.add('correct');
         fb.textContent = 'Correct!';
@@ -1010,14 +1057,49 @@ document.querySelectorAll('.quiz-block').forEach(block => {
       } else {
         opt.classList.add('wrong');
         opts.forEach(o => { if (o.dataset.correct === 'true') o.classList.add('correct'); });
-        fb.textContent = 'Not quite \u2014 the correct answer is highlighted.';
+        fb.textContent = 'Not quite. The correct answer is highlighted.';
         fb.style.color = '#ff8e8e';
       }
-
-      // Unlock the associated demo iframe (regardless of correct/incorrect —
-      // the correct answer is always revealed, so the gate has been engaged)
-      if (targetFrame) unlockFrame(targetFrame);
     });
+  });
+});
+
+/* ── Multi-answer (checkbox) — select all that apply, then submit ─ */
+document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
+  const opts   = block.querySelectorAll('.quiz-opt');
+  const submit = block.querySelector('.quiz-submit');
+  const fb     = block.querySelector('.quiz-feedback');
+
+  opts.forEach(opt => {
+    opt.addEventListener('click', () => {
+      if (opt.disabled) return;
+      opt.classList.toggle('selected');
+    });
+  });
+
+  submit.addEventListener('click', () => {
+    let allCorrect = true;
+
+    opts.forEach(o => {
+      o.disabled = true;
+      const shouldSelect = o.dataset.correct === 'true';
+      const didSelect    = o.classList.contains('selected');
+      o.classList.remove('selected');
+
+      if (shouldSelect && didSelect)        { o.classList.add('correct'); }
+      else if (!shouldSelect && didSelect)  { o.classList.add('wrong');  allCorrect = false; }
+      else if (shouldSelect && !didSelect)  { o.classList.add('missed'); allCorrect = false; }
+    });
+
+    submit.disabled = true;
+
+    if (allCorrect) {
+      fb.textContent = 'Correct.';
+      fb.style.color = '#51cf66';
+    } else {
+      fb.textContent = 'Not quite. The correct choices are highlighted in green.';
+      fb.style.color = '#ff8e8e';
+    }
   });
 });
 </script>

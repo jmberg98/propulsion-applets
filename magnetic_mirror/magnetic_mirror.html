@@ -32,11 +32,25 @@
 ::-webkit-scrollbar-thumb:hover{background:#d0d0d0}
 body{display:flex;height:100vh;background:var(--bg-page);color:var(--text-main);
   font-family:'Barlow',sans-serif;font-size:13px;overflow:hidden;}
-#viewport{flex:1;order:1;overflow:hidden;position:relative;background:var(--bg-page)}
+/* Width budget. Both sides yield, neither vanishes. The panel used to be rigid at
+   340px while the stage absorbed the entire squeeze, so a 900px browser window left
+   the demo 368px wide and an 800px one left it 268px. The stage now has a floor and
+   the panel gives back its slack before that floor is reached. */
+#viewport{flex:1 1 0;min-width:420px;order:1;overflow:hidden;position:relative;background:var(--bg-page)}
 #viewport canvas{display:block}
-#panel{order:2;width:340px;min-width:340px;display:flex;flex-direction:column;gap:11px;
+#panel{order:2;flex:0 1 340px;width:340px;min-width:270px;display:flex;flex-direction:column;gap:11px;
   background:rgba(8,8,8,.97);border-left:1px solid #252525;
   padding:16px 16px 18px;overflow-y:auto;overflow-x:hidden;}
+
+/* Below the width where both floors fit side by side, stack instead of crushing one
+   of them. The panel already scrolls, so capping its height keeps the demo the
+   larger half rather than reducing it to a strip. */
+@media (max-width: 780px){
+  body{flex-direction:column}
+  #viewport{min-width:0;min-height:300px}
+  #panel{flex:0 0 auto;width:100%;min-width:0;max-height:46%;
+    border-left:none;border-top:1px solid #252525}
+}
 h1#title{font-size:15px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;
   color:var(--c-accent);padding-bottom:10px;border-bottom:1px solid var(--border);}
 .sec{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#545454;margin-bottom:8px;}
@@ -135,19 +149,6 @@ summary.sec::-webkit-details-marker{display:none}
 summary.sec::before{content:'\25B8';font-size:10px;color:#545454;transition:transform .15s;}
 details[open] summary.sec::before{transform:rotate(90deg)}
 details[open] summary.sec{margin-bottom:8px}
-/* ── quiz gate overlay ── */
-#quiz-overlay{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;
-  background:rgba(9,9,9,.78);backdrop-filter:blur(6px) saturate(.6);-webkit-backdrop-filter:blur(6px) saturate(.6);
-  transition:opacity .35s ease,visibility .35s ease;}
-#quiz-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
-#quiz-overlay-card{display:flex;flex-direction:column;align-items:center;gap:14px;padding:40px 48px 36px;
-  background:rgba(18,18,18,.92);border:1px solid #2e2e2e;border-radius:14px;box-shadow:0 8px 48px rgba(0,0,0,.7);
-  max-width:460px;width:calc(100% - 48px);text-align:center;}
-#quiz-overlay-title{font-size:20px;font-weight:600;letter-spacing:.3px;color:#f0f0f0;line-height:1.3}
-#quiz-overlay-subtitle{font-size:13px;color:#aaa;line-height:1.4}
-#quiz-skip-btn{background:none;border:none;color:#666;font-family:'Barlow',sans-serif;font-size:13px;
-  text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px 0;transition:color .18s;margin-top:6px;}
-#quiz-skip-btn:hover{color:#999}
 </style>
 </head>
 <body>
@@ -342,24 +343,6 @@ details[open] summary.sec{margin-bottom:8px}
   </div>
 </div>
 
-<!-- ══ QUIZ GATE OVERLAY ══ -->
-<div id="quiz-overlay">
-  <div id="quiz-overlay-card">
-    <div id="quiz-overlay-title">Try the questions first!</div>
-    <div id="quiz-overlay-subtitle">They might help guide your use<br>of the interactive demo...</div>
-    <button id="quiz-skip-btn">Skip the questions, I want to see the demo</button>
-  </div>
-</div>
-<script>
-  // Gate bypass when embedded with ?gate=0, or via window.markQuizComplete().
-  const QUIZ_COMPLETED = new URLSearchParams(location.search).get('gate') === '0';
-  const _overlay = document.getElementById('quiz-overlay');
-  const _skipBtn = document.getElementById('quiz-skip-btn');
-  function dismissOverlay() { _overlay.classList.add('hidden'); }
-  window.markQuizComplete = dismissOverlay;
-  _skipBtn.addEventListener('click', dismissOverlay);
-  if (QUIZ_COMPLETED) dismissOverlay();
-</script>
 
 <script type="module">
 import * as THREE from 'three';
@@ -708,6 +691,12 @@ function initViz(container) {
   controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.07;
+  // Zoom stops, derived from SCENE_R like every other length in the scene. Without
+  // them the wheel runs to either extreme: out until the scene is a speck in an
+  // empty field, or in until the camera sits inside the geometry with nothing to
+  // orient by. The default views sit between 3.6 and 5.1 * SCENE_R.
+  controls.minDistance = SCENE_R * 1.0;
+  controls.maxDistance = SCENE_R * 16;
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
   const dl = new THREE.DirectionalLight(0xffffff, 0.8);

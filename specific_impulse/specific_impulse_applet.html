@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Thrust &amp; Specific Impulse — In-Space</title>
+<title>Thrust &amp; Specific Impulse</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,10 +35,17 @@
   --c-press:   #00DDB5;  /* B field, pressure p             11.0:1 */
   --c-efield:  #F5C518;  /* E field, potential φ, voltage   11.8:1 */
   --c-neutral: #9aa3b2;  /* neutral species — no charge      7.6:1 */
+  /* Gridded-ion set only. Electrons read YELLOW through this lesson, matching
+     the ⊖ glyphs, the legend and the nₑ probe in the viewer. Charge q, power
+     and μ keep --c-power; this token exists so splitting the electron off does
+     not drag those with it. */
+  --c-electron: #ffe94d;
   --c-photon:  #cbb2ff;  /* emitted light                   10.4:1 */
+
   --c-accent:      #a0a0a0;
   --c-accent-bg:   rgba(160,160,160,0.07);
   --c-accent-glow: rgba(160,160,160,0.13);
+
   --bg-page:     #090909;
   --bg-panel-1:  #0e0e0e;
   --bg-panel-2:  #121212;
@@ -48,11 +55,17 @@
   --bg-out-cell: #0c0c0c;
   --bg-canvas:   #090909;
   --bg-diagram:  #0e0e0e;
-  --border:      #282828;
+
+  --border: #282828;
+
   --text-main:      #d6d6d6;
   --text-secondary: #aaaaaa;
   --text-muted:     #7a7a7a;
   --text-heading:   #f0f0f0;
+
+  --hi-blue:      #3DBFFF;
+  --hi-blue-soft: #9FE6FF;
+
   --page-w: min(1500px, calc(100vw - 192px));
 }
 
@@ -88,7 +101,8 @@ footer {
    stack the two: .key.hl-* is three channels for one signal. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
-.hl-power, .hl-q, .hl-electron, .hl-moment  { color: var(--c-power); }
+.hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
+.hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
@@ -126,7 +140,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 24px;
+  font-size: 25px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -134,7 +148,7 @@ footer {
 
 /* ── Badge ─────────────────────────────────────────── */
 .badge {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -149,10 +163,10 @@ footer {
 
 /* ── Page intro ────────────────────────────────────── */
 .page-intro {
-  font-size: 19.5px;
+  font-size: 20.5px;
   line-height: 1.72;
   color: var(--text-main);
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 }
 
 /* ══════════════════════════════════════════════════════
@@ -167,7 +181,7 @@ footer {
 }
 
 .clarify-hdr {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -188,7 +202,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 19.5px;
+  font-size: 20.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -196,8 +210,8 @@ details.clarify-detail > summary {
 }
 details.clarify-detail > summary::-webkit-details-marker { display: none; }
 details.clarify-detail > summary::before {
-  content: '▶';
-  font-size: 13px;
+  content: '\25B6';
+  font-size: 10px;
   color: var(--c-accent);
   display: inline-block;
   width: 12px;
@@ -218,7 +232,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 19.5px;
+  font-size: 20.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -263,19 +277,65 @@ details.clarify-detail > summary:focus-visible {
   align-items: stretch;
 }
 
+/* The stage FLEXES and the panel has a floor, not the other way round. Pinned at a
+   fixed width it took the same 820 px at every page width, and since --page-w is
+   min(1500px, 100vw - 192px) that left the controls whatever was over: 268 px on a
+   1280 window, 188 px on a 1200 one, at which point the sliders are unusable. The
+   stage is the thing that can afford to give ground: it re-fits its camera on
+   every resize, so it loses width without losing the model. */
 #cv-wrap {
-  flex: 0 0 auto;
-  position: relative;
+  /* basis 760, shrink-only. Growth is the PANEL's job (below), so the stage never
+     exceeds its budget and the leftover on a wide page lands in the controls. The
+     basis has to be a length: `auto` resolves against a child that is itself
+     flexible, which measures as nothing and hands the stage away.
+     display:flex is here so the stage below can stretch to the ROW's height. */
+  flex: 0 1 760px;
+  min-width: 0;
+  display: flex;
   background: var(--bg-canvas);
   border-right: 1px solid var(--border);
-  line-height: 0; /* collapse gap under canvas */
 }
+
+/* The 3-D stage. It FILLS the row rather than holding a locked 820x440 ratio.
+   The ratio was dead space by another name: #top-row stretches every item to the
+   tallest, which is always the control panel (~499px), so a stage locked to 1.86
+   sat 329px tall inside a 499px box and left a 170px black band under it at every
+   width where the panel was the taller of the two. Nothing is lost by stretching:
+   the camera fits to WIDTH (see FIT_HALF_W), so extra height is extra sky at the
+   same model scale, not a smaller model. */
+#viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 300px;
+  background: var(--bg-canvas);
+  overflow: hidden;
+}
+#viewport canvas { position: absolute; inset: 0; display: block; }
+
+/* Drag hint. The gridded-ion applet's card, ported: bottom-center, one glyph per
+   clause. */
+#hint {
+  position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 11px;
+  background: rgba(8,8,8,0.82); border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 14px; font-size: 15px; color: var(--text-muted);
+  pointer-events: none; user-select: none; z-index: 5;
+  /* nowrap so a narrow stage scrolls the card off rather than folding a clause
+     onto the line above it. */
+  line-height: 1.25; white-space: nowrap;
+}
+#hint svg { width: 22px; height: 22px; color: var(--text-secondary); flex-shrink: 0; }
+#hint .hbit { display: flex; align-items: center; gap: 8px; }
+#hint .hsep { opacity: 0.45; }
 
 .cv-label {
   position: absolute;
   line-height: 1;
   pointer-events: none;
   transform: translate(-50%, -50%);
+  text-shadow: 0 0 7px #090909, 0 0 3px #090909;
+  z-index: 4;
   display: none;
 }
 #thrust-label { color: var(--c-thrust); }
@@ -286,10 +346,26 @@ canvas {
   display: block;
 }
 
+/* ── Buttons, ported from the hall-thruster viewer ── */
+.btn-row { display: flex; gap: 8px; }
+.btn {
+  flex: 1 1 0; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600;
+  padding: 9px 8px; background: var(--bg-panel-2); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 5px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover { background: var(--bg-panel-3); color: var(--text-heading); border-color: var(--c-accent); }
+
 /* ── Right panel ──────────────────────────────────── */
+/* 340px is the floor the CONTENT sets, not a round number: the widest radio row
+   ("Hydrazine  (32.04 g/mol)" at 19px) is ~240px, the value box is a fixed 66px,
+   and #rp carries 16px of padding either side. Below that the slider track starts
+   collapsing before anything else visibly gives. */
 #rp {
-  flex: 1 1 auto;
-  min-width: 0;
+  /* The only grower in the row, floored at 340. So: stage = min(760, page - 340),
+     panel = whatever is left, and the panel is what widens on a large screen. */
+  flex: 1 1 340px;
+  min-width: 340px;
   overflow: hidden;
   padding: 14px 16px;
   display: flex;
@@ -425,7 +501,7 @@ canvas {
 }
 
 .th-hdr {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -436,10 +512,14 @@ canvas {
 }
 
 .th-body {
-  font-size: 19.5px;
+  font-size: 20.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
+}
+
+.theory-block > .th-body:last-child {
+  margin-bottom: 0;
 }
 
 .cv-diagram {
@@ -450,13 +530,27 @@ canvas {
   background: var(--bg-diagram);
 }
 
-.eq-panel {
-  margin-top: 8px;
+/* Figure assumptions live HERE, not inside the SVG. Set as SVG text they took
+   whatever size the viewBox happened to scale to, which on a wide page was a
+   thin 23px run-on line and on a narrow one was unreadable. As page text they
+   get the page's own size, leading and wrapping. */
+.cv-note {
+  padding: 2px 18px 12px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-align: center;
+  letter-spacing: .2px;
 }
+
+.eq-panel { margin-top: 8px; }
 
 .eq-step-label {
   display: block;
-  font-size: 14px;
+  font-size: 15px;
+  /* A label that wraps to a second line needs leading of its own: the body's
+     `normal` closed the two lines up until the pair read as one gray smear. */
+  line-height: 1.5;
   letter-spacing: .8px;
   text-transform: uppercase;
   color: #8a8b8c;
@@ -464,9 +558,15 @@ canvas {
   margin-bottom: 0;
 }
 
+/* text-transform is inherited, so it reaches KaTeX output too and silently
+   recases the math: the efficiency label rendered as a capital Eta, and
+   "F_N = ṁc" rendered as "F_N = MC". Math in a label keeps its own case. */
+.eq-step-label .katex,
+.cv-note .katex { text-transform: none; }
+
 .eq-caption {
   display: block;
-  font-size: 17.5px;
+  font-size: 18.5px;
   color: var(--text-muted);
   text-align: center;
   margin-top: 8px;
@@ -496,7 +596,7 @@ details.deriv-detail > summary {
   gap: 6px;
   padding: 7px 14px;
   background: var(--bg-input);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: .9px;
   text-transform: uppercase;
@@ -505,8 +605,8 @@ details.deriv-detail > summary {
 }
 details.deriv-detail > summary::-webkit-details-marker { display: none; }
 details.deriv-detail > summary::before {
-  content: '▶';
-  font-size: 12px;
+  content: '\25B6';
+  font-size: 9px;
   flex-shrink: 0;
   display: inline-block;
   transition: transform 0.15s ease;
@@ -527,9 +627,7 @@ details.deriv-detail > summary:focus-visible {
 }
 
 
-.katex {
-  font-size: 1.2em !important;
-}
+.katex { font-size: 1.15em !important; }
 
 .katex-display {
   font-size: 1.2em !important;
@@ -544,12 +642,18 @@ details.deriv-detail > summary:focus-visible {
 @media (max-width: 980px) {
   #top-row { flex-wrap: wrap; }
   #cv-wrap {
+    /* Stacked, the stage spans the page: the 760px basis is a SIDE-BY-SIDE budget
+       and has nothing to say once the panel is on its own line. */
     flex-basis: 100%;
+    width: 100%;
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
-  canvas { width: 100%; height: auto; }
-  #rp { flex-basis: 100%; }
+  #rp { flex-basis: 100%; min-width: 0; }
+  /* Stretch has nothing to stretch against once the stage is alone on its line,
+     so the ratio comes back here, and 16:9 rather than the old 1.86, which is
+     what the scene actually wants once the arrows stop running to the edges. */
+  #viewport { aspect-ratio: 16 / 9; }
 }
 
 @media (max-width: 720px) {
@@ -707,9 +811,44 @@ footer .foot-cred {
 <div id="app">
   <div id="top-row">
     <div id="cv-wrap">
-      <canvas id="cnv" width="820" height="440"></canvas>
-      <div id="thrust-label" class="cv-label">$\textcolor{#FF4400}{F_N}$</div>
-      <div id="ve-label"     class="cv-label">$\textcolor{#3DBFFF}{v_e}$</div>
+      <div id="viewport">
+        <div id="thrust-label" class="cv-label">$\textcolor{#FF4400}{F_N}$</div>
+        <div id="ve-label"     class="cv-label">$\textcolor{#3DBFFF}{v_e}$</div>
+        <!-- Each clause carries its own glyph: move-arrows for the drag clause, a
+             mouse with a scroll wheel for the zoom clause, a right-button mouse for
+             the pan clause. -->
+        <div id="hint">
+          <span class="hbit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2v20M2 12h20"/>
+              <path d="M12 2l-2.4 2.4M12 2l2.4 2.4"/>
+              <path d="M12 22l-2.4-2.4M12 22l2.4-2.4"/>
+              <path d="M2 12l2.4-2.4M2 12l2.4 2.4"/>
+              <path d="M22 12l-2.4-2.4M22 12l-2.4 2.4"/>
+            </svg><span>Drag to orbit</span>
+          </span>
+          <span class="hsep">·</span>
+          <span class="hbit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="6.5" y="3.75" width="11" height="16.5" rx="5.5"/>
+              <path d="M12 7.4v3.3"/>
+              <path d="M10.3 2.4L12 0.9l1.7 1.5"/>
+              <path d="M10.3 21.6L12 23.1l1.7-1.5"/>
+            </svg><span>Scroll to zoom</span>
+          </span>
+          <span class="hsep">·</span>
+          <span class="hbit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 3.75A5.5 5.5 0 0 1 17.5 9.25V10.5H12Z" fill="currentColor" stroke="none"/>
+              <rect x="6.5" y="3.75" width="11" height="16.5" rx="5.5"/>
+              <path d="M6.5 10.5h11"/><path d="M12 3.75v6.75"/>
+            </svg><span>Right-drag to pan</span>
+          </span>
+        </div>
+      </div>
     </div>
 
     <div id="rp">
@@ -744,6 +883,8 @@ footer .foot-cred {
         </div>
         <div class="sl-range">0 – 1.0</div>
       </div>
+
+      <div class="btn-row"><button class="btn" id="reset">Reset view</button></div>
     </div>
   </div>
 
@@ -786,7 +927,7 @@ footer .foot-cred {
       Ground-based propulsion systems exclusively rely on the stored chemical energy of rocket fuel
       and oxidizer for <span class="hl-power">power</span> to escape Earth's gravity. Once in
       space, other <span class="hl-power">power sources</span> become available. Spacecraft
-      rely on solar or nuclear power to run their payloads — leftover energy can be used to drive
+      rely on solar or nuclear power to run their payloads, and leftover energy can be used to drive
       an electric propulsion system. This simulation assumes that
       <span class="hl-power">input power</span> and
       <span class="hl-mass">mass flow rate</span> are decoupled, which is true for electric
@@ -805,162 +946,143 @@ footer .foot-cred {
     <div class="th-hdr">Thrust</div>
 
     <p class="th-body">
-      Let's derive the <span class="hl-thrust">thrust</span> of a general rocket propulsion
-      device, which carries its own propellant. Apply conservation laws to a
-      <strong>control volume</strong>. Assume <strong>steady-state</strong> operation, no viscous
-      forces, and a uniform exit stream with density $\rho_e$,
-      <span class="hl-ve">velocity $v_e$</span>, area $A_e$, and exit pressure
-      <span class="hl-press">$P_e$</span>, expelling into ambient pressure
-      <span class="hl-press">$P_{amb}$</span>. Let $\hat{\mathbf{i}}$ denote the axial
-      direction. The thrust stand measures the reaction force,
-      i.e.&nbsp;the thrust, on the vehicle.
+      A rocket carries its own propellant, so its <span class="hl-thrust">thrust</span> follows from
+      conservation of mass and momentum across a <strong>control volume</strong> drawn around the
+      engine. Assume <strong>steady state</strong>, no viscous forces, and a uniform exit stream of
+      density $\rho_e$, <span class="hl-ve">velocity $v_e$</span>, area $A_e$ and pressure
+      <span class="hl-press">$P_e$</span> discharging into ambient pressure
+      <span class="hl-press">$P_{amb}$</span>. Let $\hat{\mathbf{i}}$ be the axial direction. The
+      thrust stand holds the engine still, so what it reads is the reaction on the vehicle: the
+      thrust.
     </p>
 
     <div class="cv-diagram">
-      <svg viewBox="0 0 820 240" xmlns="http://www.w3.org/2000/svg" style="width:100%;display:block;"
-           font-family="KaTeX_Main, 'Times New Roman', serif">
+      <svg viewBox="76 38 1048 286" xmlns="http://www.w3.org/2000/svg"
+           style="width:100%;display:block;"
+           font-family="KaTeX_Main, 'Times New Roman', serif" role="img"
+           aria-label="A control volume drawn around a rocket engine held on a thrust stand.
+                       Exhaust crosses the exit plane to the right at velocity v sub e; the thrust
+                       on the vehicle points to the left.">
         <defs>
-          <marker id="arr-ex" markerWidth="9" markerHeight="7"
-                  refX="8.5" refY="3.5" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,9 3.5,0 7" fill="#3DBFFF"/>
+          <marker id="cv-arr-ve" markerWidth="10" markerHeight="8" refX="9.5" refY="4"
+                  orient="auto" markerUnits="userSpaceOnUse">
+            <polygon points="0 0,10 4,0 8" fill="#3DBFFF"/>
           </marker>
-          <marker id="arr-ax" markerWidth="8" markerHeight="6"
-                  refX="7" refY="3" orient="auto" markerUnits="userSpaceOnUse">
-            <polygon points="0 0,8 3,0 6" fill="#9aa4b2"/>
+          <marker id="cv-arr-ax" markerWidth="9" markerHeight="7" refX="8.5" refY="3.5"
+                  orient="auto" markerUnits="userSpaceOnUse">
+            <polygon points="0 0,9 3.5,0 7" fill="#9aa3b2"/>
           </marker>
+          <!-- The plume fades out rather than ending on a hard edge, so the band
+               reads as a stream leaving the frame and not as a second duct. -->
+          <linearGradient id="cv-plume" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0"    stop-color="#3DBFFF" stop-opacity="0.13"/>
+            <stop offset="0.65" stop-color="#3DBFFF" stop-opacity="0.06"/>
+            <stop offset="1"    stop-color="#3DBFFF" stop-opacity="0"/>
+          </linearGradient>
         </defs>
-        <rect width="820" height="240" fill="#0e0e0e"/>
 
-        <!-- Coordinate axes: ĵ up, î right -->
-        <line x1="600" y1="50" x2="600" y2="20" stroke="#9aa4b2" stroke-width="1.8" marker-end="url(#arr-ax)"/>
-        <line x1="600" y1="50" x2="650" y2="50" stroke="#9aa4b2" stroke-width="1.8" marker-end="url(#arr-ax)"/>
-        <text x="586" y="24" fill="#9aa4b2" font-size="16" font-family="KaTeX_Math, serif" font-style="italic">ĵ</text>
-        <text x="656" y="55" fill="#9aa4b2" font-size="16" font-family="KaTeX_Math, serif" font-style="italic">î</text>
+        <rect width="1160" height="340" fill="#0e0e0e"/>
 
-        <!-- Gravity -->
-        <line x1="538" y1="22" x2="538" y2="52" stroke="#9aa4b2" stroke-width="1.8" marker-end="url(#arr-ax)"/>
-        <text x="544" y="36" fill="#9aa4b2" font-size="15" font-family="KaTeX_Math, serif" font-style="italic">g</text>
+        <!-- ── Exhaust stream ─────────────────────────────────────────────
+             One band with three rules inside it, not five loose rules. The
+             middle rule breaks around its own label, which is what puts v_e
+             ON the stream rather than in a floating row beside it. -->
+        <rect x="760" y="113" width="340" height="120" fill="url(#cv-plume)"/>
+        <line x1="768" y1="143" x2="1086" y2="143" stroke="#3DBFFF" stroke-width="2.2"
+              opacity="0.9" marker-end="url(#cv-arr-ve)"/>
+        <line x1="768" y1="203" x2="1086" y2="203" stroke="#3DBFFF" stroke-width="2.2"
+              opacity="0.9" marker-end="url(#cv-arr-ve)"/>
+        <line x1="768" y1="173" x2="900" y2="173" stroke="#3DBFFF" stroke-width="2.2"
+              opacity="0.9"/>
+        <line x1="972" y1="173" x2="1086" y2="173" stroke="#3DBFFF" stroke-width="2.2"
+              opacity="0.9" marker-end="url(#cv-arr-ve)"/>
+        <text x="936" y="182" text-anchor="middle" fill="#3DBFFF" font-size="26"
+              font-family="KaTeX_Math, serif" font-style="italic">v<tspan dy="8"
+              font-size="17">e</tspan></text>
 
-        <!-- Control surface S (dashed) -->
-        <rect x="104" y="60" width="204" height="122" fill="none"
-              stroke="#4a5261" stroke-width="1.6" stroke-dasharray="7 4"/>
-        <text x="290" y="55" fill="#6b7480" font-size="15" font-family="KaTeX_Math, serif" font-style="italic">S</text>
+        <!-- ── Control surface S ────────────────────────────────────────── -->
+        <rect x="240" y="90" width="520" height="166" fill="none"
+              stroke="#4a5261" stroke-width="1.6" stroke-dasharray="7 5"/>
+        <text x="240" y="82" fill="#7a8391" font-size="19"
+              font-family="KaTeX_Math, serif" font-style="italic">S</text>
 
-        <!-- Control volume / engine -->
-        <rect x="110" y="70" width="190" height="102" fill="#d6deed" rx="2"/>
-        <text x="120" y="89" fill="#5a636f" font-size="13" letter-spacing="0.5">C.V.</text>
+        <!-- ── Engine: chamber, convergent throat, bell ─────────────────── -->
+        <path d="M 270 111 L 530 111 L 596 149 C 630 132 692 118 760 113
+                 L 760 233 C 692 228 630 214 596 197 L 530 235 L 270 235 Z"
+              fill="#282d36" stroke="#78828f" stroke-width="2"/>
+        <line x1="530" y1="111" x2="530" y2="235" stroke="#4e5661" stroke-width="1.4"/>
+        <text x="296" y="139" fill="#9aa3b2" font-size="17" letter-spacing="0.6"
+              font-family="Barlow, sans-serif">C.V.</text>
 
-        <!-- Thrust stand mount -->
-        <polygon points="193,172 217,172 210,194 200,194" fill="#8a94a4"/>
-        <line x1="164" y1="194" x2="246" y2="194" stroke="#8a94a4" stroke-width="2"/>
-        <line x1="176" y1="194" x2="168" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
-        <line x1="188" y1="194" x2="180" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
-        <line x1="200" y1="194" x2="192" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
-        <line x1="212" y1="194" x2="204" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
-        <line x1="224" y1="194" x2="216" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
-        <line x1="236" y1="194" x2="228" y2="203" stroke="#8a94a4" stroke-width="1.4"/>
-        <text x="252" y="197" fill="#6b7480" font-size="13">thrust stand</text>
+        <!-- ── Exit plane ──────────────────────────────────────────────── -->
+        <line x1="760" y1="113" x2="760" y2="233" stroke="#FF4400" stroke-width="3"
+              stroke-dasharray="6 4"/>
+        <text x="768" y="253" fill="#FF4400" font-size="15" opacity="0.8"
+              font-family="Barlow, sans-serif">exit plane</text>
 
-        <!-- Exit plane -->
-        <line x1="300" y1="98" x2="300" y2="148" stroke="#FF4400" stroke-width="2.8"
-              stroke-dasharray="5 3" opacity="0.9"/>
-        <text x="320" y="93" fill="#FF4400" font-size="12" opacity="0.65">exit plane</text>
+        <!-- ── Exit-plane quantities, tied to the plane by a leader ───────
+             The old figure set these symbols loose in a row with nothing
+             saying where they were evaluated. The leader and the small
+             caption above the row do that job. -->
+        <path d="M 762 152 L 826 86 L 838 86" fill="none" stroke="#8a94a4" stroke-width="1.4"/>
+        <text x="848" y="60" fill="#7a8391" font-size="14" letter-spacing="1.3"
+              font-family="Barlow, sans-serif">AT THE EXIT PLANE</text>
+        <text x="848" y="94" fill="#FF4400" font-size="26"
+              font-family="KaTeX_Math, serif" font-style="italic">&#7745;</text>
+        <text x="908" y="94" fill="#00DDB5" font-size="26"
+              font-family="KaTeX_Math, serif" font-style="italic">P<tspan dy="8" font-size="17">e</tspan></text>
+        <text x="974" y="94" fill="#aaaaaa" font-size="26"
+              font-family="KaTeX_Math, serif" font-style="italic">A<tspan dy="8" font-size="17">e</tspan></text>
+        <text x="1040" y="94" fill="#aaaaaa" font-size="26"
+              font-family="KaTeX_Math, serif" font-style="italic">&#961;<tspan dy="8" font-size="17">e</tspan></text>
 
-        <!-- Exhaust stream -->
-        <line x1="300" y1="106" x2="470" y2="106" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="300" y1="114" x2="470" y2="114" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="300" y1="122" x2="470" y2="122" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="300" y1="130" x2="470" y2="130" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
-        <line x1="300" y1="138" x2="470" y2="138" stroke="#3DBFFF" stroke-width="1.8" opacity="0.85" marker-end="url(#arr-ex)"/>
+        <!-- ── Ambient pressure, in the space the plume discharges into ─── -->
+        <text x="890" y="282" fill="#00DDB5" font-size="22" opacity="0.55"
+              font-family="KaTeX_Math, serif" font-style="italic">P<tspan dy="7" font-size="15">amb</tspan></text>
 
-        <!-- Exhaust quantities (ĵ row): vₑ  ṁ  Pₑ  Aₑ  ρ -->
-        <text x="486" y="128" fill="#3DBFFF"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">v</text>
-        <text x="496" y="132" fill="#3DBFFF"  font-size="12" font-family="KaTeX_Math, serif" font-style="italic">e</text>
-        <text x="512" y="128" fill="#FF4400"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">ṁ</text>
-        <text x="536" y="128" fill="#00DDB5"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">P</text>
-        <text x="546" y="132" fill="#00DDB5"  font-size="12" font-family="KaTeX_Math, serif" font-style="italic">e</text>
-        <text x="566" y="128" fill="#b8c4d8"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">A</text>
-        <text x="577" y="132" fill="#b8c4d8"  font-size="12" font-family="KaTeX_Math, serif" font-style="italic">e</text>
-        <text x="598" y="128" fill="#b8c4d8"  font-size="18" font-family="KaTeX_Math, serif" font-style="italic">ρ</text>
+        <!-- ── Thrust stand: pylon, load cell, hatched base ─────────────── -->
+        <polygon points="340,235 400,235 424,292 316,292" fill="#31373f" stroke="#78828f" stroke-width="1.6"/>
+        <rect x="352" y="251" width="36" height="21" fill="#0e0e0e" stroke="#8a94a4" stroke-width="1.4"/>
+        <rect x="270" y="292" width="200" height="8" fill="#78828f"/>
+        <line x1="282" y1="300" x2="270" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <line x1="308" y1="300" x2="296" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <line x1="334" y1="300" x2="322" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <line x1="360" y1="300" x2="348" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <line x1="386" y1="300" x2="374" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <line x1="412" y1="300" x2="400" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <line x1="438" y1="300" x2="426" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <line x1="464" y1="300" x2="452" y2="313" stroke="#78828f" stroke-width="1.6"/>
+        <text x="486" y="307" fill="#6b7480" font-size="16"
+              font-family="Barlow, sans-serif">thrust stand</text>
 
-        <!-- Ambient pressure -->
-        <text x="330" y="166" fill="#00DDB5" font-size="15" font-family="KaTeX_Math, serif" font-style="italic" opacity="0.5">P</text>
-        <text x="341" y="169" fill="#00DDB5" font-size="11" font-family="KaTeX_Math, serif" font-style="italic" opacity="0.5">amb</text>
+        <!-- ── Thrust on the vehicle, opposite the exhaust ────────────────
+             The break in the dashed control surface is the drafting
+             convention for a line crossing another, and it keeps the arrow
+             from reading as a second dashed edge. -->
+        <rect x="232" y="161" width="17" height="24" fill="#0e0e0e"/>
+        <line x1="262" y1="173" x2="134" y2="173" stroke="#FF4400" stroke-width="7"/>
+        <polygon points="104,173 138,157 138,189" fill="#FF4400"/>
+        <text x="190" y="150" text-anchor="middle" fill="#FF4400" font-size="27"
+              font-family="KaTeX_Math, serif" font-style="italic">F<tspan dy="8" font-size="18">N</tspan></text>
+        <text x="176" y="203" text-anchor="middle" fill="#6b7480" font-size="15"
+              font-family="Barlow, sans-serif">on the vehicle</text>
 
-        <!-- Assumptions -->
-        <text x="110" y="228" fill="#5a6472" font-size="13" letter-spacing="0.2">
-          Steady state · No viscous forces · Uniform exit stream in +î direction · Propellant initially at rest on vehicle
-        </text>
+        <!-- ── Axial direction ─────────────────────────────────────────── -->
+        <line x1="120" y1="300" x2="174" y2="300" stroke="#9aa3b2" stroke-width="1.8"
+              marker-end="url(#cv-arr-ax)"/>
+        <text x="186" y="307" fill="#9aa3b2" font-size="22"
+              font-family="KaTeX_Math, serif" font-style="italic">&#238;</text>
       </svg>
+
+      <div class="cv-note">
+        Steady state &middot; No viscous forces &middot; Uniform exit stream along
+        $+\hat{\mathbf{i}}$ &middot; Propellant initially at rest on the vehicle
+      </div>
     </div>
 
     <div class="eq-panel">
 
-      <span class="eq-step-label">Conservation of Mass — at steady state there is no mass accumulation inside the control volume</span>
-      $$
-      \begin{aligned}
-      0 &= -\textcolor{#FF4400}{\dot{m}} + \rho_e \textcolor{#3DBFFF}{v_e} A_e \\[3pt]
-      \Rightarrow\quad \textcolor{#FF4400}{\dot{m}} &= \rho_e \textcolor{#3DBFFF}{v_e} A_e
-      \end{aligned}
-      $$
-
-      <span class="eq-step-label">Conservation of Momentum — Reynolds Transport Theorem for linear momentum</span>
-      $$
-      \frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
-      \;+\;
-      \oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-      \;=\;
-      \sum\mathbf{F}_{ext}
-      $$
-
-      <details class="deriv-detail">
-        <summary>Show detailed derivation — axial projection, steady-state reduction, force balance</summary>
-        <div class="deriv-inner">
-
-          <span class="eq-step-label">Project onto the axial direction with a dot product against $\hat{\mathbf{i}}$</span>
-          $$
-          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
-          \;+\;
-          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-          \;=\;
-          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
-          $$
-
-          <span class="eq-step-label">Steady state — the unsteady volume integral vanishes</span>
-          $$
-          \begin{aligned}
-          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV &= 0
-          \\[5pt]
-          \Rightarrow\quad
-          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-          &= \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
-          \end{aligned}
-          $$
-
-          <span class="eq-step-label">Momentum flux term — only the exit plane contributes; propellant is initially at rest on the vehicle</span>
-          $$
-          \begin{aligned}
-          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
-          &= \rho_e v_e^2 A_e \\
-          &= \bigl(\rho_e v_e A_e\bigr)v_e \\
-          &= \dot{m}\,v_e
-          \end{aligned}
-          $$
-
-          <span class="eq-step-label">External forces — thrust-stand reaction plus net pressure force at the exit plane</span>
-          $$
-          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
-          \;=\;
-          F_N + \bigl(P_{amb} - P_e\bigr)A_e
-          $$
-
-        </div>
-      </details>
-
-      <span class="eq-step-label">Equate momentum flux and external forces, then isolate thrust</span>
-      $$
-      F_N + \bigl(P_{amb} - P_e\bigr)A_e = \dot{m}\,v_e
-      $$
+      <span class="eq-step-label">General Thrust Equation</span>
       $$
       \boxed{
         \textcolor{#FF4400}{F_N}
@@ -971,9 +1093,7 @@ footer .foot-cred {
       }
       $$
 
-      <div class="eq-divider"></div>
-
-      <span class="eq-step-label">Define effective exhaust velocity $c$ to absorb the pressure correction into a single quantity</span>
+      <span class="eq-step-label">Effective Exhaust Velocity</span>
       $$
       \boxed{
         \textcolor{#3DBFFF}{c}
@@ -982,130 +1102,254 @@ footer .foot-cred {
         \;+\;
         \frac{\bigl(\textcolor{#00DDB5}{P_e - P_{amb}}\bigr)A_e}{\textcolor{#FF4400}{\dot{m}}}
       }
-      \qquad\Rightarrow\qquad
-      \textcolor{#FF4400}{F_N} = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
       $$
 
-      <span class="eq-caption">
-        <span class="hl-F">Thrust</span> =
-        <span class="hl-m">mass flow rate</span> &times;
-        <span class="hl-v">effective exhaust velocity</span>.
-      </span>
+      $$
+      \boxed{
+        \textcolor{#FF4400}{F_N}
+        \;=\;
+        \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
+      }
+      $$
+
+      <details class="deriv-detail">
+        <summary>Show derivation</summary>
+        <div class="deriv-inner">
+
+          <span class="eq-step-label">Conservation of Mass</span>
+          $$
+          0 = -\textcolor{#FF4400}{\dot{m}} + \rho_e \textcolor{#3DBFFF}{v_e} A_e
+          $$
+
+          $$
+          \textcolor{#FF4400}{\dot{m}} = \rho_e \textcolor{#3DBFFF}{v_e} A_e
+          $$
+
+          <span class="eq-step-label">Reynolds Transport Theorem</span>
+          $$
+          \frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
+          \;+\;
+          \oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+          \;=\;
+          \sum\mathbf{F}_{ext}
+          $$
+
+          <span class="eq-step-label">Project onto the Axial Direction</span>
+          $$
+          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV
+          \;+\;
+          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+          \;=\;
+          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
+          $$
+
+          <span class="eq-step-label">Steady State</span>
+          $$
+          \hat{\mathbf{i}}\cdot\frac{\partial}{\partial t}\!\int_{CV}\!\rho\,\mathbf{V}\,dV = 0
+          $$
+
+          $$
+          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+          \;=\;
+          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
+          $$
+
+          <span class="eq-step-label">Momentum Flux at the Exit Plane</span>
+          $$
+          \begin{aligned}
+          \hat{\mathbf{i}}\cdot\oint_{CS}\!\rho\,\mathbf{V}\bigl(\mathbf{V}\cdot\hat{n}\bigr)\,dA
+          &= \rho_e \textcolor{#3DBFFF}{v_e^2} A_e \\[10pt]
+          &= \bigl(\rho_e \textcolor{#3DBFFF}{v_e} A_e\bigr)\textcolor{#3DBFFF}{v_e} \\[10pt]
+          &= \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{v_e}
+          \end{aligned}
+          $$
+
+          <span class="eq-step-label">External Forces</span>
+          $$
+          \hat{\mathbf{i}}\cdot\sum\mathbf{F}_{ext}
+          \;=\;
+          \textcolor{#FF4400}{F_N} + \bigl(\textcolor{#00DDB5}{P_{amb} - P_e}\bigr)A_e
+          $$
+
+          <span class="eq-step-label">Solve for Thrust</span>
+          $$
+          \textcolor{#FF4400}{F_N} + \bigl(\textcolor{#00DDB5}{P_{amb} - P_e}\bigr)A_e
+          \;=\;
+          \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{v_e}
+          $$
+
+          $$
+          \boxed{
+            \textcolor{#FF4400}{F_N}
+            \;=\;
+            \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{v_e}
+            \;+\;
+            \bigl(\textcolor{#00DDB5}{P_e - P_{amb}}\bigr)A_e
+          }
+          $$
+
+        </div>
+      </details>
     </div>
   </div>
 
-  <!-- ══════════════ BLOCK 2 : SPECIFIC IMPULSE & POWER ══════════════ -->
+  <!-- ══════════════════ BLOCK 2 : SPECIFIC IMPULSE ══════════════════ -->
   <div class="theory-block">
-    <div class="th-hdr">Specific Impulse &amp; Input Power</div>
+    <div class="th-hdr">Specific Impulse</div>
 
     <p class="th-body">
-      A propulsion system is designed to give a <strong>change in momentum</strong>, or impulse, to
-      the spacecraft. Recall that propellant is limited in space, so we normalize the impulse by
-      propellant mass (or historically, propellant weight on Earth). In the spacecraft frame of
-      reference, the expelled propellant flow begins at rest and is accelerated to leave with
-      <span class="hl-ve">effective exhaust velocity $c$</span>, so the propellant stream has
-      jet power equivalent to <span class="hl-power">input power</span> times the
-      <span class="hl-power">power system's efficiency</span> factor.
+      A propulsion system is designed to deliver <strong class="key">impulse</strong>, a change in
+      momentum, to the spacecraft. Propellant is the scarce resource in space, so the useful figure
+      of merit is impulse per unit <span class="hl-mass">propellant mass</span>. Historically it was
+      quoted per unit propellant <em>weight</em> on Earth, which is why
+      <span class="hl-ve">specific impulse</span> carries units of seconds rather than m/s.
     </p>
 
     <div class="eq-panel">
 
-      <span class="eq-step-label">Total impulse — assume constant effective exhaust velocity during the burn</span>
-      $$
-      \begin{aligned}
-      \text{Impulse}
-      &= \int \textcolor{#FF4400}{F_N}\,dt
-       = \int \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\,dt
-       = \textcolor{#3DBFFF}{c}\int \textcolor{#FF4400}{\dot{m}}\,dt
-       = \textcolor{#3DBFFF}{c}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}
-      \end{aligned}
-      $$
-
-      <span class="eq-step-label">Normalize by propellant mass — impulse per unit propellant mass equals effective exhaust velocity</span>
-      $$
-      \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}}
-      = \textcolor{#3DBFFF}{c}
-      \qquad[\mathrm{m/s}]
-      $$
-
-      <span class="eq-step-label">Historical convention — divide by $g_0$ to obtain specific impulse in seconds</span>
+      <span class="eq-step-label">Specific Impulse</span>
       $$
       \boxed{
         \textcolor{#3DBFFF}{I_{sp}}
-        = \frac{\text{Impulse}}{\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,g_0}
-        = \frac{\textcolor{#3DBFFF}{c}}{g_0}
-        \qquad[\mathrm{s}]
+        \;=\;
+        \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}\,g_0}
+        \;=\;
+        \frac{\textcolor{#3DBFFF}{c}}{g_0}
       }
       $$
 
-      <div class="eq-divider"></div>
-
       <details class="deriv-detail">
-        <summary>Show jet power derivation — kinetic energy argument</summary>
+        <summary>Show derivation</summary>
         <div class="deriv-inner">
 
-          <span class="eq-step-label">Jet kinetic energy — in the spacecraft frame the propellant starts at rest, so all KE comes from the propulsion system</span>
+          <span class="eq-step-label">Total Impulse</span>
           $$
-          \begin{aligned}
-          E_{\mathrm{jet}}
-          &= \tfrac{1}{2}\,\textcolor{#3DBFFF}{m_{\mathrm{prop}}}\,\textcolor{#3DBFFF}{c}^2
-          \\[5pt]
-          P_{\mathrm{jet}}
-          = \frac{dE_{\mathrm{jet}}}{dt}
-          &= \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-          \end{aligned}
+          \text{Impulse}
+          = \int \textcolor{#FF4400}{F_N}\,dt
+          = \int \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}\,dt
+          = \textcolor{#3DBFFF}{c}\int \textcolor{#FF4400}{\dot{m}}\,dt
+          = \textcolor{#3DBFFF}{c}\,\textcolor{#FF4400}{m_{\mathrm{prop}}}
           $$
 
-          <span class="eq-step-label">Use the thrust relation $F_N = \dot{m}\,c$ to rewrite jet power</span>
+          <span class="eq-step-label">Normalize by Propellant Mass</span>
+          $$
+          \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}}
+          \;=\;
+          \textcolor{#3DBFFF}{c}
+          \qquad[\mathrm{m/s}]
+          $$
+
+          <span class="eq-step-label">Divide by Standard Gravity</span>
+          $$
+          \boxed{
+            \textcolor{#3DBFFF}{I_{sp}}
+            \;=\;
+            \frac{\text{Impulse}}{\textcolor{#FF4400}{m_{\mathrm{prop}}}\,g_0}
+            \;=\;
+            \frac{\textcolor{#3DBFFF}{c}}{g_0}
+            \qquad[\mathrm{s}]
+          }
+          $$
+
+        </div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ══════════════════ BLOCK 3 : INPUT POWER ══════════════════ -->
+  <div class="theory-block">
+    <div class="th-hdr">Input Power</div>
+
+    <p class="th-body">
+      In the spacecraft frame the propellant starts at rest and leaves at
+      <span class="hl-ve">effective exhaust velocity $c$</span> relative to the spacecraft, so the
+      jet carries kinetic energy away at a rate set by the
+      <span class="hl-power">input power</span> and the
+      <span class="hl-power">efficiency $\eta$</span> of the power and conversion chain.
+    </p>
+
+    <div class="eq-panel">
+
+      <span class="eq-step-label">Power Balance</span>
+      $$
+      \boxed{
+        P_{\mathrm{jet}} = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
+        \qquad\Longrightarrow\qquad
+        \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c^2}
+        = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
+      }
+      $$
+
+      <details class="deriv-detail">
+        <summary>Show derivation</summary>
+        <div class="deriv-inner">
+
+          <span class="eq-step-label">Jet Kinetic Energy</span>
+          $$
+          E_{\mathrm{jet}}
+          = \tfrac{1}{2}\,\textcolor{#FF4400}{m_{\mathrm{prop}}}\,\textcolor{#3DBFFF}{c^2}
+          $$
+
+          <span class="eq-step-label">Jet Power</span>
           $$
           P_{\mathrm{jet}}
-          = \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
+          = \frac{dE_{\mathrm{jet}}}{dt}
+          = \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c^2}
           = \tfrac{1}{2}\,\textcolor{#FF4400}{F_N}\,\textcolor{#3DBFFF}{c}
+          $$
+
+          <span class="eq-step-label">Apply the Efficiency Factor</span>
+          $$
+          \boxed{
+            \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c^2}
+            = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
+          }
           $$
 
         </div>
       </details>
 
-      <span class="eq-step-label">Relate jet power to input power through system efficiency $\eta$</span>
-      $$
-      \boxed{
-        P_{\mathrm{jet}} = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
-        \qquad\Rightarrow\qquad
-        \tfrac{1}{2}\,\textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}^2
-        = \textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}
-      }
-      $$
+      <div class="eq-divider"></div>
 
-      <span class="eq-step-label">Solve for exhaust velocity, thrust, and specific impulse</span>
+      <span class="eq-step-label">Exhaust Velocity</span>
       $$
       \boxed{
         \textcolor{#3DBFFF}{c}
-        = \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
-      }
-      \qquad
-      \boxed{
-        \textcolor{#FF4400}{F_N}
-        = \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
-        = \sqrt{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}\,\textcolor{#FF4400}{\dot{m}}}
-      }
-      $$
-      $$
-      \boxed{
-        \textcolor{#3DBFFF}{I_{sp}}
-        = \frac{1}{g_0}
-          \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
+        \;=\;
+        \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
       }
       $$
 
-      <span class="eq-caption">
-        For fixed <span class="hl-power">input power</span>, lowering
-        <span class="hl-mass">mass flow rate</span> raises
-        <span class="hl-ve">exhaust velocity / $I_{sp}$</span>,
-        but also reduces <span class="hl-thrust">thrust</span>.
-        Designing a propulsion system around a power source entails balancing
-        thrust&ndash;$I_{sp}$ trade.
-      </span>
+      <span class="eq-step-label">Thrust</span>
+      $$
+      \boxed{
+        \textcolor{#FF4400}{F_N}
+        \;=\;
+        \textcolor{#FF4400}{\dot{m}}\,\textcolor{#3DBFFF}{c}
+        \;=\;
+        \sqrt{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}\,\textcolor{#FF4400}{\dot{m}}}
+      }
+      $$
+
+      <span class="eq-step-label">Specific Impulse</span>
+      $$
+      \boxed{
+        \textcolor{#3DBFFF}{I_{sp}}
+        \;=\;
+        \frac{1}{g_0}
+        \sqrt{\frac{2\,\textcolor{#C060FF}{\eta\,P_{\mathrm{input}}}}{\textcolor{#FF4400}{\dot{m}}}}
+      }
+      $$
     </div>
+
+    <p class="th-body">
+      For a fixed <span class="hl-power">input power</span>, lowering the
+      <span class="hl-mass">mass flow rate</span> raises
+      <span class="hl-ve">exhaust velocity</span> and
+      <span class="hl-ve">specific impulse</span> but lowers
+      <span class="hl-thrust">thrust</span>. Sizing a propulsion system around a power source is
+      therefore a trade between the two.
+    </p>
   </div>
 
 </div>
@@ -1118,8 +1362,16 @@ footer .foot-cred {
   <div class="foot-cred">Authored by Jordan Bergmann, Assets Compiled by Generative AI</div>
 </footer>
 
-<script>
-'use strict';
+<script type="importmap">
+{ "imports": {
+  "three":"https://unpkg.com/three@0.160.0/build/three.module.js",
+  "three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"
+}}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 // ═══════════════════════════════════════════════════════
 // Constants
@@ -1142,6 +1394,10 @@ const ORB_COLOR = {
   'Lithium':   '#ff1744'
 };
 
+/* The halo each orb used to be drawn with. It is no longer painted per particle:
+   the point sprite carries the same core-plus-halo profile in its alpha and takes
+   its hue from ORB_COLOR, so the 0.22 lives in makeOrbTexture's gradient stops
+   instead. Kept because the table is the house record of the species palette. */
 const ORB_GLOW = {
   'H\u2082O':  'rgba(255,177,122,0.22)',
   'Hydrazine': 'rgba(255,109,0,0.22)',
@@ -1155,6 +1411,11 @@ const ORB_R = {
   'Argon':     3.0,
   'Lithium':   1.8
 };
+
+/* ORB_R stays the flat applet's record of the species radii (see orbSize, which
+   spells out the two conversions off it), so a deliberate change of SCALE is
+   written here rather than by editing the four numbers above it. */
+const ORB_SCALE = 1.30;
 
 const MAX_VE_VIS     = 50000;
 const MAX_ORBS       = 9000;
@@ -1188,69 +1449,630 @@ function fmt4g(v) {
 }
 
 // ═══════════════════════════════════════════════════════
-// Canvas setup
+// Scale
 // ═══════════════════════════════════════════════════════
-const canvas = document.getElementById('cnv');
-const ctx    = canvas.getContext('2d');
-const CW = canvas.width;
-const CH = canvas.height;
+/* ONE ruler for the whole scene. SCENE_R is the spacecraft's half-length, so the
+   vehicle runs from -SCENE_R (nose tip) to +SCENE_R (exit plane) and every other
+   length (hull radius, nozzle flare, arrow travel, plume cull, camera fit) is
+   written as a multiple of it. Nothing in the 3-D scene is an absolute number. */
+const SCENE_R = 3.0;
 
-// Spaceship sprite geometry (Spaceship.png is 1037 x 376)
-const SHIP_ASPECT = 1037 / 376;
-const SHIP_H = 150;
-const SHIP_W = SHIP_H * SHIP_ASPECT;
-const EX     = 470;               // exhaust exit plane (right edge of ship)
-const SHIP_X = EX - SHIP_W;       // nose (left edge)
-const CY     = 220;               // vertical centre of ship / exhaust
-const SHIP_Y = CY - SHIP_H / 2;
+// Body of revolution, nose to exit plane. The silhouette is the flat sprite's:
+// an elliptical nose, a straight barrel, a step down to the engine bay, a bell.
+const NOSE_X   = -0.983 * SCENE_R;   // nose tip
+const OGIVE_X  = -0.550 * SCENE_R;   // where the nose reaches full radius
+const BODY_X   =  0.320 * SCENE_R;   // aft end of the barrel
+const TAPER_X  =  0.420 * SCENE_R;   // aft end of the step-down
+const AFT_X    =  0.620 * SCENE_R;   // aft face of the engine bay
+const HULL_R   =  0.300 * SCENE_R;
+const AFT_R    =  0.210 * SCENE_R;
+const THROAT_R =  0.120 * SCENE_R;
+const BELL_X   =  0.680 * SCENE_R;   // where the bell starts to flare
+const EXIT_X   =  0.983 * SCENE_R;   // exit plane: the plume starts here
+const EXIT_R   =  0.300 * SCENE_R;
 
-// Thrust arrow — geometry matched to the arrow baked into the original sprite
-// (PNG 1037×376: tail x=438, tip x=242, centre y=198, shaft 47 px, head 45×92 px).
-// Thickness and head size stay constant; only the shaft length tracks thrust.
-const PNG_SCALE     = SHIP_W / 1037;
+/* Camera fit. FIT_HALF_W is the budget: the camera frames this half-width at every
+   stage size, so the model holds one scale and a taller stage buys sky rather than
+   a smaller ship. FIT_HALF_H is only a floor for a freakishly wide stage: the
+   width term wins at any aspect under 2.0, which is every aspect this layout makes.
+   The budget is set by the two ARROWS at full extension, not by the hull, and it
+   was 2.77 until the arrows were shortened below; carrying the old number forward
+   would have left the ship at a third of the frame with the slack all sky. */
+const FIT_HALF_W = 2.30 * SCENE_R;
+const FIT_HALF_H = 1.15 * SCENE_R;
+const FOV        = 34;
 
-// Exhaust jet vertical band — matched to the sprite's dashed exit-plane lines (PNG y: 42 → 357)
-const JET_TOP  = SHIP_Y + 42  * PNG_SCALE;
-const JET_BOT  = SHIP_Y + 357 * PNG_SCALE;
-const JET_CY   = (JET_TOP + JET_BOT) / 2;
-const JET_HALF = (JET_BOT - JET_TOP) / 2;
-// Exhaust spawns at the sprite's exit plane (dashed line, PNG x≈1001),
-// not the image edge (PNG x=1037) — the padding beyond leaves a visible gap.
-const EXIT_X   = SHIP_X + 1001 * PNG_SCALE;
-const ARROW_TAIL_X  = SHIP_X + 438 * PNG_SCALE;   // fixed tail
-const ARROW_Y       = SHIP_Y + 198 * PNG_SCALE;   // vertical centre of the ship
-const ARROW_THICK   = 47  * PNG_SCALE;            // shaft thickness (constant)
-const ARROW_HEAD_L  = 45  * PNG_SCALE;            // arrowhead length (constant)
-const ARROW_HEAD_HW = 46  * PNG_SCALE;            // arrowhead half-width (constant)
-const ARROW_LEN_MAX = 196 * 2.3 * PNG_SCALE;      // slightly over twice the sprite length at max thrust
-const ARROW_LEN_MIN = ARROW_HEAD_L + 6;           // smallest visible length
-const ARROW_COLOR   = '#FF4400';   // canonical --c-thrust
+// Plume: spawns across the exit plane, travels +î, FADES OUT downstream.
+const PLUME_R  = 0.88 * EXIT_R;
+const PLUME_X0 = EXIT_X + 0.02 * SCENE_R;
 
-// Exhaust velocity arrow — points +î (right), length scales with exhaust velocity
-const VE_ARROW_TAIL_X  = EX + 10;
-const VE_ARROW_Y       = JET_BOT + 62;            // well beneath the exhaust jet
-const VE_ARROW_LEN_MIN = 34;
-const VE_ARROW_LEN_MAX = 330;
-const VE_ARROW_THICK   = 8;
-const VE_HEAD_L        = 16;
-const VE_HEAD_HW       = 10;
-const VE_COLOR         = '#3DBFFF';
+/* The stream used to be culled at 2.40 * SCENE_R, just outside the default frame,
+   on the reasoning that an orb nobody sees vanish has not visibly vanished. That
+   only holds for the default view: the moment the reader zooms out or orbits, the
+   cull plane walks into shot and the exhaust ends against a flat wall of
+   disappearing dots. So the stream is FADED instead, over a band that sits well
+   inside the frame from any viewpoint, and an orb is removed only once it is
+   already at zero alpha. The envelope below fades over the same band, so the glow
+   and the orbs go out together rather than one outliving the other. */
+const ORB_FADE_X0 = 1.05 * SCENE_R;   // full brightness up to here
+const ORB_FADE_X1 = 2.05 * SCENE_R;   // zero by here (the frame half-width is 2.30)
+const CULL_X      = ORB_FADE_X1;      // dropped only once it is invisible
 
-// ── Spaceship sprite ──
-const shipImg = new Image();
-let shipReady = false;
-shipImg.onload = () => { shipReady = true; };
-shipImg.src = 'Spaceship.png';
+/* Exhaust plume envelope. The orb stream on its own reads as a sparse field of
+   dots, which is right for counting particles and wrong for reading a JET. The
+   envelope is a diverging shell of revolution drawn additively over the orbs:
+   white-hot at the throat, cooling into the propellant's own hue as it expands,
+   gone by ORB_FADE_X1. Two shells, a broad outer one and a tight inner core. */
+/* ONE flare law, and everything in the exhaust is written against it. The orbs
+   used to fly straight down a cylinder while the envelope opened into a cone, so
+   at any real divergence the glow plainly did not belong to the particles inside
+   it: a wide cone of light with a narrow cord of dots down the middle. Now both
+   the shells' profiles and the orbs' own radii are plumeFlare() of the same axial
+   coordinate, so the two cannot drift apart at any setting.
+
+   It is written over an ABSOLUTE axial run, PLUME_FLARE_L, not over a normalized
+   mesh that gets stretched. Scaling the envelope with v_e changed its cone ANGLE
+   while the orbs kept theirs, which is the same mismatch by another route, and it
+   also let the glow end somewhere the orbs did not. v_e drives orb SPEED and the
+   v_e arrow; it does not move where the exhaust ends. */
+const PLUME_FLARE_L = ORB_FADE_X1 - PLUME_X0;   // axial run the flare is written over
+const PLUME_FLARE   = 2.40;                     // radius multiplier over that run
+
+/* Radius multiplier at axial fraction t of PLUME_FLARE_L. The 0.72 power opens the
+   jet fast off the throat and then straightens, which is the shape a plume
+   expanding into vacuum actually takes. */
+const plumeFlare = t => 1 + (PLUME_FLARE - 1) * Math.pow(Math.min(Math.max(t, 0), 1), 0.72);
+
+// The envelope sits a margin OUTSIDE the orb column, so the orbs read as being
+// inside the glow rather than as its boundary. The core is a tight axial thread.
+const PLUME_GLOW_R0 = PLUME_R * 1.05;
+const PLUME_CORE_R0 = PLUME_R * 0.40;
+
+// Thrust arrow. Tail pinned just ahead of the nose, tip forward (-î). Ahead of the
+// hull rather than over it, as the sprite drew it: an arrow laid across a solid body
+// is buried by it the moment the camera leaves the broadside view.
+const THR_TAIL_X   = -1.050 * SCENE_R;
+const THR_LEN_MIN  =  0.250 * SCENE_R;
+const THR_LEN_MAX  =  0.870 * SCENE_R;
+const THR_SHAFT_R  =  0.037 * SCENE_R;
+const THR_HEAD_R   =  0.088 * SCENE_R;
+const THR_HEAD_L   =  0.185 * SCENE_R;
+const ARROW_COLOR  = '#FF4400';   // canonical --c-thrust
+
+/* Exhaust velocity arrow. Points +î, length tracks v_e, and it now runs ALONG THE
+   AXIS, inside the plume. Beneath the plume it was a free-floating arrow drawn
+   next to the exhaust; laid down the middle of the stream it is unmistakably the
+   velocity OF that stream. The plume draws additively with depth writes off, so
+   the arrow stays a solid object with the glow washing over it rather than a
+   shape buried inside it. Only the ARROW moved: the label still sits at the
+   height it always did, clear of the plume where it stays readable, which is what
+   the separate VE_LABEL_Y is for. */
+const VE_TAIL_X   = EXIT_X + 0.05 * SCENE_R;
+const VE_Y        =  0.0;
+
+/* The label's height is DERIVED from the plume rather than set to a number. It was
+   -0.680 * SCENE_R, which cleared the plume of the day and then did not: the jet
+   now flares, so where its edge sits depends on how far downstream you look, and
+   the label's own x moves with v_e. Asking for the envelope's radius at the
+   label's own station and dropping a fixed gap below it clears the exhaust at
+   every setting, and keeps clearing it if the flare is ever retuned. */
+const VE_LABEL_GAP = 0.17 * SCENE_R;
+const veLabelY = xAt =>
+  -(PLUME_GLOW_R0 * plumeFlare((xAt - PLUME_X0) / PLUME_FLARE_L) + VE_LABEL_GAP);
+const VE_LEN_MIN  =  0.240 * SCENE_R;
+const VE_LEN_MAX  =  1.050 * SCENE_R;
+const VE_SHAFT_R  =  0.026 * SCENE_R;
+const VE_HEAD_R   =  0.064 * SCENE_R;
+const VE_HEAD_L   =  0.140 * SCENE_R;
+const VE_COLOR    = '#3DBFFF';
+
+// ═══════════════════════════════════════════════════════
+// Scene
+// ═══════════════════════════════════════════════════════
+const viewport = document.getElementById('viewport');
+const scene    = new THREE.Scene();
+
+scene.background = new THREE.Color('#090909');
+
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+viewport.appendChild(renderer.domElement);
+
+const viewAspect = () => Math.max(0.05, viewport.clientWidth / Math.max(1, viewport.clientHeight));
+
+const camera   = new THREE.PerspectiveCamera(FOV, 1, 0.1, 400);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+
+// The gridded-ion / hall-thruster rig, ported: a broad ambient and hemisphere base
+// so nothing ever goes to black, one key, one fill, one cool rim.
+const hemiLight = new THREE.HemisphereLight(0xdfe6f2, 0x141820, 0.32);
+const ambLight  = new THREE.AmbientLight(0xffffff, 0.52);
+const keyLight  = new THREE.DirectionalLight(0xffffff, 0.80);
+const fillLight = new THREE.DirectionalLight(0xffffff, 0.30);
+const rimLight  = new THREE.DirectionalLight(0xbcd0ff, 0.20);
+keyLight.position.set(1.4, 1.9, 2.2);
+fillLight.position.set(-1.2, 0.5, -0.9);
+rimLight.position.set(0.2, -1.0, 0.4);
+scene.add(hemiLight, ambLight, keyLight, fillLight, rimLight);
+
+// ═══════════════════════════════════════════════════════
+// Spacecraft
+// ═══════════════════════════════════════════════════════
+/* Revolve a [radius, axial] profile about the thrust axis. LatheGeometry spins
+   about +y, so the result is turned a quarter turn to put the axis on +x. That is
+   the exhaust direction everywhere in this file, matching the control-volume
+   figure's î. Order the profile nose-first so the normals come out pointing away
+   from the axis. */
+function latheFromProfile(profile, seg = 64) {
+  const geo = new THREE.LatheGeometry(
+    profile.map(p => new THREE.Vector2(p[0], p[1])), seg
+  );
+  geo.rotateZ(-Math.PI / 2);
+  return geo;
+}
+
+// Solar-cell texture: one tile of cells, repeated over the array faces. Drawn
+// rather than shipped so the applet stays a single file with no asset to lose.
+function makeCellTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 128;
+  const g = c.getContext('2d');
+  g.fillStyle = '#131a2c'; g.fillRect(0, 0, 128, 128);
+  g.fillStyle = '#243458';
+  const n = 2, pad = 4, s = 128 / n;
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++)
+      g.fillRect(i * s + pad, j * s + pad, s - 2 * pad, s - 2 * pad);
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(3, 4);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+/* Matte, low-metalness materials: the gridded-ion applet's ROLE_MAT look, so the
+   spacecraft reads as the same family of hardware as the thrusters do. */
+const MAT = {
+  hull  : new THREE.MeshStandardMaterial({ color:'#c3c9d4', metalness:0.06, roughness:0.70 }),
+  bay   : new THREE.MeshStandardMaterial({ color:'#8e96a3', metalness:0.18, roughness:0.58 }),
+  band  : new THREE.MeshStandardMaterial({ color:'#6d7481', metalness:0.28, roughness:0.48 }),
+  nozzle: new THREE.MeshStandardMaterial({ color:'#5c636e', metalness:0.38, roughness:0.42,
+                                           side:THREE.DoubleSide }),
+  lip   : new THREE.MeshStandardMaterial({ color:'#9aa2af', metalness:0.45, roughness:0.35 }),
+  strut : new THREE.MeshStandardMaterial({ color:'#8b929e', metalness:0.25, roughness:0.55 }),
+  panel : new THREE.MeshStandardMaterial({ map:makeCellTexture(), metalness:0.15, roughness:0.55 }),
+  frame : new THREE.MeshStandardMaterial({ color:'#5a6270', metalness:0.25, roughness:0.60 }),
+  radiator: new THREE.MeshStandardMaterial({ color:'#dfe3ea', metalness:0.08, roughness:0.66 }),
+};
+
+const ship = new THREE.Group();
+scene.add(ship);
+
+// ── Hull: elliptical nose, barrel, step-down, flat aft face ──
+{
+  const prof = [];
+  const OG_N = 16;
+  for (let i = 0; i <= OG_N; i++) {
+    const t = i / OG_N;
+    prof.push([HULL_R * Math.sqrt(1 - (1 - t) * (1 - t)), NOSE_X + (OGIVE_X - NOSE_X) * t]);
+  }
+  prof.push([HULL_R, BODY_X], [AFT_R, TAPER_X], [AFT_R, AFT_X], [0, AFT_X]);
+  ship.add(new THREE.Mesh(latheFromProfile(prof), MAT.hull));
+}
+
+// ── Engine bay: a sleeve over the stepped-down section ──
+{
+  const g = new THREE.CylinderGeometry(AFT_R * 1.05, AFT_R * 1.05, AFT_X - TAPER_X + 0.02 * SCENE_R, 48);
+  g.rotateZ(-Math.PI / 2);
+  const m = new THREE.Mesh(g, MAT.bay);
+  m.position.x = (TAPER_X + AFT_X) / 2;
+  ship.add(m);
+}
+
+// ── Structural bands ──
+for (const bx of [-0.05 * SCENE_R, 0.24 * SCENE_R]) {
+  const g = new THREE.TorusGeometry(HULL_R * 1.005, 0.010 * SCENE_R, 10, 56);
+  g.rotateY(Math.PI / 2);
+  const m = new THREE.Mesh(g, MAT.band);
+  m.position.x = bx;
+  ship.add(m);
+}
+
+// ── Nozzle: straight throat, then a bell. DoubleSide, so looking into it from
+//    behind shows the inside wall rather than a hole. ──
+{
+  const prof = [[THROAT_R, AFT_X - 0.02 * SCENE_R], [THROAT_R, BELL_X]];
+  const BELL_N = 14;
+  for (let i = 1; i <= BELL_N; i++) {
+    const t = i / BELL_N;
+    prof.push([THROAT_R + (EXIT_R - THROAT_R) * Math.pow(t, 0.62),
+               BELL_X + (EXIT_X - BELL_X) * t]);
+  }
+  ship.add(new THREE.Mesh(latheFromProfile(prof), MAT.nozzle));
+
+  const lip = new THREE.TorusGeometry(EXIT_R, 0.011 * SCENE_R, 10, 56);
+  lip.rotateY(Math.PI / 2);
+  const lm = new THREE.Mesh(lip, MAT.lip);
+  lm.position.x = EXIT_X;
+  ship.add(lm);
+}
+
+// ── Solar arrays. They hang off ±k̂ (into and out of the page) rather than ±ĵ:
+//    the frame is wide and short, so wings on the vertical would crowd the v_e
+//    arrow, and wings in DEPTH are what make the first drag read as a rotation. ──
+{
+  const BOOM_L  = 0.250 * SCENE_R;   // long enough that the panel clears the hull
+  const PANEL_X = -0.100 * SCENE_R;  // amidships, well clear of the nozzle
+  const PANEL_W = 0.633 * SCENE_R;   // along î
+  const PANEL_D = 0.633 * SCENE_R;   // along k̂
+  // On the equator. Raising the mounts to put BOTH arrays on screen at once was
+  // tried and is worse: the far one then lands ON the hull in projection and reads
+  // as a shadow across it. One array in front and one behind IS the three-quarter
+  // view of a real spacecraft, and a quarter turn of the drag shows the other.
+  const PANEL_Y = 0;
+  const zRoot   = Math.sqrt(Math.max(0, HULL_R * HULL_R - PANEL_Y * PANEL_Y)) - 0.02 * SCENE_R;
+  const boomZ   = zRoot + BOOM_L / 2;
+  const panelZ  = zRoot + BOOM_L + PANEL_D / 2;
+
+  for (const s of [1, -1]) {
+    const bg = new THREE.CylinderGeometry(0.018 * SCENE_R, 0.018 * SCENE_R, BOOM_L, 16);
+    bg.rotateX(Math.PI / 2);
+    const boom = new THREE.Mesh(bg, MAT.strut);
+    boom.position.set(PANEL_X, PANEL_Y, s * boomZ);
+    ship.add(boom);
+
+    // Cells on the two broad faces (+ĵ, -ĵ); the four edges get the frame tone.
+    const pg = new THREE.BoxGeometry(PANEL_W, 0.017 * SCENE_R, PANEL_D);
+    const panel = new THREE.Mesh(pg, [
+      MAT.frame, MAT.frame, MAT.panel, MAT.panel, MAT.frame, MAT.frame
+    ]);
+    panel.position.set(PANEL_X, PANEL_Y, s * panelZ);
+    ship.add(panel);
+  }
+}
+
+/* ── Radiator ──
+   A FLAT plate standing off the spine, and flat is the whole reason it is a
+   radiator rather than the high-gain dish that was here first. At this framing the
+   spacecraft is about 290 px long, so a dish is a 24 px cup: turned to face the
+   reader it reads as a blob, turned away as a spoon, and there is no third option.
+   A plate is legible at any size and any angle, and waste heat is the right
+   companion to a power slider anyway. */
+{
+  const RAD_X = -0.280 * SCENE_R;
+  const RAD_Y = HULL_R + 0.055 * SCENE_R;
+
+  const plate = new THREE.Mesh(
+    new THREE.BoxGeometry(0.550 * SCENE_R, 0.017 * SCENE_R, 0.260 * SCENE_R), MAT.radiator
+  );
+  plate.position.set(RAD_X, RAD_Y, 0);
+  ship.add(plate);
+
+  for (const dx of [-0.185 * SCENE_R, 0.185 * SCENE_R]) {
+    const sg = new THREE.CylinderGeometry(0.020 * SCENE_R, 0.020 * SCENE_R, 0.070 * SCENE_R, 12);
+    const stand = new THREE.Mesh(sg, MAT.strut);
+    stand.position.set(RAD_X + dx, RAD_Y - 0.040 * SCENE_R, 0);
+    ship.add(stand);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+// Arrows
+// ═══════════════════════════════════════════════════════
+/* A shaft that scales and a head that slides, both built along +y and turned by
+   the group, so the length is one number per frame and the geometry is built once.
+   Emissive, because a diagram arrow has to hold its hue at every camera angle;
+   it is still a lit solid, not a flat decal. */
+function makeArrow(color, shaftR, headR, headL) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({
+    color, emissive: color, emissiveIntensity: 0.45, metalness: 0.0, roughness: 0.52
+  });
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(shaftR, shaftR, 1, 24), mat);
+  const head  = new THREE.Mesh(new THREE.ConeGeometry(headR, headL, 28), mat);
+  g.add(shaft, head);
+  g.userData = { shaft, head, headL };
+  return g;
+}
+
+function setArrowLength(arrow, len) {
+  const { shaft, head, headL } = arrow.userData;
+  const s = Math.max(1e-3, len - headL);
+  shaft.scale.y   = s;
+  shaft.position.y = s / 2;
+  head.position.y  = s + headL / 2;
+}
+
+const thrustArrow = makeArrow(ARROW_COLOR, THR_SHAFT_R, THR_HEAD_R, THR_HEAD_L);
+thrustArrow.position.set(THR_TAIL_X, 0, 0);
+thrustArrow.rotation.z = Math.PI / 2;      // +y → -î
+scene.add(thrustArrow);
+
+const veArrow = makeArrow(VE_COLOR, VE_SHAFT_R, VE_HEAD_R, VE_HEAD_L);
+veArrow.position.set(VE_TAIL_X, VE_Y, 0);
+veArrow.rotation.z = -Math.PI / 2;         // +y → +î
+scene.add(veArrow);
+
+/* This arrow lies INSIDE the stream now, and at high mass flow the orb field in
+   front of it is thick enough to paint it out entirely: the orbs write no depth,
+   so whichever of them the sorter draws last simply covers the arrow up. Flagging
+   the material transparent moves the arrow out of the opaque pass into the sorted
+   one, and a renderOrder above the plume's puts it after both the orbs and the
+   envelope, so it stays a solid readable object with the exhaust streaming past
+   behind it. depthTest is left alone, so the HULL still occludes the arrow when
+   the reader orbits round in front of the ship. */
+veArrow.renderOrder = 3;
+veArrow.traverse(o => { if (o.isMesh) { o.material.transparent = true; o.renderOrder = 3; } });
+
+// ═══════════════════════════════════════════════════════
+// Exhaust
+// ═══════════════════════════════════════════════════════
+/* The 2-D applet's orb (a solid core inside a soft halo) as a point sprite. The
+   texture is white so the material's color can carry the propellant; the stops
+   reproduce the old core/glow radii (r and 1.5r) rather than a plain gaussian. */
+function makeOrbTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grd.addColorStop(0.00, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.38, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.44, 'rgba(255,255,255,0.22)');
+  grd.addColorStop(0.60, 'rgba(255,255,255,0.22)');
+  grd.addColorStop(0.68, 'rgba(255,255,255,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+const plumeGeo = new THREE.BufferGeometry();
+const plumePos = new Float32Array(MAX_ORBS * 3);
+plumeGeo.setAttribute('position', new THREE.BufferAttribute(plumePos, 3));
+
+/* A FOUR-component color attribute, which is how a PointsMaterial is given a
+   per-particle opacity without writing a shader: three.js reads an itemSize of 4
+   as color-with-alpha and multiplies the whole vec4 into the fragment, so the rgb
+   stays 1 (the propellant hue lives on the material, one hue for the whole stream)
+   and only the alpha column is rewritten each frame. That column is what makes the
+   orbs fade out downstream instead of blinking off at the cull plane. */
+const plumeCol = new Float32Array(MAX_ORBS * 4).fill(1);
+plumeGeo.setAttribute('color', new THREE.BufferAttribute(plumeCol, 4));
+plumeGeo.setDrawRange(0, 0);
+const plumeMat = new THREE.PointsMaterial({
+  size: 1, sizeAttenuation: true, map: makeOrbTexture(),
+  vertexColors: true, transparent: true, depthWrite: false
+});
+const plume = new THREE.Points(plumeGeo, plumeMat);
+plume.frustumCulled = false;   // the bounding sphere is rewritten every frame
+scene.add(plume);
+
+/* Sprite size, in the units PointsMaterial actually wants. Two conversions, and
+   both are easy to get wrong:
+     - ORB_R is the flat applet's core RADIUS in pixels at its native 820 px of
+       width, and 0.38 is where the texture's core ends, so the whole SPRITE is
+       (2 * ORB_R / px-per-unit) / 0.76 units across;
+     - three's sizeAttenuation computes gl_PointSize as size * (bufferHeight/2) /
+       distance, which drops the tan(FOV/2) a real world size would carry. At a
+       34-degree FOV that is a factor of 3.3, enough to put every orb under a
+       pixel and make the plume vanish entirely, so it is divided back out. */
+const PX_PER_UNIT   = 820 / (FIT_HALF_W * 2);
+const TAN_HALF_FOV  = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+const orbSize = key => ORB_SCALE * (2 * ORB_R[key] / PX_PER_UNIT) / 0.76 / TAN_HALF_FOV;
+
+/* ── Plume envelope ──────────────────────────────────────────────────────────
+   Two shells of revolution over the orb stream, drawn ADDITIVELY: the outer one
+   is the diverging envelope, the inner one the hot core just off the throat.
+
+   A shell is standing in for a VOLUME, and the shading is what sells that. For a
+   uniformly glowing solid, a pixel's brightness is the length of the chord the eye
+   cuts through it, and for a body of revolution that chord is exactly proportional
+   to |N.V| at the surface it enters: 1 straight down the middle, falling to 0 at
+   the silhouette. So the alpha is |N.V|, which costs one dot product and buys both
+   the bright axial core and, more importantly, an OUTLINE THAT FADES TO NOTHING.
+   The obvious alternative, a rim term (bright edge-on, faint face-on), is what a
+   thin skin does, and it draws the plume with a hard cone outline around it, which
+   is exactly the discrete edge everything else here is written to avoid.
+
+   Depth writes are OFF and depth TEST is on, which buys three things at once: the
+   hull occludes the part of the plume behind it, the orbs stay visible inside the
+   glow instead of being painted over, and the exhaust-velocity arrow lying down
+   the axis keeps its own solid edges with the glow washing over it. */
+function makePlumeShellMat(hotBias, gain, decay) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uColor  : { value: new THREE.Color(ORB_COLOR[PROP_KEYS[0]]) },
+      uHot    : { value: new THREE.Color('#fff4e2') },
+      uInten  : { value: 0.0 },
+      uHotBias: { value: hotBias },
+      uGain   : { value: gain },
+      uDecay  : { value: decay }
+    },
+    vertexShader: `
+      varying float vU;
+      varying vec3  vN;
+      varying vec3  vV;
+      void main() {
+        // Object space runs 0 at the exit plane to 1 at the tip, so position.x IS
+        // the axial fraction. Taken from uv.y instead it would be the profile's
+        // POINT INDEX fraction, and the nose below is sampled far more densely
+        // than the barrel, which would bunch the whole brightness profile into
+        // the first few percent of the jet.
+        vU = position.x;
+        vec4 mv = modelViewMatrix * vec4(position, 1.0);
+        vN = normalize(normalMatrix * normal);
+        vV = normalize(-mv.xyz);
+        gl_Position = projectionMatrix * mv;
+      }`,
+    fragmentShader: `
+      uniform vec3  uColor;
+      uniform vec3  uHot;
+      uniform float uInten;
+      uniform float uHotBias;
+      uniform float uGain;
+      uniform float uDecay;
+      varying float vU;
+      varying vec3  vN;
+      varying vec3  vV;
+      void main() {
+        // Chord through the volume, normalized: see the note above the material.
+        float thick = abs(dot(normalize(vN), normalize(vV)));
+        /* Axial profile: an exponential decay off the throat, times a shoulder
+           that takes it to EXACTLY zero at the tip. A decay that merely gets
+           small still ends on a visible ring. uDecay is per shell, which is what
+           makes the core a hot thread near the throat and the envelope a long
+           one, without either of them ending anywhere but ORB_FADE_X1. */
+        float ax  = exp(-uDecay * vU) * (1.0 - smoothstep(0.62, 1.0, vU));
+        vec3  col = mix(uHot, uColor, clamp(vU * 2.8 + uHotBias, 0.0, 1.0));
+        float a   = uInten * uGain * ax * pow(thick, 0.80);
+        // Additive blending is src * srcAlpha + dst, so the color is pre-scaled by
+        // the alpha here and the alpha channel is left at 1. Carrying the alpha in
+        // both would square it and the whole plume would go to nothing.
+        gl_FragColor = vec4(col * a, 1.0);
+      }`,
+    transparent: true, depthWrite: false, side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending
+  });
+}
+
+/* The shell is CLOSED at the upstream end, and that closure is the whole reason
+   the jet survives being looked at from behind. An open cone has a hole down its
+   middle: from the back you see the wall as a ring and the sky through the mouth,
+   and since |N.V| is near constant across a cone seen end-on, the ring is flat and
+   even and the jet reads as a smoke donut hanging off the nozzle. Rounding the
+   profile down to the axis over the first TN of the run fills that hole with a cap
+   whose normals point straight upstream, so it is at full brightness exactly in
+   the view that needs it (dead astern) and at nothing in the view that does not
+   (broadside, where |N.V| on a cap is zero). The nose is sampled densely because
+   that is where the profile turns hardest; see the vertex shader for why the
+   axial coordinate cannot come from the lathe UV once it is. */
+function plumeShellGeo(r0) {
+  const prof = [];
+  const TN = 0.06, NN = 12, NB = 40;
+  const rAt = t => r0 * plumeFlare(t);
+  for (let i = 0; i <= NN; i++) {                    // closed, rounded nose
+    const u = i / NN, t = TN * u;
+    prof.push([rAt(t) * Math.sqrt(1 - (1 - u) * (1 - u)), t]);
+  }
+  for (let i = 1; i <= NB; i++) {                    // the flare itself
+    const t = TN + (1 - TN) * (i / NB);
+    prof.push([rAt(t), t]);
+  }
+  return latheFromProfile(prof, 56);
+}
+
+const plumeShellMat = makePlumeShellMat( 0.00, 1.00, 1.15);
+const plumeCoreMat  = makePlumeShellMat(-0.25, 1.35, 3.40);
+const plumeShell = new THREE.Mesh(plumeShellGeo(PLUME_GLOW_R0), plumeShellMat);
+const plumeCore  = new THREE.Mesh(plumeShellGeo(PLUME_CORE_R0), plumeCoreMat);
+for (const m of [plumeShell, plumeCore]) {
+  m.position.x    = PLUME_X0;
+  m.scale.x       = PLUME_FLARE_L;   // set once: the jet's extent is not a variable
+  m.frustumCulled = false;
+  m.renderOrder   = 2;      // after the orbs, so the glow adds over them
+  scene.add(m);
+}
 
 // ═══════════════════════════════════════════════════════
 // Stars
 // ═══════════════════════════════════════════════════════
-const STARS = Array.from({ length: 220 }, () => ({
-  x: Math.random() * CW,
-  y: Math.random() * CH,
-  r: Math.random() * 1.1 + 0.15,
-  a: Math.random() * 0.5 + 0.2
-}));
+/* The sky is a SCENE OBJECT, not a canvas painted behind the canvas.
+   A fixed star layer made an orbit read as the model turning: the ship swung and
+   nothing else on screen moved, so the only reading available was that the object
+   was spinning in place. Stars that sweep are the whole cue that the EYE is the
+   thing going round.
+
+   It is a sphere of points that RIDES THE CAMERA (starField.position tracks
+   camera.position every frame), which is the ordinary sky trick and pays three
+   ways at once:
+     - the shell can never cross the near or far plane, however far out the reader
+       dollies, because its distance from the eye is always exactly STAR_R;
+     - a PAN carries the sky along, which is what a sky at infinity does when you
+       step sideways;
+     - so only the LOOK direction moves the stars. Orbit sweeps them, zoom does
+       not touch them, and that is exactly the missing signal. */
+const STAR_R = 200;
+/* Density is matched to the flat layer it replaces: that put 220 stars in frame,
+   and a 34-degree FOV at this stage's aspect sees about 4% of a sphere. */
+const STAR_N = 6000;
+/* Three size buckets rather than a per-star size, which would need a custom
+   shader. The pixel figures are the old layer's core diameters. */
+const STAR_BUCKETS = [
+  { px: 1.7, frac: 0.60 },
+  { px: 2.5, frac: 0.30 },
+  { px: 3.4, frac: 0.10 },
+];
+
+function makeStarTexture() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(16, 16, 0, 16, 16, 16);
+  // A TIGHT core with a short falloff. A wide gradient spreads a 2px point's
+  // energy so thin that the faint end of the brightness range vanishes.
+  grd.addColorStop(0.00, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.55, 'rgba(255,255,255,0.95)');
+  grd.addColorStop(1.00, 'rgba(255,255,255,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, 32, 32);
+  return new THREE.CanvasTexture(c);
+}
+
+const starField = new THREE.Group();
+scene.add(starField);
+const starMats = [];
+{
+  const tex = makeStarTexture();
+  for (const b of STAR_BUCKETS) {
+    const n   = Math.round(STAR_N * b.frac);
+    const pos = new Float32Array(n * 3);
+    const col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      // Uniform ON THE SPHERE: z uniform in [-1,1], NOT the polar angle, or the
+      // poles crowd and the sky has two visibly denser patches.
+      const z  = Math.random() * 2 - 1;
+      const rr = Math.sqrt(1 - z * z);
+      const th = Math.random() * Math.PI * 2;
+      pos[3 * i]     = STAR_R * rr * Math.cos(th);
+      pos[3 * i + 1] = STAR_R * z;
+      pos[3 * i + 2] = STAR_R * rr * Math.sin(th);
+      // The flat layer's 0.2-0.7 alpha spread, carried as BRIGHTNESS instead: one
+      // material cannot hold 5200 opacities, and against a black sky the two are
+      // the same thing.
+      const a = Math.random() * 0.58 + 0.22;
+      col[3 * i] = col[3 * i + 1] = col[3 * i + 2] = a;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+
+    // depthTest stays ON and depthWrite OFF: at STAR_R the shell is far behind the
+    // ship, so the depth buffer hides the stars the hull covers for free, while
+    // the plume still blends over them.
+    const mat = new THREE.PointsMaterial({
+      size: b.px, sizeAttenuation: false, map: tex, vertexColors: true,
+      transparent: true, depthWrite: false
+    });
+    mat.userData.px = b.px;
+    starMats.push(mat);
+
+    const pts = new THREE.Points(geo, mat);
+    pts.renderOrder  = -1;
+    pts.frustumCulled = false;
+    starField.add(pts);
+  }
+}
+
+/* gl_PointSize is in DEVICE pixels and sizeAttenuation:false means nothing else
+   scales it, so the pixel ratio has to be applied by hand. Otherwise the sky
+   halves on a HiDPI display. (The plume does not need this: attenuated sizes are
+   divided by the drawing-buffer height, which already carries the ratio.) */
+function syncStarSize() {
+  const k = renderer.getPixelRatio();
+  for (const m of starMats) m.size = m.userData.px * k;
+}
+syncStarSize();
 
 // ═══════════════════════════════════════════════════════
 // App state
@@ -1259,6 +2081,9 @@ let selectedProp = PROP_KEYS[0];
 let particles    = [];
 let spawnTimer   = 0;
 let lastTime     = null;
+
+plumeMat.color.set(ORB_COLOR[selectedProp]);
+plumeMat.size = orbSize(selectedProp);
 
 // ═══════════════════════════════════════════════════════
 // DOM references
@@ -1276,14 +2101,11 @@ const oMdot   = document.getElementById('o-mdot');
 const oIsp    = document.getElementById('o-isp');
 const oVe     = document.getElementById('o-ve');
 
-// Position labels as percentages so they track the canvas when it is scaled.
+// Both labels are PROJECTED every frame from a point on their own arrow (see
+// placeLabel), so they follow the arrow through an orbit instead of sitting at a
+// fixed fraction of a canvas that no longer has a fixed viewpoint.
 const thrustLabel = document.getElementById('thrust-label');
-thrustLabel.style.left = ((ARROW_TAIL_X - 6)                / CW * 100) + '%';
-thrustLabel.style.top  = ((ARROW_Y - ARROW_THICK / 2 - 34)  / CH * 100) + '%';
-
-const veLabel = document.getElementById('ve-label');
-veLabel.style.left = ((VE_ARROW_TAIL_X + 22) / CW * 100) + '%';
-veLabel.style.top  = ((VE_ARROW_Y - 36)      / CH * 100) + '%';
+const veLabel     = document.getElementById('ve-label');
 
 // ═══════════════════════════════════════════════════════
 // Build radio buttons
@@ -1314,6 +2136,12 @@ veLabel.style.top  = ((VE_ARROW_Y - 36)      / CH * 100) + '%';
         selectedProp = key;
         particles    = [];
         spawnTimer   = 0;
+        // One Points object carries the whole plume, so the propellant lives on the
+        // material, which is only sound because the switch CLEARS the stream first.
+        plumeMat.color.set(ORB_COLOR[key]);
+        plumeMat.size = orbSize(key);
+        plumeShellMat.uniforms.uColor.value.set(ORB_COLOR[key]);
+        plumeCoreMat.uniforms.uColor.value.set(ORB_COLOR[key]);
       }
     });
   });
@@ -1354,104 +2182,246 @@ linkSliderTb(slPower, tbPower);
 linkSliderTb(slEta,   tbEta);
 
 // ═══════════════════════════════════════════════════════
-// Drawing helpers
+// Per-frame scene updates
 // ═══════════════════════════════════════════════════════
-function drawBackground() {
-  ctx.fillStyle = '#090909';
-  ctx.fillRect(0, 0, CW, CH);
-  for (const s of STARS) {
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,' + s.a + ')';
-    ctx.fill();
-  }
+// Thrust arrow: same square-root compression of T the flat applet used, so the
+// arrow still grows fast at the low end where most of the slider range lives.
+let thrustLen = 0;
+function updateThrustArrow(T) {
+  if (T <= 1e-9) { thrustArrow.visible = false; return; }
+  const f = Math.sqrt(Math.min(T / THRUST_MAX_VIS, 1.0));   // 0..1
+  thrustLen = THR_LEN_MIN + (THR_LEN_MAX - THR_LEN_MIN) * f;
+  thrustArrow.visible = true;
+  setArrowLength(thrustArrow, thrustLen);
 }
 
-function drawSpacecraft() {
-  if (shipReady) {
-    ctx.drawImage(shipImg, SHIP_X, SHIP_Y, SHIP_W, SHIP_H);
-  }
+// Exhaust velocity arrow: points +î, length scales with exhaust velocity.
+let veLen = 0;
+function updateVeArrow(veNorm) {
+  if (veNorm <= 1e-6) { veArrow.visible = false; return; }
+  veLen = VE_LEN_MIN + (VE_LEN_MAX - VE_LEN_MIN) * veNorm;
+  veArrow.visible = true;
+  setArrowLength(veArrow, veLen);
 }
 
-// Thrust arrow: matches the sprite's arrow exactly; only the length varies.
-function drawThrustArrow(T) {
-  if (T <= 1e-9) { thrustLabel.style.display = 'none'; return; }
+/* Downstream fade. 1 up to ORB_FADE_X0, smoothly to 0 at ORB_FADE_X1, and it is a
+   smoothstep rather than a straight ramp so neither end of the band shows as a
+   line across the jet where the rate of fading changes. */
+function orbFade(x) {
+  const t = (x - ORB_FADE_X0) / (ORB_FADE_X1 - ORB_FADE_X0);
+  if (t <= 0) return 1;
+  if (t >= 1) return 0;
+  return 1 - t * t * (3 - 2 * t);
+}
 
-  const f   = Math.sqrt(Math.min(T / THRUST_MAX_VIS, 1.0));   // 0..1
-  const len = ARROW_LEN_MIN + (ARROW_LEN_MAX - ARROW_LEN_MIN) * f;
+function updatePlume() {
+  const n = particles.length;
+  for (let i = 0; i < n; i++) {
+    const p = particles[i];
+    plumePos[3 * i]     = p.x;
+    plumePos[3 * i + 1] = p.y;
+    plumePos[3 * i + 2] = p.z;
+    // rgb was filled with 1 at build time and never changes; only alpha moves.
+    plumeCol[4 * i + 3] = orbFade(p.x);
+  }
+  plumeGeo.setDrawRange(0, n);
+  plumeGeo.attributes.position.needsUpdate = true;
+  plumeGeo.attributes.color.needsUpdate    = true;
+}
 
-  const x0   = ARROW_TAIL_X;         // tail (fixed)
-  const xTip = ARROW_TAIL_X - len;   // tip (forward / thrust direction, -î)
-  const xBase = xTip + ARROW_HEAD_L; // base of the arrowhead
-  const y    = ARROW_Y;
-  const half = ARROW_THICK / 2;
+// Brightness is the only thing the envelope takes from the physics, through the
+// same square-root compression of T the arrows use. Its shape and extent are
+// fixed, and they are fixed to the orbs': see the flare block for why.
+function updatePlumeGlow(T) {
+  const on = T > 1e-9;
+  plumeShell.visible = on;
+  plumeCore.visible  = on;
+  if (!on) return;
 
-  ctx.save();
-  ctx.fillStyle = ARROW_COLOR;
+  const inten = 0.26 + 0.70 * Math.sqrt(Math.min(T / THRUST_MAX_VIS, 1.0));
+  plumeShellMat.uniforms.uInten.value = inten;
+  plumeCoreMat.uniforms.uInten.value  = inten;
+}
 
-  // shaft (flat-ended rectangle, like the sprite)
-  ctx.fillRect(xBase, y - half, x0 - xBase, ARROW_THICK);
+/* Project a scene point to viewport pixels and park a label there, `dy` pixels
+   above it. Called AFTER renderer.render, which is what guarantees the camera's
+   matrixWorldInverse is current, which project() needs. The z guard is real here and
+   not the head-on assumption the section viewers get away with: this camera orbits
+   freely, and a point swung behind the eye projects to a mirrored ghost. */
+const _pv = new THREE.Vector3();
+function placeLabel(el, x, y, z, dy) {
+  _pv.set(x, y, z).project(camera);
+  if (_pv.z > 1) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  el.style.left = ((_pv.x * 0.5 + 0.5) * viewport.clientWidth) + 'px';
+  el.style.top  = ((-_pv.y * 0.5 + 0.5) * viewport.clientHeight + dy) + 'px';
+}
 
-  // arrowhead
+function updateLabels() {
+  if (thrustArrow.visible) placeLabel(thrustLabel, THR_TAIL_X - thrustLen / 2, 0, 0, -24);
+  else thrustLabel.style.display = 'none';
+
+  if (veArrow.visible) {
+    // No pixel nudge on this one. The thrust label's -24 lifts it clear of its own
+    // arrow; this label is already parked below the plume, and a lift there only
+    // walks it back into the exhaust it was moved out of.
+    const lx = VE_TAIL_X + veLen / 2;
+    placeLabel(veLabel, lx, veLabelY(lx), 0, 0);
+  }
+  else veLabel.style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════
+// Reference coordinate frame (î ĵ k̂)
+// ═══════════════════════════════════════════════════════
+/* The gizmo gridded_ion.html and hall_thruster.html carry, ported: a small triad
+   drawn as a lower-left inset whose orientation tracks the live camera, so a
+   reader who has orbited away from the default view can still say which way is
+   downstream.
+
+   The IMPLEMENTATION is theirs line for line. The AXIS ASSIGNMENT is not, and
+   must not be: those two viewers inherit a CAD frame where the thrust axis lands
+   on k̂, while the derivation at the top of THIS page opens by saying "let î be
+   the axial direction", and every comment in this file since has written the
+   exhaust as +î. The letters keep their colors across all three applets, so î is
+   the salmon one wherever the reader meets it; here it is the letter that points
+   down the jet. î × ĵ = k̂ either way. */
+let axisScene = null, axisCam = null;
+
+function makeAxisLabel(text, color, height){
+  const canvas = document.createElement('canvas');
+  const ctx    = canvas.getContext('2d');
+  const fs = 76, px = 20, py = 12;
+  const font = `italic ${fs}px 'Barlow', 'Segoe UI', sans-serif`;
+  ctx.font = font;
+  const tw = ctx.measureText(text).width;
+  canvas.width  = Math.ceil(tw + px * 2);
+  canvas.height = Math.ceil(fs * 1.25 + py * 2);
+
+  // rounded-rect background, so a glyph stays legible over a pale body
+  ctx.fillStyle   = 'rgba(9,9,9,0.78)';
+  ctx.strokeStyle = 'rgba(207,216,220,0.22)';
+  ctx.lineWidth   = 4;
+  const r = 16, x = 2, y = 2, w = canvas.width - 4, h = canvas.height - 4;
   ctx.beginPath();
-  ctx.moveTo(xTip, y);
-  ctx.lineTo(xBase, y - ARROW_HEAD_HW);
-  ctx.lineTo(xBase, y + ARROW_HEAD_HW);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  ctx.fill(); ctx.stroke();
 
-  thrustLabel.style.display = 'block';
+  ctx.fillStyle    = color;
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = font;
+  ctx.fillText(text, canvas.width/2, canvas.height/2 + fs*0.06);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:tex, transparent:true, depthTest:false, depthWrite:false }));
+  sp.scale.set(height * (canvas.width/canvas.height), height, 1);
+  sp.renderOrder = 999;
+  return sp;
 }
 
-// Exhaust velocity arrow: points +î (right), length scales with exhaust velocity.
-function drawVeArrow(veNorm) {
-  if (veNorm <= 1e-6) { veLabel.style.display = 'none'; return; }
-
-  const len = VE_ARROW_LEN_MIN + (VE_ARROW_LEN_MAX - VE_ARROW_LEN_MIN) * veNorm;
-
-  const x0   = VE_ARROW_TAIL_X;      // tail (fixed)
-  const xTip = x0 + len;             // tip (right)
-  const xBase = xTip - VE_HEAD_L;    // base of the arrowhead
-  const y    = VE_ARROW_Y;
-  const half = VE_ARROW_THICK / 2;
-
-  ctx.save();
-  ctx.fillStyle = VE_COLOR;
-
-  // shaft
-  ctx.fillRect(x0, y - half, xBase - x0, VE_ARROW_THICK);
-
-  // arrowhead
-  ctx.beginPath();
-  ctx.moveTo(xTip, y);
-  ctx.lineTo(xBase, y - VE_HEAD_HW);
-  ctx.lineTo(xBase, y + VE_HEAD_HW);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-
-  veLabel.style.display = 'block';
+function buildAxisGizmo(){
+  axisScene = new THREE.Scene();
+  axisCam   = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+  const mk = (dir, color, label) => {
+    axisScene.add(new THREE.ArrowHelper(dir, new THREE.Vector3(0,0,0), 1, color, 0.32, 0.2));
+    const sp = makeAxisLabel(label, color, 0.55);
+    sp.position.copy(dir).multiplyScalar(1.4);
+    axisScene.add(sp);
+  };
+  mk(new THREE.Vector3(1,0,0), '#ff8a80', 'î');   // î = +X  (axial: down the exhaust)
+  mk(new THREE.Vector3(0,1,0), '#69f0ae', 'ĵ');   // ĵ = +Y
+  mk(new THREE.Vector3(0,0,1), '#82b1ff', 'k̂');   // k̂ = +Z  (out of the broadside view)
 }
 
-function drawParticles() {
-  for (const p of particles) {
-    const r = ORB_R[p.prop];
+// Drawn as a lower-left inset with its orientation locked to the live camera. The
+// hint bar is centered, so the corner is free at every stage size.
+function renderAxisGizmo(){
+  if (!axisScene) return;
+  const sz = renderer.getSize(new THREE.Vector2());
+  const inset = Math.round(Math.min(165, sz.x * 0.27, sz.y * 0.33));
+  axisCam.position.set(0,0,1).applyQuaternion(camera.quaternion).multiplyScalar(4.2);
+  axisCam.quaternion.copy(camera.quaternion);
+  renderer.autoClear = false;
+  renderer.clearDepth();
+  renderer.setViewport(10, 10, inset, inset);   // pinned to the bottom-left corner
+  renderer.render(axisScene, axisCam);
+  renderer.setViewport(0, 0, sz.x, sz.y);
+  renderer.autoClear = true;
+}
+buildAxisGizmo();
 
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r * 1.5, 0, Math.PI * 2);
-    ctx.fillStyle   = ORB_GLOW[p.prop];
-    ctx.globalAlpha = 1.0;
-    ctx.fill();
+// ═══════════════════════════════════════════════════════
+// Camera framing
+// ═══════════════════════════════════════════════════════
+/* The distance at which the fit half-extents exactly fill the frame. It is a
+   FUNCTION of the aspect because the stage is short and wide: on a narrow window
+   the width binds, on a tall one the height does. */
+function fitDistFor(aspect) {
+  const halfH = Math.max(FIT_HALF_H, FIT_HALF_W / aspect);
+  return halfH / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+}
+const fitDist = () => fitDistFor(viewAspect());
 
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-    ctx.fillStyle   = ORB_COLOR[p.prop];
-    ctx.globalAlpha = 1.0;
-    ctx.fill();
+// Default view: three-quarters, from slightly ahead of the nose and above, so the
+// nose reads nearer than the exit plane and both arrays are visible in depth.
+const VIEW_DIR = new THREE.Vector3(-0.22, 0.28, 1.0).normalize();
+
+function resetView() {
+  controls.target.set(0, 0, 0);
+  camera.position.copy(VIEW_DIR).multiplyScalar(fitDist());
+  controls.update();
+}
+
+/* Zoom stops. Pinned to the CURRENT fit distance rather than to fixed numbers,
+   because fitDist() moves with the stage aspect: a tall narrow stage frames from
+   much further back, and a fixed stop would have clamped the default view itself.
+   Refreshed from resize(), which is the only thing that changes the fit. */
+function syncZoomStops() {
+  const d = fitDist();
+  controls.minDistance = d * 0.25;
+  controls.maxDistance = d * 3.0;
+}
+document.getElementById('reset').addEventListener('click', resetView);
+
+function resize() {
+  const w = viewport.clientWidth, h = viewport.clientHeight;
+  if (w < 1 || h < 1) return;
+  // Re-read the pixel ratio here, not once at boot: it changes when the window is
+  // dragged to a display of a different density, or when the reader zooms the
+  // browser. Set once, a page opened at 1x and moved to a 2x display stays soft.
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  // updateStyle stays ON (three.js's default). With it off three sizes only the
+  // drawing buffer and leaves the canvas CSS-unsized, so on a HiDPI display the
+  // element lays out at buffer size and overflows the stage.
+  renderer.setSize(w, h);
+  syncStarSize();
+
+  // Carry the reader's own zoom across the resize: re-fit by RATIO rather than
+  // snapping back to the default distance. The ratio is taken against the aspect
+  // the camera still holds, which is the OLD one until the next line.
+  const prev = fitDistFor(camera.aspect);
+  camera.aspect = viewAspect();
+  camera.updateProjectionMatrix();
+  syncZoomStops();
+  const k = fitDistFor(camera.aspect) / prev;
+  if (isFinite(k) && k > 0) {
+    camera.position.sub(controls.target).multiplyScalar(k).add(controls.target);
   }
-  ctx.globalAlpha = 1.0;
+  controls.update();
 }
+
+/* A ResizeObserver, not a window resize listener. The stage's HEIGHT is layout-
+   derived now (it stretches to whatever the control panel needs), so it can
+   change without the window changing, and it fires once on observe, which covers
+   the initial measure too. */
+new ResizeObserver(resize).observe(viewport);
 
 // ═══════════════════════════════════════════════════════
 // Outputs
@@ -1479,9 +2449,12 @@ function animate(ts) {
   updateOutputs(res);
 
   const veNorm = Math.sqrt(Math.min(res.ve / MAX_VE_VIS, 1.0));
-  const vPxS   = (0.5 + 11.5 * veNorm) * (CW / 10.0);
+  // Same mapping the flat applet used, read in scene units instead of pixels: the
+  // frame is 2 * FIT_HALF_W wide where the canvas used to be 820 px wide, so a
+  // particle still crosses the plume in the same fraction of a second it did.
+  const vSU = (0.5 + 11.5 * veNorm) * (FIT_HALF_W * 2 / 10.0);
 
-  for (const p of particles) p.vx = vPxS;
+  for (const p of particles) p.vx = vSU;
 
   if (res.T > 1e-12) {
     spawnTimer += dt;
@@ -1492,8 +2465,22 @@ function animate(ts) {
     while (spawnTimer >= interval) {
       spawnTimer -= interval;
       if (particles.length < MAX_ORBS) {
-        const yOff    = (Math.random() * 2.0 - 1.0) * JET_HALF;
-        particles.push({ x: EXIT_X + vPxS * spawnTimer, y: JET_CY + yOff, vx: vPxS, prop: selectedProp });
+        // Uniform over the exit DISC. sqrt(u) is what keeps the area density flat
+        // and the exhaust a solid column rather than a cord down its own axis.
+        // The particle carries its LAUNCH radius and heading; where it actually
+        // is off-axis is that radius times plumeFlare of how far it has gone, so
+        // the whole column opens out with the envelope drawn around it. Holding
+        // the two cos/sin here rather than the angle keeps the advance loop free
+        // of trig at a few hundred particles a frame.
+        const rad = PLUME_R * Math.sqrt(Math.random());
+        const th  = Math.random() * Math.PI * 2;
+        particles.push({
+          x: PLUME_X0 + vSU * spawnTimer,
+          y: rad * Math.cos(th),
+          z: rad * Math.sin(th),
+          r0: rad, ct: Math.cos(th), st: Math.sin(th),
+          vx: vSU
+        });
       }
     }
   } else {
@@ -1501,18 +2488,31 @@ function animate(ts) {
   }
 
   for (let i = particles.length - 1; i >= 0; i--) {
-    particles[i].x += particles[i].vx * dt;
-    if (particles[i].x > CW + 20) particles.splice(i, 1);
+    const p = particles[i];
+    p.x += p.vx * dt;
+    if (p.x > CULL_X) { particles.splice(i, 1); continue; }
+    const f = plumeFlare((p.x - PLUME_X0) / PLUME_FLARE_L);
+    p.y = p.r0 * f * p.ct;
+    p.z = p.r0 * f * p.st;
   }
 
-  drawBackground();
-  drawSpacecraft();
-  drawThrustArrow(res.T);
-  drawParticles();
-  drawVeArrow(veNorm);
+  updateThrustArrow(res.T);
+  updateVeArrow(veNorm);
+  updatePlume();
+  updatePlumeGlow(res.T);
+
+  controls.update();
+  // The sky rides the eye. See the starField block for why this one line is what
+  // makes an orbit read as the camera moving rather than the model spinning.
+  starField.position.copy(camera.position);
+  renderer.render(scene, camera);
+  renderAxisGizmo();                       // î ĵ k̂ triad, drawn over the frame
+  updateLabels();
   requestAnimationFrame(animate);
 }
 
+resize();
+resetView();
 requestAnimationFrame(animate);
 </script>
 </body>

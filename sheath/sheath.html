@@ -64,8 +64,12 @@
   /* ── App shell ───────────────────────────────────────────── */
   #app { display:flex; flex-direction:row; height:100vh; width:100vw; }
 
+  /* Width budget. Both sides yield, neither vanishes. The panel used to be rigid
+     while the stage absorbed the entire squeeze, so a 900px browser window left
+     the demo 348 px wide and an 800px one left it 248 px. The stage now has a floor
+     and the panel gives back its slack before that floor is reached. */
   #viewport {
-    position:relative; flex:1 1 auto; min-width:0;
+    position:relative; flex:1 1 0; min-width:420px;
     background: var(--bg-canvas);
   }
   /* Opaque 2-D scene canvas fills the viewport. */
@@ -88,9 +92,22 @@
 
   /* ── Control sidebar ─────────────────────────────────────── */
   #panel {
-    flex:0 0 360px; width:360px; height:100vh; overflow-y:auto;
+    flex:0 1 360px; width:360px; min-width:290px; height:100vh; overflow-y:auto;
     background: var(--bg-panel-1); border-left:1px solid var(--border);
     padding:22px 22px 40px;
+  }
+
+  /* Below the width where both floors fit side by side, stack instead of crushing
+     one of them. The panel already scrolls, so capping its height keeps the demo
+     the larger half rather than reducing it to a strip. */
+  @media (max-width: 780px) {
+    #app { flex-direction:column; }
+    #viewport { min-width:0; min-height:300px; }
+    #panel {
+      flex:0 0 auto; width:100%; min-width:0; height:auto; max-height:46%;
+      border-left:none; border-top:1px solid var(--border);
+      padding:16px 18px 26px;
+    }
   }
 
   /* Mode tabs */

@@ -1051,7 +1051,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   color: var(--c-ve);
 }
 .fig-panel .sl-row { display: block; }
-/* Blue, like the accent on every other slider in this codebase. Grey is what the
+/* Blue, like the accent on every other slider in this codebase. Gray is what the
    lesson pages use for a control sitting on the page itself. */
 .fig-panel .sl-row input[type=range] {
   display: block;
@@ -1176,7 +1176,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <nav class="applet-nav">
   <a class="nav-prev" href="HT_Neutralization_applet.html">&larr; Prev</a>
   <a class="nav-home" href="../index.html">Home</a>
-  <span class="nav-disabled">Next &rarr;</span>
+  <span class="nav-disabled nav-next">Next &rarr;</span>
 </nav>
 
 <!-- ════════════════════ HEADER ════════════════════ -->
@@ -1199,7 +1199,8 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <span class="ck-lead">Color key</span>
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>ion</span>
-  <span class="ck"><i style="background:var(--c-power)"></i>charge q, electron</span>
+  <span class="ck"><i style="background:var(--c-power)"></i>charge q, power</span>
+  <span class="ck"><i style="background:var(--c-electron)"></i>electron</span>
   <span class="ck"><i style="background:var(--c-press)"></i>B field</span>
   <span class="ck"><i style="background:var(--c-efield)"></i>E field</span>
   <span class="ck"><i style="background:var(--c-neutral)"></i>neutral</span>
@@ -1253,7 +1254,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       <line id="mf-band-b" y1="40" y2="490" stroke="#F5C518" stroke-opacity="0.35" stroke-width="1"
             stroke-dasharray="5 4"/>
 
-      <!-- Exit plane: hardware, so grey, and drawn through both panels. -->
+      <!-- Exit plane: hardware, so gray, and drawn through both panels. -->
       <line x1="600" y1="40" x2="600" y2="490" stroke="#5a5a5a" stroke-width="1.3"
             stroke-dasharray="6 5"/>
       <text x="606" y="54" fill="#8a8a8a" font-size="14">exit plane</text>
@@ -1528,7 +1529,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <details class="deriv-detail">
       <summary>Show derivation</summary>
       <div class="deriv-inner">
-        <span class="eq-step-label">Cross-field electron speed</span>
+        <span class="eq-step-label">Cross-Field Electron Speed</span>
         <span class="eq-note">
           When the scattering collision frequency $\nu_{eH}$ with heavy particles becomes comparable to the
           cyclotron frequency $\omega_{ce}$, electrons can no longer maintain pure azimuthal drift: each
@@ -1542,7 +1543,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         <span class="eq-caption">$\nu_{eH}/\omega_{ce}$ is $1/\beta$: one over the gyrations completed between
           collisions.</span>
 
-        <span class="eq-step-label">Leak current</span>
+        <span class="eq-step-label">Leak Current</span>
         $$ \textcolor{#ffe94d}{I_\mathrm{leak}}
            = \textcolor{#C060FF}{e}\,n_e\,\frac{\textcolor{#F5C518}{E}}{\textcolor{#00DDB5}{B}}
              \frac{\nu_{eH}}{\omega_{ce}} $$
@@ -1556,13 +1557,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Current balance, ignoring wall losses</span>
+        <span class="eq-step-label">Current Balance, Ignoring Wall Losses</span>
         $$ \textcolor{#3DBFFF}{I_B} = \textcolor{#F5C518}{I_a} - \textcolor{#ffe94d}{I_\mathrm{leak}}
            \qquad\Longrightarrow\qquad
            \eta_a = 1 - \frac{\textcolor{#ffe94d}{I_\mathrm{leak}}}{\textcolor{#F5C518}{I_a}}
            = \frac{1}{1 + \textcolor{#ffe94d}{I_\mathrm{leak}}/\textcolor{#3DBFFF}{I_B}} $$
 
-        <span class="eq-step-label">The flow ceiling this implies</span>
+        <span class="eq-step-label">The Flow Ceiling This Implies</span>
         <span class="eq-note">
           Assume the ions constituting $\textcolor{#3DBFFF}{I_B}$ cross the magnetic barrier at about half their
           eventual speed $\textcolor{#3DBFFF}{v_i}$, and ask for a leak no worse than a fifth of the beam:
@@ -1615,7 +1616,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <details class="deriv-detail">
       <summary>Show derivation</summary>
       <div class="deriv-inner">
-        <span class="eq-step-label">Exit velocity of an ion born at potential $\varphi$</span>
+        <span class="eq-step-label">Exit Velocity of an Ion Born at Potential $\varphi$</span>
         <span class="eq-note">
           $\varphi$ is the birth potential normalized on the
           <span class="hl-phi">discharge voltage</span>, so it runs from $0$ to $1$ and every factor below is at
@@ -1625,7 +1626,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
            = \sqrt{\frac{2\textcolor{#C060FF}{e}\,\varphi\,\textcolor{#F5C518}{V_d}}{\textcolor{#FF4400}{m_i}}}
            = \sqrt{\varphi}\;\textcolor{#3DBFFF}{v_{i,\max}} $$
 
-        <span class="eq-step-label">Thrust is the first moment, power is the second</span>
+        <span class="eq-step-label">Thrust Is the First Moment, Power Is the Second</span>
         <span class="eq-note">
           <span class="hl-thrust">Thrust</span> goes as the mean of $\textcolor{#3DBFFF}{v_i}$ over the
           distribution, while the <span class="hl-power">beam power</span> goes as the mean of
@@ -1637,7 +1638,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
            \left\langle \textcolor{#3DBFFF}{v_i}^{2} \right\rangle
            = \textcolor{#3DBFFF}{v_{i,\max}}^{2}\int_0^1 \varphi\,f(\varphi)\,d\varphi $$
 
-        <span class="eq-step-label">The efficiency is the ratio of the two</span>
+        <span class="eq-step-label">The Efficiency Is the Ratio of the Two</span>
         <span class="eq-note">
           A thruster is judged on the <span class="hl-thrust">thrust</span> it makes for the
           <span class="hl-power">power</span> it spends, so the penalty for a spread is the square of the mean
