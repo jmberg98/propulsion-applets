@@ -1033,8 +1033,13 @@ details.deriv-detail > summary:focus-visible {
   line-height: 1.35;
 }
 
-/* Mobile fallback */
-@media (max-width: 850px) {
+/* Single-column fallback. Raised from 850px to 1150px along with the canvas
+   sizing fix above: the right rail holds a hard 330px minimum, so between those
+   two widths the map column was left under 600px. That used to hide the problem
+   by clipping the map to fit; now that it scales instead, the same range would
+   shrink it to a few hundred pixels floating in a tall empty box. Stacking
+   earlier gives the map the full width it needs to stay readable. */
+@media (max-width: 1150px) {
   #subway-applet .container {
     --applet-map-h: auto;
 
@@ -1081,10 +1086,27 @@ details.deriv-detail > summary:focus-visible {
 /* Move only the canvas drawing leftward.
    The destination readout stays fixed because it is a separate absolute overlay. */
 #subway-applet canvas {
-  height: var(--applet-map-h);
+  /* This used to be `height: var(--applet-map-h); width: auto; max-width: none`,
+     which sized the map from its HEIGHT alone: the drawing held a fixed 792px of
+     width no matter how narrow the column got, and .canvas-container's
+     overflow:hidden simply cut the right-hand side off. Measured, that was 235px
+     of the map gone at 1150px of viewport and 526px gone at 860px, silently, with
+     no scrollbar to suggest anything was missing. Because this block sits after
+     the 850px mobile fallback in source order and matches at the same
+     specificity, `max-width: none` defeated that fallback too, which is why the
+     breakpoint fired without fixing anything.
+     Cap on BOTH axes instead and let the intrinsic 1200:1280 ratio pick whichever
+     one binds. Above about 1200px the height still binds, so the desktop framing
+     is unchanged; below it the map scales down whole rather than losing its right
+     edge. min-width:0 is required because this is a flex item, and a flex item's
+     automatic minimum size would otherwise floor it back at the intrinsic width
+     and beat max-width. The 28px nudge below is kept out of the cap so the shift
+     cannot push the map's edge back under the clip. */
   width: auto;
+  height: auto;
+  min-width: 0;
 
-  max-width: none;
+  max-width: calc(100% - 28px);
   max-height: var(--applet-map-h);
 
   display: block;
