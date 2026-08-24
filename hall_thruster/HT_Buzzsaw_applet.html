@@ -2437,6 +2437,30 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan     = false;
+
+/* ── Scroll guard ─────────────────────────────────────────────
+   This figure sits INLINE on the lesson page rather than in an iframe, so an
+   unguarded wheel over it zooms the model instead of scrolling the article the
+   reader is trying to get through. The wheel reaches OrbitControls only once a
+   pointer has engaged the figure, which is the drag the hint already asks for, and
+   is handed back when the pointer leaves. Listening on the frame in the CAPTURE
+   phase is what makes it work: the event is stopped before it reaches the canvas
+   OrbitControls is bound to, so nothing calls preventDefault and the page scrolls
+   as it should.
+   touch-action does the same for touch: one finger scrolls the page, a sideways
+   drag still orbits, and two fingers reach the controls for the rotation and zoom
+   that one finger gives up. */
+(() => {
+  const host = frameEl || canvas;
+  canvas.style.touchAction = 'pan-y';
+  host.style.touchAction   = 'pan-y';
+  controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+  let engaged = false;
+  host.addEventListener('wheel', e => { if (!engaged) e.stopPropagation(); },
+                        { capture:true, passive:false });
+  host.addEventListener('pointerdown',  () => { engaged = true;  });
+  host.addEventListener('pointerleave', () => { engaged = false; });
+})();
 controls.minDistance   = 210;
 controls.maxDistance   = 1500;
 /* Never below the exit plane. Everything this figure is about happens in the mouth of the

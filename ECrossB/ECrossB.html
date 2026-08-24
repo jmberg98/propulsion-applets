@@ -104,6 +104,49 @@ body {
   }
 }
 
+/* A tablet in landscape hands this applet about 830px through the lesson page's
+   iframe, which is just wide enough to stay side by side and leaves the stage
+   430px. That is the narrowest the demo ever gets while still being the half a
+   student is meant to be looking at, so the panel gives its slack back here,
+   one step before the stacking floor above. */
+@media (max-width: 900px) and (min-width: 781px) {
+  #panel { flex: 0 1 330px; width: 330px; }
+}
+
+/* The panel scrolls, but a 6px thumb on a near-black track is not a visible
+   edge: at 560px of frame height a third of the controls can sit below the fold
+   with nothing to say so. Fade the bottom while there is more to reach. The
+   pseudo-element is sticky so it rides the scrollport rather than the content,
+   and carries negative margin so it overlays instead of adding height. */
+#panel::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: none;
+  flex: 0 0 auto;
+  height: 34px;
+  margin-top: -34px;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(8,8,8,.97), rgba(8,8,8,0));
+}
+#panel.has-more::after { display: block; }
+
+/* Panel button, copied from the hall-thruster viewer's .btn so the two read as
+   one control set. */
+.btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.btn {
+  flex: 1 1 0; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 600;
+  padding: 9px 8px; background: var(--bg-panel-2); color: var(--text-secondary);
+  border: 1px solid var(--border); border-radius: 5px; cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn:hover { background: var(--bg-panel-3); color: var(--text-heading); border-color: var(--c-accent); }
+
+/* Readouts left over from the last valid input, dimmed so they are not read as
+   describing what is currently typed in the boxes. */
+.stale { opacity: 0.38; }
+
 .cf-header {
   display: flex;
   align-items: center;
@@ -534,6 +577,11 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
       <input type="checkbox" id="chk-fnet">
       Show net force <b style="color:#ffffff">F<sub>net</sub></b>
     </label>
+
+    <!-- Camera recovery. Orbiting into a useless angle is one drag away, and
+         without this the only way back is a reload, which also discards every
+         value set above. -->
+    <div class="btn-row"><button type="button" class="btn" id="reset-view">Reset view</button></div>
 
     <div id="error-msg"></div>
 
@@ -1466,8 +1514,15 @@ function fmtTesla(x){
 }
 function updateBReadout(){ $('b-tesla').textContent = fmtTesla(+$('inp-B').value*GAUSS_TO_TESLA); }
 
-function showError(msg){ $('error-msg').textContent=msg; $('error-msg').style.display='block'; }
-function clearError(){ $('error-msg').style.display='none'; }
+// On a bad entry the readouts keep whatever the last valid input produced, which
+// reads as a live answer to what is now in the boxes. Dim them instead of
+// blanking them: the numbers stay available, and nothing claims they describe
+// the current entry.
+function markStale(on) {
+  document.querySelectorAll('details.cf-outputs').forEach(el => el.classList.toggle('stale', on));
+}
+function showError(msg){ $('error-msg').textContent=msg; $('error-msg').style.display='block'; markStale(true); }
+function clearError(){ $('error-msg').style.display='none'; markStale(false); }
 
 function writeAccel(key, d){
   $(key+'-ve').textContent  = fmt(d.ve);
@@ -1763,12 +1818,76 @@ if (_modeParam || _embedded) {
   }
 }
 
+/* ── Scroll guard ─────────────────────────────────────────────────────
+   This viewer is embedded in a lesson page, so a bare wheel or a one-finger
+   swipe belongs to that page and not to the camera. The wheel reaches
+   OrbitControls only once a pointer has engaged the stage, which is the drag the
+   hint already asks for, and is handed back when the pointer leaves. Listening
+   on the container in the CAPTURE phase is what makes it work: the event is
+   stopped before it reaches the canvas OrbitControls is bound to, so nothing
+   calls preventDefault and the page scrolls as it should.
+   touch-action does the same job for touch. One finger scrolls the lesson page,
+   a sideways drag still orbits, and two fingers reach the controls for the
+   rotation and zoom that one finger gives up. */
+function installScrollGuard() {
+  const host = document.getElementById('viewport');
+  if (!host || !renderer || !controls) return;
+  renderer.domElement.style.touchAction = 'pan-y';
+  host.style.touchAction = 'pan-y';   // ancestor rule also covers the 2-D overlay canvases
+  controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+  let engaged = false;
+  host.addEventListener('wheel', e => { if (!engaged) e.stopPropagation(); },
+                        { capture: true, passive: false });
+  host.addEventListener('pointerdown',  () => { engaged = true;  });
+  host.addEventListener('pointerleave', () => { engaged = false; });
+}
+
+/* ── Fold cue ─────────────────────────────────────────────────────────
+   A 6px scrollbar thumb on a near-black track is not a visible edge. Mark the
+   panel while it has more below the fold so the fade in the stylesheet shows. */
+function installPanelFade() {
+  const panel = document.getElementById('panel');
+  if (!panel) return;
+  const sync = () => {
+    panel.classList.toggle(
+      'has-more', panel.scrollHeight - panel.clientHeight - panel.scrollTop > 4);
+  };
+  panel.addEventListener('scroll', sync, { passive: true });
+  // toggle does not bubble, so the collapsible output block is caught on capture.
+  panel.addEventListener('toggle', sync, true);
+  window.addEventListener('resize', sync);
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(panel);
+  sync();
+}
+
+/* A box left reading past its own max while the paired slider pins at the limit
+   is the panel stating a value the simulation is not using. Echo the clamp back
+   once the entry is committed, which is late enough not to fight someone
+   mid-type, and re-fire input so the applet's own handler re-syncs its slider. */
+function installNumberClamp() {
+  document.querySelectorAll('input[type="number"]').forEach(el => {
+    el.addEventListener('change', () => {
+      const v = parseFloat(el.value);
+      if (!Number.isFinite(v)) return;
+      const lo = el.min === '' ? -Infinity : parseFloat(el.min);
+      const hi = el.max === '' ?  Infinity : parseFloat(el.max);
+      const c  = Math.min(Math.max(v, lo), hi);
+      if (c !== v) { el.value = c; el.dispatchEvent(new Event('input', { bubbles: true })); }
+    });
+  });
+}
+
 function boot() {
   initViz(document.getElementById('viewport'));
   updateBReadout();
   updateFieldDisplays();
   ['S','A','B'].forEach(updateParticleDisplay);
   setMode(_bootMode);
+  installScrollGuard();
+  installPanelFade();
+  installNumberClamp();
+  // frameCamera() already restores the current mode's default camera.
+  $('reset-view').addEventListener('click', frameCamera);
 }
 
 // Wait for the KaTeX math fonts before the first render so every label sprite is

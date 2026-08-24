@@ -519,6 +519,18 @@ body{
   position:relative; z-index:100;
 }
 
+/* The panel outruns a 560px frame by about 160px, and a 6px thumb on a
+   near-black track is not a visible edge, so controls below the fold have
+   nothing to announce them. Fade the bottom while there is more to reach. The
+   pseudo-element is sticky so it rides the scrollport rather than the content,
+   and carries negative margin so it overlays instead of adding height. */
+#panel::after{
+  content:'';position:sticky;bottom:0;z-index:3;display:none;flex:0 0 auto;
+  height:34px;margin-top:-34px;pointer-events:none;
+  background:linear-gradient(to top,var(--bg-panel-1),rgba(14,14,14,0));
+}
+#panel.has-more::after{display:block}
+
 .block{ display:flex; flex-direction:column; }
 
 .sect-hdr{
@@ -1563,6 +1575,46 @@ const orthoCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.5, 20000);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
+
+/* ── Scroll guard ─────────────────────────────────────────────
+   This viewer is embedded in a lesson page, so a bare wheel or a one-finger swipe
+   belongs to that page and not to the camera. The wheel reaches OrbitControls only
+   once a pointer has engaged the stage, which is the drag the hint already asks
+   for, and is handed back when the pointer leaves. Listening on the container in
+   the CAPTURE phase is what makes it work: the event is stopped before it reaches
+   the canvas OrbitControls is bound to, so nothing calls preventDefault and the
+   page scrolls as it should.
+   touch-action does the same job for touch: one finger scrolls the lesson page and
+   two still reach the controls. controls.touches is deliberately left alone here,
+   because setAppMode() drives one-finger pan and rotate per stage. */
+(() => {
+  renderer.domElement.style.touchAction = 'pan-y';
+  viewport.style.touchAction = 'pan-y';   // ancestor rule also covers the 2-D overlay canvases
+  let engaged = false;
+  viewport.addEventListener('wheel', e => { if (!engaged) e.stopPropagation(); },
+                            { capture:true, passive:false });
+  viewport.addEventListener('pointerdown',  () => { engaged = true;  });
+  viewport.addEventListener('pointerleave', () => { engaged = false; });
+})();
+
+/* ── Fold cue ─────────────────────────────────────────────────
+   Mark the panel while it has more below the fold so the fade above shows. */
+(() => {
+  const panel = document.getElementById('panel');
+  if (!panel) return;
+  const sync = () => {
+    panel.classList.toggle(
+      'has-more', panel.scrollHeight - panel.clientHeight - panel.scrollTop > 4);
+  };
+  panel.addEventListener('scroll', sync, { passive:true });
+  // toggle does not bubble, so collapsible blocks are caught on capture.
+  panel.addEventListener('toggle', sync, true);
+  window.addEventListener('resize', sync);
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(panel);
+  // Each stage swaps which controls the panel shows, so re-measure after a mode change.
+  document.addEventListener('click', () => setTimeout(sync, 0), true);
+  sync();
+})();
 
 const hemiLight = new THREE.HemisphereLight(0xdfe6f2, 0x141820, 0.32);
 const ambLight  = new THREE.AmbientLight(0xffffff, 0.52);

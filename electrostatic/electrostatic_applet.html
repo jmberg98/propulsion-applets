@@ -688,6 +688,18 @@ footer .foot-cred {
   font-size: 15px;
   color    : var(--text-muted);
 }
+
+/* Below about 980px of page width the embedded applet crosses its own stacking
+   floor and puts the control panel UNDER the stage, which needs MORE vertical
+   room, not the same. Measured before this rule: the stage canvas collapsed to
+   roughly 300px tall while the panel needed some 600px more than the frame gave
+   it. The frame height was fixed, so the width where the applet needed the most
+   height was the one width that never got any. */
+@media (max-width: 980px) {
+  .applet-frame,
+  .demo-frame,
+  .applet-frame.demo-frame { height: 860px; }
+}
 </style>
 </head>
 <body>

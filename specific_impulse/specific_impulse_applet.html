@@ -754,7 +754,7 @@ footer .foot-cred {
   Propulsion systems expel propellant to generate
   <span class="hl-thrust">thrust</span> and ultimately change the momentum of the vehicle.
   Propulsion systems must be designed with key design constraints in mind. Engineers must consider
-  <span class="hl-mass">mass budget</span>, <span class="hl-power">power budget</span>, and satisfy the
+  <strong class="key">mass budget</strong>, <strong class="key">power budget</strong>, and satisfy the
   required <strong class="key">mission time</strong>. These requirements dictate the
   <span class="hl-ve">exhaust velocity</span>,
   <span class="hl-power">input power</span>, and
@@ -786,8 +786,8 @@ footer .foot-cred {
   <details class="clarify-detail">
     <summary>How can high thrust and high specific impulse be achieved by the same propulsion system?</summary>
     <div class="clarify-body">
-      High <span class="hl-thrust">thrust</span> and high <span class="hl-ve">specific impulse</span> requires a high <span class="hl-power">power budget</span>. There are drawbacks, however, to arbitrarily increasing <span class="hl-power">input power</span>. The amount of <span class="hl-power">power</span> that a <span class="hl-power">power source</span> can deliver
-      scales with its mass. This can adversely affect the <span class="hl-mass">mass budget</span> and <strong class="key">mission time</strong> of the spacecraft. To effectively accomplish a higher power, higher power density is required.
+      High <span class="hl-thrust">thrust</span> and high <span class="hl-ve">specific impulse</span> requires a high <strong class="key">power budget</strong>. There are drawbacks, however, to arbitrarily increasing <span class="hl-power">input power</span>. The amount of <span class="hl-power">power</span> that a <span class="hl-power">power source</span> can deliver
+      scales with its mass. This can adversely affect the <strong class="key">mass budget</strong> and <strong class="key">mission time</strong> of the spacecraft. To effectively accomplish a higher power, higher power density is required.
       This makes nuclear power sources very appealing, as both fusion and fission can achieve much higher power densities than solar panels. Fission reactors have been flown in space, but fusion reactors (the holy grail) have yet to be realized.
     </div>
   </details>
@@ -918,7 +918,7 @@ footer .foot-cred {
     <summary>Why do we care about mass efficiency? Can't we just carry more propellant or refuel?</summary>
     <div class="clarify-body">
       In space, propellant is carried at a premium: every kg of propellant takes from the
-      <span class="hl-mass">mass budget</span>, leaving less mass available for payload and other important
+      <strong class="key">mass budget</strong>, leaving less mass available for payload and other important
       subsystems. Carrying extra propellant increases the mass of the vehicle, meaning the
       propulsion system must additionally handle the increased mass (more on this in the Ideal
       Rocket Equation!). Additionally, refueling introduces complexity and is not always possible,
@@ -1589,6 +1589,29 @@ const camera   = new THREE.PerspectiveCamera(FOV, 1, 0.1, 400);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
+
+/* ── Scroll guard ─────────────────────────────────────────────
+   This scene sits INLINE on the lesson page rather than in an iframe, so an
+   unguarded wheel over it zooms the model instead of scrolling the article the
+   reader is trying to get through. The wheel reaches OrbitControls only once a
+   pointer has engaged the stage, which is the drag the hint already asks for, and
+   is handed back when the pointer leaves. Listening on the container in the
+   CAPTURE phase is what makes it work: the event is stopped before it reaches the
+   canvas OrbitControls is bound to, so nothing calls preventDefault and the page
+   scrolls as it should.
+   touch-action does the same for touch: one finger scrolls the page, a sideways
+   drag still orbits, and two fingers reach the controls for the rotation and zoom
+   that one finger gives up. */
+(() => {
+  renderer.domElement.style.touchAction = 'pan-y';
+  viewport.style.touchAction = 'pan-y';
+  controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
+  let engaged = false;
+  viewport.addEventListener('wheel', e => { if (!engaged) e.stopPropagation(); },
+                            { capture:true, passive:false });
+  viewport.addEventListener('pointerdown',  () => { engaged = true;  });
+  viewport.addEventListener('pointerleave', () => { engaged = false; });
+})();
 
 // The gridded-ion / hall-thruster rig, ported: a broad ambient and hemisphere base
 // so nothing ever goes to black, one key, one fill, one cool rim.

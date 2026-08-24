@@ -110,6 +110,26 @@
     }
   }
 
+  /* A tablet in landscape hands this applet about 830px through the lesson page's
+     iframe, which is just wide enough to stay side by side and leaves the stage
+     470px. The panel gives its slack back here, one step before the stacking
+     floor above. */
+  @media (max-width: 900px) and (min-width: 781px) {
+    #panel { flex:0 1 300px; width:300px; }
+  }
+
+  /* The panel scrolls, but a 6px thumb on a near-black track is not a visible
+     edge, so controls below the fold have nothing to announce them. Fade the
+     bottom while there is more to reach. The pseudo-element is sticky so it rides
+     the scrollport rather than the content, and carries negative margin so it
+     overlays instead of adding height. */
+  #panel::after {
+    content:''; position:sticky; bottom:0; z-index:3; display:none;
+    height:34px; margin-top:-34px; pointer-events:none;
+    background:linear-gradient(to top, var(--bg-panel-1), rgba(14,14,14,0));
+  }
+  #panel.has-more::after { display:block; }
+
   /* Mode tabs */
   .mode-tabs { display:flex; gap:7px; margin-bottom:18px; }
   .mode-tab {
@@ -1476,8 +1496,30 @@ function init(){
 // Re-render KaTeX call-outs once the library finishes loading (script is deferred).
 window.__onKatex = function(){ S._lbl = ''; };
 
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-else init();
+
+/* ── Fold cue ─────────────────────────────────────────────────
+   The panel scrolls, but a 6px thumb on a near-black track is not a visible edge,
+   so controls below the fold have nothing to announce them. Mark the panel while
+   there is more to reach and the fade in the stylesheet shows. */
+function installPanelFade(){
+  const panel = document.getElementById('panel');
+  if (!panel) return;
+  const sync = () => {
+    panel.classList.toggle(
+      'has-more', panel.scrollHeight - panel.clientHeight - panel.scrollTop > 4);
+  };
+  panel.addEventListener('scroll', sync, { passive:true });
+  // toggle does not bubble, so collapsible blocks are caught on capture.
+  panel.addEventListener('toggle', sync, true);
+  window.addEventListener('resize', sync);
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(panel);
+  // Each mode swaps which controls the panel shows, so re-measure after a tab click.
+  document.addEventListener('click', () => setTimeout(sync, 0), true);
+  sync();
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { init(); installPanelFade(); });
+else { init(); installPanelFade(); }
 </script>
 </body>
 </html>
