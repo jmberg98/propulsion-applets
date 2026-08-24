@@ -52,10 +52,10 @@ Z_SCREEN0     = L_CHAMBER + 2.0            # 202
 # and the section stays a clean row of full-diameter bores at pitch s.
 #
 # `s` is free — it sets how MANY holes there are, not how open the grid is. It is
-# pinned to the applet's aperture-row spacing APER_DY = 16*sqrt(3), so the bore
+# pinned to the applet's aperture-row spacing APER_DY = 8*sqrt(3), so the bore
 # centres land exactly on the beamlet channels and HOLE_R_* == APER_R_* there.
-APER_PITCH    = 16.0 * math.sqrt(3)   # 27.7128 mm — aperture ROW pitch (= applet APER_DY)
-SCREEN_OPEN   = 0.80     # screen grid: wide-open extraction optics
+APER_PITCH    =  8.0 * math.sqrt(3)   # 13.8564 mm — aperture ROW pitch (= applet APER_DY)
+SCREEN_OPEN   = 0.67     # screen grid: NSTAR's geometric open area
 ACCEL_OPEN    = 0.30     # accel grid: far tighter (blocks electron backstreaming)
 
 def hole_r(phi, pitch=APER_PITCH):
@@ -66,8 +66,8 @@ def hole_period(phi, pitch=APER_PITCH):
     """Column period P for that array (two columns per period)."""
     return math.pi * phi * pitch / 2
 
-SCREEN_HOLE_R = hole_r(SCREEN_OPEN)   # 11.0851 mm — fewer, much larger bores
-ACCEL_HOLE_R  = hole_r(ACCEL_OPEN)    #  4.1569 mm — more, smaller bores
+SCREEN_HOLE_R = hole_r(SCREEN_OPEN)   #  4.6419 mm — 285 bores, 13 of them on the cut plane
+ACCEL_HOLE_R  = hole_r(ACCEL_OPEN)    #  2.0785 mm — 645 bores, coaxial with the screen's
 
 R_CATH        = 10.0     # hollow cathode outer radius
 R_CATH_BORE   = 5.0

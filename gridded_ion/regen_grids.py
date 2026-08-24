@@ -26,10 +26,13 @@ def b64(a):
     return base64.b64encode(np.ascontiguousarray(a).tobytes()).decode("ascii")
 
 def tessellate(solid):
-    # lin/ang=0.1 reproduces the density the shipped grids were meshed at: 126 segments
-    # round each bore (506 verts/hole). build_model.py's default 0.5/0.4 gives 32 — visibly
-    # polygonal apertures in the cross-section, so don't coarsen these.
-    P, N, I = mesher.mesh_shape(solid, lin=0.1, ang=0.1)
+    # `ang` alone sets the segment count round a bore — measured, it is radius-independent:
+    # 0.10 -> 126 segments (506 verts/hole), 0.35 -> 36 (146), 0.50 -> 26 (106). The old 0.10 was
+    # sized for the Ø22 bores of the coarse lattice; on the dense lattice's Ø9.3 screen / Ø4.2
+    # accel bores 36 segments leaves facets of 0.8 mm / 0.4 mm, smooth at every zoom the viewer
+    # reaches, and it is what keeps 926 bores inside the vertex budget 220 used to cost.
+    # `lin` still governs the grid's own Ø212 rim (72 segments), so leave it at 0.1.
+    P, N, I = mesher.mesh_shape(solid, lin=0.1, ang=0.35)
     # CAD (cx,cy,cz) -> viewer (cz,cy,cx), positions AND normals
     Pv = np.column_stack([P[:, 2], P[:, 1], P[:, 0]]).astype("<f4")
     Nv = np.column_stack([N[:, 2], N[:, 1], N[:, 0]]).astype("<f4")
