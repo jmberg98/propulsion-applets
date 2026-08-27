@@ -167,23 +167,24 @@ body {
 }
 
 /* ── primary output blocks ───────────────────────────────────── */
-.cf-out-block { margin-bottom: 16px; }
-.cf-out-label {
-  font-size: 11px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: #545454; margin-bottom: 4px;
+/* ── Output cell ────────────────────────────────────────────
+   The house out-* family (hall_thruster.html), at the WIDE-panel scale
+   16 / 26 / 18.5 rather than the 9 / 19 / 11.5 a 210px side panel uses.
+   Was .out-cell / -label / -value / -hint at 11 / 30 / 15. */
+.out-cell { margin-bottom: 16px; }
+.out-label {
+  font-size: 16px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px;
 }
-
-/* ↑ MAIN OUTPUT VALUE: 24 → 30 px */
-.cf-out-value {
+.out-val {
   font-family: 'Courier New', monospace;
-  font-size: 30px; font-weight: 700;
+  font-size: 26px; font-weight: 600;
   color: var(--text-heading); letter-spacing: .5px; line-height: 1.2;
 }
-.cf-out-value.bad { color: #ff8e8e; font-size: 13px; line-height: 1.6; }
-
-/* ↑ ISP HINT LINE: 11 → 15 px */
-.cf-out-hint {
-  font-size: 15px; color: var(--hi-blue);
+.out-val.bad { color: #ff8e8e; font-size: 13px; line-height: 1.6; }
+.out-sub {
+  font-family: 'Courier New', monospace;
+  font-size: 18.5px; color: var(--hi-blue);
   margin-top: 3px; min-height: 18px;
 }
 
@@ -363,10 +364,10 @@ body {
     <div class="cf-col">
       <div class="cf-sect">Stuhlinger Velocity</div>
 
-      <div class="cf-out-block">
-        <div class="cf-out-label">V<sub>ch</sub> [m/s]</div>
-        <div class="cf-out-value" id="o-vch">—</div>
-        <div class="cf-out-hint" id="h-vch-isp">Isp = — s</div>
+      <div class="out-cell">
+        <div class="out-label">V<sub>ch</sub> [m/s]</div>
+        <div class="out-val" id="o-vch">—</div>
+        <div class="out-sub" id="h-vch-isp">Isp = — s</div>
       </div>
     </div>
 
@@ -374,10 +375,10 @@ body {
     <div class="cf-col">
       <div class="cf-sect">True Optimum Exhaust Velocity</div>
 
-      <div class="cf-out-block">
-        <div class="cf-out-label">C<sub>opt</sub> [m/s]</div>
-        <div class="cf-out-value" id="o-copt">—</div>
-        <div class="cf-out-hint" id="h-copt-isp">Isp = — s</div>
+      <div class="out-cell">
+        <div class="out-label">C<sub>opt</sub> [m/s]</div>
+        <div class="out-val" id="o-copt">—</div>
+        <div class="out-sub" id="h-copt-isp">Isp = — s</div>
       </div>
 
       <div class="cf-info-box" id="h-thr">—</div>
@@ -521,7 +522,7 @@ const $ = id => document.getElementById(id);
 function setVal(id, txt, bad) {
   const el = $(id);
   el.textContent = txt;
-  const base = el.classList.contains('cf-out-value') ? 'cf-out-value' : 'cf-oval';
+  const base = el.classList.contains('out-val') ? 'out-val' : 'cf-oval';
   el.className   = bad ? `${base} bad` : base;
 }
 function setHint(id, txt, col) {

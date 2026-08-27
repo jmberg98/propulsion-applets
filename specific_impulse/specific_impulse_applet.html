@@ -98,7 +98,11 @@ footer {
    Color is the ONLY channel these use — never weight, never
    size. Color answers "which quantity is this?".  For a term
    of art that is NOT a quantity, use .key instead.  Never
-   stack the two: .key.hl-* is three channels for one signal. */
+   stack the two: .key.hl-* is three channels for one signal.
+   A highlighted quantity ALWAYS carries its symbol inside the
+   span (thrust $F_N$, mass flow rate $\dot{m}$) so the color has
+   something to bind to; repeat mentions in the same paragraph
+   drop the color and go plain. */
 .hl-thrust, .hl-F, .hl-m, .hl-mass          { color: var(--c-thrust); }
 .hl-ve, .hl-v, .hl-ion                      { color: var(--c-ve); }
 .hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
@@ -118,13 +122,13 @@ footer {
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -140,7 +144,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -148,7 +152,7 @@ footer {
 
 /* ── Badge ─────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -163,7 +167,7 @@ footer {
 
 /* ── Page intro ────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -181,7 +185,7 @@ footer {
 }
 
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -202,7 +206,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -232,7 +236,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -249,13 +253,13 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 6px;
 }
 .demo-hdr-row h2 {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
   color: var(--text-heading);
 }
 
 .demo-blurb {
-  font-size: 19px;
+  font-size: 20px;
   line-height: 1.65;
   color: var(--text-main);
   margin-bottom: 8px;
@@ -445,6 +449,16 @@ canvas {
 }
 
 /* ── Slider range display ───────────────────────────── */
+/* Unit sits to the RIGHT of the value box, not in the label; fixed basis so
+   every row's value box lands on the same right edge whether or not the
+   quantity is dimensionless. The range line goes underneath (.sl-range). */
+.sl-unit {
+  flex: 0 0 44px;
+  font-size: 15px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
 .sl-range {
   font-size: 13px;
   color: var(--text-muted);
@@ -506,7 +520,7 @@ canvas {
 }
 
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -517,7 +531,7 @@ canvas {
 }
 
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -679,7 +693,7 @@ details.deriv-detail > summary:focus-visible {
 .applet-nav a,
 .applet-nav .nav-disabled {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-decoration: none;
@@ -723,15 +737,86 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
+/* ── Citation superscripts ─────────────────────────── */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Sources list ──────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 17px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 </style>
 </head>
 <body>
@@ -752,13 +837,13 @@ footer .foot-cred {
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   Propulsion systems expel propellant to generate
-  <span class="hl-thrust">thrust</span> and ultimately change the momentum of the vehicle.
-  Propulsion systems must be designed with key design constraints in mind. Engineers must consider
-  <strong class="key">mass budget</strong>, <strong class="key">power budget</strong>, and satisfy the
+  thrust and ultimately change the momentum of the vehicle.
+  They must be designed with key constraints in mind. Engineers must consider the
+  <strong class="key">mass budget</strong> and <strong class="key">power budget</strong>, and satisfy the
   required <strong class="key">mission time</strong>. These requirements dictate the
-  <span class="hl-ve">exhaust velocity</span>,
-  <span class="hl-power">input power</span>, and
-  thrust of the propulsion system respectively.
+  <span class="hl-ve">exhaust velocity $v_e$</span>,
+  <span class="hl-power">input power $P_{\mathrm{input}}$</span>, and
+  <span class="hl-thrust">thrust $F_N$</span> of the propulsion system respectively.
 </p>
 
 <div class="color-key">
@@ -775,9 +860,9 @@ footer .foot-cred {
   <details class="clarify-detail">
     <summary>Why do high thrust propulsion systems tend to be less mass efficient? Likewise, why do more mass-efficient systems typically have lower thrust?</summary>
     <div class="clarify-body">
-      There is a limit to the amount of <span class="hl-power">input power</span> available to accelerate the propellant, whether from chemical energy stored in the fuel or on-board solar/nuclear power.
-      To achieve high <span class="hl-thrust">thrust</span>, a large <span class="hl-mass">mass flow rate</span> of propellant must be accelerated, resulting in less power being delivered to
-      each unit of propellant mass and thus a lower <span class="hl-ve">exhaust velocity</span> and lower <span class="hl-ve">specific impulse</span>. Conversely, to achieve high
+      There is a limit to the amount of <span class="hl-power">input power $P_{\mathrm{input}}$</span> available to accelerate the propellant, whether from chemical energy stored in the fuel or on-board solar/nuclear power.
+      To achieve high <span class="hl-thrust">thrust $F_N$</span>, a large <span class="hl-mass">mass flow rate $\dot{m}$</span> of propellant must be accelerated, resulting in less power being delivered to
+      each unit of propellant mass and thus a lower <span class="hl-ve">exhaust velocity $v_e$</span> and lower <span class="hl-ve">specific impulse $I_{sp}$</span>. Conversely, to achieve high
       exhaust velocity and high specific impulse, the power must be distributed over a smaller mass flow rate, resulting in lower
       thrust.
     </div>
@@ -786,7 +871,7 @@ footer .foot-cred {
   <details class="clarify-detail">
     <summary>How can high thrust and high specific impulse be achieved by the same propulsion system?</summary>
     <div class="clarify-body">
-      High <span class="hl-thrust">thrust</span> and high <span class="hl-ve">specific impulse</span> requires a high <strong class="key">power budget</strong>. There are drawbacks, however, to arbitrarily increasing <span class="hl-power">input power</span>. The amount of <span class="hl-power">power</span> that a <span class="hl-power">power source</span> can deliver
+      High <span class="hl-thrust">thrust $F_N$</span> and high <span class="hl-ve">specific impulse $I_{sp}$</span> require a high <strong class="key">power budget</strong>. There are drawbacks, however, to arbitrarily increasing <span class="hl-power">input power $P_{\mathrm{input}}$</span>. The amount of power that a power source can deliver
       scales with its mass. This can adversely affect the <strong class="key">mass budget</strong> and <strong class="key">mission time</strong> of the spacecraft. To effectively accomplish a higher power, higher power density is required.
       This makes nuclear power sources very appealing, as both fusion and fission can achieve much higher power densities than solar panels. Fission reactors have been flown in space, but fusion reactors (the holy grail) have yet to be realized.
     </div>
@@ -863,21 +948,23 @@ footer .foot-cred {
       </div>
 
       <div class="sl-group">
-        <div class="sl-label">Mass Flow Rate &nbsp;(kg / s)</div>
+        <div class="sl-label">Mass Flow Rate</div>
         <div class="sl-row">
           <input type="range" id="sl-flow"  min="0.001" max="1" step="0.001" value="0.01">
           <input type="text"  id="tb-flow"  value="0.01">
+          <span class="sl-unit">kg/s</span>
         </div>
-        <div class="sl-range">0.001 – 1.0 kg/s</div>
+        <div class="sl-range">0.001 &ndash; 1.0</div>
       </div>
 
       <div class="sl-group">
-        <div class="sl-label">Power &nbsp;(kW)</div>
+        <div class="sl-label">Power</div>
         <div class="sl-row">
           <input type="range" id="sl-power" min="0" max="5000" step="1" value="10">
           <input type="text"  id="tb-power" value="10">
+          <span class="sl-unit">kW</span>
         </div>
-        <div class="sl-range">0 – 5000 kW</div>
+        <div class="sl-range">0 &ndash; 5000</div>
       </div>
 
       <div class="sl-group">
@@ -885,8 +972,9 @@ footer .foot-cred {
         <div class="sl-row">
           <input type="range" id="sl-eta"   min="0" max="1"    step="0.01"  value="0.5">
           <input type="text"  id="tb-eta"   value="0.5">
+          <span class="sl-unit"></span>
         </div>
-        <div class="sl-range">0 – 1.0</div>
+        <div class="sl-range">0 &ndash; 1.0</div>
       </div>
 
       <div class="btn-row"><button class="btn" id="reset">Reset view</button></div>
@@ -920,8 +1008,8 @@ footer .foot-cred {
       In space, propellant is carried at a premium: every kg of propellant takes from the
       <strong class="key">mass budget</strong>, leaving less mass available for payload and other important
       subsystems. Carrying extra propellant increases the mass of the vehicle, meaning the
-      propulsion system must additionally handle the increased mass (more on this in the Ideal
-      Rocket Equation!). Additionally, refueling introduces complexity and is not always possible,
+      propulsion system must additionally handle the increased mass (more on this in the <a class="applet-link" href="../rocket_equation/rocket_equation_applet.html">Ideal
+      Rocket Equation</a>!). Additionally, refueling introduces complexity and is not always possible,
       especially for deep-space missions.
     </div>
   </details>
@@ -930,12 +1018,12 @@ footer .foot-cred {
     <summary>Where does the input power for the propulsion system come from?</summary>
     <div class="clarify-body">
       Ground-based propulsion systems exclusively rely on the stored chemical energy of rocket fuel
-      and oxidizer for <span class="hl-power">power</span> to escape Earth's gravity. Once in
-      space, other <span class="hl-power">power sources</span> become available. Spacecraft
+      and oxidizer for power to escape Earth's gravity. Once in
+      space, other power sources become available. Spacecraft
       rely on solar or nuclear power to run their payloads, and leftover energy can be used to drive
       an electric propulsion system. This simulation assumes that
-      <span class="hl-power">input power</span> and
-      <span class="hl-mass">mass flow rate</span> are decoupled, which is true for electric
+      <span class="hl-power">input power $P_{\mathrm{input}}$</span> and
+      <span class="hl-mass">mass flow rate $\dot{m}$</span> are decoupled, which is true for electric
       propulsion. Traditional chemical engines rely on combustion, so
       input power and
       mass flow rate are inherently coupled.
@@ -951,10 +1039,10 @@ footer .foot-cred {
     <div class="th-hdr">Thrust</div>
 
     <p class="th-body">
-      A rocket carries its own propellant, so its <span class="hl-thrust">thrust</span> follows from
+      A rocket carries its own propellant, so its <span class="hl-thrust">thrust $F_N$</span> follows from
       conservation of mass and momentum across a <strong>control volume</strong> drawn around the
       engine. Assume <strong>steady state</strong>, no viscous forces, and a uniform exit stream of
-      density $\rho_e$, <span class="hl-ve">velocity $v_e$</span>, area $A_e$ and pressure
+      density $\rho_e$, <span class="hl-ve">velocity $v_e$</span>, area $A_e$, and pressure
       <span class="hl-press">$P_e$</span> discharging into ambient pressure
       <span class="hl-press">$P_{amb}$</span>. Let $\hat{\mathbf{i}}$ be the axial direction. The
       thrust stand holds the engine still, so what it reads is the reaction on the vehicle: the
@@ -1205,9 +1293,9 @@ footer .foot-cred {
     <p class="th-body">
       A propulsion system is designed to deliver <strong class="key">impulse</strong>, a change in
       momentum, to the spacecraft. Propellant is the scarce resource in space, so the useful figure
-      of merit is impulse per unit <span class="hl-mass">propellant mass</span>. Historically it was
+      of merit is impulse per unit <span class="hl-mass">propellant mass $m_{\mathrm{prop}}$</span>. Historically it was
       quoted per unit propellant <em>weight</em> on Earth, which is why
-      <span class="hl-ve">specific impulse</span> carries units of seconds rather than m/s.
+      <span class="hl-ve">specific impulse $I_{sp}$</span> carries units of seconds rather than m/s.
     </p>
 
     <div class="eq-panel">
@@ -1269,8 +1357,8 @@ footer .foot-cred {
       In the spacecraft frame the propellant starts at rest and leaves at
       <span class="hl-ve">effective exhaust velocity $c$</span> relative to the spacecraft, so the
       jet carries kinetic energy away at a rate set by the
-      <span class="hl-power">input power</span> and the
-      <span class="hl-power">efficiency $\eta$</span> of the power and conversion chain.
+      <span class="hl-power">input power $P_{\mathrm{input}}$</span> and the
+      <span class="hl-power">efficiency $\eta$</span> of the power conversion chain.
     </p>
 
     <div class="eq-panel">
@@ -1348,16 +1436,17 @@ footer .foot-cred {
     </div>
 
     <p class="th-body">
-      For a fixed <span class="hl-power">input power</span>, lowering the
-      <span class="hl-mass">mass flow rate</span> raises
-      <span class="hl-ve">exhaust velocity</span> and
-      <span class="hl-ve">specific impulse</span> but lowers
-      <span class="hl-thrust">thrust</span>. Sizing a propulsion system around a power source is
+      For a fixed <span class="hl-power">input power $P_{\mathrm{input}}$</span>, lowering the
+      <span class="hl-mass">mass flow rate $\dot{m}$</span> raises
+      <span class="hl-ve">exhaust velocity $v_e$</span> and
+      <span class="hl-ve">specific impulse $I_{sp}$</span> but lowers
+      <span class="hl-thrust">thrust $F_N$</span>. Designing a propulsion system around a power source is
       therefore a trade between the two.
     </p>
   </div>
 
 </div>
+
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
@@ -1435,8 +1524,10 @@ function compute(mdotKgS, powerKW, eta) {
   const mdot = mdotKgS;
   const pJet = powerKW * 1000.0 * eta;
 
+  // Zero power means zero thrust, but mdot is an INPUT: it still reads back what
+  // the slider says, or the readout contradicts the control right above it.
   if (mdot < 1e-12 || pJet < 1e-12) {
-    return { T: 0, mdot: 0, ve: 0, isp: 0 };
+    return { T: 0, mdot, ve: 0, isp: 0 };
   }
 
   const ve = Math.sqrt(2.0 * pJet / mdot);

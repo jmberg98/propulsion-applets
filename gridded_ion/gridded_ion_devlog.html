@@ -480,7 +480,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>My test harness checked the wrong hide mechanism (<code>#loading</code> uses a <code>.hidden</code> class, not <code>display</code>). Fixing the injection:</p>
 <p>The cross-section settles correctly: near-white body, light-gray grids clearly darker than the body, magnet rings darkest (hierarchy preserved), and the annotations faded in. The end state matches the ortho zoom=1 framing exactly — which is now what the perspective swing targets, so the swap is seamless. Let me capture a mid-transition frame to confirm the swing itself renders cleanly (near-parallel, framed — not blank or popping).</p>
 <p>The transition is verified end-to-end. The mid-flight frame (&quot;Rotating to cross-section…&quot;) shows the section forming smoothly as the camera swings — the near half falls away, the model stays well-framed (no shrink-to-dot, no blank), and it lands exactly on the settled orthographic framing. Let me clean up the test server.</p>
-<p>Done. Both the transition smoothness and the recolour are in place, applied to <strong>both</strong> <span class=\"ref\">gridded_ion.html</span> and the <span class=\"ref\">gridded_ion.py</span> generator (which embeds the same HTML), and verified headless.</p>
+<p>Done. Both the transition smoothness and the recolor are in place, applied to <strong>both</strong> <span class=\"ref\">gridded_ion.html</span> and the <span class=\"ref\">gridded_ion.py</span> generator (which embeds the same HTML), and verified headless.</p>
 <p class="h">What changed</p>
 <p><strong>Smoother 3D → cross-section transition.</strong> The abrupt jump came from *two* discontinuities at the hand-off: a projection pop (wide 45° perspective &quot;splay&quot; collapsing to parallel) and a framing pop (the model sat small at the swing&#x27;s end, then the ortho camera zoomed in ~1.7× to frame it).</p>
 <ul>
@@ -697,7 +697,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <ul>
 <li><strong>Housing = one flat gold</strong> — the <code>Outer_Shell_Housing</code> cap is recolored to the neutralizer&#x27;s gold (<code>#d8b62e</code>) as a single flat piece.</li>
 </ul>
-<p>Both color/shading changes are applied to the <strong>section caps only</strong>, so the 3D CAD view keeps its original greys.</p>
+<p>Both color/shading changes are applied to the <strong>section caps only</strong>, so the 3D CAD view keeps its original grays.</p>
 <p>One interpretation call worth flagging: I read &quot;orange highlighted area&quot; as *the region you marked in orange* and kept the chamber its existing gray while adding the shading — since you asked for &quot;shading,&quot; not a recolor (unlike the yellow area, where you specified the neutralizer color). If you&#x27;d actually like the chamber tinted orange/amber too, that&#x27;s a one-line change.</p><div class="actions">⚙ 1&nbsp;shell</div></div></div><div class="prompt"><div class="who">Jordan</div><div class="ptext">Revert</div></div>
 <div class="reply"><div class="who">Claude</div><div class="rtext"><p>I&#x27;ll revert the three changes I made, restoring the file to how it was when I started (preserving your pre-existing uncommitted edits).</p>
 <p>Let me confirm my changes are fully gone (no leftover markers).</p>
@@ -1173,7 +1173,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p class="h">Done — <code>gridded_ion_3D.STEP</code> updated</p>
 <p>I edited the STEP file directly and verified the result stays a valid B-rep. Here&#x27;s what landed:</p>
 <p><strong>✅ Colors</strong></p>
-<div class="tblwrap"><table><thead><tr><th>Body</th><th>Was</th><th>Now</th></tr></thead><tbody><tr><td>Outer shell</td><td>light blue-grey</td><td><strong>near-pure white</strong> (0.94, 0.94, 0.95)</td></tr><tr><td>Screen grid</td><td>light blue-grey</td><td><strong>matched grey</strong> (0.42, 0.43, 0.46)</td></tr><tr><td>Accel grid</td><td>light blue-grey</td><td><strong>same matched grey</strong></td></tr><tr><td>Ionization chamber</td><td>light blue-grey</td><td><strong>clear light blue</strong> (0.66, 0.80, 0.95)</td></tr></tbody></table></div>
+<div class="tblwrap"><table><thead><tr><th>Body</th><th>Was</th><th>Now</th></tr></thead><tbody><tr><td>Outer shell</td><td>light blue-gray</td><td><strong>near-pure white</strong> (0.94, 0.94, 0.95)</td></tr><tr><td>Screen grid</td><td>light blue-gray</td><td><strong>matched gray</strong> (0.42, 0.43, 0.46)</td></tr><tr><td>Accel grid</td><td>light blue-gray</td><td><strong>same matched gray</strong></td></tr><tr><td>Ionization chamber</td><td>light blue-gray</td><td><strong>clear light blue</strong> (0.66, 0.80, 0.95)</td></tr></tbody></table></div>
 <p><strong>✅ Grids — same thickness, thicker, more gap</strong></p>
 <ul>
 <li>Both grids now <strong>0.260&quot; thick</strong> (were 0.118&quot; screen / 0.157&quot; accel) — now identical and beefier.</li>
@@ -1280,10 +1280,10 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>Reinstalling at a short path (<code>C:\Users\jmatt\.cadenv</code>). I&#x27;ll be notified when it finishes.</p>
 <p>Meanwhile — the question still stands, and it&#x27;s the blocker: <strong>what changes do you want in the new model?</strong> Point at the dimension table from my last message and tell me what should differ (chamber size, grid spacing/holes, magnet rings, housing, neutralizer position, or anything new). Once I have that and the kernel finishes, I&#x27;ll build and export the STEP.</p><div class="actions">⚙ 8&nbsp;shell · 1&nbsp;askuserquestion</div></div></div><div class="prompt"><div class="who">Jordan</div><div class="ptext">I need each grid a bit thicker, more gap between them. There must be no gap between the outer most shell and the ioniztion chamber. The gap should be filled by making the outermost shell larger, filling the empty space. It should have the same color as the outer most wall.</div></div>
 <div class="reply"><div class="who">Claude</div><div class="rtext"><p>Install still running. Let me lock in the plan while it finishes. Here&#x27;s my read of your image and the three changes:</p>
-<p><strong>What I see:</strong> grey outer housing with a tapered front, the lavender discharge chamber inside it, an annular <strong>air gap</strong> between them, black magnet rings lining the chamber, the gold hollow cathode out the back, and the two perforated grids at the front (screen + accel) with the visible gap between them.</p>
+<p><strong>What I see:</strong> gray outer housing with a tapered front, the lavender discharge chamber inside it, an annular <strong>air gap</strong> between them, black magnet rings lining the chamber, the gold hollow cathode out the back, and the two perforated grids at the front (screen + accel) with the visible gap between them.</p>
 <p><strong>Your three changes, with the concrete numbers I&#x27;ll use</strong> (say the word if you want different):</p>
-<div class="tblwrap"><table><thead><tr><th>Change</th><th>Now</th><th>New</th></tr></thead><tbody><tr><td>Screen grid thickness</td><td>2 mm</td><td><strong>3.5 mm</strong></td></tr><tr><td>Accel grid thickness</td><td>3 mm</td><td><strong>5 mm</strong></td></tr><tr><td>Gap between the two grids</td><td>4 mm</td><td><strong>8 mm</strong></td></tr><tr><td>Air gap: housing ↔ chamber</td><td>~26 mm annulus</td><td><strong>0 — housing filled inward to touch the chamber wall</strong></td></tr><tr><td>Filled-gap color</td><td>—</td><td><strong>housing grey <code>#9096a0</code></strong></td></tr></tbody></table></div>
-<p>So the outer housing becomes a solid body whose inner surface hugs the discharge chamber (no void), keeping the housing grey — exactly as you described.</p>
+<div class="tblwrap"><table><thead><tr><th>Change</th><th>Now</th><th>New</th></tr></thead><tbody><tr><td>Screen grid thickness</td><td>2 mm</td><td><strong>3.5 mm</strong></td></tr><tr><td>Accel grid thickness</td><td>3 mm</td><td><strong>5 mm</strong></td></tr><tr><td>Gap between the two grids</td><td>4 mm</td><td><strong>8 mm</strong></td></tr><tr><td>Air gap: housing ↔ chamber</td><td>~26 mm annulus</td><td><strong>0 — housing filled inward to touch the chamber wall</strong></td></tr><tr><td>Filled-gap color</td><td>—</td><td><strong>housing gray <code>#9096a0</code></strong></td></tr></tbody></table></div>
+<p>So the outer housing becomes a solid body whose inner surface hugs the discharge chamber (no void), keeping the housing gray — exactly as you described.</p>
 <p>Let me write the parametric script now so it&#x27;s ready the moment the kernel finishes.</p>
 <p>build123d is in (that <code>name table</code> line is a harmless fontTools warning). Let me confirm the import and the color/STEP-export API before writing the full model.</p>
 <p>Kernel ready (build123d 0.11.1, color + STEP export confirmed). Now I&#x27;ll write the parametric model. I&#x27;ll output to a <strong>new</strong> file (<code>gridded_ion_3D_v2.STEP</code>) so your original is untouched, then verify it re-imports and render a cross-section preview so you can eyeball the changes before committing.</p>
@@ -1296,8 +1296,8 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>That view shows the cut face but matplotlib can&#x27;t depth-sort a hollow solid — it renders the far inner walls through the near ones, so the empty plasma cavity looks filled. The geometry is right; the renderer is wrong for this. Let me make a <strong>true 2D CAD section</strong> instead: intersect each part with the XZ plane and fill the exact section polygons.</p>
 <p>That&#x27;s a clean CAD section, and it confirms all three changes:</p>
 <ul>
-<li><strong>Grids</strong> (top): two perforated rows — screen (light grey) and accel (dark) — now thicker with a clear wider gap between them. ✓</li>
-<li><strong>No housing↔chamber gap</strong>: the grey housing walls run solid all the way inward and butt directly against the thin chamber wall — the ~26 mm annular void is gone, filled with housing grey. ✓</li>
+<li><strong>Grids</strong> (top): two perforated rows — screen (light gray) and accel (dark) — now thicker with a clear wider gap between them. ✓</li>
+<li><strong>No housing↔chamber gap</strong>: the gray housing walls run solid all the way inward and butt directly against the thin chamber wall — the ~26 mm annular void is gone, filled with housing gray. ✓</li>
 <li>Magnet rings (black) line the inner wall; hollow cathode (gold) exits the rear. ✓</li>
 </ul>
 <p>Let me drop the finished STEP into your project folder next to the original (non-destructive — original untouched).</p>
@@ -1307,7 +1307,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <ul>
 <li>Screen grid <strong>2 → 3.5 mm</strong>, accel grid <strong>3 → 5 mm</strong> thick</li>
 <li>Grid gap <strong>4 → 8 mm</strong></li>
-<li>Housing↔chamber air gap <strong>eliminated</strong> — housing filled inward to meet the chamber wall, kept in housing grey <code>#9096a0</code></li>
+<li>Housing↔chamber air gap <strong>eliminated</strong> — housing filled inward to meet the chamber wall, kept in housing gray <code>#9096a0</code></li>
 </ul>
 <p><strong>Honest caveats</strong> (since this is a parametric *rebuild*, not a copy of the SolidWorks B-rep):</p>
 <ul>
@@ -1338,7 +1338,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <p>The neutralizer is too small/occluded in matplotlib&#x27;s iso. Let me cut a section through <strong>its</strong> plane (x=0, the YZ plane) — that shows the neutralizer profile, the mount block, and the injector clearance all at once.</p>
 <p>This YZ section shows everything working:</p>
 <ul>
-<li><strong>Neutralizer</strong> (top-right): now a proper stepped hollow-cathode — fat bored body → tapered shoulder → bored snout tip, matching your reference image, mounted <strong>outside</strong> the housing by the grey <strong>metal mount block</strong>. ✓</li>
+<li><strong>Neutralizer</strong> (top-right): now a proper stepped hollow-cathode — fat bored body → tapered shoulder → bored snout tip, matching your reference image, mounted <strong>outside</strong> the housing by the gray <strong>metal mount block</strong>. ✓</li>
 <li><strong>Injector</strong> (offset gold tube, right of center): passes through a <strong>clearance notch</strong> in the rear plate — no longer embedded in the shell. ✓</li>
 <li><strong>Cathode</strong> (center): pulled back, tip now only ~20 mm into the chamber. ✓</li>
 <li><strong>Chamber rear edge flush</strong> with the shell&#x27;s inner rear face. ✓</li>
@@ -1352,7 +1352,7 @@ footer{margin-top:80px;padding-top:30px;border-top:1px solid var(--line);color:v
 <li><strong>Chamber rear edge flush</strong> with the shell&#x27;s inner rear face (both at z = −12).</li>
 <li><strong>Cathode &amp; injector pulled outward</strong> — cathode tip now ~20 mm into the chamber (was ~45), injector mostly external with tip ~5 mm inside.</li>
 <li><strong>Neutralizer rebuilt</strong> as a stepped hollow-cathode (bored body → tapered shoulder → bored snout), matching your image.</li>
-<li><strong>Metal mount block</strong> (housing grey) ties the neutralizer to the thruster body.</li>
+<li><strong>Metal mount block</strong> (housing gray) ties the neutralizer to the thruster body.</li>
 </ul>
 <p>Plus the earlier changes (thicker grids, wider gap, filled housing↔chamber gap) are all retained. Colors are embedded, all 10 solids validate. Reopen it in SolidWorks (or reload the VSCode tab) to see it.</p>
 <p>Let me save the CAD setup so I don&#x27;t have to rediscover it next time.</p>

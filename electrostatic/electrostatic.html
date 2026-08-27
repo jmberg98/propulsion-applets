@@ -384,38 +384,49 @@ details.cf-outputs > summary::before {
 details.cf-outputs[open] > summary::before { transform: rotate(90deg); }
 details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
 
-#otable { width: 100%; border-collapse: collapse; table-layout: fixed; }
-#otable th {
-  font-size: 11px;
+/* ── Output table ───────────────────────────────────────────
+   The house out-* spec (hall_thruster.html) applied to a two-column
+   comparison. Column headers take the .out-label spec (9px / .7px /
+   uppercase / muted); every number takes .out-val (19px Courier 600).
+   The row-label column is the ONE documented exception: it carries unit
+   symbols ([m/s], [rad/s]) that .out-label's uppercase would corrupt into
+   [M/S], so it stays sentence-case Barlow at the .out-sub size. */
+.out-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.out-table .out-label,
+.out-table th {
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: .8px;
+  letter-spacing: .7px;
   text-transform: uppercase;
-  color: #545454;
+  color: var(--text-muted);
   padding: 3px 5px 5px;
   text-align: right;
   border-bottom: 1px solid var(--border);
 }
-#otable th:first-child { text-align: left; }
-#otable td {
+.out-table th:first-child { text-align: left; }
+.out-table .out-val,
+.out-table td {
   padding: 5px 5px;
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 19px;
+  font-weight: 600;
   text-align: right;
   color: var(--hi-blue);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#otable td:first-child {
+.out-table td:first-child {
   text-align: left;
-  color: #545454;
+  color: var(--text-muted);
   font-family: 'Barlow', sans-serif;
+  font-weight: 400;
   font-size: 11.5px;
   line-height: 1.35;
   white-space: normal;
   padding-right: 8px;
 }
-#otable tr + tr td { border-top: 1px solid #141414; }
+.out-table tr + tr td { border-top: 1px solid #141414; }
 
 #error-msg {
   background: rgba(74,0,0,.85);
@@ -634,7 +645,7 @@ details.cf-outputs > summary .cf-sect { margin-bottom: 0; }
     <!-- ── Outputs (dropdown) ── -->
     <details class="cf-outputs">
       <summary><span class="cf-sect">Key Parameters</span></summary>
-      <table id="otable">
+      <table class="out-table">
         <tr>
           <th></th>
           <th id="th-A" style="color:#4d9bff">Particle</th>

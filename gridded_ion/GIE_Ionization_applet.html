@@ -111,6 +111,69 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   margin-left: 0;
 }
 
+/* ── Derivation equation panels ─────────────────────── */
+.eq-panel { margin-top: 8px; }
+.eq-step-label {
+  display: block;
+  font-size: 15px;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+  color: #8a8b8c;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.eq-caption {
+  display: block;
+  font-size: 18.5px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.eq-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+details.deriv-detail {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+details.deriv-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--bg-input);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .9px;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  user-select: none;
+}
+details.deriv-detail > summary::-webkit-details-marker { display: none; }
+details.deriv-detail > summary::before {
+  content: '\25B6';
+  font-size: 9px;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
+details.deriv-detail > summary:focus-visible {
+  outline: 1px solid var(--c-accent);
+  outline-offset: -2px;
+}
+.deriv-inner {
+  padding: 10px 14px 14px;
+  background: var(--bg-panel-1);
+  border-top: 1px solid var(--border);
+}
+
 /* ── Highlight classes ────────────────────────────────────
    Color is the ONLY channel these use — never weight, never
    size. Color answers "which quantity is this?".  For a term
@@ -135,13 +198,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -157,7 +220,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -165,7 +228,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -180,7 +243,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -189,7 +252,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 /* ── Transition line ─────────────────────────────────── */
 .transition-line {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.6;
   color: var(--text-secondary);
   font-style: italic;
@@ -209,7 +272,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -225,7 +288,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -252,7 +315,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -270,7 +333,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -280,7 +343,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -347,7 +410,7 @@ details.clarify-detail > summary:focus-visible {
   padding: 24px;
 }
 .demo-placeholder-tag {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -357,7 +420,7 @@ details.clarify-detail > summary:focus-visible {
   padding: 5px 12px;
 }
 .demo-placeholder-note {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   font-style: italic;
   max-width: 540px;
@@ -376,7 +439,7 @@ details.clarify-detail > summary:focus-visible {
 .fig-frame svg { display: block; width: 100%; height: auto; }
 .fig-caption {
   padding: 11px 18px 15px;
-  font-size: 17.5px;
+  font-size: 18.5px;
   line-height: 1.55;
   color: var(--text-muted);
 }
@@ -441,7 +504,7 @@ button.term-dd:focus-visible {
   margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -459,14 +522,14 @@ button.term-dd:focus-visible {
   background: var(--bg-panel-2);
 }
 .quiz-q {
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 10px;
@@ -487,7 +550,7 @@ button.term-dd:focus-visible {
   border-radius: 4px;
   color: var(--text-main);
   font-family: 'Barlow', sans-serif;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -520,7 +583,7 @@ button.term-dd:focus-visible {
   color: #7fb98a;
 }
 .quiz-opt-label {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #444;
   flex-shrink: 0;
@@ -544,7 +607,7 @@ button.term-dd:focus-visible {
 .quiz-opt-text { display: block; }
 .quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   font-style: italic;
   color: var(--text-muted);
@@ -567,7 +630,7 @@ button.term-dd:focus-visible {
   border-radius: 4px;
   color: var(--text-heading);
   font-family: 'Barlow', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -577,7 +640,7 @@ button.term-dd:focus-visible {
 .quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
 .quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
@@ -600,7 +663,7 @@ button.term-dd:focus-visible {
 .applet-nav a,
 .applet-nav .nav-disabled {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-decoration: none;
@@ -644,15 +707,77 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
+/* ── Citation superscripts ─────────────────────────── */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Sources list ──────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 17px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
 </style>
 </head>
 <body>
@@ -672,11 +797,12 @@ footer .foot-cred {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  In order for the ion engine to actually accelerate propellant to generate <span class="hl-thrust">thrust</span>,
+  In order for the ion engine to actually accelerate propellant to generate <span class="hl-thrust">thrust $F_N$</span>,
   the propellant must be separated into positively and negatively charged particles, or
   <span class="key">ionized</span>, in the <span class="key">ionization chamber</span>.
   <span class="hl-neutral">Neutral propellant particles</span> are typically ionized by
-  <span class="hl-electron">electron</span> bombardment or radio-frequency (RF) wave emitters. Both deliver the
+  <span class="hl-electron">electron</span> bombardment or radio-frequency (RF) wave
+  emitters.<sup class="cite"><a href="#ref-2">2</a>,<a href="#ref-3">3</a>,<a href="#ref-5">5</a></sup> Both deliver the
   required energy to separate an electron from a
   <span class="hl-neutral">neutral particle</span>, producing a positively charged <span class="hl-ion">ion</span>
   that we can use for thrust!
@@ -700,7 +826,8 @@ footer .foot-cred {
   the path length the electron takes in the <span class="key">ionization chamber</span>.
   This way, an electron has more chances to ionize a
   <span class="hl-neutral">neutral atom</span>. Consider a <span class="key">utilization fraction</span> $\mu_u$: the
-  fraction of propellant injected into the <span class="key">ionization chamber</span> that actually gets ionized. The
+  fraction of propellant injected into the <span class="key">ionization chamber</span> that actually gets
+  ionized.<sup class="cite"><a href="#ref-1">1</a>,<a href="#ref-6">6</a></sup> The
   greater this <span class="key">utilization fraction</span> is, the more efficient the engine!
 </p>
 
@@ -735,7 +862,7 @@ footer .foot-cred {
   <div class="quiz-block" data-quiz="single">
     <p class="quiz-q">The walls of the ion engine collect charge from incoming
     <span class="hl-electron">electrons</span> and <span class="hl-ion">ions</span>. Knowing what you know about
-    <span class="hl-q">charged particles</span> and how they respond to electromagnetic fields, how might we prevent
+    charged particles and how they respond to electromagnetic fields, how might we prevent
     electrons from hitting the walls too early?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
@@ -900,13 +1027,22 @@ footer .foot-cred {
     High <span class="key">utilization fractions</span> are achieved because the bulk chamber plasma forms a
     <span class="key">meniscus</span> at each grid opening. From this meniscus (better seen in
     <a class="applet-link" href="GIE_Acceleration_applet.html">GIE II: Acceleration</a>), the
-    <span class="hl-ion">ions</span> are extracted by the strong <span class="hl-E">electric field</span>. For
+    <span class="hl-ion">ions</span> are extracted by the strong <span class="hl-E">electric field $E$</span>. For
     <span class="hl-neutral">neutrals</span> to drift between the grids, they must do so by chance from their
     random motion. They may travel past the <span class="key">screen grid</span> but hit the
     <span class="key">accelerator grid</span> and get reflected back into the chamber. They may end up in the
     final exhaust jet. However, they are not nearly as favored to do so as the ions being extracted from the
     chamber plasma.
   </p>
+
+  <!-- Restated from GIE_Overview_applet.html's Governing Equations panel, which stays
+       the single place every gridded-ion equation is listed. This is the one that
+       governs THIS stage, so the reader meets it where the concept is taught. -->
+  <div class="eq-panel">
+    <span class="eq-step-label">Propellant Utilization</span>
+       $$ \boxed{\;\textcolor{#C060FF}{\mu_u}
+       = \frac{\textcolor{#FF4400}{\dot{m}_{ion}}}{\textcolor{#FF4400}{\dot{m}_{total}}}\;} $$
+  </div>
 </div>
 
 <!-- ════════════════════ CONCEPTUAL QUESTION ════════════════════ -->
@@ -915,18 +1051,47 @@ footer .foot-cred {
 
   <details class="clarify-detail">
     <summary>Why are <span class="hl-electron">electrons</span> that travel perpendicular into the
-    <span class="hl-B">magnetic field</span> lines not trapped like in the Magnetic Mirror Applet?</summary>
+    <span class="hl-B">magnetic field $\vec{B}$</span> lines not trapped like in the Magnetic Mirror Applet?</summary>
     <div class="clarify-body">
       Recall that in the derivation for
       <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirror</a> trapping, an
       important assumption
-      was that the <span class="hl-B">magnetic field</span> strength was not changing during a
+      was that the <span class="hl-B">magnetic field $\vec{B}$</span> strength was not changing during a
       <span class="key">cyclotron orbit</span>. In a gridded ion engine, the magnetic field lines between
-      <span class="key">cusps</span> are not sufficient for this assumption to hold. Thus, incoming
+      <span class="key">cusps</span> are not sufficient for this assumption to
+      hold.<sup class="cite"><a href="#ref-4">4</a>,<a href="#ref-7">7</a></sup> Thus, incoming
       <span class="hl-electron">electrons</span> are reflected or lost, not trapped.
     </div>
   </details>
 </div>
+
+<!-- ════════════════════ SOURCES ════════════════════
+     Lesson-wide entries are duplicated verbatim from GIE_Overview_applet.html, which
+     stays the lesson's master list; entries specific to THIS stage follow them, and
+     live only here. The numbering is this page's own, because a page carries only the
+     entries it cites. An <ol>, so the printed numbers ARE the superscript numbers;
+     APPEND new entries rather than slotting them in, or the .cite markers already in
+     the prose stop pointing at the right row. -->
+<details class="refs" id="sources">
+  <summary class="refs-hdr">Sources</summary>
+  <ol>
+    <li id="ref-1">D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion: Ion and Hall Thrusters</em>, JPL Space
+      Science and Technology Series, Wiley, 2008. Ch. 2, 4, 5 and 6.</li>
+    <li id="ref-2">H. R. Kaufman, &ldquo;An Ion Rocket with an Electron-Bombardment Ion Source,&rdquo; NASA TN D-585 (1961).</li>
+    <li id="ref-3">H. R. Kaufman, &ldquo;Technology of Electron-Bombardment Ion Thrusters,&rdquo; <em>Advances in Electronics
+      and Electron Physics</em> <b>36</b>, 265&ndash;373 (1974).</li>
+    <li id="ref-4">J. S. Sovey, &ldquo;Improved Ion Containment Using a Ring-Cusp Ion Thruster,&rdquo; <em>J. Spacecraft and
+      Rockets</em> <b>21</b>(5), 488&ndash;495 (1984).</li>
+    <li id="ref-5">K. Holste, P. Dietz, S. Scharmann et al., &ldquo;Ion thrusters for electric propulsion:
+      Scientific issues developing a niche technology into a game changer,&rdquo; <em>Rev. Sci. Instrum.</em>
+      <b>91</b>(6), 061101 (2020), <a href="https://doi.org/10.1063/5.0010134" target="_blank"
+      rel="noopener">doi:10.1063/5.0010134</a>.</li>
+    <li id="ref-6">J. R. Brophy &amp; P. J. Wilbur, &ldquo;Simple performance model for ring and line cusp ion
+      thrusters,&rdquo; <em>AIAA Journal</em> <b>23</b>(11), 1731&ndash;1736 (1985).</li>
+    <li id="ref-7">F. F. Chen, <em>Introduction to Plasma Physics and Controlled Fusion</em>, 3rd ed., Springer,
+      2016. Ch. 2.</li>
+  </ol>
+</details>
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">

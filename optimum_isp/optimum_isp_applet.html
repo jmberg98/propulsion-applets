@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Optimal Specific Impulse &amp; Mission Design</title>
+<title>Optimum Specific Impulse &amp; Mission Design</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -133,13 +133,13 @@ footer {
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -155,7 +155,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -163,7 +163,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -178,7 +178,7 @@ footer {
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -195,7 +195,7 @@ footer {
   margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -209,7 +209,7 @@ footer {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -230,7 +230,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -257,7 +257,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -275,7 +275,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -285,7 +285,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -478,9 +478,25 @@ details.deriv-detail > summary:focus-visible {
   column-gap: 8px;
   margin-bottom: 4px;
 }
+/* alpha runs from 1e-4 to 10, so its readout carries an exponent
+   (2.951e-4) where the other four parameters fit in five digits.
+   84px of Courier holds barely six characters, which clipped the
+   fusion band down to "0.0002". "Spec. mass" is a short enough
+   label to lend the extra width back. */
+.cf-param-row.val-wide { grid-template-columns: 24px 1fr 120px 36px; }
 .cf-sym  { text-align: center; font-size: 17px; color: var(--text-secondary); }
 .cf-desc { font-size: 16px; color: #727272; line-height: 1.3; }
 .cf-unit { font-size: 15px; color: #444; white-space: nowrap; }
+/* The slot right of an input is for UNITS. An input's valid range goes on its
+   own line underneath, the way specific_impulse_applet.html does it; right
+   aligned so it reads under the value box rather than under the symbol. */
+.cf-range {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: .3px;
+  text-align: right;
+  margin: 2px 0 0;
+}
 
 .cf-inp {
   width: 100%; padding: 5px 7px;
@@ -690,7 +706,7 @@ details.deriv-detail > summary:focus-visible {
 .applet-nav a,
 .applet-nav .nav-disabled {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-decoration: none;
@@ -734,15 +750,86 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
+/* ── Citation superscripts ─────────────────────────── */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Sources list ──────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 17px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 </style>
 </head>
 <body>
@@ -756,15 +843,15 @@ footer .foot-cred {
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Optimal Specific Impulse &amp; Mission Design</h1>
+  <h1>Optimum Specific Impulse &amp; Mission Design</h1>
   <span class="badge">Mission Analysis</span>
 </div>
 
 <!-- ════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   Spacecraft and satellites are designed with <span class="key">mission requirements</span> in mind, namely a
-  <span class="hl-ve">mission Delta-V</span>, desired <span class="hl-mass">payload mass</span>, and
-  required <span class="key">mission time</span>. While technological and physical constraints restrict
+  <span class="hl-ve">mission Delta-V $\Delta v$</span>, desired <span class="hl-mass">payload mass $m_{pay}$</span>, and
+  required <span class="key">mission time</span>.<sup class="cite"><a href="#ref-2">2</a></sup> While technological and physical constraints restrict
   <span class="key">propulsion device</span> choices, these mission requirements help guide what
   <span class="key">propulsion device</span> is best for the desired mission. Use the applet below to
   explore how different mission parameters and technology readiness impact our choice of propulsive device.
@@ -783,22 +870,22 @@ footer .foot-cred {
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>Why isn't higher <span class="hl-ve">specific impulse</span> always better? How does higher
+    <span>Why isn't higher <span class="hl-ve">specific impulse $I_{sp}$</span> always better? How does higher
     specific impulse affect <span class="key">mission time</span> for a given
-    <span class="hl-power">power source</span>?</span>
+    power source?</span>
   </div>
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>How does our mission <span class="hl-ve">Delta-V</span> affect the optimum
-    <span class="hl-ve">exhaust velocity</span> and thus desired
-    <span class="hl-ve">specific impulse</span>?</span>
+    <span>How does our mission <span class="hl-ve">Delta-V $\Delta v$</span> affect the optimum
+    <span class="hl-ve">exhaust velocity $c$</span> and thus desired
+    <span class="hl-ve">specific impulse $I_{sp}$</span>?</span>
   </div>
 </div>
 
 <!-- ════════════════ APPLET ════════════════ -->
 <div class="theory-block applet-host">
-  <div class="th-hdr">Stuhlinger Curve &#x2014; Interactive Demo</div>
+  <div class="th-hdr">Stuhlinger Curve<sup class="cite"><a href="#ref-3">3</a></sup></div>
 
   <div class="applet-body">
 
@@ -825,9 +912,10 @@ footer .foot-cred {
               <span class="cf-sym">η</span>
               <span class="cf-desc">Efficiency</span>
               <input type="number" id="n-eta" class="cf-inp" value="0.65" min="0.10" max="1.00" step="0.01">
-              <span class="cf-unit">0–1</span>
+              <span class="cf-unit"></span>
             </div>
             <input type="range" id="s-eta" class="cf-slider" min="0.10" max="1.00" step="0.01" value="0.65">
+            <div class="cf-range">0.10 &ndash; 1.00</div>
           </div>
 
           <div class="cf-param">
@@ -838,6 +926,7 @@ footer .foot-cred {
               <span class="cf-unit">N</span>
             </div>
             <input type="range" id="s-F" class="cf-slider" min="0.01" max="20.0" step="0.01" value="1.0">
+            <div class="cf-range">0.01 &ndash; 20.0 N</div>
           </div>
 
           <div class="cf-param">
@@ -848,6 +937,7 @@ footer .foot-cred {
               <span class="cf-unit">days</span>
             </div>
             <input type="range" id="s-t" class="cf-slider" min="10" max="2000" step="1" value="180">
+            <div class="cf-range">1 &ndash; 2000 days</div>
           </div>
 
           <div class="cf-param">
@@ -858,6 +948,7 @@ footer .foot-cred {
               <span class="cf-unit">m/s</span>
             </div>
             <input type="range" id="s-dv" class="cf-slider" min="100" max="60000" step="100" value="3000">
+            <div class="cf-range">100 &ndash; 60000 m/s</div>
           </div>
 
           <div class="cf-panel-divider"></div>
@@ -865,13 +956,14 @@ footer .foot-cred {
           <div class="cf-sect">Specific Mass</div>
 
           <div class="cf-param">
-            <div class="cf-param-row">
+            <div class="cf-param-row val-wide">
               <span class="cf-sym">α</span>
               <span class="cf-desc">Spec. mass</span>
               <input type="number" id="n-alpha" class="cf-inp" value="0.02" min="0.0001" max="10" step="any">
               <span class="cf-unit">kg/W</span>
             </div>
             <input type="range" id="s-alpha" class="cf-slider" min="-4" max="1" step="0.01">
+            <div class="cf-range">0.0001 &ndash; 10 kg/W</div>
           </div>
 
           <div class="regbox">
@@ -928,42 +1020,42 @@ footer .foot-cred {
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <details class="clarify-detail">
-    <summary>Why isn't higher <span class="hl-ve">specific impulse</span> always better? How does higher
+    <summary>Why isn't higher <span class="hl-ve">specific impulse $I_{sp}$</span> always better? How does higher
     specific impulse affect <span class="key">mission time</span> for a given
-    <span class="hl-power">power source</span>?</summary>
+    power source?</summary>
     <div class="clarify-body">
       <span class="key">Spacecraft propulsion systems</span> must satisfy a desired
-      <span class="hl-ve">mission Delta-V</span>, a required <span class="key">mission time</span>, and a
-      desired <span class="hl-mass">payload mass</span>. The best
-      <span class="hl-ve">specific impulse</span> is therefore not simply the highest one available, but the one
+      <span class="hl-ve">mission Delta-V $\Delta v$</span>, a required <span class="key">mission time</span>, and a
+      desired <span class="hl-mass">payload mass $m_{pay}$</span>. The best
+      <span class="hl-ve">specific impulse $I_{sp}$</span> is therefore not simply the highest one available, but the one
       that best satisfies the full set of <span class="key">mission requirements</span>. If we arbitrarily increase
       specific impulse without increasing the technology level or efficiency of the
-      <span class="hl-power">power system</span>, we must usually compromise somewhere else. For a fixed
-      <span class="hl-power">power source</span>, higher specific impulse
-      generally means lower <span class="hl-thrust">thrust</span>, which increases
+      power system, we must usually compromise somewhere else. For a fixed
+      power source, higher specific impulse
+      generally means lower <span class="hl-thrust">thrust $F_N$</span>, which increases
       <span class="key">mission time</span>. For example, a spacecraft powered by
-      <span class="hl-power">solar panels</span> may achieve excellent propellant efficiency, but only by
+      solar panels may achieve excellent propellant efficiency, but only by
       accepting lower thrust and therefore a longer
       <span class="key">mission time</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>How does our mission <span class="hl-ve">Delta-V</span> affect the optimum
-    <span class="hl-ve">exhaust velocity</span> and thus desired
-    <span class="hl-ve">specific impulse</span>?</summary>
+    <summary>How does our mission <span class="hl-ve">Delta-V $\Delta v$</span> affect the optimum
+    <span class="hl-ve">exhaust velocity $c$</span> and thus desired
+    <span class="hl-ve">specific impulse $I_{sp}$</span>?</summary>
     <div class="clarify-body">
-      As long as the required <span class="hl-ve">mission Delta-V</span> is small compared with the effective
-      <span class="hl-ve">exhaust velocity</span> $c$, the
-      <span class="hl-ve">Stuhlinger characteristic velocity</span> is a good approximation to the optimum
+      As long as the required <span class="hl-ve">mission Delta-V $\Delta v$</span> is small compared with the effective
+      <span class="hl-ve">exhaust velocity $c$</span> $c$, the
+      <span class="hl-ve">Stuhlinger characteristic velocity $v_{ch}$</span> is a good approximation to the optimum
       exhaust velocity. Lowering the required
       mission Delta-V, while holding other <span class="key">mission parameters</span>
-      fixed, favors lower <span class="hl-thrust">thrust</span>, higher
-      <span class="hl-ve">specific impulse</span> propulsion because more time is available to build up the
+      fixed, favors lower <span class="hl-thrust">thrust $F_N$</span>, higher
+      <span class="hl-ve">specific impulse $I_{sp}$</span> propulsion because more time is available to build up the
       required change in velocity. Raising the required mission Delta-V for the same
       <span class="key">mission time</span> instead favors higher thrust, lower
       specific impulse propulsion, since less time is available for the
-      <span class="hl-power">power system</span> to supply the needed energy. In that sense, higher
+      power system to supply the needed energy. In that sense, higher
       mission Delta-V pushes the design toward shorter, more power-intensive burns,
       while lower mission Delta-V makes slower, more mass-efficient propulsion more
       attractive.
@@ -976,27 +1068,27 @@ footer .foot-cred {
   <div class="clarify-hdr">Clarifying Points</div>
 
   <details class="clarify-detail">
-    <summary>Why do we only care about optimizing for <span class="hl-mass">payload mass</span>?
+    <summary>Why do we only care about optimizing for <span class="hl-mass">payload mass $m_{pay}$</span>?
     Aren't there other design specifications that our spacecraft can be optimized for?</summary>
     <div class="clarify-body">
       This is an important observation. In many missions, we seek to maximize
-      <span class="hl-mass">payload mass</span> so that the spacecraft can carry as much useful equipment or cargo
+      <span class="hl-mass">payload mass $m_{pay}$</span> so that the spacecraft can carry as much useful equipment or cargo
       as possible, such as telecommunications hardware, imaging instruments, telescopes, scientific packages, or crew
       supplies. However, some missions care more about other <span class="key">design objectives</span>, such as
       shorter <span class="key">mission time</span>, lower total cost, or greater reliability. The
-      <span class="hl-ve">Stuhlinger curve</span> is specifically useful for understanding how to maximize
+      Stuhlinger curve is specifically useful for understanding how to maximize
       payload mass, but the underlying ideas and mathematics also provide a strong
       foundation for optimizing other <span class="key">mission parameters</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>If the <span class="hl-ve">Stuhlinger characteristic velocity</span> isn't the optimum
-    <span class="hl-ve">exhaust velocity</span>, what is its significance?</summary>
+    <summary>If the <span class="hl-ve">Stuhlinger characteristic velocity $v_{ch}$</span> isn't the optimum
+    <span class="hl-ve">exhaust velocity $c$</span>, what is its significance?</summary>
     <div class="clarify-body">
       MIT's 16.522 course notes capture the meaning of <span class="hl-ve">$v_{ch}$</span> well: if all
-      <span class="hl-mass">power source mass</span> were accelerated by converting all available
-      <span class="hl-power">electrical energy</span> during time $t_m$, it would reach
+      <span class="hl-mass">power source mass $m_{ps}$</span> were accelerated by converting all available
+      electrical energy during time $t_m$, it would reach
       <span class="hl-ve">$v_{ch}$</span>, where
       $$
       \boxed{
@@ -1006,9 +1098,9 @@ footer .foot-cred {
       }
       $$
       It is therefore effectively the
-      <span class="hl-ve">speed limit</span> of the <span class="hl-thrust">propulsion system</span>. A real
+      <span class="hl-ve">speed limit $v_{ch}$</span> of the propulsion system. A real
       spacecraft never reaches this speed, because some of its mass must remain as
-      <span class="hl-mass">payload</span>, <span class="hl-mass">structure</span>, tanks, and other
+      <span class="hl-mass">payload $m_{pay}$</span>, <span class="hl-mass">structure $m_s$</span>, tanks, and other
       non-propellant components.
     </div>
   </details>
@@ -1016,19 +1108,19 @@ footer .foot-cred {
 
 <!-- ════════════════ DELTA-V & IRE ════════════════ -->
 <div class="theory-block">
-  <div class="th-hdr">Delta-V &amp; The Ideal Rocket Equation</div>
+  <div class="th-hdr"><a class="applet-link" href="../rocket_equation/rocket_equation_applet.html">Delta-V &amp; The Ideal Rocket Equation</a></div>
 
   <p class="th-body">
-    The overall <span class="hl-ve">change in velocity</span> of a spacecraft is determined by both the
-    difference in its <span class="hl-mass">initial and final mass</span> and by its
-    <span class="hl-ve">specific impulse</span>. While higher
+    The overall <span class="hl-ve">change in velocity $\Delta v$</span> of a spacecraft is determined by both the
+    difference in its <span class="hl-mass">initial and final mass $m_0, m_f$</span> and by its
+    <span class="hl-ve">specific impulse $I_{sp}$</span>. While higher
     specific impulse most significantly increases the total
-    <span class="hl-ve">Delta-V</span> of the spacecraft, recall that higher
+    <span class="hl-ve">Delta-V $\Delta v$</span> of the spacecraft, recall that higher
     specific impulses require higher total
-    <span class="hl-power">power</span> to achieve the same <span class="key">mission time</span>.
+    <span class="hl-power">power $P$</span> to achieve the same <span class="key">mission time</span>.
     However, higher total power is not trivial, as higher
     power requirements necessitate higher
-    <span class="hl-power">power + propulsion system mass</span> or greater technology levels.
+    <span class="hl-power">power + propulsion system mass $m_{ps}$</span> or greater technology levels.<sup class="cite"><a href="#ref-1">1</a></sup>
   </p>
 
   <div class="eq-panel">
@@ -1101,11 +1193,11 @@ footer .foot-cred {
   <div class="th-hdr">Spacecraft Mass</div>
 
   <p class="th-body">
-    The various subsystems of a spacecraft comprise its <span class="hl-mass">mass components</span>,
-    namely the <span class="hl-mass">structure</span>, <span class="hl-mass">payload</span>,
-    <span class="hl-mass">propellant</span>, and
-    <span class="hl-power">power source</span>. Generally, the spacecraft is optimized for
-    <span class="hl-mass">payload mass</span> so that it may perform useful tasks. The structural mass is
+    The various subsystems of a spacecraft comprise its mass components,
+    namely the <span class="hl-mass">structure $m_s$</span>, <span class="hl-mass">payload $m_{pay}$</span>,
+    <span class="hl-mass">propellant $m_p$</span>, and
+    <span class="hl-power">power source $m_{ps}$</span>. Generally, the spacecraft is optimized for
+    <span class="hl-mass">payload mass $m_{pay}$</span> so that it may perform useful tasks. The structural mass is
     treated as fixed by the design, while the propellant and
     power source masses vary with the propulsion and power systems.
   </p>
@@ -1166,16 +1258,16 @@ footer .foot-cred {
   <p class="th-body">
     For fixed initial mass, structural mass, and
     <span class="key">mission time</span>, we seek to maximize
-    <span class="hl-mass">payload mass</span>. This is equivalent to minimizing the combined
-    <span class="hl-mass">propellant mass</span> and
-    <span class="hl-mass">power source mass</span> with respect to
-    <span class="hl-ve">exhaust velocity</span>. The notes then use the
+    <span class="hl-mass">payload mass $m_{pay}$</span>. This is equivalent to minimizing the combined
+    <span class="hl-mass">propellant mass $m_p$</span> and
+    <span class="hl-mass">power source mass $m_{ps}$</span> with respect to
+    <span class="hl-ve">exhaust velocity $c$</span>. The notes then use the
     <span class="key">Stuhlinger approximation</span> for the case
     $\textcolor{#3DBFFF}{\Delta v} \ll \textcolor{#3DBFFF}{c}$.
   </p>
 
   <div class="eq-panel">
-    <span class="eq-step-label">Stuhlinger Velocity</span>
+    <span class="eq-step-label">Stuhlinger Velocity<sup class="cite"><a href="#ref-3">3</a>,<a href="#ref-5">5</a></sup></span>
     $$
     \boxed{
     \textcolor{#3DBFFF}{v_{ch}}
@@ -1188,7 +1280,7 @@ footer .foot-cred {
       <summary>Show derivation</summary>
       <div class="deriv-inner">
       <span class="eq-step-label">Derivation</span>
-      <p>Seek to minimize mass of power + propulsion system w/ respect to <span class="hl-ve">c</span></p>
+      <p>Seek to minimize mass of power + propulsion system w/ respect to <span class="hl-ve">$c$</span></p>
       $$ \left.\frac{d(\textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p})}{d\textcolor{#3DBFFF}{c}}\right|_{\textcolor{#FF4400}{F_N},\textcolor{#C060FF}{\eta},t_m}=\frac{d}{d\textcolor{#3DBFFF}{c}}\left(\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}}+\frac{\textcolor{#FF4400}{F_N}}{c}t_m\right)=0 $$
       $$ \rightarrow \frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N}}{2\textcolor{#C060FF}{\eta}}-\frac{\textcolor{#FF4400}{F_N} t_m}{\textcolor{#3DBFFF}{c}^2}=0 $$
       $$ \rightarrow \textcolor{#3DBFFF}{c}^2=\frac{2\textcolor{#C060FF}{\eta} t_m}{\textcolor{#C060FF}{\alpha}} $$
@@ -1198,7 +1290,7 @@ footer .foot-cred {
 
     <div class="eq-divider"></div>
 
-    <span class="eq-step-label">Optimum Exhaust Velocity Objective</span>
+    <span class="eq-step-label">Optimum Exhaust Velocity Objective<sup class="cite"><a href="#ref-4">4</a>,<a href="#ref-5">5</a></sup></span>
     $$
     \boxed{\mathrm{Obj}=e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)}
     $$
@@ -1208,7 +1300,7 @@ footer .foot-cred {
       <summary>Show derivation</summary>
       <div class="deriv-inner">
       <span class="eq-step-label">Derivation</span>
-      <p>Seek to maximize mass of structure + payload w/ respect to <span class="hl-ve">c</span></p>
+      <p>Seek to maximize mass of structure + payload w/ respect to <span class="hl-ve">$c$</span></p>
       $$ \mathrm{Obj}=\frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}}{\textcolor{#FF4400}{m_0}} $$
       $$ =\frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}+\textcolor{#FF4400}{m_p}+\textcolor{#C060FF}{m_{ps}}-\textcolor{#C060FF}{m_{ps}}-\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_0}} $$
       $$ =\frac{\textcolor{#FF4400}{m_0}-\textcolor{#C060FF}{m_{ps}}-\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_0}} $$
@@ -1219,6 +1311,25 @@ footer .foot-cred {
     </details>
   </div>
 </div>
+
+<!-- ════════════════════ SOURCES ════════════════════
+     Entries duplicated verbatim from GIE_Overview_applet.html, which stays the
+     lesson's master list. An <ol>, so the printed numbers ARE the superscript
+     numbers; APPEND new entries rather than slotting them in, or the .cite
+     markers already in the prose stop pointing at the right row. -->
+<details class="refs" id="sources">
+  <summary class="refs-hdr">Sources</summary>
+  <ol>
+    <li id="ref-1">D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion: Ion and Hall Thrusters</em>, JPL Space
+      Science and Technology Series, Wiley, 2008. Ch. 2, 4, 5 and 6.</li>
+    <li id="ref-2">M. Mart&iacute;nez-S&aacute;nchez &amp; J. E. Pollard, &ldquo;Spacecraft Electric Propulsion - An
+      Overview,&rdquo; <em>J. Propulsion and Power</em> <b>14</b>(5), 688&ndash;699 (1998).</li>
+    <li id="ref-3">E. Stuhlinger, <em>Ion Propulsion for Space Flight</em>, McGraw-Hill, New York, 1964.</li>
+    <li id="ref-4">J. H. Irving, &ldquo;Low-Thrust Flight: Variable Exhaust Velocity in Gravitational
+      Fields,&rdquo; in <em>Space Technology</em>, ed. H. S. Seifert, Wiley, New York, 1959, ch. 10.</li>
+    <li id="ref-5">R. G. Jahn, <em>Physics of Electric Propulsion</em>, McGraw-Hill, 1968 (Dover reprint, 2006).</li>
+  </ol>
+</details>
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
@@ -1302,7 +1413,7 @@ function powerName(al) {
   if (al >= 0.1)   return "RTG / Solar (deep-space)";
   if (al >= 0.01)  return "Solar (near-Earth)";
   if (al >= 0.001) return "Nuclear fission";
-  return "Advanced nuclear";
+  return "Fusion Power";
 }
 
 const DEVICE_REGIMES = [
@@ -1362,6 +1473,21 @@ function setHint(id, txt, col) {
 function gFmt(x, n) {
   if (!isFinite(x)) return String(x);
   return parseFloat(x.toPrecision(n || 4)).toString();
+}
+/* Plain decimals throw away every digit that matters at the fusion
+   end of alpha: 0.000295121 loses its mantissa to the width of the
+   field. Once the number is down to four zeros (0.000...), write
+   the exponent out instead, so the fusion band keeps four
+   significant figures in eight characters. Number inputs accept
+   and parse this form. Above that, stay decimal, with the figure
+   count set so nothing runs past nine characters of Courier. */
+function alphaFmt(v) {
+  if (!isFinite(v) || v <= 0) return gFmt(v, 6);
+  if (v >= 1e-3) return gFmt(v, v < 1e-2 ? 5 : 6);
+  let e = Math.floor(Math.log10(v));
+  let m = parseFloat((v / Math.pow(10, e)).toFixed(3));
+  if (m >= 10) { m /= 10; e += 1; }
+  return `${m}e${e}`;
 }
 
 /* ═══════════════════  controls  ═══════════════════════════════════════ */
@@ -1435,7 +1561,7 @@ function syncFromNumber(key, doUpdate) {
   if (!isFinite(v)) v = (c.scale === "log") ? sliderToAlpha(+s.value) : +s.value;
   v = clamp(v, c.min, c.max);
   if (c.scale === "log") {
-    n.value = gFmt(v, 6);
+    n.value = alphaFmt(v);
     s.value = alphaToSlider(v);
     updateAlphaRegimeMarker(v);
   } else {
@@ -1462,7 +1588,7 @@ function syncFromSlider(key) {
   const c = CTRL[key], n = $(c.num), s = $(c.slider);
   const v = (c.scale === "log") ? sliderToAlpha(+s.value) : +s.value;
   if (c.scale === "log") {
-    n.value = gFmt(v, 6);
+    n.value = alphaFmt(v);
     updateAlphaRegimeMarker(v);
   } else {
     n.value = String(v);

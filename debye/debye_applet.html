@@ -98,7 +98,7 @@ footer { width: var(--page-w); }
 
 /* Caption under an embedded demo — tells the reader what to go and try. */
 .demo-blurb {
-  font-size: 18.5px; line-height: 1.65; color: var(--text-muted); margin-bottom: 22px;
+  font-size: 19.5px; line-height: 1.65; color: var(--text-muted); margin-bottom: 22px;
 }
 
 .theory-block.applet-host { width: var(--page-w); margin-left: 0; }
@@ -127,13 +127,13 @@ footer { width: var(--page-w); }
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -144,14 +144,14 @@ footer { width: var(--page-w); }
 /* ── Header ──────────────────────────────────────────── */
 #hdr { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
 }
 
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -166,7 +166,7 @@ footer { width: var(--page-w); }
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -179,7 +179,7 @@ footer { width: var(--page-w); }
 
 /* ── Transition line ─────────────────────────────────── */
 .transition-line {
-  font-size: 20.5px; line-height: 1.6; color: var(--text-secondary); font-style: italic;
+  font-size: 21.5px; line-height: 1.6; color: var(--text-secondary); font-style: italic;
   margin: 6px 0 20px; padding-top: 18px; border-top: 1px solid var(--border);
 }
 
@@ -189,7 +189,7 @@ footer { width: var(--page-w); }
   background: var(--bg-panel-1); padding: 16px 18px; margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -199,7 +199,7 @@ footer { width: var(--page-w); }
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -217,8 +217,21 @@ footer { width: var(--page-w); }
 .theory-block.applet-host .th-hdr { margin: 0 18px 12px; }
 
 .applet-frame {
-  display: block; width: 100%; height: 700px; border: 0;
-  border-top: 1px solid var(--border); background: var(--bg-canvas);
+  display: block;
+  width: 100%;
+  /* Was a flat `height: 700px`. The page band grew to --page-w without the frame
+     following, so the demo got squatter as the page got wider: at a 1500px band
+     this frame stood 700px tall where the gridded-ion and Hall-thruster pages give
+     theirs 820. Same rule as those pages now, copied across unchanged. The ratio
+     is what sets the height, min-height holds the floor once the band is narrow,
+     and max-height keeps the whole demo inside one screen on a laptop. */
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
 }
 
 /* ── Inline applet link ─────────────────────────────── */
@@ -334,7 +347,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -352,14 +365,14 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   background: var(--bg-panel-2);
 }
 .quiz-q {
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 10px;
@@ -380,7 +393,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   border-radius: 4px;
   color: var(--text-main);
   font-family: 'Barlow', sans-serif;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -413,7 +426,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   color: #7fb98a;
 }
 .quiz-opt-label {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #444;
   flex-shrink: 0;
@@ -437,7 +450,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
 .quiz-opt-text { display: block; }
 .quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   font-style: italic;
   color: var(--text-muted);
@@ -460,7 +473,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   border-radius: 4px;
   color: var(--text-heading);
   font-family: 'Barlow', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -470,7 +483,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
 .quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
 .quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
@@ -483,7 +496,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   background: var(--bg-panel-1); margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -498,7 +511,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -522,7 +535,7 @@ details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-acce
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -538,7 +551,7 @@ details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-acce
   gap: 10px; margin-bottom: 18px;
 }
 .applet-nav a, .applet-nav .nav-disabled {
-  font-family: inherit; font-size: 16px; font-weight: 600; letter-spacing: 0.3px; text-decoration: none;
+  font-family: inherit; font-size: 17px; font-weight: 600; letter-spacing: 0.3px; text-decoration: none;
   padding: 8px 14px; border: 1px solid var(--border); border-radius: 4px;
   color: var(--text-secondary); background: var(--bg-panel-1); white-space: nowrap;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -571,13 +584,13 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
 
@@ -590,7 +603,14 @@ footer .foot-cred {
 @media (max-width: 980px) {
   .applet-frame,
   .demo-frame,
-  .applet-frame.demo-frame { height: 860px; }
+  .applet-frame.demo-frame {
+    height: 860px;
+    /* Both resets are load-bearing: the base rule's aspect-ratio would fight this
+       height, and its max-height: 82vh would clamp the 860 the stacked layout
+       needs down to the height of the window. */
+    aspect-ratio: auto;
+    max-height: none;
+  }
 }
 </style>
 </head>
@@ -683,16 +703,16 @@ $$
 <p class="page-intro section-lead">
   Quasineutrality is not a law that is enforced everywhere at once: it is a result of the plasma constantly
   repairing itself. Suppose we drop an excess of positive charge into the middle of the plasma, or push a probe into
-  it, or let a wall charge up. That charge sets up a <span class="hl-phi">potential</span>. The light, mobile
+  it, or let a wall charge up. That charge sets up a <span class="hl-phi">potential $\phi$</span>. The light, mobile
   <span class="hl-electron">electrons</span> are pulled inwards and crowd around it, while the ions are pushed away.
   Seen from far enough off, the cloud of extra electrons cancels the intruding charge completely: the
-  <span class="hl-phi">potential</span> is <span class="key">screened</span>.
+  <span class="hl-phi">potential $\phi$</span> is <span class="key">screened</span>.
 </p>
 
 <p class="page-intro">
   The screening is never perfect, because the electrons are also in thermal motion and refuse to sit still in the
   potential well. The competition between the electrostatic pull and the thermal energy sets a characteristic
-  distance over which the <span class="hl-phi">potential</span> survives before it is buried. That distance is the
+  distance over which the <span class="hl-phi">potential $\phi$</span> survives before it is buried. That distance is the
   <span class="key">Debye length</span>, <span class="hl-ve">&lambda;<sub>D</sub></span>.
 </p>
 
@@ -821,8 +841,8 @@ $$
 <p class="demo-blurb">
   The horizontal axis is fixed at 700&nbsp;&micro;m across, so the curve is the thing that moves. Raise the temperature
   and the <span class="hl-electron">electron</span> cloud loosens and spreads: the
-  <span class="hl-phi">potential</span> reaches further out. Raise the density and the cloud tightens until the
-  <span class="hl-phi">potential</span> is cut off almost at the source. The dashed markers sit at
+  <span class="hl-phi">potential $\phi$</span> reaches further out. Raise the density and the cloud tightens until the
+  <span class="hl-phi">potential $\phi$</span> is cut off almost at the source. The dashed markers sit at
   <span class="hl-ve">&plusmn;&lambda;<sub>D</sub></span>, where the potential has fallen to
   <span class="hl-phi">&phi;<sub>0</sub></span>/e of its peak.
 </p>
@@ -918,7 +938,7 @@ $$
       Because the equality only holds when you average over a region larger than
       <span class="hl-ve">&lambda;<sub>D</sub></span>. Look closer than that, inside the shielding cloud around
       an <span class="hl-ion">ion</span>, or within a Debye length of a wall, and the charge densities are
-      genuinely different, which is exactly what lets a <span class="hl-phi">potential</span> exist there at all. A
+      genuinely different, which is exactly what lets a <span class="hl-phi">potential $\phi$</span> exist there at all. A
       plasma is neutral on scales large compared to <span class="hl-ve">&lambda;<sub>D</sub></span> and charged on
       scales small compared to it. That is what &ldquo;quasi&rdquo; is doing.
     </div>
@@ -944,7 +964,7 @@ $$
       that cancels an intruding charge has to be a region where electrons pile up and stay piled up. Thermal motion
       works against that: a hot electron sails straight through the potential well instead of settling into it. The
       hotter the electrons, the deeper and wider a well has to be before it can hold them, so the
-      <span class="hl-phi">potential</span> reaches further before it is canceled. Raising
+      <span class="hl-phi">potential $\phi$</span> reaches further before it is canceled. Raising
       <span class="hl-electron">n<sub>e</sub></span> has the opposite effect for the same reason: more electrons per
       unit volume means the pile-up needed is a smaller fractional change in density, achieved closer in.
     </div>
@@ -956,7 +976,7 @@ $$
       That comparison is what earns an ionized gas the name plasma. If the container is smaller than
       <span class="hl-ve">&lambda;<sub>D</sub></span>, the charges never get the chance to screen anything: the
       gas is just a collection of independent particles that happen to be charged, and the walls set the
-      <span class="hl-phi">potential</span> everywhere. If the container is much larger, the bulk of the gas is
+      <span class="hl-phi">potential $\phi$</span> everywhere. If the container is much larger, the bulk of the gas is
       quasineutral and behaves collectively, and the charged regions are pushed into thin
       <span class="key">sheaths</span> a few <span class="hl-ve">&lambda;<sub>D</sub></span> thick against the walls
       and grids. In an ion engine <span class="hl-ve">&lambda;<sub>D</sub></span> is tens of microns while the chamber

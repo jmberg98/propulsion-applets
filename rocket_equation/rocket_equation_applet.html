@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Delta-V &amp; The Ideal Rocket Equation</title>
+<title>Delta-V &amp; The Rocket Equation</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -120,13 +120,13 @@ footer {
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -142,7 +142,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -150,7 +150,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -165,7 +165,7 @@ footer {
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -183,7 +183,7 @@ footer {
 }
 
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -198,7 +198,7 @@ footer {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -227,7 +227,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -257,7 +257,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -276,7 +276,7 @@ details.clarify-detail > summary:focus-visible {
 }
 
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -287,7 +287,7 @@ details.clarify-detail > summary:focus-visible {
 }
 
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -618,6 +618,16 @@ details.deriv-detail > summary:focus-visible {
   font-size: 17px;
   color: #444;
   white-space: nowrap;
+}
+/* The slot right of an input is for UNITS. An input's valid range goes on its
+   own line underneath, the way specific_impulse_applet.html does it; right
+   aligned so it reads under the value box rather than under the symbol. */
+#subway-applet .cf-range {
+  font-size: 13px;
+  color: var(--text-muted);
+  letter-spacing: .3px;
+  text-align: right;
+  margin: -3px 0 7px;
 }
 
 #subway-applet .cf-btn {
@@ -970,6 +980,11 @@ details.deriv-detail > summary:focus-visible {
   font-size: 12px;
 }
 
+#subway-applet .cf-range {
+  font-size: 11px;
+  margin: -2px 0 5px;
+}
+
 /* Buttons */
 #subway-applet .cf-btn-row {
   gap: 6px;
@@ -1072,8 +1087,19 @@ details.deriv-detail > summary:focus-visible {
    ══════════════════════════════════════════════════════ */
 
 #subway-applet .container {
-  /* Slightly larger than before */
-  --applet-map-h: clamp(720px, calc(100vh - 55px), 1040px);
+  /* This was `clamp(720px, calc(100vh - 55px), 1040px)`, which sized the map from
+     the BROWSER WINDOW'S height. The drawing is portrait (1200x1280), so between
+     the two caps on the canvas below it was always the height that bound first and
+     the map never used the width its own column had. Measured: at 1920x860 it drew
+     755px wide inside a 1046px column, and on a 1536x730 laptop 675px inside 932px,
+     half the 1344px page band, with the rest of the column left empty beside it. A
+     short window shrank the map even though nothing about the page had narrowed,
+     which is why it read so much smaller in a browser than in a preview pane.
+     Size it from the column WIDTH instead and keep this as a ceiling only. 1120px
+     sits just above the 1086px the map reaches once --page-w is at its own 1500px
+     cap, so `max-width: calc(100% - 28px)` is what binds at every desktop width and
+     the map comes out the same size in a short window as in a tall one. */
+  --applet-map-h: 1120px;
 }
 
 /* Keep the map viewport fixed and clipped inside the page */
@@ -1081,6 +1107,11 @@ details.deriv-detail > summary:focus-visible {
   position: relative;
   overflow: hidden;
   justify-content: flex-start;
+
+  /* Track the drawing rather than hold a fixed height. The cap above is
+     deliberately taller than the map ever draws, so a fixed height would band the
+     bottom of the column with dead space instead of ending where the map ends. */
+  height: auto;
 }
 
 /* Move only the canvas drawing leftward.
@@ -1292,7 +1323,7 @@ details.deriv-detail > summary:focus-visible {
 .applet-nav a,
 .applet-nav .nav-disabled {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-decoration: none;
@@ -1336,15 +1367,86 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
+/* ── Citation superscripts ─────────────────────────── */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Sources list ──────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 17px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+/* The model reference carries no number (it supports no claim), but it still
+   indents to the numbered entries so the lists read as one stack. */
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+/* Jumped-to entry, so the marker you clicked is obvious once the list opens. */
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+/* Outbound links in an entry (a DOI). The list is deliberately quiet, so these
+   take the surrounding muted color with a rule under them rather than the
+   browser's default blue, which would be the loudest thing on the page. */
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 </style>
 </head>
 <body>
@@ -1358,20 +1460,20 @@ footer .foot-cred {
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
-  <h1>Delta-V &amp; The Ideal Rocket Equation</h1>
+  <h1>Delta-V &amp; The Rocket Equation</h1>
   <span class="badge">Mission Analysis</span>
 </div>
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  The purpose of a <span class="key">spacecraft propulsion system</span> is to deliver a <span class="hl-ve">change in velocity</span> to the vehicle of interest.
+  The purpose of a <span class="key">spacecraft propulsion system</span> is to deliver a change in velocity to the vehicle of interest.
   Orbital maneuvers require a certain change in velocity to be executed. Likewise, the effect of <span class="key">rarefied drag</span> in low orbit
   and the loss of velocity from fighting against gravity necessitate a certain change in velocity to maintain the spacecraft's trajectory.
-  This "certain change in velocity" is quantified as <span class="hl-ve">"Delta-V"</span>. Orbital mechanics dictates the required Delta-V for a mission given the
-  necessary maneuvers and Delta-V losses to gravity and drag. The sum is the required <span class="hl-ve">Delta-V budget</span> for the mission.
+  This "certain change in velocity" is quantified as <span class="hl-ve">"Delta-V" $\Delta v$</span>. Orbital mechanics dictates the required Delta-V for a mission given the
+  necessary maneuvers and Delta-V losses to gravity and drag. The sum is the required <span class="hl-ve">Delta-V budget $\Delta v$</span> for the mission.
 
-  The <span class="key">ideal rocket equation</span> tells us that the available Delta-V budget for the mission is a function of the <span class="hl-ve">effective exhaust velocity</span>,
-  or <span class="hl-ve">specific impulse</span>, of the propulsion system, the vehicle's <span class="hl-mass">initial (wet) mass</span>, and the vehicle's <span class="hl-mass">final (dry) mass</span>. However, it is not
+  The <span class="key">ideal rocket equation</span> tells us that the available Delta-V budget for the mission is a function of the <span class="hl-ve">effective exhaust velocity $c$</span>,
+  or <span class="hl-ve">specific impulse $I_{sp}$</span>, of the propulsion system, the vehicle's <span class="hl-mass">initial (wet) mass $m_0$</span>, and the vehicle's <span class="hl-mass">final (dry) mass $m_f$</span>.<sup class="cite"><a href="#ref-1">1</a>,<a href="#ref-3">3</a></sup> However, it is not
   immediately obvious how these parameters affect the Delta-V budget, nor is it immediately obvious how Delta-V budgets translate to real missions.
 
   To better understand Delta-V, and how the <span class="key">ideal rocket equation</span> affects mission design, let's explore our solar system.
@@ -1389,15 +1491,15 @@ footer .foot-cred {
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>The difference between the dry and wet mass of the vehicle is the <span class="hl-mass">propellant mass</span>.
-    If a mission requires higher <span class="hl-ve">Delta-V</span>, why don't we simply add more
+    <span>The difference between the dry and wet mass of the vehicle is the <span class="hl-mass">propellant mass $m_{\mathrm{prop}}$</span>.
+    If a mission requires higher <span class="hl-ve">Delta-V $\Delta v$</span>, why don't we simply add more
     propellant mass?</span>
   </div>
 
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
-    <span>Greater <span class="hl-ve">specific impulse</span> means that our propulsion system is more mass efficient.
-    How does this affect our <span class="hl-ve">Delta-V budget</span>?</span>
+    <span>Greater <span class="hl-ve">specific impulse $I_{sp}$</span> means that our propulsion system is more mass efficient.
+    How does this affect our <span class="hl-ve">Delta-V budget $\Delta v$</span>?</span>
   </div>
 </div>
 
@@ -1445,15 +1547,17 @@ footer .foot-cred {
                 <div class="cf-sym">\(\lambda\)</div>
                 <div class="cf-desc">Payload ratio</div>
                 <input type="number" id="lambda" value="0.100" step="0.001" min="0" class="cf-inp">
-                <div class="cf-unit">&ge; 0</div>
+                <div class="cf-unit"></div>
               </div>
+              <div class="cf-range">&ge; 0</div>
 
               <div class="cf-param-row">
                 <div class="cf-sym">\(\varepsilon\)</div>
                 <div class="cf-desc">Structural coeff.</div>
                 <input type="number" id="epsilon" value="0.063" step="0.001" min="0" max="1" class="cf-inp">
-                <div class="cf-unit">0&ndash;1</div>
+                <div class="cf-unit"></div>
               </div>
+              <div class="cf-range">0 &ndash; 1</div>
 
               <div class="cf-param-row">
                 <div class="cf-sym">\(c\)</div>
@@ -1461,6 +1565,7 @@ footer .foot-cred {
                 <input type="number" id="c" value="4413" step="1" min="1" class="cf-inp">
                 <div class="cf-unit">m/s</div>
               </div>
+              <div class="cf-range">&ge; 1</div>
 
               <div class="cf-param-row cf-param-row-pair">
                 <div class="cf-sym">\(I_{sp}\)</div>
@@ -1468,6 +1573,7 @@ footer .foot-cred {
                 <input type="number" id="isp" value="450.0" step="0.1" min="0.1" class="cf-inp">
                 <div class="cf-unit">s</div>
               </div>
+              <div class="cf-range">&ge; 0.1</div>
 
               <div class="cf-btn-row">
                 <button class="cf-btn cf-btn-primary" onclick="calculateFromInputs()">Calculate</button>
@@ -1521,19 +1627,19 @@ footer .foot-cred {
     <summary>What is <span class="key">aerobraking</span>? Why don't all destinations in the <span class="key">Solar System</span> have it available?</summary>
     <div class="clarify-body">
       <span class="key">Aerobraking</span> involves using a planet's <span class="key">atmosphere</span> to slow down a spacecraft via <span class="key">drag</span>, giving the spacecraft the ability to reach the destination
-      without spending any <span class="hl-ve">Delta-V</span>. This requires the destination to have sufficient <span class="key">atmosphere</span> to make <span class="key">aerobraking</span> possible. Additionally, <span class="key">aerobraking</span>
+      without spending any <span class="hl-ve">Delta-V $\Delta v$</span>. This requires the destination to have sufficient <span class="key">atmosphere</span> to make <span class="key">aerobraking</span> possible. Additionally, <span class="key">aerobraking</span>
       only helps a spacecraft during arrival, not when a spacecraft is departing from a planetary body. Therefore, takeoff from enormous bodies
-      with high <span class="hl-ve">escape velocities</span> cannot benefit from <span class="key">aerobraking</span>.
+      with high <span class="hl-ve">escape velocities $v_{esc}$</span> cannot benefit from <span class="key">aerobraking</span>.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>How were the <span class="hl-ve">Delta-V values</span> decided for the solar system map? Don't different maneuvers have different <span class="hl-ve">Delta-V costs</span>?</summary>
+    <summary>How were the <span class="hl-ve">Delta-V values $\Delta v$</span> decided for the solar system map? Don't different maneuvers have different <span class="hl-ve">Delta-V costs $\Delta v$</span>?</summary>
     <div class="clarify-body">
-      For simplicity, all maneuvers are done without <span class="key">gravity assists</span>, which would reduce the required <span class="hl-ve">Delta-V</span> for a given destination. All transfers are
-      assumed to be <span class="key">Hohmann transfers</span> with <span class="hl-thrust">burns</span> performed at the periapses. These maneuvers are only possible with <span class="hl-thrust">highly impulsive propulsion devices</span>,
-      which have <span class="hl-ve">low specific impulse</span>. Devices with greater mass efficiency, however, cannot produce these <span class="hl-thrust">high impulse burns</span>, and must use <span class="hl-thrust">low thrust spiral maneuvers</span>.
-      While these spiral maneuvers have higher <span class="hl-ve">Delta-V costs</span>, the <span class="hl-ve">Delta-V budget</span> of these devices far exceeds those of high impulse devices.
+      For simplicity, all maneuvers are done without <span class="key">gravity assists</span>, which would reduce the required <span class="hl-ve">Delta-V $\Delta v$</span> for a given destination. All transfers are
+      assumed to be <span class="key">Hohmann transfers</span> with burns performed at the periapses.<sup class="cite"><a href="#ref-5">5</a></sup> These maneuvers are only possible with highly impulsive propulsion devices,
+      which have <span class="hl-ve">low specific impulse $I_{sp}$</span>. Devices with greater mass efficiency, however, cannot produce these high impulse burns, and must use low thrust spiral maneuvers.
+      While these spiral maneuvers have higher <span class="hl-ve">Delta-V costs $\Delta v$</span>, the <span class="hl-ve">Delta-V budget $\Delta v$</span> of these devices far exceeds those of high impulse devices.<sup class="cite"><a href="#ref-6">6</a></sup>
     </div>
   </details>
 </div>
@@ -1543,24 +1649,24 @@ footer .foot-cred {
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <details class="clarify-detail">
-    <summary>The difference between the dry and wet mass of the vehicle is the <span class="hl-mass">propellant mass</span>. If a mission requires higher <span class="hl-ve">Delta-V</span>, why don't we simply add more propellant mass?</summary>
+    <summary>The difference between the dry and wet mass of the vehicle is the <span class="hl-mass">propellant mass $m_{\mathrm{prop}}$</span>. If a mission requires higher <span class="hl-ve">Delta-V $\Delta v$</span>, why don't we simply add more propellant mass?</summary>
     <div class="clarify-body">
-      Adding more <span class="hl-mass">propellant mass</span> is a valid way to increase the <span class="hl-ve">Delta-V budget</span>. It must be noted that adding propellant mass means that the spacecraft
-      <span class="hl-thrust">propulsion system</span> must now accelerate the mass of the additional <span class="hl-mass">propellant</span> as well. Because of this, adding propellant mass has diminishing returns
-      on increasing <span class="hl-ve">Delta-V</span>. Additionally, additional propellant mass can require additional <span class="hl-mass">structural mass</span>.
+      Adding more <span class="hl-mass">propellant mass $m_{\mathrm{prop}}$</span> is a valid way to increase the <span class="hl-ve">Delta-V budget $\Delta v$</span>. It must be noted that adding propellant mass means that the spacecraft
+      propulsion system must now accelerate the mass of the additional <span class="hl-mass">propellant $m_{\mathrm{prop}}$</span> as well. Because of this, adding propellant mass has diminishing returns
+      on increasing <span class="hl-ve">Delta-V $\Delta v$</span>. Additionally, additional propellant mass can require additional <span class="hl-mass">structural mass $m_{\mathrm{struct}}$</span>.
 
-      While <span class="hl-ve">specific impulse</span> has the strongest effect on increasing Delta-V, <span class="hl-mass">refueling</span> a spacecraft in orbit can also be an effective method
+      While <span class="hl-ve">specific impulse $I_{sp}$</span> has the strongest effect on increasing Delta-V, refueling a spacecraft in orbit can also be an effective method
       of increasing Delta-V. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the propellant
-      of the spacecraft. This is by no means trivial, but could be revolutionary for high Delta-V, high <span class="hl-mass">payload</span> missions.
+      of the spacecraft. This is by no means trivial, but could be revolutionary for high Delta-V, high <span class="hl-mass">payload $m_{\mathrm{payload}}$</span> missions.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>Greater <span class="hl-ve">specific impulse</span> means that our propulsion system is more mass efficient. How does this affect our <span class="hl-ve">Delta-V budget</span>?</summary>
+    <summary>Greater <span class="hl-ve">specific impulse $I_{sp}$</span> means that our propulsion system is more mass efficient. How does this affect our <span class="hl-ve">Delta-V budget $\Delta v$</span>?</summary>
     <div class="clarify-body">
-      Greater mass efficiency lessens the need to carry additional <span class="hl-mass">propellant</span> to achieve a given <span class="hl-ve">Delta-V</span>. Increases in <span class="hl-ve">specific impulse</span>, or
-      <span class="hl-ve">effective exhaust velocity</span>, results in a linear increase in Delta-V. To reach far destinations, or to reach a destination with less propellant
-      and more <span class="hl-mass">payload</span>, greater specific impulses are required. This is the motivation for <span class="hl-power">electric propulsion</span>, which is further explored in the
+      Greater mass efficiency lessens the need to carry additional <span class="hl-mass">propellant $m_{\mathrm{prop}}$</span> to achieve a given <span class="hl-ve">Delta-V $\Delta v$</span>. Increases in <span class="hl-ve">specific impulse $I_{sp}$</span>, or
+      <span class="hl-ve">effective exhaust velocity $c$</span>, results in a linear increase in Delta-V. To reach far destinations, or to reach a destination with less propellant
+      and more <span class="hl-mass">payload $m_{\mathrm{payload}}$</span>, greater specific impulses are required. This is the motivation for electric propulsion, which is further explored in the
       electrostatic acceleration applet.
     </div>
   </details>
@@ -1578,7 +1684,7 @@ footer .foot-cred {
     =
     \textcolor{#3DBFFF}{c}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
     =
-    \frac{\textcolor{#3DBFFF}{I_{sp}}}{g_0}\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
+    \textcolor{#3DBFFF}{I_{sp}}\,g_0\ln\!\left(\frac{\textcolor{#FF4400}{m_0}}{\textcolor{#FF4400}{m_f}}\right)
     }
     $$
 
@@ -1642,9 +1748,9 @@ footer .foot-cred {
   <div class="th-hdr">Specific Impulse</div>
 
   <p class="th-body">
-    Recall that <span class="hl-ve">specific impulse</span> is a measure of how efficiently <span class="hl-mass">propellant mass</span> is used to deliver <span class="key">impulse</span> to our spacecraft.
-    Specific impulse and <span class="hl-ve">effective exhaust velocity</span> are often used interchangeably, as they are directly proportional to each other.
-    It is important to note the units, m/s and s, which indicate whether <span class="hl-ve">exhaust velocity</span> or specific impulse is being referenced.
+    Recall that <span class="hl-ve">specific impulse $I_{sp}$</span> is a measure of how efficiently <span class="hl-mass">propellant mass $m_{\mathrm{prop}}$</span> is used to deliver <span class="key">impulse</span> to our spacecraft.
+    Specific impulse and <span class="hl-ve">effective exhaust velocity $c$</span> are often used interchangeably, as they are directly proportional to each other.
+    It is important to note the units, m/s and s, which indicate whether <span class="hl-ve">exhaust velocity $c$</span> or specific impulse is being referenced.<sup class="cite"><a href="#ref-2">2</a>,<a href="#ref-4">4</a></sup>
   </p>
 
   <details class="deriv-detail">
@@ -1683,6 +1789,30 @@ footer .foot-cred {
     </div>
   </details>
 </div>
+
+<!-- ════════════════════ SOURCES ════════════════════
+     Entries duplicated verbatim from GIE_Overview_applet.html, which stays the
+     lesson's master list. An <ol>, so the printed numbers ARE the superscript
+     numbers; APPEND new entries rather than slotting them in, or the .cite
+     markers already in the prose stop pointing at the right row. -->
+<details class="refs" id="sources">
+  <summary class="refs-hdr">Sources</summary>
+  <ol>
+    <li id="ref-1">D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion: Ion and Hall Thrusters</em>, JPL Space
+      Science and Technology Series, Wiley, 2008. Ch. 2, 4, 5 and 6.</li>
+    <li id="ref-2">M. Mart&iacute;nez-S&aacute;nchez &amp; J. E. Pollard, &ldquo;Spacecraft Electric Propulsion - An
+      Overview,&rdquo; <em>J. Propulsion and Power</em> <b>14</b>(5), 688&ndash;699 (1998).</li>
+    <li id="ref-3">K. E. Tsiolkovsky, &ldquo;Issledovanie mirovykh prostranstv reaktivnymi priborami&rdquo;
+      (&ldquo;Exploration of Outer Space by Means of Reaction Devices&rdquo;), <em>Nauchnoe Obozrenie</em> No. 5
+      (1903).</li>
+    <li id="ref-4">G. P. Sutton &amp; O. Biblarz, <em>Rocket Propulsion Elements</em>, 9th ed., Wiley, 2017.</li>
+    <li id="ref-5">W. Hohmann, <em>Die Erreichbarkeit der Himmelsk&ouml;rper</em>, Oldenbourg, Munich, 1925;
+      English translation, <em>The Attainability of Heavenly Bodies</em>, NASA TT F-44 (1960).</li>
+    <li id="ref-6">T. N. Edelbaum, &ldquo;Propulsion Requirements for Controllable Satellites,&rdquo;
+      <em>ARS Journal</em> <b>31</b>(8), 1079&ndash;1089 (1961), <a href="https://doi.org/10.2514/8.5723"
+      target="_blank" rel="noopener">doi:10.2514/8.5723</a>.</li>
+  </ol>
+</details>
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">

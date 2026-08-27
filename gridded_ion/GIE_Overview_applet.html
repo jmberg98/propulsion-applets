@@ -97,6 +97,15 @@ footer {
   width: var(--page-w);
 }
 
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 .theory-block.applet-host {
   width: var(--page-w);
   margin-left: 0;
@@ -126,13 +135,13 @@ footer {
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -148,7 +157,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -156,7 +165,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -171,7 +180,7 @@ footer {
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -180,7 +189,7 @@ footer {
 
 /* ── Transition line ─────────────────────────────────── */
 .transition-line {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.6;
   color: var(--text-secondary);
   font-style: italic;
@@ -200,7 +209,7 @@ footer {
   margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -216,7 +225,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -243,7 +252,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -261,7 +270,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -271,7 +280,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -311,7 +320,7 @@ details.clarify-detail > summary:focus-visible {
 .ex-item { padding: 12px 0 2px; border-top: 1px solid var(--border); }
 .ex-item:first-child { padding-top: 0; border-top: none; }
 .ex-name {
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   line-height: 1.4;
   margin-bottom: 2px;
@@ -325,14 +334,14 @@ details.clarify-detail > summary:focus-visible {
 .ex-name a:hover { color: #ffffff; border-bottom-color: var(--c-accent); }
 .ex-name a:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 3px; }
 .ex-name .ext {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-muted);
   margin-left: 5px;
   vertical-align: 1px;
 }
 /* Spec strip: the numbers this lesson's equations actually predict. */
 .ex-specs {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-muted);
   letter-spacing: .2px;
   margin-bottom: 5px;
@@ -361,7 +370,7 @@ details.clarify-detail > summary:focus-visible {
   background: var(--bg-canvas);
 }
 .ex-fig figcaption {
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.5;
   color: var(--text-muted);
   max-width: 460px;
@@ -373,7 +382,7 @@ details.clarify-detail > summary:focus-visible {
 }
 .ex-fig .credit {
   display: inline-block;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: .3px;
   color: #5f5f5f;
 }
@@ -433,7 +442,7 @@ details.clarify-detail > summary:focus-visible {
   padding: 24px;
 }
 .demo-placeholder-tag {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -443,7 +452,7 @@ details.clarify-detail > summary:focus-visible {
   padding: 5px 12px;
 }
 .demo-placeholder-note {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   font-style: italic;
   max-width: 540px;
@@ -461,7 +470,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -479,14 +488,14 @@ details.clarify-detail > summary:focus-visible {
   background: var(--bg-panel-2);
 }
 .quiz-q {
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 10px;
@@ -507,7 +516,7 @@ details.clarify-detail > summary:focus-visible {
   border-radius: 4px;
   color: var(--text-main);
   font-family: 'Barlow', sans-serif;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -540,7 +549,7 @@ details.clarify-detail > summary:focus-visible {
   color: #7fb98a;
 }
 .quiz-opt-label {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #444;
   flex-shrink: 0;
@@ -564,7 +573,7 @@ details.clarify-detail > summary:focus-visible {
 .quiz-opt-text { display: block; }
 .quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   font-style: italic;
   color: var(--text-muted);
@@ -587,7 +596,7 @@ details.clarify-detail > summary:focus-visible {
   border-radius: 4px;
   color: var(--text-heading);
   font-family: 'Barlow', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -597,7 +606,7 @@ details.clarify-detail > summary:focus-visible {
 .quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
 .quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
@@ -625,14 +634,14 @@ details.clarify-detail > summary:focus-visible {
 
 /* ── Reference list ─────────────────────────────────── */
 .refs {
-  width: var(--page-w); font-size: 16px; line-height: 1.6;
+  width: var(--page-w); font-size: 17px; line-height: 1.6;
   color: var(--text-muted); margin-bottom: 16px;
 }
 .refs > summary.refs-hdr {
   cursor: pointer;
   list-style: none;
   display: block;
-  font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
   color: var(--c-accent);
   padding: 2px 0 2px 16px;
   user-select: none;
@@ -687,7 +696,7 @@ details.clarify-detail > summary:focus-visible {
 .applet-nav a,
 .applet-nav .nav-disabled {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-decoration: none;
@@ -731,13 +740,13 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
 </style>
@@ -762,11 +771,12 @@ footer .foot-cred {
   Before we look into the physics, it is important to acknowledge the history under which
   <span class="key">electrostatic thrusters</span> were developed. Nearly all electric propulsion devices used
   today are <span class="key">electrostatic devices</span>, meaning they use solely
-  <span class="hl-E">electric fields</span> to accelerate <span class="hl-q">charged particles</span> for
+  <span class="hl-E">electric fields $\vec{E}$</span> to accelerate charged particles for
   thrust.<sup class="cite"><a href="#ref-3">3</a></sup> During the Cold War, the United States and Soviet Union
   began research on two such electrostatic
-  thrusters: the <span class="key">gridded ion engine</span> and the <span class="key">Hall-Effect
-  thruster</span>.<sup class="cite"><a href="#ref-4">4</a>,<a href="#ref-5">5</a></sup>
+  thrusters: the <span class="key">gridded ion engine</span> and the <a class="applet-link"
+  href="../hall_thruster/HT_Overview_applet.html">Hall-Effect
+  thruster</a>.<sup class="cite"><a href="#ref-4">4</a>,<a href="#ref-5">5</a></sup>
   While the United States began early theoretical research on the Hall-Effect thruster, its intrinsic plasma
   instabilities dissuaded further development efforts.<sup class="cite"><a href="#ref-7">7</a></sup> The United
   States would go on to focus on the
@@ -788,8 +798,9 @@ footer .foot-cred {
   <span class="key">Gridded ion engines</span> are highly efficient electric propulsion devices used on modern
   satellite platforms and several high profile missions.<sup class="cite"><a href="#ref-5">5</a>,<a href="#ref-14">14</a></sup>
   These ion engines have three characteristic features: an
-  <span class="key">ionization chamber</span>, <span class="key">accelerator grids</span>, and a
-  <span class="key">neutralizer</span>.<sup class="cite"><a href="#ref-1">1</a></sup> While each of these features
+  <a class="applet-link" href="GIE_Ionization_applet.html">ionization chamber</a>,
+  <a class="applet-link" href="GIE_Acceleration_applet.html">accelerator grids</a>, and a
+  <a class="applet-link" href="GIE_Neutralization_applet.html">neutralizer</a>.<sup class="cite"><a href="#ref-1">1</a></sup> While each of these features
   varies from thruster to thruster, each
   variation serves the same purpose.
 </p>
@@ -797,7 +808,7 @@ footer .foot-cred {
 <p class="page-intro">
   Use this 3D model to familiarize yourself with the gridded ion engine. The cross section feature allows you to
   see the inner components and workings of the thruster. You can also toggle the visibility of elements such as
-  component labels, <span class="hl-E">electromagnetic fields</span>, and <span class="hl-q">particles</span>.
+  component labels, electromagnetic fields, and particles.
   The model itself was generated from a
   <a class="applet-link" href="#ref-model">published schematic</a>, and is proportioned after it rather than
   after any flown thruster.
@@ -934,7 +945,7 @@ footer .foot-cred {
     upcoming <span class="key">accelerator grids</span>.<sup class="cite"><a href="#ref-8">8</a>,<a href="#ref-9">9</a></sup>
     Because ionization requires the
     <span class="hl-electron">electrons</span> to have a certain amount of energy, ionization chambers are
-    equipped with <span class="hl-B">magnetic cusps</span> that lengthen the path an electron travels before
+    equipped with magnetic cusps that lengthen the path an electron travels before
     being collected by the inside walls of the thruster. This way, a given electron has more opportunities to
     ionize <span class="hl-neutral">neutral propellant particles</span> before it leaves the
     chamber.<sup class="cite"><a href="#ref-10">10</a></sup>
@@ -945,8 +956,8 @@ footer .foot-cred {
 <div class="theory-block">
   <div class="th-hdr">Acceleration</div>
   <p class="th-body">
-    The second stage of the gridded ion engine provides the <span class="hl-thrust">thrust</span> of the engine
-    through a strong <span class="hl-E">electric field</span> between <span class="key">accelerating
+    The second stage of the gridded ion engine provides the <span class="hl-thrust">thrust $F_N$</span> of the engine
+    through a strong <span class="hl-E">electric field $\vec{E}$</span> between <span class="key">accelerating
     grids</span>. A voltage difference is applied between a <span class="key">screen grid</span> and an
     <span class="key">accelerating grid</span> placed a small distance apart, creating a strong electric field
     that accelerates incoming <span class="hl-ion">ions</span>.<sup class="cite"><a href="#ref-1">1</a></sup>
@@ -1027,50 +1038,37 @@ footer .foot-cred {
   <summary class="refs-hdr">Sources</summary>
   <ol>
     <li id="ref-1">D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion: Ion and Hall Thrusters</em>, JPL Space
-      Science and Technology Series, Wiley, 2008. The standing reference for this lesson: ch. 2 (thrust,
-      specific impulse, propellant utilization), ch. 4 (ring-cusp discharge chambers), ch. 5 (grid optics, the
-      space-charge limit and thrust density) and ch. 6 (hollow-cathode neutralizers).</li>
-    <li id="ref-2">R. G. Jahn, <em>Physics of Electric Propulsion</em>, McGraw-Hill, 1968 (Dover reprint, 2006).
-      Electrostatic acceleration and the space-charge-limited current from first principles.</li>
+      Science and Technology Series, Wiley, 2008. Ch. 2, 4, 5 and 6.</li>
+    <li id="ref-2">R. G. Jahn, <em>Physics of Electric Propulsion</em>, McGraw-Hill, 1968 (Dover reprint, 2006).</li>
     <li id="ref-3">M. Mart&iacute;nez-S&aacute;nchez &amp; J. E. Pollard, &ldquo;Spacecraft Electric Propulsion - An
-      Overview,&rdquo; <em>J. Propulsion and Power</em> <b>14</b>(5), 688&ndash;699 (1998). Where the gridded
-      ion engine sits among the other electric propulsion families.</li>
+      Overview,&rdquo; <em>J. Propulsion and Power</em> <b>14</b>(5), 688&ndash;699 (1998).</li>
     <li id="ref-4">E. Y. Choueiri, &ldquo;A Critical History of Electric Propulsion: The First 50 Years
-      (1906&ndash;1956),&rdquo; <em>J. Propulsion and Power</em> <b>20</b>(2), 193&ndash;203 (2004). The
-      origins of the field before the Cold War programs described above.</li>
+      (1906&ndash;1956),&rdquo; <em>J. Propulsion and Power</em> <b>20</b>(2), 193&ndash;203 (2004).</li>
     <li id="ref-5">J. S. Sovey, V. K. Rawlin &amp; M. J. Patterson, &ldquo;Ion Propulsion Development Projects in U.S.: Space
       Electric Rocket Test I to Deep Space 1,&rdquo; <em>J. Propulsion and Power</em> <b>17</b>(3), 517&ndash;526
-      (2001). The American gridded-ion line, SERT I through DS1.</li>
+      (2001).</li>
     <li id="ref-6">V. Kim et al., &ldquo;History of the Hall Thrusters Development in USSR,&rdquo; IEPC-2007-142, 30th
-      International Electric Propulsion Conference, Florence (2007). The Soviet side of the split.</li>
+      International Electric Propulsion Conference, Florence (2007).</li>
     <li id="ref-7">V. V. Zhurin, H. R. Kaufman &amp; R. S. Robinson, &ldquo;Physics of closed drift thrusters,&rdquo;
-      <em>Plasma Sources Sci. Technol.</em> <b>8</b>, R1&ndash;R20 (1999). Hall-thruster physics, including
-      the instabilities that turned early U.S. effort toward the gridded engine.</li>
-    <li id="ref-8">H. R. Kaufman, &ldquo;An Ion Rocket with an Electron-Bombardment Ion Source,&rdquo; NASA TN D-585 (1961)
-     . The original electron-bombardment thruster.</li>
+      <em>Plasma Sources Sci. Technol.</em> <b>8</b>, R1&ndash;R20 (1999).</li>
+    <li id="ref-8">H. R. Kaufman, &ldquo;An Ion Rocket with an Electron-Bombardment Ion Source,&rdquo; NASA TN D-585 (1961).</li>
     <li id="ref-9">H. R. Kaufman, &ldquo;Technology of Electron-Bombardment Ion Thrusters,&rdquo; <em>Advances in Electronics
-      and Electron Physics</em> <b>36</b>, 265&ndash;373 (1974). Discharge-chamber and grid design as a
-      single system.</li>
+      and Electron Physics</em> <b>36</b>, 265&ndash;373 (1974).</li>
     <li id="ref-10">J. S. Sovey, &ldquo;Improved Ion Containment Using a Ring-Cusp Ion Thruster,&rdquo; <em>J. Spacecraft and
-      Rockets</em> <b>21</b>(5), 488&ndash;495 (1984). The cusp field that lengthens the electron path
-      before wall collection, as in the ionization stage.</li>
+      Rockets</em> <b>21</b>(5), 488&ndash;495 (1984).</li>
     <li id="ref-11">C. D. Child, &ldquo;Discharge from Hot CaO,&rdquo; <em>Phys. Rev.</em> (Series I) <b>32</b>, 492 (1911), and
       I. Langmuir, &ldquo;The Effect of Space Charge and Residual Gases on Thermionic Currents in High
-      Vacuum,&rdquo; <em>Phys. Rev.</em> <b>2</b>, 450 (1913). The space-charge-limited current density
-      quoted above.</li>
+      Vacuum,&rdquo; <em>Phys. Rev.</em> <b>2</b>, 450 (1913).</li>
     <li id="ref-12">R. E. Wirz, J. R. Anderson, D. M. Goebel &amp; I. Katz, &ldquo;Decel Grid Effects on Ion Thruster Grid
-      Erosion,&rdquo; <em>IEEE Trans. Plasma Sci.</em> <b>36</b>(5), 2122&ndash;2129 (2008). Why a third,
-      neutral grid shields the accelerator from charge-exchange erosion.</li>
+      Erosion,&rdquo; <em>IEEE Trans. Plasma Sci.</em> <b>36</b>(5), 2122&ndash;2129 (2008).</li>
     <li id="ref-13">A. Sengupta et al., &ldquo;An Overview of the Results from the 30,000 Hr Life Test of Deep Space 1 Flight
-      Spare Ion Engine,&rdquo; AIAA-2004-3608, 40th Joint Propulsion Conference (2004). Measured grid
-      erosion as the life-limiting mechanism.</li>
+      Spare Ion Engine,&rdquo; AIAA-2004-3608, 40th Joint Propulsion Conference (2004).</li>
     <li id="ref-14">J. R. Brophy, &ldquo;NASA&rsquo;s Deep Space 1 ion engine,&rdquo; <em>Rev. Sci. Instrum.</em>
-      <b>73</b>(2), 1071&ndash;1078 (2002). The flight system end to end, neutralizer included.</li>
+      <b>73</b>(2), 1071&ndash;1078 (2002).</li>
     <li id="ref-15">J. R. Brophy, &ldquo;The Dawn Ion Propulsion System,&rdquo; <em>Space Sci. Rev.</em> <b>163</b>,
-      251&ndash;261 (2011). The three 30&nbsp;cm NSTAR thrusters and the throttle range quoted above.</li>
+      251&ndash;261 (2011).</li>
     <li id="ref-16">M. J. Patterson &amp; S. W. Benson, &ldquo;NEXT Ion Propulsion System Development Status and
-      Performance,&rdquo; AIAA-2007-5199, 43rd Joint Propulsion Conference, Cincinnati (2007). The NEXT
-      thruster and its measured throttle table.</li>
+      Performance,&rdquo; AIAA-2007-5199, 43rd Joint Propulsion Conference, Cincinnati (2007).</li>
   </ol>
 </details>
 

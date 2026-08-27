@@ -80,6 +80,10 @@ canvas { display: block; width: 620px; height: 400px; }
   background: #060810; color: #00e5ff;
   border: 1px solid #1a2535; border-radius: 3px;
 }
+/* Unit to the RIGHT of the value box (not in the label); fixed basis keeps
+   every row's box on one right edge. Range line goes underneath. */
+.sl-unit  { flex: 0 0 34px; font-size: 9.5px; color: #4e6078; white-space: nowrap; }
+.sl-range { font-size: 9px; color: #323a50; letter-spacing: .3px; margin-top: 1px; }
 .sl-row input[type=text]:focus {
   outline: none; border-color: #00bcd4;
   box-shadow: 0 0 0 2px rgba(0,188,212,.12);
@@ -92,7 +96,7 @@ canvas { display: block; width: 620px; height: 400px; }
 }
 .out-cell:last-child { border-right: none; }
 .out-label { font-size: 9px; color: #323a50; letter-spacing: .7px; text-transform: uppercase; margin-bottom: 3px; }
-.out-val   { font-size: 17px; font-weight: 600; font-family: 'Courier New', monospace; }
+.out-val   { font-size: 19px; font-weight: 600; font-family: 'Courier New', monospace; }
 .out-sub   { font-size: 11.5px; font-family: 'Courier New', monospace; margin-top: 2px; }
 
 footer { margin-top: 10px; font-size: 11px; color: #252c3c; }
@@ -118,27 +122,33 @@ footer { margin-top: 10px; font-size: 11px; color: #252c3c; }
       </div>
 
       <div class="sl-group">
-        <div class="sl-label">Flow Rate &nbsp;(mol / s)</div>
+        <div class="sl-label">Flow Rate</div>
         <div class="sl-row">
           <input type="range" id="sl-flow"  min="0" max="10"   step="0.0001" value="0.5">
           <input type="text"  id="tb-flow"  value="0.5">
+          <span class="sl-unit">mol/s</span>
         </div>
+        <div class="sl-range">0 &ndash; 10</div>
       </div>
 
       <div class="sl-group">
-        <div class="sl-label">Power &nbsp;(kW)</div>
+        <div class="sl-label">Power</div>
         <div class="sl-row">
           <input type="range" id="sl-power" min="0" max="5000" step="0.1" value="10">
           <input type="text"  id="tb-power" value="10">
+          <span class="sl-unit">kW</span>
         </div>
+        <div class="sl-range">0 &ndash; 5000</div>
       </div>
 
       <div class="sl-group">
-        <div class="sl-label">Efficiency &nbsp;&#951;</div>
+        <div class="sl-label">Efficiency</div>
         <div class="sl-row">
           <input type="range" id="sl-eta" min="0" max="1" step="0.01" value="0.5">
           <input type="text"  id="tb-eta" value="0.5">
+          <span class="sl-unit"></span>
         </div>
+        <div class="sl-range">0 &ndash; 1.0</div>
       </div>
     </div>
   </div>
@@ -257,7 +267,7 @@ const CH = canvas.height;  // 400
 // Body
 const BX = 160, BY = 82, BW = 198, BH = 198;
 const BX2 = BX + BW;          // right edge of body  = 358
-const CY  = BY + BH / 2;      // vertical centre     = 181
+const CY  = BY + BH / 2;      // vertical center     = 181
 
 // Nozzle shelves — small stubby tabs as in the reference image
 //   SHELF_W : how far the tab extends right of the body

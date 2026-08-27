@@ -249,7 +249,7 @@ body{
           stroke-linecap:round; stroke-linejoin:round;
           filter:drop-shadow(0 0 3px rgba(10,12,18,0.8)); }
 .cHead  { fill:#ffb3e2; filter:drop-shadow(0 0 3px rgba(10,12,18,0.8)); }
-/* Propellant, in gridded-ion's neutral gas grey - it is a mass flow, not a current, and
+/* Propellant, in gridded-ion's neutral gas gray - it is a mass flow, not a current, and
    the color is what says so before the label is read. */
 .cArrow.gas { stroke:#cfd6e6; }
 .cHead.gas  { fill:#cfd6e6; }
@@ -582,7 +582,7 @@ body{
 .vtog.on{ color:var(--text-heading); }
 .vtog.on .vsw{ background:var(--c-ve); border-color:var(--c-ve); }
 .vtog.on .vsw::after{ transform:translateX(15px); background:#fff; }
-/* A toggle that does not apply to the current view stays in place and greys out, rather
+/* A toggle that does not apply to the current view stays in place and grays out, rather
    than vanishing: the panel keeps its shape, and the option is still visibly THERE to be
    found once you switch views. It keeps its on/off state while disabled. */
 .vtog:disabled{ opacity:0.38; cursor:default; }
@@ -1064,7 +1064,7 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
              The only thing this list adds is the `title` on the three overlays that are
              cross-section only. They are not disabled in 3-D - they work, and they hold
              their state - they just have nothing to draw there, which syncLabelToggle
-             marks by greying them to .pending. -->
+             marks by graying them to .pending. -->
         <!-- Cross-section only: the field map is a 2-D picture of a body of revolution,
              and it only reads on the cut plane. -->
         <button type="button" class="vtog" id="tog-fields" role="switch" aria-checked="false"
@@ -1794,7 +1794,7 @@ function applySectionBlend(p){
   // barely fogged — instead of as pockets.
   //
   // The sweep stays a SMOOTHSTEP rather than an ease-out: slow at the start, so the
-  // first millimetres of cut (the ones that graze the outer shell, where any residual
+  // first millimeters of cut (the ones that graze the outer shell, where any residual
   // angle hurts most) are taken gently, and the bulk of the travel happens dead-on.
   const pCut = 0.64;
   const s  = Math.max(0, (p - pCut) / (1 - pCut));
@@ -2354,7 +2354,7 @@ buildAxisGizmo();
    CROSS-SECTION ONLY, which is also how gridded_ion.html gates its own #annot layer.
    The section is head-on and everything is on show, so a leader lands on the part it
    names; in 3-D the same anchor is a mid-plane point buried inside an opaque body, and
-   a callout pointing into a blank shell teaches nothing. The toggle greys out there
+   a callout pointing into a blank shell teaches nothing. The toggle grays out there
    rather than disappearing.
 
    `anchor` is where the leader lands on the hardware; `pos` is where the chip parks -
@@ -2626,7 +2626,7 @@ const MAG_GAP_RUN = [[MAG_POLE_Z, B_SPAN[0]], [MAG_POLE_Z, B_SPAN[1]]];
    outside that window lands under one and is simply not there.
    Both pairs sit on z ~38 and ~60, spread across the window and clear of the coil-current
    glyph columns at 32 and 64. Aligning the leg's pair to the stem's is worth the couple of
-   millimetres it costs: the two runs are read together, and arrows at four different
+   millimeters it costs: the two runs are read together, and arrows at four different
    stations scan as clutter where four at two stations scan as one circulation. */
 const MAG_ARROWS = [
   { seg:[[MAG_COVER_Z, MAG_LEG_R  ], [MAG_BACK_Z,  MAG_LEG_R  ]], t:[0.293, 0.587] },
@@ -3654,7 +3654,7 @@ function hallTorusMaterial(exponent){
            sweeps across the tube as you orbit, which is precisely how a lit solid behaves
            and precisely how emitted light does not: a saturated emitter is as bright edge
            on as it is face on. Anchoring to the geometry means the band stays clipped
-           white at every angle, the way it does in the reference, and stops modelling its
+           white at every angle, the way it does in the reference, and stops modeling its
            own cross-section for the viewer.
 
            The face term below is 1 on the flat downstream face and falls to 0 at the two
@@ -3944,7 +3944,7 @@ let plumeHalfZ = 1;
            would end the shader mid-string, with a parse error a long way from the cause.) */
         vec3 col = tint * (I * 3.0);
         // 1.5, not 1.0: the breath multiplies everything below, so a core mixed to exactly
-        // white lands at 0.8..1.0 and reads as a flat GREY block sitting inside a cyan halo
+        // white lands at 0.8..1.0 and reads as a flat GRAY block sitting inside a cyan halo
         // that is clipping at full blue beside it. Over-driving the core keeps it clamped at
         // white through the whole breath cycle, which is what a saturated emitter does.
         col = mix(col, vec3(1.5), smoothstep(0.45, 1.0, I));
@@ -4865,7 +4865,7 @@ function ignite(){
 
 /* Set the power state and sync the buttons, the plasma and the "Show particles" switch.
    The particle toggle KEEPS its state while the thruster is off, the same way the labels
-   and fields switches keep theirs out of the cross-section: it greys out because there is
+   and fields switches keep theirs out of the cross-section: it grays out because there is
    no plasma to show, and comes back exactly as it was left. */
 function setPower(on){
   thrusterOn = on;
@@ -4883,9 +4883,9 @@ function setPower(on){
    be `disabled` out here, which conflated two different things: "this control does nothing"
    and "this control is armed but its layer is not on screen". Only the second was ever
    true - the state was always kept across a trip to 3-D and back, so the switch was already
-   meaningful while greyed out, it just could not be operated.
+   meaningful while grayed out, it just could not be operated.
 
-   What replaces the grey-out is a lighter dimming of the ROW only. The switch itself keeps
+   What replaces the gray-out is a lighter dimming of the ROW only. The switch itself keeps
    its full on-color, so an armed toggle still reads unambiguously as on; the dimmed label
    beside it is what says the layer is not currently displayed. Nothing here gates the
    drawing - #annot carries opacity 0 until updateCallouts sets .show from `orthoActive`,
@@ -4955,7 +4955,7 @@ const NEU_PROBE = { z0:195, z1:310, r:85, d:72 };
 /* The eight corners of the THRUSTER BODY's box - the cathode pod deliberately left out,
    since the ⊖ belongs on the hull and not on the arm hanging off it. Projected every
    frame to find where the body's silhouette actually falls ON SCREEN, which is not the
-   same as projecting its centre point: this is a perspective view of a 220 mm-deep
+   same as projecting its center point: this is a perspective view of a 220 mm-deep
    cylinder, so its near face is magnified and the drawn silhouette's middle sits about
    40 px downstream of where the axis midpoint lands. Centring on the point put the sign
    over the channel mouth instead of over the body. gridded_ion.html projects its own
@@ -5485,7 +5485,7 @@ function potChipHalf(key){
 /* The elbow leader from a dimension bar to its chip, drafting-style and at gridded-ion's
    constants: leave the bar at the chip's own height when the chip is beside the span, or at the
    nearer end of the bar when it is above or below it; run across; stop half a chip short. A
-   straight diagonal would cut across the neighbouring bar, which is the one thing a leader in a
+   straight diagonal would cut across the neighboring bar, which is the one thing a leader in a
    figure with two of them must not do. */
 function potLead(key, x, ya, yb, lz, lv, Y){
   const ly = (Y || potY)(lv), lx = pvx(lz), half = potChipHalf(key);

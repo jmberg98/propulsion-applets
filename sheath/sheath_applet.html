@@ -98,7 +98,7 @@ footer { width: var(--page-w); }
 
 /* Caption under an embedded demo — tells the reader what to go and try. */
 .demo-blurb {
-  font-size: 18.5px; line-height: 1.65; color: var(--text-muted); margin-bottom: 22px;
+  font-size: 19.5px; line-height: 1.65; color: var(--text-muted); margin-bottom: 22px;
 }
 
 .theory-block.applet-host { width: var(--page-w); margin-left: 0; }
@@ -127,13 +127,13 @@ footer { width: var(--page-w); }
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -144,14 +144,14 @@ footer { width: var(--page-w); }
 /* ── Header ──────────────────────────────────────────── */
 #hdr { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
 }
 
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -166,7 +166,7 @@ footer { width: var(--page-w); }
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -179,7 +179,7 @@ footer { width: var(--page-w); }
 
 /* ── Transition line ─────────────────────────────────── */
 .transition-line {
-  font-size: 20.5px; line-height: 1.6; color: var(--text-secondary); font-style: italic;
+  font-size: 21.5px; line-height: 1.6; color: var(--text-secondary); font-style: italic;
   margin: 6px 0 20px; padding-top: 18px; border-top: 1px solid var(--border);
 }
 
@@ -189,7 +189,7 @@ footer { width: var(--page-w); }
   background: var(--bg-panel-1); padding: 16px 18px; margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -199,7 +199,7 @@ footer { width: var(--page-w); }
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -217,8 +217,21 @@ footer { width: var(--page-w); }
 .theory-block.applet-host .th-hdr { margin: 0 18px 12px; }
 
 .applet-frame {
-  display: block; width: 100%; height: 700px; border: 0;
-  border-top: 1px solid var(--border); background: var(--bg-canvas);
+  display: block;
+  width: 100%;
+  /* Was a flat `height: 700px`. The page band grew to --page-w without the frame
+     following, so the demo got squatter as the page got wider: at a 1500px band
+     this frame stood 700px tall where the gridded-ion and Hall-thruster pages give
+     theirs 820. Same rule as those pages now, copied across unchanged. The ratio
+     is what sets the height, min-height holds the floor once the band is narrow,
+     and max-height keeps the whole demo inside one screen on a laptop. */
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
+  border: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-canvas);
 }
 
 /* ── Inline applet link ─────────────────────────────── */
@@ -334,7 +347,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -352,14 +365,14 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   background: var(--bg-panel-2);
 }
 .quiz-q {
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 10px;
@@ -380,7 +393,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   border-radius: 4px;
   color: var(--text-main);
   font-family: 'Barlow', sans-serif;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -413,7 +426,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   color: #7fb98a;
 }
 .quiz-opt-label {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #444;
   flex-shrink: 0;
@@ -437,7 +450,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
 .quiz-opt-text { display: block; }
 .quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   font-style: italic;
   color: var(--text-muted);
@@ -460,7 +473,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   border-radius: 4px;
   color: var(--text-heading);
   font-family: 'Barlow', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -470,7 +483,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
 .quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
 .quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
@@ -483,7 +496,7 @@ details.deriv-detail[open] > summary::before { transform: rotate(90deg); }
   background: var(--bg-panel-1); margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -498,7 +511,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -522,16 +535,16 @@ details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-acce
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
 }
 
 /* ── Reference list ─────────────────────────────────── */
-.refs { width: var(--page-w); font-size: 16px; line-height: 1.6; color: var(--text-muted); margin-bottom: 16px; }
+.refs { width: var(--page-w); font-size: 17px; line-height: 1.6; color: var(--text-muted); margin-bottom: 16px; }
 .refs .refs-hdr {
-  font-size: 12px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
   color: var(--c-accent); margin-bottom: 6px;
 }
 .refs li { margin-left: 20px; margin-bottom: 3px; }
@@ -546,7 +559,7 @@ details.clarify-detail > summary:focus-visible { outline: 1px solid var(--c-acce
   gap: 10px; margin-bottom: 18px;
 }
 .applet-nav a, .applet-nav .nav-disabled {
-  font-family: inherit; font-size: 16px; font-weight: 600; letter-spacing: 0.3px; text-decoration: none;
+  font-family: inherit; font-size: 17px; font-weight: 600; letter-spacing: 0.3px; text-decoration: none;
   padding: 8px 14px; border: 1px solid var(--border); border-radius: 4px;
   color: var(--text-secondary); background: var(--bg-panel-1); white-space: nowrap;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -579,13 +592,13 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
 
@@ -598,7 +611,14 @@ footer .foot-cred {
 @media (max-width: 980px) {
   .applet-frame,
   .demo-frame,
-  .applet-frame.demo-frame { height: 860px; }
+  .applet-frame.demo-frame {
+    height: 860px;
+    /* Both resets are load-bearing: the base rule's aspect-ratio would fight this
+       height, and its max-height: 82vh would clamp the 860 the stacked layout
+       needs down to the height of the window. */
+    aspect-ratio: auto;
+    max-height: none;
+  }
 }
 </style>
 </head>
@@ -632,7 +652,7 @@ footer .foot-cred {
   <span class="hl-ion">ion</span>, simply because it is hundreds of thousands of times lighter. So a fresh, uncharged
   wall is bombarded by far more <span class="hl-electron">electrons</span> than
   <span class="hl-ion">ions</span>, and it charges <span class="key">negative</span>. That negative
-  <span class="hl-phi">potential</span> then repels the very electrons that created it, until exactly as many arrive
+  <span class="hl-phi">potential $\phi$</span> then repels the very electrons that created it, until exactly as many arrive
   as ions do. The wall has found its <span class="key">floating potential</span>, and the plasma has grown a sheath.
 </p>
 
@@ -700,7 +720,7 @@ footer .foot-cred {
 <div class="theory-block">
   <div class="th-hdr">The Floating Potential</div>
   <p class="th-body">
-    Setting the two fluxes equal and solving for the <span class="hl-phi">potential</span> gives a result that depends
+    Setting the two fluxes equal and solving for the <span class="hl-phi">potential $\phi$</span> gives a result that depends
     on nothing but the electron temperature and the ion-to-electron mass ratio:
   </p>
 
@@ -824,7 +844,7 @@ footer .foot-cred {
 
 <!-- ════════════════════ THEORY: BOHM CRITERION ════════════════════ -->
 <p class="page-intro">
-  Inside the sheath both species respond to the same <span class="hl-phi">potential</span>, but in opposite ways. The
+  Inside the sheath both species respond to the same <span class="hl-phi">potential $\phi$</span>, but in opposite ways. The
   <span class="hl-electron">electrons</span> are repelled, so their density falls off <em>exponentially</em>, as
   $e^{-\chi}$. The <span class="hl-ion">ions</span> are accelerated, so by flux conservation their density falls off
   only as an inverse square root of the potential. For a sheath to exist, the ion density must stay
@@ -901,7 +921,7 @@ footer .foot-cred {
         <span class="eq-step-label">Read Off the Condition</span>
         <span class="eq-note">
           This is the equation of exponential growth if the bracket is positive and of a sine if it is negative. A sine
-          would carry $\chi$ negative, meaning the <span class="hl-phi">potential</span> rises <em>above</em> the plasma
+          would carry $\chi$ negative, meaning the <span class="hl-phi">potential $\phi$</span> rises <em>above</em> the plasma
           potential inside the sheath, a barrier that repels the ions the sheath is supposed to be collecting.
           Only the growing solution is physical, so
         </span>
@@ -968,7 +988,7 @@ footer .foot-cred {
 </div>
 
 <p class="demo-blurb">
-  Drag the entry Mach number down through 1. Above it, the <span class="hl-phi">potential</span> climbs away
+  Drag the entry Mach number down through 1. Above it, the <span class="hl-phi">potential $\phi$</span> climbs away
   monotonically and the dashed non-linear solution runs off the top of the plot into the wall, a real sheath.
   Below it, the same equation gives a cosine that dives straight into the shaded forbidden region where
   <span class="hl-phi">&phi;</span> sits above the plasma potential. There is no way to patch it: a sub-sonic ion
@@ -1228,7 +1248,7 @@ footer .foot-cred {
 
   <details class="clarify-detail">
     <summary>If the plasma is quasineutral, how can there be a
-    <span class="hl-phi">potential</span> drop across it at all?</summary>
+    <span class="hl-phi">potential $\phi$</span> drop across it at all?</summary>
     <div class="clarify-body">
       Quasineutral means $n_i - n_e$ is small compared with $n_e$, not that it is zero. Poisson's equation only
       needs a tiny fractional imbalance to sustain a field over a long distance. Across a pre-sheath of length $L$ the
@@ -1240,7 +1260,7 @@ footer .foot-cred {
   </details>
 
   <details class="clarify-detail">
-    <summary>Why does the <span class="hl-ve">Bohm speed</span> use the <em>electron</em> temperature and the
+    <summary>Why does the <span class="hl-ve">Bohm speed $c_s$</span> use the <em>electron</em> temperature and the
     <em>ion</em> mass?</summary>
     <div class="clarify-body">
       Because the <span class="hl-ion">ions</span> are not pushing themselves. In a typical discharge the ions are
@@ -1306,7 +1326,7 @@ footer .foot-cred {
   </details>
 
   <details class="clarify-detail">
-    <summary>How does a <span class="hl-B">magnetic field</span> change the picture?</summary>
+    <summary>How does a <span class="hl-B">magnetic field $\vec{B}$</span> change the picture?</summary>
     <div class="clarify-body">
       If the field is strong enough that the electron Larmor radius is smaller than the Debye length, the electrons can
       no longer stream freely to the wall: they have to cross field lines to do it, and their flux is reduced.
@@ -1330,9 +1350,19 @@ footer .foot-cred {
       ch. 6. The Bohm criterion, the Child law sheath, and the 0.61 edge-density factor.</li>
     <li>D. Bohm, in <em>The Characteristics of Electrical Discharges in Magnetic Fields</em> (1949). The original
       criterion.</li>
+    <li>K.-U. Riemann, &ldquo;The Bohm criterion and sheath formation,&rdquo; <em>J. Phys. D: Appl. Phys.</em>
+      <b>24</b>(4), 493&ndash;518 (1991),
+      <a href="https://doi.org/10.1088/0022-3727/24/4/001" target="_blank" rel="noopener">doi:10.1088/0022-3727/24/4/001</a>.
+      What the criterion requires, and where the presheath comes from.</li>
     <li>L. Tonks &amp; I. Langmuir, <em>Phys. Rev.</em> <b>34</b>, 876 (1929). The free-fall presheath solution.</li>
+    <li>R. Chodura, &ldquo;Plasma-wall transition in an oblique magnetic field,&rdquo; <em>Phys. Fluids</em>
+      <b>25</b>(9), 1628&ndash;1633 (1982). The magnetic presheath, and why its scale is the ion
+      gyroradius.</li>
     <li>D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion</em>, ch. 3 &amp; 7. Sheaths, wall
       losses and erosion in ion and Hall thrusters.</li>
+    <li>I. G. Mikellides, I. Katz, R. R. Hofer &amp; D. M. Goebel, &ldquo;Magnetic shielding of a laboratory
+      Hall thruster. I. Theory and validation,&rdquo; <em>J. Appl. Phys.</em> <b>115</b>(4), 043303 (2014).
+      Magnetic shielding as designed and demonstrated.</li>
   </ul>
 </div>
 

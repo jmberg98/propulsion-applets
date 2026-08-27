@@ -125,13 +125,13 @@ footer {
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -147,7 +147,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -155,7 +155,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -170,7 +170,7 @@ footer {
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -187,7 +187,7 @@ footer {
   margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -203,7 +203,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -230,7 +230,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -248,7 +248,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -258,7 +258,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -433,7 +433,7 @@ details.deriv-detail > summary:focus-visible {
   padding: 24px;
 }
 .demo-placeholder-tag {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   letter-spacing: 1.4px;
   text-transform: uppercase;
@@ -443,7 +443,7 @@ details.deriv-detail > summary:focus-visible {
   padding: 5px 12px;
 }
 .demo-placeholder-note {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   font-style: italic;
   max-width: 540px;
@@ -454,7 +454,16 @@ details.deriv-detail > summary:focus-visible {
 .applet-frame {
   display: block;
   width: 100%;
-  height: 560px;
+  /* Was a flat `height: 560px`. The page band grew to --page-w without the frame
+     following, so the demo got squatter as the page got wider: at a 1500px band
+     this frame stood 560px tall where the gridded-ion and Hall-thruster pages give
+     theirs 820. Same rule as those pages now, copied across unchanged. The ratio
+     is what sets the height, min-height holds the floor once the band is narrow,
+     and max-height keeps the whole demo inside one screen on a laptop. */
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
   border: 0;
   border-top: 1px solid var(--border);
   background: var(--bg-canvas);
@@ -471,7 +480,7 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -489,14 +498,14 @@ details.deriv-detail > summary:focus-visible {
   background: var(--bg-panel-2);
 }
 .quiz-q {
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 10px;
@@ -517,7 +526,7 @@ details.deriv-detail > summary:focus-visible {
   border-radius: 4px;
   color: var(--text-main);
   font-family: 'Barlow', sans-serif;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -550,7 +559,7 @@ details.deriv-detail > summary:focus-visible {
   color: #7fb98a;
 }
 .quiz-opt-label {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #444;
   flex-shrink: 0;
@@ -574,7 +583,7 @@ details.deriv-detail > summary:focus-visible {
 .quiz-opt-text { display: block; }
 .quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   font-style: italic;
   color: var(--text-muted);
@@ -597,7 +606,7 @@ details.deriv-detail > summary:focus-visible {
   border-radius: 4px;
   color: var(--text-heading);
   font-family: 'Barlow', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -607,7 +616,7 @@ details.deriv-detail > summary:focus-visible {
 .quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
 .quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
@@ -632,7 +641,7 @@ details.deriv-detail > summary:focus-visible {
 .applet-nav a,
 .applet-nav .nav-disabled {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-decoration: none;
@@ -676,13 +685,13 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
 
@@ -695,8 +704,24 @@ footer .foot-cred {
 @media (max-width: 980px) {
   .applet-frame,
   .demo-frame,
-  .applet-frame.demo-frame { height: 860px; }
+  .applet-frame.demo-frame {
+    height: 860px;
+    /* Both resets are load-bearing: the base rule's aspect-ratio would fight this
+       height, and its max-height: 82vh would clamp the 860 the stacked layout
+       needs down to the height of the window. */
+    aspect-ratio: auto;
+    max-height: none;
+  }
 }
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 </style>
 </head>
 <body>
@@ -716,13 +741,13 @@ footer .foot-cred {
 
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
-  We may be interested in trapping or guiding <span class="hl-q">charged particles</span> along paths of
+  We may be interested in trapping or guiding charged particles along paths of
   interest. To do this, we must implement <span class="key">magnetic mirrors</span>, which trap particles that
   approach it at a specific angle. The &ldquo;how&rdquo; of <span class="key">magnetic mirrors</span> lies in how
-  charged particles exhibiting <span class="key">cyclotron motion</span> generate a
-  <span class="hl-moment">magnetic moment</span> and act as a <span class="key">magnetic dipole</span> (think of a
+  charged particles exhibiting <a class="applet-link" href="../larmor/larmor_applet.html">cyclotron motion</a> generate a
+  <span class="hl-moment">magnetic moment $\mu$</span> and act as a <span class="key">magnetic dipole</span> (think of a
   bar magnet)! Explore the demos below to see how these orbiting charged particles act
-  as bar magnets. Then explore how they function in non-uniform <span class="hl-B">magnetic fields</span> to see
+  as bar magnets. Then explore how they function in non-uniform <span class="hl-B">magnetic fields $\vec{B}$</span> to see
   <span class="key">magnetic mirrors</span> in action.
 </p>
 
@@ -738,8 +763,8 @@ footer .foot-cred {
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">If a <span class="hl-q">charged particle</span> is in motion, it induces a
-    <span class="hl-B">magnetic field</span>. What is the shape of the induced
+    <p class="quiz-q">If a charged particle is in motion, it induces a
+    <span class="hl-B">magnetic field $\vec{B}$</span>. What is the shape of the induced
     magnetic field?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
@@ -767,9 +792,9 @@ footer .foot-cred {
 <div class="theory-block">
   <div class="th-hdr">Cyclotron &amp; Larmor Motion</div>
   <p class="th-body">
-    Recall that when a particle travels perpendicular to a uniform <span class="hl-B">magnetic field</span>, it
+    Recall that when a particle travels perpendicular to a uniform <span class="hl-B">magnetic field $\vec{B}$</span>, it
     travels circularly, undergoing <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>. The
-    <span class="hl-q">charged particle&rsquo;s</span> circular motion induces a
+    charged particle&rsquo;s circular motion induces a
     magnetic field.
   </p>
 </div>
@@ -778,8 +803,8 @@ footer .foot-cred {
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">The induced <span class="hl-B">magnetic field</span> of a particle in circular motion can be
-    summed to form a net magnetic field or <span class="hl-moment">moment</span>. What is the
+    <p class="quiz-q">The induced <span class="hl-B">magnetic field $\vec{B}$</span> of a particle in circular motion can be
+    summed to form a net magnetic field or <span class="hl-moment">moment $\mu$</span>. What is the
     shape of the net magnetic field or moment from a particle
     exhibiting <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>?</p>
     <div class="quiz-options">
@@ -808,10 +833,10 @@ footer .foot-cred {
 <div class="theory-block">
   <div class="th-hdr">No Work &amp; Constant Moment</div>
   <p class="th-body">
-    Also recall that the <span class="hl-thrust">magnetic force</span> does no work on particles. The net
-    <span class="key">kinetic energy</span> of a <span class="hl-q">charged particle</span> in a
-    <span class="hl-B">magnetic field</span> that does not change with time, is constant. Additionally, the
-    <span class="hl-moment">magnetic moment</span> of the particle is constant. By using a
+    Also recall that the magnetic force does no work on particles. The net
+    <span class="key">kinetic energy</span> of a charged particle in a
+    <span class="hl-B">magnetic field $\vec{B}$</span> that does not change with time, is constant. Additionally, the
+    <span class="hl-moment">magnetic moment $\mu$</span> of the particle is constant. By using a
     magnetic field that varies in strength in different regions, we can reduce the speed
     along the field lines by increasing the rotational speed around them.
   </p>
@@ -821,8 +846,8 @@ footer .foot-cred {
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">If a <span class="hl-q">charged particle</span> in <span class="key">cyclotron motion</span>
-    travels toward a stronger <span class="hl-B">magnetic field</span>, what happens to its motion?</p>
+    <p class="quiz-q">If a charged particle in <span class="key">cyclotron motion</span>
+    travels toward a stronger <span class="hl-B">magnetic field $\vec{B}$</span>, what happens to its motion?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
         <span class="quiz-opt-label">a</span>
@@ -858,10 +883,10 @@ footer .foot-cred {
   <div class="th-hdr">Magnetic Moment</div>
 
   <p class="th-body">
-    The net <span class="hl-B">magnetic field</span> or <span class="hl-moment">moment</span> of a particle in
+    The net <span class="hl-B">magnetic field $\vec{B}$</span> or <span class="hl-moment">moment $\mu$</span> of a particle in
     <span class="key">cyclotron</span> or <span class="key">Larmor motion</span> is its
-    <span class="hl-moment">magnetic moment</span>. Its strength is determined by its current and the area of its
-    circular path. It scales with the square of the particle&rsquo;s <span class="hl-v">perpendicular velocity</span>
+    <span class="hl-moment">magnetic moment $\mu$</span>. Its strength is determined by its current and the area of its
+    circular path. It scales with the square of the particle&rsquo;s <span class="hl-v">perpendicular velocity $v_\perp$</span>
     and inversely scales with the strength of the magnetic field it is traveling about.
   </p>
 
@@ -879,8 +904,8 @@ footer .foot-cred {
       <div class="deriv-inner">
 
         <span class="eq-note">
-          A moving <span class="hl-q">charged particle</span> carries current. Current induces a
-          <span class="hl-B">magnetic field</span> about the particle&rsquo;s path. To obtain the direction of
+          A moving charged particle carries current. Current induces a
+          <span class="hl-B">magnetic field $\vec{B}$</span> about the particle&rsquo;s path. To obtain the direction of
           <span class="hl-B">$\vec{B}$</span>, stick your thumb in the direction of travel if positively charged, or
           opposite direction if the particle is negatively charged. Then, curl your fingers to obtain
           <span class="hl-B">$\vec{B}$</span>&rsquo;s clockwise or counterclockwise orientation.
@@ -893,8 +918,8 @@ footer .foot-cred {
         $$
 
         <span class="eq-note">
-          In a loop, the <span class="hl-B">magnetic field</span> induced by the current of the moving
-          <span class="hl-q">charged particle</span> creates a net <span class="hl-moment">magnetic moment</span> by
+          In a loop, the <span class="hl-B">magnetic field $\vec{B}$</span> induced by the current of the moving
+          charged particle creates a net <span class="hl-moment">magnetic moment $\mu$</span> by
           vector sum of each induced magnetic field.
         </span>
 
@@ -924,12 +949,12 @@ footer .foot-cred {
 
   <p class="th-body">
     Key to the derivation of <span class="key">magnetic mirrors</span>, but very non-intuitive, is the invariance of
-    the <span class="hl-moment">magnetic moment</span>. The <span class="key">kinetic energy</span> of the particle
-    can be written as the sum of its <span class="hl-v">parallel</span> and
-    <span class="hl-v">perpendicular</span> kinetic energy components. Then, it can be further rearranged to be the
+    the <span class="hl-moment">magnetic moment $\mu$</span>. The <span class="key">kinetic energy</span> of the particle
+    can be written as the sum of its parallel and
+    perpendicular kinetic energy components. Then, it can be further rearranged to be the
     sum of a magnetic potential energy and the parallel component of the
     particle&rsquo;s kinetic energy. Because the magnetic moment is constant, a
-    varying <span class="hl-B">magnetic field</span> will affect the <span class="hl-v">parallel velocity</span>
+    varying <span class="hl-B">magnetic field $\vec{B}$</span> will affect the <span class="hl-v">parallel velocity $v_\parallel$</span>
     of the particle, allowing us to &ldquo;speed up&rdquo; and &ldquo;slow down&rdquo; the particle without adding or
     removing energy.
   </p>
@@ -1092,7 +1117,7 @@ footer .foot-cred {
           Because <span class="hl-m">$K$</span> &amp; <span class="hl-moment">$\mu$</span> are constant, changing
           <span class="hl-B">$B$</span> will change <span class="hl-v">$v_\parallel$</span>. In fact, at a sufficient
           <span class="hl-B">$B_B$</span>, the particle will &ldquo;stop&rdquo; and be reflected backwards by the
-          <span class="hl-thrust">Lorentz force</span>. Let&rsquo;s see what particle trajectories are reflected by the
+          <span class="hl-thrust">Lorentz force $\vec{F}$</span>. Let&rsquo;s see what particle trajectories are reflected by the
           <span class="key">magnetic mirror</span>.
         </span>
 
@@ -1163,28 +1188,28 @@ footer .foot-cred {
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <details class="clarify-detail">
-    <summary>How does a spatially-varying <span class="hl-B">magnetic field</span> speed up or slow down a
-    <span class="hl-q">charged particle</span> if it cannot do work?</summary>
+    <summary>How does a spatially-varying <span class="hl-B">magnetic field $\vec{B}$</span> speed up or slow down a
+    charged particle if it cannot do work?</summary>
     <div class="clarify-body">
-      The total <span class="key">kinetic energy</span> of the <span class="hl-q">charged particle</span> remains
-      constant. However, the <span class="hl-v">parallel velocity</span> component of the particle&rsquo;s kinetic
-      energy can be changed by changing the <span class="hl-v">perpendicular velocity</span> component of its
+      The total <span class="key">kinetic energy</span> of the charged particle remains
+      constant. However, the <span class="hl-v">parallel velocity $v_\parallel$</span> component of the particle&rsquo;s kinetic
+      energy can be changed by changing the <span class="hl-v">perpendicular velocity $v_\perp$</span> component of its
       kinetic energy. Thus, we are able to &ldquo;speed up&rdquo; or &ldquo;slow down&rdquo; the particle&rsquo;s
       travel without adding or removing kinetic energy.
     </div>
   </details>
 
   <details class="clarify-detail">
-    <summary>Why do we not allow for a time-varying <span class="hl-B">magnetic field</span> in the derivation of the
+    <summary>Why do we not allow for a time-varying <span class="hl-B">magnetic field $\vec{B}$</span> in the derivation of the
     <span class="key">magnetic mirror</span>?</summary>
     <div class="clarify-body">
-      Though not explored in this applet, a time-varying <span class="hl-B">magnetic field</span> produces an
-      <span class="hl-E">electric field</span> by Faraday&rsquo;s Law. Electric fields
-      do work on electrically <span class="hl-q">charged particles</span>. Because
+      Though not explored in this applet, a time-varying <span class="hl-B">magnetic field $\vec{B}$</span> produces an
+      <span class="hl-E">electric field $\vec{E}$</span> by Faraday&rsquo;s Law. Electric fields
+      do work on electrically charged particles. Because
       <span class="key">magnetic mirrors</span> work without energy input, a time-varying
       magnetic field wouldn&rsquo;t effectively represent the physics of how
       <span class="key">magnetic mirrors</span> modify the motion of charged particles. It
-      would appear as though changing a particle&rsquo;s <span class="hl-v">parallel velocity</span> must be the
+      would appear as though changing a particle&rsquo;s <span class="hl-v">parallel velocity $v_\parallel$</span> must be the
       result of removing energy from the charged particle, which is not necessarily true!
     </div>
   </details>

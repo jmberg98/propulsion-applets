@@ -394,7 +394,7 @@
     display: none;
     z-index: 8;
     pointer-events: none;
-    /* The glyph is symmetric about its own centre, so a plain −50%/−50% centres it. The old
+    /* The glyph is symmetric about its own center, so a plain −50%/−50% centers it. The old
        −62% fudge existed only because a text "−" sits low in its line box. */
     transform: translate(-50%, -50%);
     opacity: 0;
@@ -1399,7 +1399,7 @@ const ROLE_MAT = {
   other      : { metalness:0.10, roughness:0.70 },
 };
 
-/* Matte recolour (by component name) to match the schematic. The inside of the
+/* Matte recolor (by component name) to match the schematic. The inside of the
    ionization chamber is whitest; the outer structure — the shell between/around
    the magnet rings, the propellant injector, and the neutralizer's attaching
    piece (all part of the housing) — shares ONE lighter lavender-gray. The
@@ -1449,7 +1449,7 @@ const CALLOUTS = [
   { latex:'\\vec{E}', anchor:[ 182,  38], chip:[0.660, 0.34], field:'E', efield:'grid' },   // right of the accel grids, over the exterior body
   // Pushed apart (112/181 → 92/210): the two chips are only 21 model units apart at their anchors,
   // and at the default framing their boxes met edge-to-edge with no gap between them. No longer
-  // mirrored about the grid-pair centreline — the "Accelerator Grid" box is the wider of the two,
+  // mirrored about the grid-pair centerline — the "Accelerator Grid" box is the wider of the two,
   // so it is pushed out further to leave an even gap between them.
   { text:'Screen Grid',                 anchor:[ 136, -70], pos:[  92, -148], bottomLabel:true },
   { text:'Accelerator Grid',            anchor:[ 157, -70], pos:[ 210,  -148], bottomLabel:true },
@@ -1467,7 +1467,7 @@ const CALLOUTS = [
    field-free interior. Rings sit at x ≈ −46.5 (N), +33.5 (S), +118.5 (N), plus a back-wall
    ring (S) closing a corner cusp with the rear N ring.
    NOTE what these lines do and do not confine. They are what the ELECTRONS are tied to; the
-   ions are unmagnetised and cross them freely (see the ion chamber wall branch). */
+   ions are unmagnetized and cross them freely (see the ion chamber wall branch). */
 
 /* Magnet rings. Each ring carries a RADIAL magnetization, so its marker is drawn split
    into two poles: `inner` is the pole on the plasma-facing face (the one that sets the cusp
@@ -1494,11 +1494,11 @@ const POLE_MARKERS = (() => {
   for (const r of MAGNET_RINGS){
     if (r.wall === 'side'){
       // Top wall: inner (plasma) half faces DOWN toward the axis; bottom wall mirrors it (inner half up).
-      // Centered on the ring box (side rings sit at r 102..116 → centre AXY ± 109 = 97.5 / −120.5).
+      // Centered on the ring box (side rings sit at r 102..116 → center AXY ± 109 = 97.5 / −120.5).
       out.push({ x:r.x, y:  97.5, split:'v', innerHalf:'lo', inner:r.inner });
       out.push({ x:r.x, y:-120.5, split:'v', innerHalf:'hi', inner:r.inner });
     } else {
-      // Back-wall ring: two halves of the ring (centres at AXY ± 51); plasma-facing half faces +X (right).
+      // Back-wall ring: two halves of the ring (centers at AXY ± 51); plasma-facing half faces +X (right).
       out.push({ x:r.x, y: 39.5, split:'h', innerHalf:'right', inner:r.inner });
       out.push({ x:r.x, y:-62.5, split:'h', innerHalf:'right', inner:r.inner });
     }
@@ -1528,7 +1528,7 @@ const POLE_MARKERS = (() => {
 // The half-span itself did NOT move when the lattice was densified: APER_N doubled as APER_DY
 // halved, so the outermost channel still sits at 83.14 and every arrow still lands on a real bore.
 const E_GAP_AXIS = -11.5;                // thrust axis (== AXY)
-const E_GAP_HALF = 6 * 8 * Math.sqrt(3); // 83.14 == APER_N · APER_DY — the outermost bore centres
+const E_GAP_HALF = 6 * 8 * Math.sqrt(3); // 83.14 == APER_N · APER_DY — the outermost bore centers
 const E_GAP_N    =  7;                   // arrow count — odd puts one on the axis
 const EFIELD = [
   // NOTE: the discharge chamber is deliberately field-free here — the real bulk plasma is
@@ -1559,7 +1559,7 @@ let showTransparent = false;   // "Transparent view" toggle — dims the section
    'overview' is the full device (3-D + cross-section toggle). The three focused
    modes are cross-section ONLY, framed on one stage of the thruster, with just
    the callouts / field overlays relevant to that stage. `focus` is a window in
-   centered section space {cx,cy = view centre; hy = half-height it frames to;
+   centered section space {cx,cy = view center; hy = half-height it frames to;
    hx = a soft X half-width, widened to the viewport aspect}. `labels` lists the
    component callouts to show; B/Eanode/Egrid gate the field overlays. */
 let appMode = 'overview';
@@ -1581,7 +1581,7 @@ const MODES = {
     desc:'Ionization. Xe propellant (white) is fed in and bombarded by energetic electrons (yellow) streaming from the hollow cathode. The ring-cusp B-field confines the electrons so they ionize efficiently, building up ions (blue) in the discharge chamber.',
   },
   acc: {
-    // Zoomed in TIGHT on the extraction gap (centre 146.7): the two grids sit just inside the
+    // Zoomed in TIGHT on the extraction gap (center 146.7): the two grids sit just inside the
     // left/right edges and the gap fills the middle, so the space-charge graph — pinned z=0 → z=d
     // to the grid faces — spans most of the width. hy is tiny so aspect fits horizontally to hx.
     seg:false, focus:{ cx:147, cy:-8, hx:14, hy:1 },
@@ -1627,7 +1627,7 @@ let injectorComp = null;       // propellant injector (section-overlay so its ho
 let cathodeComp  = null;        // bombardment cathode (same feed-through-over-body treatment as the injector)
 let shellComp    = null;        // outer housing/rear plate (its cut-face cap is extended to fill the feed-through bores)
 let shellCorners = null;        // …and its 8 world-space bbox corners, projected each frame to find
-                                //    where the hull's centre falls ON SCREEN (see updateChargeBar)
+                                //    where the hull's center falls ON SCREEN (see updateChargeBar)
 const borePlugs = [];          // stencil-only cylinders that add the bore columns to the SHELL cap, so the wall reads solid (no separate object)
 let gridBoreLiner = null;      // ghost-only bore sleeve across the grid stack (built in buildModel) — transparent-view tone match
 let gridBoreLinerMat = null;   // its shared material (styled with the body ghosts in setGridsTransparent)
@@ -1793,7 +1793,7 @@ function buildModel(data){
     geo.translate(-cx, -cy, -cz);   // center the assembly at the origin
 
     // The ion-optics grids are thin plates that nearly vanish in section — fatten
-    // them along the thrust axis (about each grid's own centre) so both read clearly
+    // them along the thrust axis (about each grid's own center) so both read clearly
     // in the cut, and pull them apart (screen upstream, accel downstream) to open a
     // clear gap between the two grids.
     if (c.role === 'grid-pos' || c.role === 'grid-neg'){
@@ -1987,7 +1987,7 @@ function buildModel(data){
   shellComp = comps.find(c => c.name === 'Outer_Shell_Housing');
   /* Where the hull's charge indicator sits, measured off the mesh rather than written down, so a
      regenerated model (build_model.py → JSON) carries it along instead of stranding the sign off
-     to one side. The corners are kept, not the centre: see updateChargeBar for why. */
+     to one side. The corners are kept, not the center: see updateChargeBar for why. */
   if (shellComp){
     const hb = new THREE.Box3().setFromObject(shellComp.mesh);
     shellCorners = [];
@@ -2021,7 +2021,7 @@ function buildModel(data){
 
   // ── Grid-stack bore liner (TRANSPARENT view only) ─────────────────────────────────────
   // In the transparent cross-section the bore over the grid stack read as a distinctly DARKER
-  // grey block than the chamber beside it — the "randomly darker background" behind the grids.
+  // gray block than the chamber beside it — the "randomly darker background" behind the grids.
   // Nothing is wrong with the geometry: it is a GHOST LAYER COUNT mismatch. Down the discharge
   // chamber the camera looks through TWO translucent surfaces — the chamber wall's own bore
   // (r≈97) with the shell's inner wall (r≈100) behind it — and the two 20%-opacity layers stack
@@ -2029,7 +2029,7 @@ function buildModel(data){
   // (x = 135.5), so in the INTER-GRID GAP — the one span with no grid metal in it — a single layer
   // is left, the housing front ring's bore (r≈106), which renders at 79,81,83: the darker band.
   // (The grid columns either side of it are dark on purpose, and the OPAQUE section never shows
-  // this at all, since one opaque light-grey wall looks the same as two.)
+  // this at all, since one opaque light-gray wall looks the same as two.)
   // Fix by restoring the missing layer instead of re-tinting anything: the chamber WALL, carried
   // on across the gap as a ghost-only sleeve. It is ONE cylinder carrying the opacity of the two
   // wall surfaces it stands in for — two coats of α composite to exactly 1-(1-α)², so a single
@@ -2063,12 +2063,12 @@ function buildModel(data){
       const rGrid = 0.5 * (gBB.max.z - gBB.min.z);             // grid OD = the front ring's bore (106)
       // The assembly is centered on its FULL bounding box, which the neutralizer stack pulls well off
       // to one side, so the thrust axis does NOT sit at y = 0 — it runs ~11.5 mm below it. Take the
-      // axis from the grid disc's own bbox centre (the same trick mkPlug uses for the feed-through
+      // axis from the grid disc's own bbox center (the same trick mkPlug uses for the feed-through
       // bores): a liner built about the origin instead hangs ~11.5 mm high, leaving the bottom of the
       // gap uncovered as a dark square in the corner and overshooting into the housing up top.
       const cy = 0.5 * (gBB.min.y + gBB.max.y), cz = 0.5 * (gBB.min.z + gBB.max.z);
       gridBoreLinerMat = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(STRUCTURE_GRAY),                // the one body grey — same as the chamber wall
+        color: new THREE.Color(STRUCTURE_GRAY),                // the one body gray — same as the chamber wall
         metalness: 0, roughness: 1,
         side: THREE.DoubleSide,
         transparent: true, opacity: 0, depthWrite: false,      // real values set by setGridsTransparent
@@ -2139,7 +2139,7 @@ function plumeMaterial(colorHex, coreHex, axialComp, fadeEnd = 1.0, coreExp = 2.
       void main(){
         float ndv   = abs(dot(normalize(vN), normalize(vV)));
         // core term: peaks where the view ray grazes the axis (surface faces the camera,
-        // ndv→1) — the deep centre glows bright while the grazing edges go nearly dark.
+        // ndv→1) — the deep center glows bright while the grazing edges go nearly dark.
         // A lower CORE_EXP broadens the glow into a soft, hazy mist; higher keeps it tight.
         float core  = pow(ndv, CORE_EXP);
         float axial = clamp(vUv.AX, 0.0, 1.0);
@@ -2151,7 +2151,7 @@ function plumeMaterial(colorHex, coreHex, axialComp, fadeEnd = 1.0, coreExp = 2.
         // out downstream, so the contraction rides the middle of the plume only
         float win   = smoothstep(0.06, 0.40, axial) * (1.0 - smoothstep(0.65, 1.0, axial));
         float flow  = 1.0 + 0.06 * win * sin(uTime * 4.0 - axial * 3.0);
-        // bright dense centre over a very faint edge (no fresnel rim → far dimmer edges)
+        // bright dense center over a very faint edge (no fresnel rim → far dimmer edges)
         float a = (0.02 + PEAK * core) * fade * flow * uOpacity;
         vec3 col = mix(uColor, uCore, clamp(core * 0.85, 0.0, 1.0));   // whiter through the hot core
         gl_FragColor = vec4(col, a);
@@ -2230,7 +2230,7 @@ function buildPlume(){
   // fading out within a few centimeters — like an external hollow cathode running on
   // its own. NO long electron beam hooking into the main plume anymore. Shares the
   // beam shader (bright-core / dim-edge) but is short and quick to fade.
-  const nOx = 159.5, nOy = 128.5;                    // orifice centre (cathode front face)
+  const nOx = 159.5, nOy = 128.5;                    // orifice center (cathode front face)
   const nLen = 46, nR0 = 4.5;                        // short, orifice-sized
   const nHalf = 11 * Math.PI / 180;
   const nR1 = nR0 + nLen * Math.tan(nHalf);
@@ -2286,7 +2286,7 @@ const CH_R  = 90;                  // chamber interior radius about the axis
 // ── The ion-optics grids as SOLIDS ────────────────────────────────────────────────────────
 // Each grid is a SLAB with real thickness, not a plane. The sim used to bounce particles off a
 // single plane sitting INSIDE each slab (137, with the screen grid drawn 135.5…140.4; 156, with
-// the accel grid drawn 153…162), and it tested the particle's CENTRE — so every sprite sank its
+// the accel grid drawn 153…162), and it tested the particle's CENTER — so every sprite sank its
 // own radius PLUS that offset into the metal before turning around, and every gap crossing ran
 // straight through the drawn slabs. That is the clipping. Collisions now happen against the real
 // upstream/downstream FACES, offset by the sprite radius so the disc's EDGE is what touches the
@@ -2340,7 +2340,7 @@ const fadeAlpha = p => p.x <= BEAM_FADE0 ? 1
 
      • BETWEEN the rings the field lines run PARALLEL to the wall, so |B| rises steeply as an
        electron pushes in toward the metal and there is no way through it. This is where the
-       MIRROR turns the electron around, and it is modelled as the mirror actually is — as a
+       MIRROR turns the electron around, and it is modeled as the mirror actually is — as a
        force, not a bounce. See MIRROR_FRAC: the electron decelerates on the way in, comes to a
        STOP short of the anode, and is pushed back out along a curved path. It does not strike
        the field and rebound like a wall; it orbits it and leaves. That distinction is the
@@ -2363,7 +2363,7 @@ const fadeAlpha = p => p.x <= BEAM_FADE0 ? 1
    collected PRIMARY electron is re-emitted from the cathode, so cathode emission balances
    anode collection and the discharge sustains itself at a stable count.
 
-   IONS ARE UNAFFECTED BY ALL OF THIS — they are unmagnetised and recombine at any wall they
+   IONS ARE UNAFFECTED BY ALL OF THIS — they are unmagnetized and recombine at any wall they
    reach. See the ion chamber wall branch for the gyroradius numbers. */
 /* ── How wide a cusp strip is ──────────────────────────────────────────────────────────────
    The physical leak width at a ring cusp is of order the hybrid gyroradius 2√(r_e·r_i) — a
@@ -2380,12 +2380,12 @@ const CUSP_X = [-46.5, 33.5, 118.5];
 const CUSP_BACK_Y = [AXY + 51, AXY - 51];
 const inCuspX     = x => CUSP_X.some(cx => Math.abs(x - cx) <= CUSP_WIDTH * 0.5);
 const inCuspBackY = y => CUSP_BACK_Y.some(cy => Math.abs(y - cy) <= CUSP_WIDTH * 0.5);
-/* Nearest strip CENTRE — where the pole face actually is. The loss helix converges onto that
+/* Nearest strip CENTER — where the pole face actually is. The loss helix converges onto that
    rather than onto the contact point, so a collected electron is drawn going down the magnet
-   even when it touched metal a unit or two off-centre. */
+   even when it touched metal a unit or two off-center. */
 const nearest = (v, list) => list.reduce((b, c) => Math.abs(c - v) < Math.abs(b - v) ? c : b, list[0]);
-const cuspCentreX     = x => nearest(x, CUSP_X);
-const cuspCentreBackY = y => nearest(y, CUSP_BACK_Y);
+const cuspCenterX     = x => nearest(x, CUSP_X);
+const cuspCenterBackY = y => nearest(y, CUSP_BACK_Y);
 /* How OPEN the wall is, along the wall: 0 inside a cusp strip, ramping to 1 between the rings.
    This scales the mirror potential, and it is where the loss geometry comes from. Between the
    rings B is TANGENTIAL to the wall, |B| rises toward the metal, and the mirror runs at full
@@ -2401,8 +2401,8 @@ const openRamp = off => {
 function cuspOpenness(x, y){
   const ry = Math.abs(y - AXY);
   // Whichever wall is nearest is the one whose ring layout applies.
-  if (CH_R - ry <= x - CH_X0) return openRamp(Math.abs(x - cuspCentreX(x))     - CUSP_WIDTH * 0.5);
-  return                             openRamp(Math.abs(y - cuspCentreBackY(y)) - CUSP_WIDTH * 0.5);
+  if (CH_R - ry <= x - CH_X0) return openRamp(Math.abs(x - cuspCenterX(x))     - CUSP_WIDTH * 0.5);
+  return                             openRamp(Math.abs(y - cuspCenterBackY(y)) - CUSP_WIDTH * 0.5);
 }
 /* ── The mirror barrier, as a DIMENSIONLESS fraction of the electron's own energy ───────────
    Φ(x,y) rises from 0 at the band edge to MIRROR_FRAC at the wall surface, and is scaled to zero
@@ -2469,7 +2469,7 @@ function mirrorAt(x, y, eTot){
 }
 
 /* ── The ring-cusp field, as an actual field ───────────────────────────────────────────
-   The field is modelled directly, and it is what the OVERLAY is traced from — see
+   The field is modeled directly, and it is what the OVERLAY is traced from — see
    traceFieldLine / FIELD_LINE_SEEDS. (The electrons themselves do not integrate along it;
    they are turned in the section plane inside a wall band. See B_BAND, and the note there
    on what that buys and what it costs.) Each magnet ring presents a pole to the plasma at the
@@ -2516,7 +2516,7 @@ const B_POLE_R  = 8;        // pole softening — finite magnet, so |B| saturate
 
      • MIRROR_FRAC — the deceleration. |B| rises steeply toward the wall between the rings, and a
        magnetic moment μ in a rising field feels a real force F = −μ∇|B| pushing it back down
-       the gradient. That is the magnetic mirror, and it is CONSERVATIVE: modelled as a
+       the gradient. That is the magnetic mirror, and it is CONSERVATIVE: modeled as a
        potential the electron climbs, so ½v² + U is constant. It slows as it climbs, stops where
        U equals its incoming ½v², and recovers its full speed on the way out — no energy added or
        removed, which is exactly right because a magnetic field does no work. The stop is the
@@ -2590,7 +2590,7 @@ const LOSS_COIL_TURNS = 3;      // revolutions on the way down
 const REFL_COIL_R = 3.4;        // model units at full depth
 const REFL_COIL_W = 34;         // rad/s — winding rate of the drawn helix
 /* Poles in SIM space, on the magnet faces. The side rings present a pole on the TOP and the
-   BOTTOM wall (the ring is radially magnetised, so both faces point at the plasma); the
+   BOTTOM wall (the ring is radially magnetized, so both faces point at the plasma); the
    back-wall ring presents its face on the back plate at CUSP_BACK_Y. Polarity alternates with
    CUSP_X order, matching MAGNET_RINGS (N at −46.5, S at +33.5, N at +118.5, S on the back). */
 const B_POLES = (() => {
@@ -2649,7 +2649,7 @@ function traceFieldLine(sx, sy, maxSteps){
    is what made the sim look wrong even once the physics was right: an electron rides the field
    line through ITS OWN position, which is almost never one of three sampled curves, so it
    tracked a neighboring line and read as "not following the drawn field". Drawing a family
-   that spans the magnetised band means whatever line an electron is on, there is a drawn line
+   that spans the magnetized band means whatever line an electron is on, there is a drawn line
    under it. The seeds are angles off each N face, chosen so each route's three lines dip to
    roughly 74 / 62 / 50 in y — i.e. spread across the band rather than stacked. */
 const FIELD_LINE_SEEDS = [
@@ -3070,7 +3070,7 @@ function reflectElectronWall(p, nx, ny){
    FACE, whose normal is the thrust axis. It leaves at the mirror of its approach angle, so an
    atom arriving at a slant departs at a slant. (It used to be sent straight back along −k̂ with
    its sideways motion thrown away — at the accel grid it was even snapped onto the channel
-   centreline — which read as every atom rebounding along one axis instead of scattering off a
+   centerline — which read as every atom rebounding along one axis instead of scattering off a
    surface.) nx is the face's inward normal: −1 for the upstream face (turn it back the way it
    came), +1 for the downstream face. p.x is pinned to the face so nothing is left inside the
    metal. The clamp keeps |v·n̂| ≥ cos 80° of the speed, so an atom can never end up sliding along
@@ -3107,7 +3107,7 @@ function thermalizeOffWall(p, nx, ny, speed){
   p.vx = s * (Math.cos(phi) * nx + Math.sin(phi) * tx);
   p.vy = s * (Math.cos(phi) * ny + Math.sin(phi) * ty);
 }
-/* (There is deliberately no ion wall-mirror helper. Ions are unmagnetised — see the ion chamber
+/* (There is deliberately no ion wall-mirror helper. Ions are unmagnetized — see the ion chamber
    wall branch — so an ion that reaches a wall recombines there; it is never turned back.) */
 function bounceOffGrid(p, xFace, nx){
   p.holeY = undefined;   // it hit webbing — it is not in a bore
@@ -3205,15 +3205,15 @@ function absorbElectron(p){
 /* ── Commit an electron to the anode, and draw it going ────────────────────────────────────
    The electron is finished here — it WILL be absorbed — but it spends LOSS_COIL_DUR spiralling
    down onto the pole face first, so the loss is something a viewer can see happen and locate.
-   (cx,cy) is the strip CENTRE, i.e. where the magnet is, not where the electron happened to
+   (cx,cy) is the strip CENTER, i.e. where the magnet is, not where the electron happened to
    touch, so the helix always converges onto the ring. With the magnets off there is no cusp to
    spiral into and the lesson is that the electron goes straight out, so it is taken at once. */
 function beginLossCoil(p, nx, ny){
   if (!magnetsOn){ absorbElectron(p); return; }
   p.lossT = LOSS_COIL_DUR;
   p.lx0 = p.x; p.ly0 = p.y;
-  if (Math.abs(nx) > 0.5){ p.lx1 = p.x; p.ly1 = cuspCentreBackY(p.y); }   // back plate: slide in y
-  else { p.lx1 = cuspCentreX(p.x); p.ly1 = p.y; }                         // side wall: slide in x
+  if (Math.abs(nx) > 0.5){ p.lx1 = p.x; p.ly1 = cuspCenterBackY(p.y); }   // back plate: slide in y
+  else { p.lx1 = cuspCenterX(p.x); p.ly1 = p.y; }                         // side wall: slide in x
   p.lnx = nx; p.lny = ny;
   p.vx = p.vy = 0;
   // Start a quarter turn in, so the drawn offset begins along the inward normal rather than
@@ -3493,7 +3493,7 @@ function stepParticle(p, dt){
         // up with a hole; over the webbing it bounces off the grid's DOWNSTREAM face. Without this
         // the gap had no upstream wall at all and an atom rebounding off the accel grid walked
         // straight back through the screen grid's metal. (The old code got away with it by snapping
-        // the rebound onto the channel centreline so it always retraced the hole it came in by —
+        // the rebound onto the channel centerline so it always retraced the hole it came in by —
         // the very behavior that made every accel-grid bounce fly back along the axis.)
         const nb = apertureY(p.y);
         if (Math.abs(p.y - nb) < APER_R_SCREEN){ enterBore(p, nb, 'screen'); }   // re-enters via a hole; leaves 'gtransit' once clear of the slab
@@ -3515,7 +3515,7 @@ function stepParticle(p, dt){
       if (p.x > BEAM_RECYCLE){ recycleNeutral(p); }   // already counted as un-utilized when it left the chamber
     }
   } else if (p.sp === 'ion'){
-    const accelSolo = particleProfile === 'accel';   // the lone accelerator-stage ion: dead-centre, no jitter
+    const accelSolo = particleProfile === 'accel';   // the lone accelerator-stage ion: dead-center, no jitter
     if (p.phase === 'chamber'){
       /* No artificial decay term here. It used to exist because ions were being held off the walls
          by the (incorrect) cusp confinement, so switching the magnets off left a standing inventory
@@ -3541,13 +3541,13 @@ function stepParticle(p, dt){
       p.x += p.vx*dt; p.y += p.vy*dt;
       if (!accelSolo){
         /* An ion that reaches ANY wall recombines there, cusp or no cusp. The ring cusps do not
-           confine ions and must not be modelled as if they did: at equal energy r_L scales as √m,
+           confine ions and must not be modeled as if they did: at equal energy r_L scales as √m,
            so a Xe⁺ gyroradius is √(M/m) ≈ 490× an electron's. In the wall band (B ≈ 100 G) that is
            r_Le ≈ 0.7 mm against r_Li ≈ 23 cm at the Bohm speed u_B = √(eT_e/M) = 1714 m/s — larger
            than the whole chamber (CH_R = 90). Even at the pole face (≈0.2 T) r_Li ≈ 1.2 cm, i.e.
            comparable to the cusp width itself. The ion crosses the cusp field as though it were not
-           there. Ions are UNMAGNETISED and are lost to the walls at the Bohm current; only the
-           electrons are magnetised, and that asymmetry IS the ring cusp's whole mechanism.
+           there. Ions are UNMAGNETIZED and are lost to the walls at the Bohm current; only the
+           electrons are magnetized, and that asymmetry IS the ring cusp's whole mechanism.
            This wall loss is the dominant ion sink, and it is why discharge loss runs 150–250 eV per
            beam ion against Xe's 12.13 eV ionization potential: most of that energy goes into ions
            that recombine on a wall and never leave. A previous revision gated it to the cusp bands
@@ -3593,7 +3593,7 @@ function stepParticle(p, dt){
           if (onGrid && Math.random() < SCREEN_ION_TRANSPARENCY){
             // Lensed in: map the ion's offset over the full aperture PITCH onto the bore, so one
             // that arrived over the webbing is delivered INTO the hole already converging rather
-            // than teleporting to the centreline. The 'accel' branch eases it the rest of the way
+            // than teleporting to the centerline. The 'accel' branch eases it the rest of the way
             // onto the channel axis across the gap.
             p.y = na + (p.y - na) * (APER_R_SCREEN / (APER_DY / 2));
             p.phase='accel'; enterBore(p, na, 'both'); p.gapY0 = p.y; p.chanY = na;
@@ -3617,14 +3617,14 @@ function stepParticle(p, dt){
       p.vx += (accelSolo ? 520 : 2000)*dt; p.x += p.vx*dt;
       // Beamlet FOCUSING across the gap. An ion enters wherever it happened to clear the wide
       // screen hole (±9), but the accel hole is only ±4.5 of open bore — so riding a fixed y all
-      // the way through sent every off-centre ion straight through accel-grid METAL. That is what
+      // the way through sent every off-center ion straight through accel-grid METAL. That is what
       // ion optics actually prevent: the sheath at the screen aperture is a lens that converges
       // the beamlet, so by the time the ion reaches the accel grid it is on the channel axis and
-      // threads the small hole. Ease it from its entry y (gapY0) onto the centreline (chanY) over
+      // threads the small hole. Ease it from its entry y (gapY0) onto the centerline (chanY) over
       // the gap, so it is visibly focused instead of cutting the corner through the webbing. The
       // ease runs over the open gap the DISC actually sees — from where its trailing edge clears
       // the screen slab to where its leading edge reaches the accel slab — so the ion is fully on
-      // the centreline before any part of the sprite touches the accel metal, not still converging
+      // the centerline before any part of the sprite touches the accel metal, not still converging
       // as it enters (which left it grazing the bore edge by ~0.5 mm).
       const gx0 = SCREEN_SLAB.x1 + partR, gx1 = ACCEL_SLAB.x0 - partR;
       const gu = gx1 > gx0 ? Math.max(0, Math.min(1, (p.x - gx0) / (gx1 - gx0))) : 1;
@@ -3674,7 +3674,7 @@ function stepParticle(p, dt){
       /* ── Already committed to a cusp: wind down the loss helix, then go ──────────────────
          Everything below is skipped — it no longer ionizes, no longer touches walls, and its
          velocity is zero. The drawn position slides from the contact point onto the strip
-         centre while the helix radius closes to nothing; when the timer runs out
+         center while the helix radius closes to nothing; when the timer runs out
          absorbElectron fires and the slot is recycled (a secondary) or re-emitted from the
          cathode (a primary). */
       if (p.lossT > 0){
@@ -4634,7 +4634,7 @@ function frameOrtho(){
   else                     halfY = halfX / asp;
   orthoCam.left = -halfX; orthoCam.right = halfX;
   orthoCam.top  =  halfY; orthoCam.bottom = -halfY;
-  // Pan the ortho camera to the focus centre (still looking straight down −Z).
+  // Pan the ortho camera to the focus center (still looking straight down −Z).
   orthoCam.position.set(cx, cy, distSection);
   orthoCam.up.set(0, 1, 0);
   orthoCam.lookAt(cx, cy, 0);
@@ -4893,7 +4893,7 @@ function setGridsTransparent(on){
 
   // The grid-stack bore liner is the chamber wall's ghost CONTINUED across the grids (see the
   // note where it is built in buildModel), so it takes exactly the ghost the body parts got
-  // above — same opacity, same emissive floor off the same body grey. depthWrite stays OFF so
+  // above — same opacity, same emissive floor off the same body gray. depthWrite stays OFF so
   // it blends OVER the housing front ring behind it (that's the whole point: two layers, like
   // the chamber) instead of depth-rejecting it. `animate` owns when it actually draws.
   if (gridBoreLinerMat){
@@ -5086,7 +5086,7 @@ function applyStageState(){
 
 /* ── Section annotations (labels + magnetic field lines) ───────── */
 const SVGNS = 'http://www.w3.org/2000/svg';
-const ARROWS_PER_LINE = 1;   // one right-pointing direction arrow at each arc's centre
+const ARROWS_PER_LINE = 1;   // one right-pointing direction arrow at each arc's center
 const ARROW_SIZE = 7;        // half-length of the arrow glyph, screen px (constant with zoom)
 
 /* Catmull-Rom smoothing of a control polyline into a dense point list. */
@@ -5257,7 +5257,7 @@ function updateAnnotations(){
     }
     fieldPolys[i].setAttribute('points', s);
 
-    // Direction arrow at each arc's centre, oriented along the local FORWARD tangent. Every
+    // Direction arrow at each arc's center, oriented along the local FORWARD tangent. Every
     // polyline runs N→S (starts on an N face, ends on the S face), so the forward tangent —
     // toward increasing sample index — always points from the N ring toward the S ring. The
     // two side arcs read horizontal (converging on the middle S ring); the corner cusp reads
@@ -5369,7 +5369,7 @@ function updateAnnotations(){
     const [cx, cy] = toScreen(e.c.pos[0], e.c.pos[1]);
     e.chip.style.left = cx + 'px';
     e.chip.style.top  = cy + 'px';
-    // Bottom-pinned grid labels run their leader from just above the chip; others from centre.
+    // Bottom-pinned grid labels run their leader from just above the chip; others from center.
     const ly = e.c.bottomLabel ? (cy - ch / 2 - 4 * annRel) : cy;
     e.line.setAttribute('x1', cx); e.line.setAttribute('y1', ly);
     e.line.setAttribute('x2', a[0]); e.line.setAttribute('y2', a[1]);
@@ -6181,7 +6181,7 @@ function drawDischargePlasma(ctx, x0, x1, yT, yB, yMid, rHole, xEmit){
   if (w < 60 || h < 40) return;
   ctx.save();
   /* Body. In the overview cross-section the chamber plasma is nothing but the particles, standing on
-     the grey of the chamber wall — no stipple, no ruled outline. There is no wall behind it here, so
+     the gray of the chamber wall — no stipple, no ruled outline. There is no wall behind it here, so
      the block is a faint glow that fades out toward the frame edge rather than a boxed-in patch: it
      says the chamber carries on upstream, which is true, and leaves the particles to carry the look. */
   const body = ctx.createLinearGradient(x0, 0, x1, 0);
@@ -7011,9 +7011,9 @@ function drawAccelGraph(dt){
      field inside the metal and so no drop across a plate's thickness. The whole of V_T falls across
      the vacuum between the two facing surfaces, which is the d in the Child–Langmuir law (t_a in the
      reference section, with t_s and t_e the plate thicknesses accounted separately). Measuring the
-     gap centre-to-centre would put a slice of the drop inside each electrode. */
+     gap center-to-center would put a slice of the drop inside each electrode. */
   const gTop = yTop + 2, gBot = yBase;
-  const yMid = Math.round((gTop + gBot) / 2);           // beam axis (centre of both holes)
+  const yMid = Math.round((gTop + gBot) / 2);           // beam axis (center of both holes)
   const rS = (gBot - gTop) * APER_FRAC * 0.5;           // screen-hole radius D_S/2, px
   const rA = rS * APER_RATIO;                           // accel-hole radius D_A/2, px
   const W_SCR = 15, W_ACC = 30;                         // plate thicknesses (t_s thin, t_e thick)
@@ -7172,7 +7172,7 @@ function drawAccelGraph(dt){
   /* The flat runs THROUGH the metal. Each grid is a conductor, so it is an equipotential: φ holds at
      V_T right across the screen plate and at 0 right across the accel plate, and the entire drop is
      confined to the vacuum between their facing surfaces. Drawing these two stubs is what makes the
-     span of the ramp legible as the gap d and not as some centre-to-centre distance.
+     span of the ramp legible as the gap d and not as some center-to-center distance.
      (Strictly, on the axis of a real aperture the field does leak through the hole and φ is not
      quite the electrode potential there — that leakage is exactly what makes the pair a lens. This
      plot is the 1-D Child–Langmuir picture, in which each grid is an equipotential plane.) */
@@ -7603,11 +7603,11 @@ function updateChargeBar(dt){
   scPot += (target - scPot) * Math.min(1, dt * 1.8);
   if (!minus) return;
   const c = Math.max(0, Math.min(1, -scPot));          // 0 (neutral) … 1 (fully charged)
-  /* Centre the ⊖ on the hull AS DRAWN: project the housing's bounding box and take the middle of
-     its SCREEN extent. Projecting the box's own centre point is not the same thing — the side
+  /* Center the ⊖ on the hull AS DRAWN: project the housing's bounding box and take the middle of
+     its SCREEN extent. Projecting the box's own center point is not the same thing — the side
      view is slightly off-axis, so that lands about 23 px downstream of where the silhouette
      actually sits, and the old hand-picked (20, 4, 0) was further off again, up and forward of
-     the body's middle. Measured against the rendered hull (its grey pixels), the midpoint below
+     the body's middle. Measured against the rendered hull (its gray pixels), the midpoint below
      is within 3 px of their centroid. */
   const vp = $('viewport'), w = vp.clientWidth, h = vp.clientHeight;
   let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
@@ -7669,7 +7669,7 @@ function drawCircuit(){
   // Zoom-tracking schematic: the circuit is laid out in MODEL space and mapped with the TRUE
   // projection scale, so its wires, arrows and labels stay glued to the hardware features they
   // annotate at EVERY zoom — they never drift off their anchors when the camera zooms in.
-  const CHcx = (CH_X0 + CH_X1) / 2;                       // chamber axial (k̂) centre
+  const CHcx = (CH_X0 + CH_X1) / 2;                       // chamber axial (k̂) center
   const o0 = Praw(CHcx, AXY), o1 = Praw(CHcx + 100, AXY);
   const sTrue = Math.abs(o1[0] - o0[0]) / 100;            // px per model unit at current zoom
   const mvp = Math.min(W, H);
@@ -7748,7 +7748,7 @@ function drawCircuitSection(P, W, H, wire, node, battery, arrow){
   const tieAnode = bare;
 
   // All coordinates below are in MODEL space; P() maps them to screen with the clamped scale.
-  const CHcx = (CH_X0 + CH_X1) / 2;      // chamber axial (k̂) centre — anode nodes sit here
+  const CHcx = (CH_X0 + CH_X1) / 2;      // chamber axial (k̂) center — anode nodes sit here
   const TOPW = AXY + CH_R, BOTW = AXY - CH_R;   // inner-wall top / bottom
   const botRow = BOTW - 50;              // supply row beneath the thruster (discharge + total)
   const topRow = TOPW + 78;              // neutralizer supply row above the thruster
@@ -8827,7 +8827,7 @@ function animate(ts){
   // The Accelerator stage hides the ENTIRE cross-section (applyStageState drops every `comps`
   // entry) so the space-charge graph gets a clean dark backdrop. The liner is deliberately not a
   // body part and so never appears in `comps` — which meant it survived that sweep and painted a
-  // big grey block behind the graph. It has nothing to line there anyway: gate it on the model.
+  // big gray block behind the graph. It has nothing to line there anyway: gate it on the model.
   if (gridBoreLiner) gridBoreLiner.visible = bodyDimmed && capsActive && appMode !== 'acc';
 
   renderer.render(scene, orthoActive ? orthoCam : camera);

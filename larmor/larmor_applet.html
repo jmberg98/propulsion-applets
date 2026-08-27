@@ -125,13 +125,13 @@ footer {
   margin: 0 0 18px; padding: 7px 12px;
   border: 1px solid var(--border); border-radius: 5px;
   background: var(--bg-panel-1);
-  font-size: 13.5px; line-height: 1.5; color: var(--text-muted);
+  font-size: 14.5px; line-height: 1.5; color: var(--text-muted);
   /* Hidden. The markup is kept so the code stays documented in the source and
      the key can come back by deleting this one line. */
   display: none;
 }
 .color-key .ck-lead {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 1.1px;
+  font-size: 12.5px; font-weight: 700; letter-spacing: 1.1px;
   text-transform: uppercase; color: var(--c-accent);
 }
 .color-key .ck { display: inline-flex; align-items: center; gap: 6px; }
@@ -147,7 +147,7 @@ footer {
   margin-bottom: 8px;
 }
 #hdr h1 {
-  font-size: 25px;
+  font-size: 26px;
   font-weight: 700;
   color: var(--text-heading);
   letter-spacing: .3px;
@@ -155,7 +155,7 @@ footer {
 
 /* ── Badge ───────────────────────────────────────────── */
 .badge {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -170,7 +170,7 @@ footer {
 
 /* ── Page intro ──────────────────────────────────────── */
 .page-intro {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.72;
   color: var(--text-main);
   margin-bottom: 18px;
@@ -187,7 +187,7 @@ footer {
   margin-bottom: 20px;
 }
 .clarify-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -203,7 +203,7 @@ details.clarify-detail > summary {
   list-style: none;
   display: block;
   padding: 10px 14px 10px 34px;
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   background: var(--bg-panel-2);
@@ -230,7 +230,7 @@ details.clarify-detail > summary:focus-visible {
 .clarify-body {
   padding: 10px 18px 14px;
   border-top: 1px solid var(--border);
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   background: var(--bg-panel-1);
@@ -248,7 +248,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 16px;
 }
 .th-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -258,7 +258,7 @@ details.clarify-detail > summary:focus-visible {
   margin-bottom: 12px;
 }
 .th-body {
-  font-size: 20.5px;
+  font-size: 21.5px;
   line-height: 1.70;
   color: var(--text-main);
   margin-bottom: 14px;
@@ -414,7 +414,16 @@ details.deriv-detail > summary:focus-visible {
 .demo-frame {
   display: block;
   width: 100%;
-  height: 680px;
+  /* Was a flat `height: 680px`. The page band grew to --page-w without the frame
+     following, so the demo got squatter as the page got wider: at a 1500px band
+     this frame stood 680px tall where the gridded-ion and Hall-thruster pages give
+     theirs 820. Same rule as those pages now, copied across unchanged. The ratio
+     is what sets the height, min-height holds the floor once the band is narrow,
+     and max-height keeps the whole demo inside one screen on a laptop. */
+  aspect-ratio: 1.8;
+  height: auto;
+  min-height: 560px;
+  max-height: 82vh;
   border: 0;
   border-top: 1px solid var(--border);
   background: var(--bg-canvas);
@@ -431,7 +440,7 @@ details.deriv-detail > summary:focus-visible {
   margin-bottom: 20px;
 }
 .quiz-hdr {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--c-accent);
   letter-spacing: 1.2px;
@@ -449,14 +458,14 @@ details.deriv-detail > summary:focus-visible {
   background: var(--bg-panel-2);
 }
 .quiz-q {
-  font-size: 20.5px;
+  font-size: 21.5px;
   font-weight: 600;
   color: var(--text-heading);
   margin-bottom: 12px;
   line-height: 1.55;
 }
 .quiz-hint {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--text-muted);
   font-style: italic;
   margin-bottom: 10px;
@@ -477,7 +486,7 @@ details.deriv-detail > summary:focus-visible {
   border-radius: 4px;
   color: var(--text-main);
   font-family: 'Barlow', sans-serif;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -510,7 +519,7 @@ details.deriv-detail > summary:focus-visible {
   color: #7fb98a;
 }
 .quiz-opt-label {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: #444;
   flex-shrink: 0;
@@ -534,7 +543,7 @@ details.deriv-detail > summary:focus-visible {
 .quiz-opt-text { display: block; }
 .quiz-opt-text:has(.quiz-opt-note) { display: flex; flex-direction: column; gap: 3px; }
 .quiz-opt-note {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   font-style: italic;
   color: var(--text-muted);
@@ -557,7 +566,7 @@ details.deriv-detail > summary:focus-visible {
   border-radius: 4px;
   color: var(--text-heading);
   font-family: 'Barlow', sans-serif;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: .8px;
   text-transform: uppercase;
@@ -567,7 +576,7 @@ details.deriv-detail > summary:focus-visible {
 .quiz-submit:hover:not(:disabled) { background: #232323; border-color: #4a4a4a; }
 .quiz-submit:disabled { opacity: .5; cursor: default; }
 .quiz-feedback {
-  font-size: 18px;
+  font-size: 19px;
   color: var(--text-muted);
   min-height: 22px;
   font-style: italic;
@@ -592,7 +601,7 @@ details.deriv-detail > summary:focus-visible {
 .applet-nav a,
 .applet-nav .nav-disabled {
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   letter-spacing: 0.3px;
   text-decoration: none;
@@ -636,13 +645,13 @@ footer .foot-logo {
 footer a:hover .foot-logo { opacity: 1; }
 
 footer .foot-title {
-  font-size     : 17px;
+  font-size     : 18px;
   letter-spacing: 0.3px;
   color         : var(--text-secondary);
 }
 
 footer .foot-cred {
-  font-size: 15px;
+  font-size: 16px;
   color    : var(--text-muted);
 }
 
@@ -655,8 +664,24 @@ footer .foot-cred {
 @media (max-width: 980px) {
   .applet-frame,
   .demo-frame,
-  .applet-frame.demo-frame { height: 860px; }
+  .applet-frame.demo-frame {
+    height: 860px;
+    /* Both resets are load-bearing: the base rule's aspect-ratio would fight this
+       height, and its max-height: 82vh would clamp the 860 the stacked layout
+       needs down to the height of the window. */
+    aspect-ratio: auto;
+    max-height: none;
+  }
 }
+/* ── Inline applet link ─────────────────────────────── */
+a.applet-link {
+  color: var(--text-heading);
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+a.applet-link:hover { border-bottom-color: var(--text-heading); }
+
 </style>
 </head>
 <body>
@@ -680,8 +705,8 @@ footer .foot-cred {
   fundamentals of <span class="key">chemical rocket engines</span>. Likewise,
   <span class="key">electromagnetism</span> and <span class="key">plasma physics</span> govern the
   operating fundamentals of <span class="key">electric thrusters</span>. We start by exploring the
-  non-intuitive behavior of <span class="hl-q">charged particles</span> in a uniform
-  <span class="hl-B">magnetic field</span>.
+  non-intuitive behavior of charged particles in a uniform
+  <span class="hl-B">magnetic field $\vec{B}$</span>.
 </p>
 
 <div class="color-key">
@@ -696,8 +721,8 @@ footer .foot-cred {
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
-    travels entirely <em>perpendicular</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
+    <p class="quiz-q">What path/trajectory will a charged particle follow if it
+    travels entirely <em>perpendicular</em> to a uniform <span class="hl-B">magnetic field $\vec{B}$</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
         <span class="quiz-opt-label">a</span>
@@ -732,11 +757,11 @@ footer .foot-cred {
 <div class="theory-block">
   <div class="th-hdr">Cyclotron &amp; Larmor Motion</div>
   <p class="th-body">
-    When a particle travels perpendicular to a uniform <span class="hl-B">magnetic field</span>, it travels
+    When a particle travels perpendicular to a uniform <span class="hl-B">magnetic field $\vec{B}$</span>, it travels
     circularly, undergoing <span class="key">cyclotron</span> or <span class="key">Larmor motion</span>. The
-    radius of this circle is called the <span class="hl-ve">Larmor radius</span>, and the angular frequency
-    of the motion is called the <span class="hl-ve">cyclotron frequency</span>. A particle in Larmor motion
-    is said to be <span class="key">"magnetized"</span> (more on this in the magnetic mirror applet!).
+    radius of this circle is called the <span class="hl-ve">Larmor radius $r_L$</span>, and the angular frequency
+    of the motion is called the <span class="hl-ve">cyclotron frequency $\omega_c$</span>. A particle in Larmor motion
+    is said to be <span class="key">"magnetized"</span> (more on this in the <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirror applet</a>!).
   </p>
 </div>
 
@@ -744,8 +769,8 @@ footer .foot-cred {
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
-    travels entirely <em>parallel</em> to a uniform <span class="hl-B">magnetic field</span>?</p>
+    <p class="quiz-q">What path/trajectory will a charged particle follow if it
+    travels entirely <em>parallel</em> to a uniform <span class="hl-B">magnetic field $\vec{B}$</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="true">
         <span class="quiz-opt-label">a</span>
@@ -767,9 +792,9 @@ footer .foot-cred {
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="single">
-    <p class="quiz-q">What path/trajectory will a <span class="hl-q">charged particle</span> follow if it
+    <p class="quiz-q">What path/trajectory will a charged particle follow if it
     travels <em>neither entirely parallel nor entirely perpendicular</em> to a uniform
-    <span class="hl-B">magnetic field</span>?</p>
+    <span class="hl-B">magnetic field $\vec{B}$</span>?</p>
     <div class="quiz-options">
       <button class="quiz-opt" data-correct="false">
         <span class="quiz-opt-label">a</span>
@@ -806,7 +831,7 @@ footer .foot-cred {
   <p class="th-body">
     Let's compare the behavior of <span class="hl-ion">ions</span> and
     <span class="hl-electron">electrons</span>. <span class="hl-ion">Ions</span> are far more
-    <span class="hl-mass">massive</span> than electrons, by three to
+    massive than electrons, by three to
     five orders of magnitude! How might this affect their <span class="key">cyclotron motion</span>? Assume that
     the electron and ion are in isolation of
     each other. They are shown together for visual purposes only.
@@ -830,24 +855,24 @@ footer .foot-cred {
   <div class="clarify-hdr">Conceptual Questions</div>
 
   <details class="clarify-detail">
-    <summary>What does a <span class="hl-B">magnetic field</span> do to a
-    <span class="hl-q">charged particle</span>? How is the particle accelerated? Does the
+    <summary>What does a <span class="hl-B">magnetic field $\vec{B}$</span> do to a
+    charged particle? How is the particle accelerated? Does the
     magnetic field speed up or slow down the
     charged particle?</summary>
     <div class="clarify-body">
-      A <span class="hl-B">magnetic field</span> exerts no force on a
-      <span class="hl-q">charged particle</span> if the particle has zero velocity, or if the particle has
+      A <span class="hl-B">magnetic field $\vec{B}$</span> exerts no force on a
+      charged particle if the particle has zero velocity, or if the particle has
       nonzero velocity but is traveling entirely tangent to the
-      <span class="hl-B">magnetic field lines</span>. If instead the
+      <span class="hl-B">magnetic field lines $\vec{B}$</span>. If instead the
       charged particle has a nonzero
-      <span class="hl-v">velocity component</span> perpendicular to
+      <span class="hl-v">velocity component $v_\perp$</span> perpendicular to
       $\textcolor{#00DDB5}{\vec{B}}$, the
-      <span class="hl-thrust">magnetic force</span> provides
+      magnetic force provides
       <span class="key">centripetal acceleration</span> to the particle. Recall that centripetal acceleration
       doesn't speed up or slow down a body, but rather <span class="key">changes its direction</span>. In fact,
       the particle undergoes <span class="key">circular motion</span> around the field line! Furthermore, because
       the particle can be positively or negatively
-      <span class="hl-q">charged</span>, the direction of rotation can either be
+      charged, the direction of rotation can either be
       <span class="key">clockwise</span> or <span class="key">counter-clockwise</span>.
     </div>
   </details>
@@ -857,23 +882,23 @@ footer .foot-cred {
     contain three species: neutral propellant atoms, positively
     <span class="hl-ion">charged ions</span>, and negatively
     <span class="hl-electron">charged electrons</span>. How are each of these three species affected by a
-    <span class="hl-B">magnetic field</span>?</summary>
+    <span class="hl-B">magnetic field $\vec{B}$</span>?</summary>
     <div class="clarify-body">
       Neutral propellant atoms are (by definition) not
-      <span class="hl-q">charged</span>, so they are entirely unaffected by a
-      <span class="hl-B">magnetic field</span>. Positively
-      <span class="hl-q">charged ions</span> and negatively
+      charged, so they are entirely unaffected by a
+      <span class="hl-B">magnetic field $\vec{B}$</span>. Positively
+      charged ions and negatively
       <span class="hl-electron">charged electrons</span> are both magnetized by
-      <span class="hl-B">magnetic field lines</span> and travel in a
+      <span class="hl-B">magnetic field lines $\vec{B}$</span> and travel in a
       <span class="key">helical trajectory</span>. They will wind in
       <span class="key">opposite directions</span>, given that they are oppositely
       charged. More interestingly, the
-      <span class="hl-mass">mass</span> of the
+      <span class="hl-mass">mass $m$</span> of the
       <span class="hl-ion">ion</span> is 3–5 orders of magnitude larger than the
       <span class="hl-electron">electron</span>. The
       ion will therefore have a much
-      <span class="key">larger</span> <span class="hl-ve">Larmor radius</span> and
-      <span class="key">smaller</span> <span class="hl-ve">cyclotron frequency</span>, while the
+      <span class="key">larger</span> <span class="hl-ve">Larmor radius $r_L$</span> and
+      <span class="key">smaller</span> <span class="hl-ve">cyclotron frequency $\omega_c$</span>, while the
       electron will have a much
       <span class="key">smaller</span> Larmor radius and
       <span class="key">greater</span> cyclotron frequency.
@@ -886,10 +911,10 @@ footer .foot-cred {
   <div class="th-hdr">Larmor Radius</div>
 
   <p class="th-body">
-    The <span class="hl-ve">Larmor radius</span> is the radius of a particle's circular orbit in a uniform
-    <span class="hl-B">magnetic field</span>. The greater the <span class="hl-mass">mass</span> of the
+    The <span class="hl-ve">Larmor radius $r_L$</span> is the radius of a particle's circular orbit in a uniform
+    <span class="hl-B">magnetic field $\vec{B}$</span>. The greater the <span class="hl-mass">mass $m$</span> of the
     particle, the <span class="key">larger</span> the radius. Conversely, the greater the
-    <span class="hl-q">charge</span> and magnetic field strength, the
+    <span class="hl-q">charge $q$</span> and magnetic field strength, the
     <span class="key">smaller</span> the radius.
   </p>
 
@@ -908,7 +933,7 @@ footer .foot-cred {
 
         <span class="eq-step-label">Setup: Particle Parameters</span>
         <span class="eq-note">
-          Apply the <span class="hl-thrust">Lorentz force</span> to a particle of
+          Apply the <span class="hl-thrust">Lorentz force $\vec{F}$</span> to a particle of
           <span class="hl-mass">mass $m$</span> and <span class="hl-q">charge $q$</span>
           traveling at total speed $|\textcolor{#3DBFFF}{v}|$ at pitch angle $\theta$ to
           $\textcolor{#00DDB5}{\vec{B}}$, decomposed into perpendicular and parallel components:
@@ -934,7 +959,7 @@ footer .foot-cred {
         $$
 
         <div class="eq-callout">
-          The <span class="hl-thrust">magnetic force</span> is always <strong>perpendicular</strong>
+          The magnetic force is always <strong>perpendicular</strong>
           to the particle's velocity, so it provides centripetal accleration.
         </div>
 
@@ -959,8 +984,8 @@ footer .foot-cred {
         <div class="eq-callout highlight-blue">
           A heavier <span class="hl-ion">ion</span> gyrates with a
           <strong>larger</strong> radius than a light <span class="hl-electron">electron</span>
-          at the same speed. A stronger <span class="hl-B">field</span> or larger
-          <span class="hl-q">charge</span> tightens the orbit.
+          at the same speed. A stronger <span class="hl-B">field $\vec{B}$</span> or larger
+          <span class="hl-q">charge $q$</span> tightens the orbit.
         </div>
 
       </div>
@@ -973,10 +998,10 @@ footer .foot-cred {
   <div class="th-hdr">Cyclotron Frequency</div>
 
   <p class="th-body">
-    The <span class="hl-ve">cyclotron frequency</span> is the angular frequency of a particle's circular
-    orbit in a uniform <span class="hl-B">magnetic field</span>. The greater the
-    <span class="hl-mass">mass</span> of the particle, the <span class="key">lesser</span> the frequency.
-    Conversely, the greater the <span class="hl-q">charge</span> and
+    The <span class="hl-ve">cyclotron frequency $\omega_c$</span> is the angular frequency of a particle's circular
+    orbit in a uniform <span class="hl-B">magnetic field $\vec{B}$</span>. The greater the
+    <span class="hl-mass">mass $m$</span> of the particle, the <span class="key">lesser</span> the frequency.
+    Conversely, the greater the <span class="hl-q">charge $q$</span> and
     magnetic field strength, the <span class="key">greater</span> the frequency.
   </p>
 

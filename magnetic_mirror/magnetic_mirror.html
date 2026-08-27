@@ -136,13 +136,21 @@ input[type="range"]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
 .tab:hover{background:var(--bg-panel-3)}
 .tab.active{background:rgba(61,191,255,.12);border-color:var(--hi-blue);color:var(--hi-blue-soft)}
 .tab small{display:block;font-size:10px;font-weight:400;opacity:.8;margin-top:2px}
-#otable{width:100%;border-collapse:collapse;font-size:13px}
-#otable td{padding:7px 2px;font-family:'Courier New',monospace;text-align:right;
-  color:var(--text-heading);font-weight:700;font-size:16px;
+/* ── Output table ───────────────────────────────────────────
+   The house out-* spec (hall_thruster.html) applied to a two-column
+   comparison. Numbers take .out-val (19px Courier 600); column headers take
+   the .out-label spec. The row-label column is the ONE documented exception:
+   it carries unit symbols that .out-label's uppercase would corrupt. */
+.out-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.out-table th{font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;
+  color:var(--text-muted);padding:3px 2px 5px;text-align:right;border-bottom:1px solid var(--border);}
+.out-table th:first-child{text-align:left}
+.out-table td{padding:7px 2px;font-family:'Courier New',monospace;text-align:right;
+  color:var(--text-heading);font-weight:600;font-size:19px;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-#otable td:first-child{text-align:left;color:#545454;font-family:'Barlow',sans-serif;font-size:12px;
-  font-weight:400;line-height:1.3;white-space:normal;padding-right:8px;}
-#otable tr+tr td{border-top:1px solid #141414}
+.out-table td:first-child{text-align:left;color:var(--text-muted);font-family:'Barlow',sans-serif;font-size:11.5px;
+  font-weight:400;line-height:1.35;white-space:normal;padding-right:8px;}
+.out-table tr+tr td{border-top:1px solid #141414}
 /* optimum-isp style output row (label left, bold monospace value right) */
 .orow{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:6px;margin-top:8px;}
 .olbl{font-size:12px;color:#545454;}
@@ -345,7 +353,7 @@ details[open] summary.sec{margin-bottom:8px}
   <div id="out-wrap">
     <details id="out-details">
     <summary class="sec">Key Parameters</summary>
-    <table id="otable">
+    <table class="out-table">
       <!-- moment -->
       <tr class="r-moment hide"><td>Larmor Radius (<i>r</i><sub>L</sub>)</td>       <td id="o-mom-rL">&#x2014;</td></tr>
       <tr class="r-moment hide"><td>Cyclotron Frequency (&#969;<sub>c</sub>)</td>  <td id="o-mom-wc">&#x2014;</td></tr>
@@ -489,7 +497,7 @@ function compute(p){
 // ── constants ───────────────────────────────────────────────────────────────
 const SCENE_R     = 5.0;
 const BOTTLE_L    = SCENE_R * 2.6;     // mirror half-length: throats at x = ±L
-const R_FL_MAX    = SCENE_R * 1.05;    // mirror field-line radius at the centre
+const R_FL_MAX    = SCENE_R * 1.05;    // mirror field-line radius at the center
 const TRAVEL_TRAP = 8.5, TRAVEL_ESC = 7.5, END_PAUSE = 0.6;
 const NS          = 1800;
 const OMEGA_REF   = 5.0e7;
@@ -793,7 +801,7 @@ function makeCircArrows(group, xpos, radius, sense, color, opacity, nHeads = 4) 
 
 // poloidal field loops wrapping a current ring of radius ringR (the wire lies in the
 // y-z plane at x=0). Each little loop encircles the wire; by the right-hand rule the
-// field threads −x̂ through the centre of the ring — the same direction as μ for a
+// field threads −x̂ through the center of the ring — the same direction as μ for a
 // gyrating charge — so these loops "add up" to the magnetic dipole moment.
 function makePoloidalLoops(group, ringR, color, opacity, nLoops = 8, dirSign = 1) {
   const rho  = ringR * 0.26;
@@ -931,7 +939,7 @@ function buildMoment(d) {
   }
 
   // induced field OF the loop: poloidal circles wrapping the wire. They thread along μ
-  // (antiparallel to B, i.e. −bdir·x̂) through the ring centre and add up to μ.
+  // (antiparallel to B, i.e. −bdir·x̂) through the ring center and add up to μ.
   if (d.sign !== 0) makePoloidalLoops(fieldGroup, rDisp, COL.field, 0.5, 8, bdir);
   fieldGroup.visible = true;
 
@@ -980,7 +988,7 @@ function animateMoment(d) {
   const tan = new THREE.Vector3(0, -Math.sin(phase), Math.cos(phase)).multiplyScalar(mv.rotSign);
   if (showVel && d.sign !== 0 && d.v_perp > 0)
     setArrow(particle.velArrow, particle.velLabel, pos, tan, SCENE_R*0.85, true);
-  // magnetic moment μ antiparallel to B (diamagnetic) → −bdir·x, drawn from the centre
+  // magnetic moment μ antiparallel to B (diamagnetic) → −bdir·x, drawn from the center
   if (showMu && d.sign !== 0)
     setArrow(particle.muArrow, particle.muLabel, new THREE.Vector3(0,0,0),
              new THREE.Vector3(-mv.bdir,0,0), SCENE_R*0.9, true);

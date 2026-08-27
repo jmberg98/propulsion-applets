@@ -303,42 +303,49 @@ input:disabled, select:disabled {
   min-height: 16px;
 }
 
-.cf-out-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-.cf-out-table th {
-  font-size: 11px;
+/* ── Output table ───────────────────────────────────────────
+   The house out-* spec (hall_thruster.html) applied to a two-column
+   comparison. Column headers take the .out-label spec (9px / .7px /
+   uppercase / muted); every number takes .out-val (19px Courier 600).
+   The row-label column is the ONE documented exception: it carries unit
+   symbols ([m/s], [rad/s]) that .out-label's uppercase would corrupt into
+   [M/S], so it stays sentence-case Barlow at the .out-sub size. */
+.out-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.out-table .out-label,
+.out-table th {
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: .8px;
+  letter-spacing: .7px;
   text-transform: uppercase;
-  color: #545454;
+  color: var(--text-muted);
   padding: 3px 5px 5px;
   text-align: right;
   border-bottom: 1px solid var(--border);
 }
-.cf-out-table th:first-child { text-align: left; }
-.cf-out-table td {
+.out-table th:first-child { text-align: left; }
+.out-table .out-val,
+.out-table td {
   padding: 5px 5px;
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 19px;
+  font-weight: 600;
   text-align: right;
   color: var(--hi-blue);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.cf-out-table td:first-child {
+.out-table td:first-child {
   text-align: left;
-  color: #545454;
+  color: var(--text-muted);
   font-family: 'Barlow', sans-serif;
+  font-weight: 400;
   font-size: 11.5px;
   line-height: 1.35;
   white-space: normal;
   padding-right: 8px;
 }
-.cf-out-table tr + tr td { border-top: 1px solid #141d27; }
+.out-table tr + tr td { border-top: 1px solid #141d27; }
 
 /* ── Outputs dropdown ─────────────────────────────── */
 details.cf-outputs { margin-bottom: 2px; }
@@ -621,37 +628,37 @@ details.cf-outputs > summary:focus-visible {
     <details class="cf-outputs">
       <summary class="cf-sect">Key Parameters</summary>
 
-    <table class="cf-out-table">
+    <table class="out-table">
       <thead>
         <tr>
           <th></th>
-          <th id="th-A" style="color:#4d9bff; width:108px;">Particle</th>
-          <th id="th-B" class="col-B" style="color:#ffe94d; width:108px;">Electron</th>
+          <th id="th-A" style="color:#4d9bff; width:118px;">Particle</th>
+          <th id="th-B" class="col-B" style="color:#ffe94d; width:118px;">Electron</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Larmor Radius (<i>r</i><sub>L</sub>)</td>
+          <td>Larmor Radius (<i>r</i><sub>L</sub>) [m]</td>
           <td id="A-rL">—</td>
           <td id="B-rL" class="col-B">—</td>
         </tr>
         <tr>
-          <td>Cyclotron Frequency (ω<sub>c</sub>)</td>
+          <td>Cyclotron Frequency (ω<sub>c</sub>) [rad/s]</td>
           <td id="A-wc">—</td>
           <td id="B-wc" class="col-B">—</td>
         </tr>
         <tr>
-          <td>Magnetic Moment (μ)</td>
+          <td>Magnetic Moment (μ) [J/T]</td>
           <td id="A-mu">—</td>
           <td id="B-mu" class="col-B">—</td>
         </tr>
         <tr>
-          <td>Parallel Velocity (<i>v</i><sub>∥</sub>)</td>
+          <td>Parallel Velocity (<i>v</i><sub>∥</sub>) [m/s]</td>
           <td id="A-vpar">—</td>
           <td id="B-vpar" class="col-B">—</td>
         </tr>
         <tr>
-          <td>Perpendicular Velocity (<i>v</i><sub>⊥</sub>)</td>
+          <td>Perpendicular Velocity (<i>v</i><sub>⊥</sub>) [m/s]</td>
           <td id="A-vperp">—</td>
           <td id="B-vperp" class="col-B">—</td>
         </tr>
@@ -1667,16 +1674,18 @@ function updateBReadout() {
 }
 
 function writeReadouts(key, d) {
-  const fv = (x, unit) => {
+  // The unit lives in the row label, not the value cell -- the same split the
+  // other out-table viewers use, and what lets the value carry .out-val's 19px
+  // Courier inside a 108px column without ellipsing.
+  const fv = (x) => {
     if (x === null || x === undefined || (typeof x === 'number' && isNaN(x))) return '—';
-    const v = fmt(x);
-    return v === '—' ? '—' : v + '\u2009' + unit;
+    return fmt(x);
   };
-  $(`${key}-rL`).textContent    = fv(d.r_L,    'm');
-  $(`${key}-wc`).textContent    = fv(d.omega_c, 'rad/s');
-  $(`${key}-mu`).textContent    = fv(d.mu,      'J/T');
-  $(`${key}-vpar`).textContent  = fv(d.v_par,   'm/s');
-  $(`${key}-vperp`).textContent = fv(d.v_perp,  'm/s');
+  $(`${key}-rL`).textContent    = fv(d.r_L);
+  $(`${key}-wc`).textContent    = fv(d.omega_c);
+  $(`${key}-mu`).textContent    = fv(d.mu);
+  $(`${key}-vpar`).textContent  = fv(d.v_par);
+  $(`${key}-vperp`).textContent = fv(d.v_perp);
 }
 
 // On a bad entry the trajectory is dropped but the table keeps whatever the last
@@ -1684,7 +1693,7 @@ function writeReadouts(key, d) {
 // Dim it instead of blanking it: the numbers stay available, and nothing claims
 // they describe the current entry.
 function markStale(on) {
-  const t = document.querySelector('.cf-out-table');
+  const t = document.querySelector('.out-table');
   if (t) t.classList.toggle('stale', on);
 }
 function showError(msg) { $('error-msg').textContent = msg; $('error-msg').style.display = 'block'; markStale(true); }
