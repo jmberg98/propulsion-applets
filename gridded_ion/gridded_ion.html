@@ -458,7 +458,7 @@
 
   /* The side panel is ALWAYS present. Overview shows the viewer controls + legend;
      the three focused stages replace them with their own interactive panel (below). */
-  #app:not(.mode-overview) #viewer-opts,
+  #app:not(.mode-overview) #viewer-opts > *:not(#view-reset):not(#speed-row),
   #app:not(.mode-overview) #part-legend { display: none; }
   /* The material key rides with the HARDWARE, not with the overview: it is listed
      positively for the three modes that actually draw the bodies it names (overview,
@@ -736,10 +736,22 @@
 
   /* Camera recovery. Hidden in the two stages that have no camera to recover:
      Child-Langmuir is a fixed schematic with pan and zoom locked off, and the
-     circuit diagram is a 2-D overlay. */
-  #view-reset { margin-top: -6px; }
+     circuit diagram is a 2-D overlay.
+     In the overview the row sits in the control stack and takes the stack spacing.
+     In the focused stages every sibling inside #viewer-opts is hidden, so it is alone
+     under the mode description and pulls up to where it used to sit. */
+  #app:not(.mode-overview) #view-reset { margin-top: -6px; }
   #app.mode-acc #view-reset,
   #app.mode-circuit #view-reset { display: none; }
+  /* Playback speed rides directly under Reset view and shares its fate: the two stages
+     with no live plasma to pace (the Child-Langmuir schematic and the circuit diagram)
+     drop it for the same reason they drop the camera recovery. */
+  #app.mode-acc #speed-row,
+  #app.mode-circuit #speed-row { display: none; }
+  /* In the focused stages the stage's own .ix-panel follows immediately, and it brings no
+     top margin of its own; without this the end-stop captions sit right on its heading. In
+     the overview the .vtoglist below supplies its own padding and none is needed. */
+  #app:not(.mode-overview) #speed-row { margin-bottom: 15px; }
 
   .btn-row { display:flex; gap:8px; margin-top:10px; }
   .btn {
@@ -1070,11 +1082,6 @@
 
       <div class="mode-desc" id="mode-desc"></div>
 
-      <!-- Camera recovery, matching the hall-thruster viewer. Orbiting or panning
-           into a useless framing is one drag away, and without this the only way
-           back is a reload, which also discards every toggle set below. -->
-      <div class="btn-row" id="view-reset"><button type="button" class="btn" id="reset-view">Reset view</button></div>
-
       <!-- Overview: interactive viewer options (hidden in the focused stages). -->
       <div id="viewer-opts">
         <div id="view-ctl">
@@ -1088,19 +1095,33 @@
           <button data-power="on" class="active">Thruster On</button>
           <button data-power="off">Thruster Off</button>
         </div>
+        <!-- Camera recovery, matching the hall-thruster viewer. Orbiting or panning
+             into a useless framing is one drag away, and without this the only way
+             back is a reload, which also discards every toggle set below. It sits
+             directly under the two segments it recovers from and above the switch
+             list, because it is a VIEW control and the switches below are scene
+             contents. It lives INSIDE #viewer-opts for that placement, so the rule
+             that hides the overview controls in the focused stages exempts it by id;
+             see the #view-reset note. -->
+        <div class="btn-row" id="view-reset"><button type="button" class="btn" id="reset-view">Reset view</button></div>
+        <!-- Playback speed. A VIEWING control, not a physics one: it scales the wall-clock rate
+             the plasma is drawn at and changes nothing about the simulation itself, so it rides
+             directly under Reset view with the other camera-and-framing controls rather than
+             down among the scene contents. It is a MULTIPLIER on the pace each stage was tuned
+             to (MODES[m].speed), not a replacement for it, so 1.0x is whatever the stage
+             already looked like and the setting carries across a stage change. -->
+        <div class="slider-row" id="speed-row">
+          <div class="sl-lbl"><span>Particle speed</span><span id="speed-val">1.0&times;</span></div>
+          <input type="range" id="sld-speed" min="0.25" max="3" step="0.05" value="1"
+                 aria-label="Particle playback speed, a viewing control that does not change the simulation">
+          <div class="sl-ends"><span>Slow</span><span>Fast</span></div>
+        </div>
         <div class="vtoglist">
           <button type="button" class="vtog" id="tog-fields" role="switch" aria-checked="false"><span>Show electromagnetic fields</span><span class="vsw"></span></button>
           <button type="button" class="vtog on" id="tog-particles" role="switch" aria-checked="true"><span>Show particles</span><span class="vsw"></span></button>
           <button type="button" class="vtog" id="tog-labels" role="switch" aria-checked="false"><span>Show component labels</span><span class="vsw"></span></button>
           <button type="button" class="vtog tog-circuit" id="tog-circuit" role="switch" aria-checked="false"><span>Show circuit diagram</span><span class="vsw"></span></button>
           <button type="button" class="vtog" id="tog-transparent" role="switch" aria-checked="false"><span>Transparent view</span><span class="vsw"></span></button>
-        </div>
-        <!-- Particle-speed control is disabled: kept in the DOM (JS syncs #sld-speed.value per mode)
-             but hidden so it doesn't clutter the overview panel. -->
-        <div class="slider-row" style="display:none; opacity:0.4; pointer-events:none;">
-          <div class="sl-lbl"><span>Particle speed</span></div>
-          <input type="range" id="sld-speed" min="0.1" max="3" step="0.05" value="0.4" disabled>
-          <div class="sl-ends"><span>Slow</span><span>Fast</span></div>
         </div>
       </div>
 
@@ -2805,7 +2826,13 @@ function apertureY(y){
 }
 
 let particlesOn = true;        // "Show particles" checkbox — on by default
-let particleSpeed = 0.4;       // visualization speed multiplier (slider: slow → fast)
+let particleSpeed = 0.4;       // per-stage playback pace, set from MODES[m].speed
+/* Reader's own playback multiplier, on top of the stage's pace. Deliberately SEPARATE from
+   particleSpeed: the stages are each tuned to a pace that reads well (a single watchable ion
+   in Child-Langmuir, a lively plasma in the cusps), and a slider that overwrote that would
+   throw the tuning away the moment it was touched. Multiplying keeps 1.0x meaning "as the
+   stage was designed" and lets the setting survive a stage change. */
+let viewSpeed = 1;             // viewing only — scales the timestep, never the physics
 // ── Thruster ignition (Overview) ──────────────────────────────────────────────
 // igniteLevel eases 0(cold)→1(nominal) each time the thruster is fired in Overview.
 // A cold start empties the chamber & beam and feeds the propellant back in gradually
@@ -4702,8 +4729,7 @@ function setAppMode(m){
   if (m === 'circuit' && circuitView === 'potential') refreshPotProfile();
 
   setPower(cfg.power !== false);
-  particleSpeed = cfg.speed || 1.0;
-  $('sld-speed').value = particleSpeed;          // keep the (overview) slider in sync
+  particleSpeed = cfg.speed || 1.0;              // the stage's own pace; viewSpeed multiplies it
   setParticleProfile(cfg.particles || 'default');
   // Overview: cold-start the thruster so the exhaust spins up from empty (no pre-filled
   // neutral flood). Focused stages keep their burned-in nominal state.
@@ -5756,8 +5782,12 @@ function wireUI(){
   $('tog-labels').addEventListener('click', () => setShowLabels(!showLabels));
   $('tog-circuit').addEventListener('click', () => setShowCircuit(!showCircuit));
   $('tog-transparent').addEventListener('click', () => setShowTransparent(!showTransparent));
-  // Particle-speed slider — pure visualization scaling of the simulation timestep.
-  $('sld-speed').addEventListener('input', e => { particleSpeed = parseFloat(e.target.value); });
+  // Particle-speed slider — pure visualization scaling of the simulation timestep. Nothing
+  // downstream of it reads viewSpeed except the sub-stepping in the frame loop.
+  $('sld-speed').addEventListener('input', e => {
+    viewSpeed = parseFloat(e.target.value);
+    $('speed-val').textContent = viewSpeed.toFixed(2).replace(/0$/, '') + '×';
+  });
 }
 
 /* ── Accelerator space-charge graph overlay ───────────────────────────────────
@@ -8710,7 +8740,7 @@ function animate(ts){
     if (simLive && dt > 0){
       // Scale the sim time by the speed slider, but sub-step with a bounded timestep
       // so fast playback can't let ions tunnel through the thin grid gap.
-      let rem = dt * particleSpeed;
+      let rem = dt * particleSpeed * viewSpeed;
       while (rem > 1e-4){ const step = Math.min(rem, 0.02); updateParticles(step); rem -= step; }
     }
   }

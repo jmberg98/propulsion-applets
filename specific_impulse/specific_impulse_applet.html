@@ -817,6 +817,68 @@ a.applet-link {
 }
 a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 </style>
 </head>
 <body>
@@ -1295,7 +1357,38 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       momentum, to the spacecraft. Propellant is the scarce resource in space, so the useful figure
       of merit is impulse per unit <span class="hl-mass">propellant mass $m_{\mathrm{prop}}$</span>. Historically it was
       quoted per unit propellant <em>weight</em> on Earth, which is why
-      <span class="hl-ve">specific impulse $I_{sp}$</span> carries units of seconds rather than m/s.
+      <span class="hl-ve">specific impulse $I_{sp}$</span> carries units of seconds rather than m/s. That
+      weight is taken at <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-g0">Earth's gravity $g_0$</button>, wherever the vehicle happens to be flying.
+      <span class="nut-card" id="nut-g0" hidden>
+        <svg class="nut-svg" viewBox="0 0 420 180" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="Three panels, Earth, Mars and deep space, each reporting the same specific impulse of 3000 seconds even though the local gravity differs, because specific impulse always divides by Earth's 9.80665 meters per second squared underneath.">
+    <rect x="25" y="20" width="110" height="98" rx="5" fill="#ffffff" fill-opacity="0.02" stroke="#282828"/>
+    <text x="80" y="44" text-anchor="middle" font-size="15" font-weight="700" fill="#3DBFFF">I<tspan dy="4" font-size="11">sp</tspan><tspan dy="-4"> = 3000 s</tspan></text>
+    <text x="80" y="70" text-anchor="middle" font-size="12.5" fill="#7a7a7a">g = 9.81 m/s&#178;</text>
+    <path d="M36,118 A56,34 0 0 1 124,118 Z" fill="#3DBFFF" fill-opacity="0.18" stroke="#3DBFFF" stroke-width="1.2"/>
+    <text x="80" y="136" text-anchor="middle" font-size="13" fill="#7a7a7a">Earth</text>
+    <rect x="155" y="20" width="110" height="98" rx="5" fill="#ffffff" fill-opacity="0.02" stroke="#282828"/>
+    <text x="210" y="44" text-anchor="middle" font-size="15" font-weight="700" fill="#3DBFFF">I<tspan dy="4" font-size="11">sp</tspan><tspan dy="-4"> = 3000 s</tspan></text>
+    <text x="210" y="70" text-anchor="middle" font-size="12.5" fill="#7a7a7a">g = 3.72 m/s&#178;</text>
+    <path d="M166,118 A56,34 0 0 1 254,118 Z" fill="#FF4400" fill-opacity="0.18" stroke="#FF4400" stroke-width="1.2"/>
+    <text x="210" y="136" text-anchor="middle" font-size="13" fill="#7a7a7a">Mars</text>
+    <rect x="285" y="20" width="110" height="98" rx="5" fill="#ffffff" fill-opacity="0.02" stroke="#282828"/>
+    <text x="340" y="44" text-anchor="middle" font-size="15" font-weight="700" fill="#3DBFFF">I<tspan dy="4" font-size="11">sp</tspan><tspan dy="-4"> = 3000 s</tspan></text>
+    <text x="340" y="70" text-anchor="middle" font-size="12.5" fill="#7a7a7a">g &#8776; 0</text>
+    <circle cx="310" cy="96" r="1.7" fill="#9aa3b2" fill-opacity="0.8"/>
+    <circle cx="332" cy="86" r="1.7" fill="#9aa3b2" fill-opacity="0.8"/>
+    <circle cx="356" cy="102" r="1.7" fill="#9aa3b2" fill-opacity="0.8"/>
+    <circle cx="372" cy="90" r="1.7" fill="#9aa3b2" fill-opacity="0.8"/>
+    <circle cx="342" cy="108" r="1.7" fill="#9aa3b2" fill-opacity="0.8"/>
+    <text x="340" y="136" text-anchor="middle" font-size="13" fill="#7a7a7a">deep space</text>
+    <line x1="25" y1="150" x2="395" y2="150" stroke="#282828"/>
+    <text x="210" y="170" text-anchor="middle" font-size="14" fill="#F5C518">I<tspan dy="4" font-size="11">sp</tspan><tspan dy="-4"> always divides by Earth's g</tspan><tspan dy="4" font-size="11">0</tspan><tspan dy="-4"> = 9.80665 m/s&#178;</tspan></text>
+  </svg>
+        <span class="nut-note">
+          $g_0$ is Earth's surface gravitational acceleration, 9.80665 m/s&#178;, fixed by convention. <span class="hl-ve">Specific impulse $I_{sp}$</span> always divides by that Earth value and never by the local one, so an engine reports the same $I_{sp}$ at Earth, at Mars, or in deep space.
+        </span>
+      </span>
     </p>
 
     <div class="eq-panel">
@@ -2633,6 +2726,19 @@ function animate(ts) {
 resize();
 resetView();
 requestAnimationFrame(animate);
+</script>
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
+  });
+});
 </script>
 </body>
 </html>

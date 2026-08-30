@@ -176,52 +176,6 @@ footer {
   margin-bottom: 18px;
 }
 
-/* ══════════════════════════════════════════════════════
-   CLARIFY SECTIONS
-   ══════════════════════════════════════════════════════ */
-.clarify-section {
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  overflow: hidden;
-  background: var(--bg-panel-1);
-  margin-bottom: 20px;
-}
-.clarify-hdr {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--c-accent);
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  padding: 8px 14px 7px;
-  border-bottom: 1px solid var(--border);
-}
-
-details.clarify-detail { border-top: 1px solid var(--border); }
-details.clarify-detail:first-of-type { border-top: none; }
-details.clarify-detail > summary {
-  cursor: pointer;
-  list-style: none;
-  display: block;
-  padding: 10px 14px 10px 34px;
-  font-size: 21.5px;
-  font-weight: 600;
-  color: var(--text-heading);
-  background: var(--bg-panel-2);
-  user-select: none;
-}
-details.clarify-detail > summary::-webkit-details-marker { display: none; }
-details.clarify-detail > summary::before {
-  content: '\25B6';
-  font-size: 10px;
-  color: var(--c-accent);
-  display: inline-block;
-  width: 12px;
-  margin-left: -20px;
-  margin-right: 8px;
-  text-align: center;
-  transition: transform 0.15s ease;
-  transform-origin: 50% 50%;
-}
 details.clarify-detail[open] > summary::before { transform: rotate(90deg); }
 details.clarify-detail > summary:focus-visible {
   outline: 1px solid var(--c-accent);
@@ -343,9 +297,27 @@ details.deriv-detail > summary:focus-visible {
 }
 .deriv-col {
   padding: 14px 20px;
+  /* A grid track's automatic minimum is min-content, and the widest equation in
+     each column is roughly 360px of unbreakable math. Without this the two tracks
+     stop shrinking near 830px of content box, the grid pushes past the block, and
+     .theory-block{overflow:hidden} silently CLIPS the second method off the page
+     instead of scrolling it. min-width:0 lets the track shrink and hands the
+     overflow to the individual equation, which scrolls itself (see below). */
+  min-width: 0;
 }
 .deriv-col + .deriv-col {
   border-left: 1px solid var(--border);
+}
+/* Measured: the two columns need ~829px of content box, which --page-w
+   (viewport - 192px) stops supplying just under a 1020px viewport. Stack them a
+   little before that, so the two methods sit one above the other with room to be
+   read, rather than shrinking into two unreadable slivers. */
+@media (max-width: 1100px) {
+  .deriv-cols { grid-template-columns: 1fr; }
+  .deriv-col + .deriv-col {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
 }
 .deriv-col-hdr {
   font-size: 14px;
@@ -631,6 +603,22 @@ details.deriv-detail > summary:focus-visible {
 .katex-display { font-size: 1.2em !important; }
 .theory-block .katex { font-size: 1.25em !important; }
 
+/* ── Over-wide equations ──────────────────── */
+/* A display equation is one unbreakable box: it cannot wrap, so in a narrow
+   window it either widens its container or loses its right-hand side. Give it
+   its own horizontal scroll, so the reader pans the one long line instead.
+   flex plus auto margins rather than KaTeX's own text-align:center, because a
+   CENTERED overflowing box cannot be scrolled back to its left edge: the start
+   of the equation would be unreachable. */
+.katex-display {
+  display: flex;
+  justify-content: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 3px;
+}
+.katex-display > .katex { margin: 0 auto; }
+
 
 /* ── Applet navigation ─────────────────────────────── */
 .applet-nav {
@@ -787,6 +775,114 @@ a.applet-link {
 }
 a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════
+   CLARIFY SECTIONS
+   ══════════════════════════════════════════════════════ */
+.clarify-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-panel-1);
+  margin-bottom: 20px;
+}
+.clarify-hdr {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--c-accent);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 8px 14px 7px;
+  border-bottom: 1px solid var(--border);
+}
+
+details.clarify-detail { border-top: 1px solid var(--border); }
+details.clarify-detail:first-of-type { border-top: none; }
+details.clarify-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  padding: 10px 14px 10px 34px;
+  font-size: 21.5px;
+  font-weight: 600;
+  color: var(--text-heading);
+  background: var(--bg-panel-2);
+  user-select: none;
+}
+details.clarify-detail > summary::-webkit-details-marker { display: none; }
+details.clarify-detail > summary::before {
+  content: '\25B6';
+  font-size: 10px;
+  color: var(--c-accent);
+  display: inline-block;
+  width: 12px;
+  margin-left: -20px;
+  margin-right: 8px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
 </style>
 </head>
 <body>
@@ -807,8 +903,83 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <!-- ════════════════════ INTRO ════════════════════ -->
 <p class="page-intro">
   To give a charged particle speed, we must apply an
-  <span class="hl-E">electric field $\vec{E}$</span> over a distance, applying a
-  <span class="hl-E">voltage $V$</span> to the charged particle.<sup class="cite"><a href="#ref-2">2</a></sup> Recall the common
+  <span class="hl-E">electric field $\vec{E}$</span> over a distance, creating a
+  <span class="hl-E">voltage difference $V$</span> which the particle accelerates through.<sup class="cite"><a href="#ref-2">2</a></sup> Positively charged particles
+  <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-downhill">accelerate toward lower voltages</button>, whereas negatively charged particles
+  <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-uphill">accelerate toward higher voltages</button>.
+  <span class="nut-card" id="nut-downhill" hidden>
+    <svg class="nut-svg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="A potential hill that falls from left to right. A positive charge starts high on it and rolls down, from high voltage to low voltage.">
+    <!-- axes -->
+    <path d="M24,178 L24,26 M24,178 L400,178" stroke="#4a4a4a" stroke-width="1.2" fill="none"/>
+    <path d="M24,20 l-5,10 h10 z" fill="#4a4a4a"/>
+    <path d="M406,178 l-10,-5 v10 z" fill="#4a4a4a"/>
+    <text x="34" y="24" fill="#F5C518" font-size="16" font-weight="600">V</text>
+    <text x="386" y="196" fill="#7a7a7a" font-size="15" font-style="italic">x</text>
+    <!-- the potential hill -->
+    <path d="M38,56 C120,56 158,142 248,142 L396,142 L396,178 L38,178 Z" fill="#F5C518" fill-opacity="0.07"/>
+    <path d="M38,56 C120,56 158,142 248,142 L396,142" stroke="#F5C518" stroke-width="2.4" fill="none"/>
+    <text x="46" y="82" fill="#F5C518" fill-opacity="0.85" font-size="15">high V</text>
+    <text x="326" y="166" fill="#F5C518" fill-opacity="0.85" font-size="15">low V</text>
+    <!-- force on the charge -->
+    <path d="M163,128 L203,152" stroke="#FF4400" stroke-width="2.4" fill="none"/><path d="M210,156 l-13,-2 l4,-6.5 z" fill="#FF4400"/>
+    <text x="216" y="152" fill="#FF4400" font-size="16" font-weight="700" font-style="italic">F</text>
+    <!-- the charge, riding the slope -->
+    <g>
+      <circle r="13" fill="#C060FF"/>
+      <text y="7" text-anchor="middle" font-size="21" font-weight="700" fill="#0e0e0e">+</text>
+      <animateMotion dur="3.4s" repeatCount="indefinite" calcMode="spline"
+                     path="M38,42 C120,42 158,128 248,128 L396,128"
+                     keyPoints="0;0;1;1" keyTimes="0;0.08;0.80;1"
+                     keySplines="0 0 1 1;0.42 0 0.9 0.55;0 0 1 1"/>
+      <animate attributeName="opacity" dur="3.4s" repeatCount="indefinite"
+               values="0;1;1;0;0" keyTimes="0;0.08;0.74;0.88;1"/>
+    </g>
+  </svg>
+    <span class="nut-note">
+      A ball rolling <strong>down</strong> a hill. The potential is the landscape,
+      and the <span class="hl-E">force $\vec{F} = q\vec{E}$</span> on a positive
+      <span class="hl-q">charge $q$</span> points downhill, from high $V$ to low $V$.
+    </span>
+  </span>
+  <span class="nut-card" id="nut-uphill" hidden>
+    <svg class="nut-svg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="A potential hill that falls from left to right. A negative charge starts at the bottom and climbs it, from low voltage to high voltage.">
+    <!-- axes -->
+    <path d="M24,178 L24,26 M24,178 L400,178" stroke="#4a4a4a" stroke-width="1.2" fill="none"/>
+    <path d="M24,20 l-5,10 h10 z" fill="#4a4a4a"/>
+    <path d="M406,178 l-10,-5 v10 z" fill="#4a4a4a"/>
+    <text x="34" y="24" fill="#F5C518" font-size="16" font-weight="600">V</text>
+    <text x="386" y="196" fill="#7a7a7a" font-size="15" font-style="italic">x</text>
+    <!-- the potential hill -->
+    <path d="M38,56 C120,56 158,142 248,142 L396,142 L396,178 L38,178 Z" fill="#F5C518" fill-opacity="0.07"/>
+    <path d="M38,56 C120,56 158,142 248,142 L396,142" stroke="#F5C518" stroke-width="2.4" fill="none"/>
+    <text x="46" y="82" fill="#F5C518" fill-opacity="0.85" font-size="15">high V</text>
+    <text x="326" y="166" fill="#F5C518" fill-opacity="0.85" font-size="15">low V</text>
+    <!-- force on the charge -->
+    <path d="M203,152 L169,132" stroke="#FF4400" stroke-width="2.4" fill="none"/><path d="M162,128 l13,2 l-4,6.5 z" fill="#FF4400"/>
+    <text x="140" y="126" fill="#FF4400" font-size="16" font-weight="700" font-style="italic">F</text>
+    <!-- the charge, riding the slope -->
+    <g>
+      <circle r="13" fill="#C060FF"/>
+      <text y="7" text-anchor="middle" font-size="21" font-weight="700" fill="#0e0e0e">−</text>
+      <animateMotion dur="3.4s" repeatCount="indefinite" calcMode="spline"
+                     path="M38,42 C120,42 158,128 248,128 L396,128"
+                     keyPoints="1;1;0;0" keyTimes="0;0.08;0.80;1"
+                     keySplines="0 0 1 1;0.42 0 0.9 0.55;0 0 1 1"/>
+      <animate attributeName="opacity" dur="3.4s" repeatCount="indefinite"
+               values="0;1;1;0;0" keyTimes="0;0.08;0.74;0.88;1"/>
+    </g>
+  </svg>
+    <span class="nut-note">
+      The same hill, climbed. Flipping the sign of the
+      <span class="hl-q">charge $q$</span> flips the
+      <span class="hl-E">force $\vec{F} = q\vec{E}$</span>, so a negative charge
+      runs <strong>up</strong> the slope, from low $V$ to high $V$.
+    </span>
+  </span> Recall the common
   phrase &ldquo;opposites attract, likes repel.&rdquo; In doing so, we repel a positively
   charged particle away from our positively charged surface, creating
   <span class="hl-thrust">thrust $F$</span>! Using the demo below, experiment with different
@@ -888,7 +1059,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <div class="th-hdr">Motivation for Electric Propulsion</div>
 
   <p class="th-body">
-    Increasing <span class="hl-ve">effective exhaust velocity $c$</span>, or <a class="applet-link" href="../specific_impulse/specific_impulse_applet.html"><span class="hl-ve">specific impulse $I_{sp}$</span></a>,
+    Increasing <span class="hl-ve">effective exhaust velocity $c$</span>, or <span class="hl-ve">specific impulse $I_{sp}$</span>,
     is clearly the greatest driver for achieving high
     <span class="hl-ve">$\Delta V$</span> or meeting a
     <span class="hl-ve">$\Delta V$</span> specification using less <span class="hl-mass">propellant $m_{\mathrm{prop}}$</span>.
@@ -1103,7 +1274,37 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     electric potential difference applied over a smaller distance, there is a stronger
     electric field. Notice that the electric field lines
     point in the direction of decreasing <span class="hl-E">electric potential $\phi$</span>. This is very similar to
-    gravitational potential energy (think of a ball on a slope!). We will return to these potential gradients when
+    gravitational potential energy, so think of
+    <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-slope">a ball on a slope</button>.
+    <span class="nut-card" id="nut-slope" hidden>
+      <svg class="nut-svg" viewBox="0 0 420 186" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="Two potential hills sharing the same top and bottom levels. The left one falls over a long distance and carries a short field arrow, the right one falls over a short distance and carries a long field arrow.">
+    <line x1="24" y1="54" x2="400" y2="54" stroke="#F5C518" stroke-width="1" stroke-dasharray="4 5" opacity="0.45"/>
+    <text x="24" y="46" font-size="13" fill="#F5C518" fill-opacity="0.85">high &#966;</text>
+    <line x1="24" y1="152" x2="400" y2="152" stroke="#F5C518" stroke-width="1" stroke-dasharray="4 5" opacity="0.45"/>
+    <text x="24" y="170" font-size="13" fill="#F5C518" fill-opacity="0.85">low &#966;</text>
+    <path d="M32,54 L64,54 L176,152 L206,152" fill="none" stroke="#F5C518" stroke-width="2.4"/>
+    <path d="M272,54 L302,54 L344,152 L392,152" fill="none" stroke="#F5C518" stroke-width="2.4"/>
+    <circle cx="84" cy="53" r="10" fill="#C060FF"/>
+    <text x="84" y="59" text-anchor="middle" font-size="15" font-weight="700" fill="#0e0e0e">+</text>
+    <circle cx="312" cy="60" r="10" fill="#C060FF"/>
+    <text x="312" y="66" text-anchor="middle" font-size="15" font-weight="700" fill="#0e0e0e">+</text>
+    <line x1="92.0" y1="108.0" x2="124.0" y2="135.6" stroke="#F5C518" stroke-width="1.6" opacity="0.95"/><polygon points="128.0,139.0 121.1,137.7 125.7,132.4" fill="#F5C518"/>
+    <text x="86" y="124" text-anchor="end" font-size="14" font-style="italic" fill="#F5C518">E</text>
+    <line x1="292.0" y1="92.0" x2="317.8" y2="140.1" stroke="#F5C518" stroke-width="3.6" opacity="0.95"/><polygon points="322.0,148.0 311.8,141.7 322.4,136.0" fill="#F5C518"/>
+    <text x="284" y="126" text-anchor="end" font-size="14" font-style="italic" fill="#F5C518">E</text>
+    <text x="118" y="178" text-anchor="middle" font-size="14" fill="#7a7a7a">long d, weak E</text>
+    <text x="342" y="178" text-anchor="middle" font-size="14" fill="#7a7a7a">short d, strong E</text>
+    <line x1="238" y1="54" x2="238" y2="152" stroke="#F5C518" stroke-width="1.4" opacity="0.8"/>
+    <polygon points="238.0,54.0 241.5,60.1 234.5,60.1" fill="#F5C518"/>
+    <polygon points="238.0,152.0 234.5,145.9 241.5,145.9" fill="#F5C518"/>
+    <text x="245" y="107" font-size="13" fill="#F5C518" fill-opacity="0.9">same V</text>
+  </svg>
+      <span class="nut-note">
+        The same <span class="hl-E">voltage drop $V$</span>, spread two ways. Over a long distance the hill is gentle and the <span class="hl-E">field $\vec{E}$</span> is weak; squeezed into a short distance the same drop makes a steep hill and a strong field. The ball rolls downhill either way, just harder on the steep one.
+      </span>
+    </span> We will return to these potential gradients when
     examining <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirrors</a>.
   </p>
 
@@ -1242,6 +1443,19 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';
       fb.style.color = '#ff8e8e';
     }
+  });
+});
+</script>
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
   });
 });
 </script>

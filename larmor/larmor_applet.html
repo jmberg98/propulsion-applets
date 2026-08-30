@@ -682,6 +682,68 @@ a.applet-link {
 }
 a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 </style>
 </head>
 <body>
@@ -887,10 +949,37 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       Neutral propellant atoms are (by definition) not
       charged, so they are entirely unaffected by a
       <span class="hl-B">magnetic field $\vec{B}$</span>. Positively
-      charged ions and negatively
+      <span class="hl-ion">charged ions</span> and negatively
       <span class="hl-electron">charged electrons</span> are both magnetized by
       <span class="hl-B">magnetic field lines $\vec{B}$</span> and travel in a
-      <span class="key">helical trajectory</span>. They will wind in
+      <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-helix">helical trajectory</button>.
+      <span class="nut-card" id="nut-helix" hidden>
+        <svg class="nut-svg" viewBox="0 0 420 186" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="A wide slow helix and a tight fast helix drawn around the same magnetic field line, with an inset viewed along the field showing the two charges circling in opposite directions.">
+    <line x1="26" y1="100" x2="268" y2="100" stroke="#00DDB5" stroke-width="1.2" stroke-dasharray="6 5" opacity="0.65"/>
+    <polygon points="274.0,100.0 267.1,104.0 267.1,96.0" fill="#00DDB5"/>
+    <text x="280" y="94" font-size="14" font-style="italic" fill="#00DDB5">B</text>
+    <path d="M 26.0,100.0 L 27.0,99.0 L 28.0,98.1 L 29.0,97.1 L 30.0,96.2 L 31.0,95.2 L 32.0,94.3 L 33.0,93.3 L 34.0,92.4 L 35.0,91.5 L 36.0,90.5 L 37.0,89.6 L 38.0,88.7 L 39.0,87.8 L 40.0,86.9 L 41.0,86.0 L 42.0,85.1 L 43.0,84.2 L 44.0,83.3 L 45.0,82.4 L 46.0,81.6 L 47.0,80.7 L 48.0,79.9 L 49.0,79.0 L 50.0,78.2 L 51.0,77.4 L 52.0,76.6 L 53.0,75.8 L 54.0,75.0 L 55.0,74.3 L 56.0,73.5 L 57.0,72.8 L 58.0,72.1 L 59.0,71.4 L 60.0,70.7 L 61.0,70.0 L 62.0,69.3 L 63.0,68.7 L 64.0,68.1 L 65.0,67.5 L 66.0,66.9 L 67.0,66.3 L 68.0,65.7 L 69.0,65.2 L 70.0,64.7 L 71.0,64.2 L 72.0,63.7 L 73.0,63.2 L 74.0,62.7 L 75.0,62.3 L 76.0,61.9 L 77.0,61.5 L 78.0,61.1 L 79.0,60.8 L 80.0,60.5 L 81.0,60.1 L 82.0,59.9 L 83.0,59.6 L 84.0,59.3 L 85.0,59.1 L 86.0,58.9 L 87.0,58.7 L 88.0,58.5 L 89.0,58.4 L 90.0,58.3 L 91.0,58.2 L 92.0,58.1 L 93.0,58.0 L 94.0,58.0 L 95.0,58.0 L 96.0,58.0 L 97.0,58.0 L 98.0,58.1 L 99.0,58.2 L 100.0,58.3 L 101.0,58.4 L 102.0,58.5 L 103.0,58.7 L 104.0,58.9 L 105.0,59.1 L 106.0,59.3 L 107.0,59.5 L 108.0,59.8 L 109.0,60.1 L 110.0,60.4 L 111.0,60.7 L 112.0,61.1 L 113.0,61.4 L 114.0,61.8 L 115.0,62.2 L 116.0,62.6 L 117.0,63.1 L 118.0,63.6 L 119.0,64.0 L 120.0,64.5 L 121.0,65.1 L 122.0,65.6 L 123.0,66.2 L 124.0,66.7 L 125.0,67.3 L 126.0,67.9 L 127.0,68.6 L 128.0,69.2 L 129.0,69.9 L 130.0,70.5 L 131.0,71.2 L 132.0,71.9 L 133.0,72.6 L 134.0,73.4 L 135.0,74.1 L 136.0,74.9 L 137.0,75.6 L 138.0,76.4 L 139.0,77.2 L 140.0,78.0 L 141.0,78.8 L 142.0,79.7 L 143.0,80.5 L 144.0,81.4 L 145.0,82.2 L 146.0,83.1 L 147.0,84.0 L 148.0,84.9 L 149.0,85.8 L 150.0,86.7 L 151.0,87.6 L 152.0,88.5 L 153.0,89.4 L 154.0,90.3 L 155.0,91.3 L 156.0,92.2 L 157.0,93.1 L 158.0,94.1 L 159.0,95.0 L 160.0,96.0 L 161.0,96.9 L 162.0,97.9 L 163.0,98.8 L 164.0,99.8 L 165.0,100.7 L 166.0,101.7 L 167.0,102.6 L 168.0,103.6 L 169.0,104.5 L 170.0,105.5 L 171.0,106.4 L 172.0,107.4 L 173.0,108.3 L 174.0,109.2 L 175.0,110.2 L 176.0,111.1 L 177.0,112.0 L 178.0,112.9 L 179.0,113.8 L 180.0,114.7 L 181.0,115.6 L 182.0,116.5 L 183.0,117.4 L 184.0,118.2 L 185.0,119.1 L 186.0,119.9 L 187.0,120.8 L 188.0,121.6 L 189.0,122.4 L 190.0,123.2 L 191.0,124.0 L 192.0,124.8 L 193.0,125.5 L 194.0,126.3 L 195.0,127.0 L 196.0,127.8 L 197.0,128.5 L 198.0,129.2 L 199.0,129.8 L 200.0,130.5 L 201.0,131.2 L 202.0,131.8 L 203.0,132.4 L 204.0,133.0 L 205.0,133.6 L 206.0,134.1 L 207.0,134.7 L 208.0,135.2 L 209.0,135.7 L 210.0,136.2 L 211.0,136.7 L 212.0,137.2 L 213.0,137.6 L 214.0,138.0 L 215.0,138.4 L 216.0,138.8 L 217.0,139.1 L 218.0,139.5 L 219.0,139.8 L 220.0,140.1 L 221.0,140.4 L 222.0,140.6 L 223.0,140.8 L 224.0,141.1 L 225.0,141.2 L 226.0,141.4 L 227.0,141.6 L 228.0,141.7 L 229.0,141.8 L 230.0,141.9 L 231.0,141.9 L 232.0,142.0 L 233.0,142.0 L 234.0,142.0 L 235.0,142.0 L 236.0,141.9 L 237.0,141.9 L 238.0,141.8 L 239.0,141.7 L 240.0,141.5 L 241.0,141.4 L 242.0,141.2 L 243.0,141.0 L 244.0,140.8 L 245.0,140.5 L 246.0,140.3 L 247.0,140.0 L 248.0,139.7 L 249.0,139.4 L 250.0,139.0 L 251.0,138.7 L 252.0,138.3 L 253.0,137.9 L 254.0,137.5 L 255.0,137.0 L 256.0,136.6 L 257.0,136.1 L 258.0,135.6 L 259.0,135.1 L 260.0,134.5 L 261.0,134.0 L 262.0,133.4 L 263.0,132.8 L 264.0,132.2 L 265.0,131.6 L 266.0,131.0 L 267.0,130.3 L 268.0,129.6 L 269.0,128.9 L 270.0,128.2 L 271.0,127.5 L 272.0,126.8 L 273.0,126.1 L 274.0,125.3 L 275.0,124.5 L 276.0,123.8" fill="none" stroke="#3DBFFF" stroke-width="2.2"/>
+    <path d="M 26.0,100.0 L 27.0,101.3 L 28.0,102.5 L 29.0,103.7 L 30.0,104.9 L 31.0,105.9 L 32.0,106.8 L 33.0,107.6 L 34.0,108.2 L 35.0,108.6 L 36.0,108.9 L 37.0,109.0 L 38.0,108.9 L 39.0,108.6 L 40.0,108.2 L 41.0,107.6 L 42.0,106.8 L 43.0,105.9 L 44.0,104.9 L 45.0,103.7 L 46.0,102.5 L 47.0,101.3 L 48.0,100.0 L 49.0,98.7 L 50.0,97.5 L 51.0,96.2 L 52.0,95.1 L 53.0,94.1 L 54.0,93.2 L 55.0,92.4 L 56.0,91.8 L 57.0,91.4 L 58.0,91.1 L 59.0,91.0 L 60.0,91.1 L 61.0,91.4 L 62.0,91.8 L 63.0,92.4 L 64.0,93.2 L 65.0,94.1 L 66.0,95.2 L 67.0,96.3 L 68.0,97.5 L 69.0,98.7 L 70.0,100.0 L 71.0,101.3 L 72.0,102.6 L 73.0,103.8 L 74.0,104.9 L 75.0,105.9 L 76.0,106.8 L 77.0,107.6 L 78.0,108.2 L 79.0,108.6 L 80.0,108.9 L 81.0,109.0 L 82.0,108.9 L 83.0,108.6 L 84.0,108.2 L 85.0,107.6 L 86.0,106.8 L 87.0,105.9 L 88.0,104.8 L 89.0,103.7 L 90.0,102.5 L 91.0,101.2 L 92.0,100.0 L 93.0,98.7 L 94.0,97.4 L 95.0,96.2 L 96.0,95.1 L 97.0,94.1 L 98.0,93.2 L 99.0,92.4 L 100.0,91.8 L 101.0,91.4 L 102.0,91.1 L 103.0,91.0 L 104.0,91.1 L 105.0,91.4 L 106.0,91.8 L 107.0,92.5 L 108.0,93.2 L 109.0,94.1 L 110.0,95.2 L 111.0,96.3 L 112.0,97.5 L 113.0,98.8 L 114.0,100.0 L 115.0,101.3 L 116.0,102.6 L 117.0,103.8 L 118.0,104.9 L 119.0,105.9 L 120.0,106.8 L 121.0,107.6 L 122.0,108.2 L 123.0,108.6 L 124.0,108.9 L 125.0,109.0 L 126.0,108.9 L 127.0,108.6 L 128.0,108.2 L 129.0,107.5 L 130.0,106.8 L 131.0,105.9 L 132.0,104.8 L 133.0,103.7 L 134.0,102.5 L 135.0,101.2 L 136.0,99.9 L 137.0,98.7 L 138.0,97.4 L 139.0,96.2 L 140.0,95.1 L 141.0,94.1 L 142.0,93.2 L 143.0,92.4 L 144.0,91.8 L 145.0,91.3 L 146.0,91.1 L 147.0,91.0 L 148.0,91.1 L 149.0,91.4 L 150.0,91.8 L 151.0,92.5 L 152.0,93.2 L 153.0,94.2 L 154.0,95.2 L 155.0,96.3 L 156.0,97.5 L 157.0,98.8 L 158.0,100.1 L 159.0,101.3 L 160.0,102.6 L 161.0,103.8 L 162.0,104.9 L 163.0,105.9 L 164.0,106.8 L 165.0,107.6 L 166.0,108.2 L 167.0,108.7 L 168.0,108.9 L 169.0,109.0 L 170.0,108.9 L 171.0,108.6 L 172.0,108.2 L 173.0,107.5 L 174.0,106.8 L 175.0,105.8 L 176.0,104.8 L 177.0,103.7 L 178.0,102.5 L 179.0,101.2 L 180.0,99.9 L 181.0,98.6 L 182.0,97.4 L 183.0,96.2 L 184.0,95.1 L 185.0,94.0 L 186.0,93.1 L 187.0,92.4 L 188.0,91.8 L 189.0,91.3 L 190.0,91.1 L 191.0,91.0 L 192.0,91.1 L 193.0,91.4 L 194.0,91.8 L 195.0,92.5 L 196.0,93.3 L 197.0,94.2 L 198.0,95.2 L 199.0,96.3 L 200.0,97.6 L 201.0,98.8 L 202.0,100.1 L 203.0,101.4 L 204.0,102.6 L 205.0,103.8 L 206.0,104.9 L 207.0,106.0 L 208.0,106.9 L 209.0,107.6 L 210.0,108.2 L 211.0,108.7 L 212.0,108.9 L 213.0,109.0 L 214.0,108.9 L 215.0,108.6 L 216.0,108.1 L 217.0,107.5 L 218.0,106.7 L 219.0,105.8 L 220.0,104.8 L 221.0,103.6 L 222.0,102.4 L 223.0,101.2 L 224.0,99.9 L 225.0,98.6 L 226.0,97.4 L 227.0,96.2 L 228.0,95.0 L 229.0,94.0 L 230.0,93.1 L 231.0,92.4 L 232.0,91.8 L 233.0,91.3 L 234.0,91.1 L 235.0,91.0 L 236.0,91.1 L 237.0,91.4 L 238.0,91.9 L 239.0,92.5 L 240.0,93.3 L 241.0,94.2 L 242.0,95.2 L 243.0,96.4 L 244.0,97.6 L 245.0,98.8 L 246.0,100.1 L 247.0,101.4 L 248.0,102.6 L 249.0,103.8 L 250.0,105.0 L 251.0,106.0 L 252.0,106.9 L 253.0,107.6 L 254.0,108.2 L 255.0,108.7 L 256.0,108.9 L 257.0,109.0 L 258.0,108.9 L 259.0,108.6 L 260.0,108.1 L 261.0,107.5 L 262.0,106.7 L 263.0,105.8 L 264.0,104.8 L 265.0,103.6 L 266.0,102.4 L 267.0,101.2 L 268.0,99.9 L 269.0,98.6 L 270.0,97.3 L 271.0,96.1 L 272.0,95.0 L 273.0,94.0 L 274.0,93.1 L 275.0,92.4 L 276.0,91.8" fill="none" stroke="#ffe94d" stroke-width="1.6" opacity="0.95"/>
+    <text x="26" y="32" font-size="13" fill="#3DBFFF">ion: wide, slow</text>
+    <text x="26" y="178" font-size="13" fill="#ffe94d">electron: tight, fast</text>
+    <circle cx="352" cy="100" r="46" fill="none" stroke="#333333" stroke-width="1.2"/>
+    <circle cx="352" cy="100" r="10" fill="none" stroke="#00DDB5" stroke-width="1.5"/>
+    <line x1="345" y1="93" x2="359" y2="107" stroke="#00DDB5" stroke-width="1.4"/>
+    <line x1="359" y1="93" x2="345" y2="107" stroke="#00DDB5" stroke-width="1.4"/>
+    <path d="M352,64 A36,36 0 0 1 388,100" fill="none" stroke="#3DBFFF" stroke-width="2"/>
+    <polygon points="388.0,101.0 381.4,96.4 388.7,93.0" fill="#3DBFFF"/>
+    <text x="352" y="58" text-anchor="middle" font-size="13" fill="#3DBFFF">+</text>
+    <path d="M352,78 A22,22 0 0 0 330,100" fill="none" stroke="#ffe94d" stroke-width="2"/>
+    <polygon points="330.0,101.0 329.3,93.0 336.5,96.4" fill="#ffe94d"/>
+    <text x="318" y="88" text-anchor="middle" font-size="13" fill="#ffe94d">&#8722;</text>
+    <text x="352" y="164" text-anchor="middle" font-size="12" fill="#7a7a7a">looking along B</text>
+  </svg>
+        <span class="nut-note">
+          Circular motion across the field plus free motion along it gives a helix. The <span class="hl-ion">ion</span> and the <span class="hl-electron">electron</span> carry opposite <span class="hl-q">charges $q$</span>, so they circle in opposite directions about the same <span class="hl-B">field line $\vec{B}$</span>, and the heavier ion traces the wider, slower coil.
+        </span>
+      </span> They will wind in
       <span class="key">opposite directions</span>, given that they are oppositely
       charged. More interestingly, the
       <span class="hl-mass">mass $m$</span> of the
@@ -1137,6 +1226,19 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';
       fb.style.color = '#ff8e8e';
     }
+  });
+});
+</script>
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
   });
 });
 </script>

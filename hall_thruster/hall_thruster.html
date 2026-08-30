@@ -1054,6 +1054,23 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
         <button type="button" data-power="on" class="active">Thruster On</button>
         <button type="button" data-power="off">Thruster Off</button>
       </div>
+      <!-- Camera recovery, directly under the two segments it recovers from and above the
+           switch list, because it is a VIEW control and the switches below are scene
+           contents. At the foot of the panel it sat behind the legend, which is reference
+           rather than a control, and a reader who had orbited into a useless framing had to
+           scroll past everything to find the way back. -->
+      <div class="btn-row"><button class="btn" id="reset">Reset view</button></div>
+      <!-- Playback speed, gridded_ion.html's .slider-row unchanged and in the same place:
+           directly under Reset view, because it is a VIEWING control like the camera
+           recovery above it and not a piece of scene content like the switches below.
+           It scales the wall-clock rate the plasma is drawn at and nothing else - the
+           acceleration profile, the collision model and every readout are untouched. -->
+      <div class="slider-row" id="speed-row">
+        <div class="sl-lbl"><span>Particle speed</span><span id="speed-val">1.0&times;</span></div>
+        <input type="range" id="sld-speed" min="0.25" max="3" step="0.05" value="1"
+               aria-label="Particle playback speed, a viewing control that does not change the simulation">
+        <div class="sl-ends"><span>Slow</span><span>Fast</span></div>
+      </div>
       <div class="vtoglist">
         <!-- gridded_ion.html's .vtoglist, wording and ORDER unchanged, because a reader
              moving between the two viewers should find the same switch with the same name
@@ -1106,7 +1123,6 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
         <span class="lg"><i style="background:#4d9bff;color:#fff">+</i>Ions</span>
         <span class="lg"><i style="background:#ffe94d;color:#2a2405">&minus;</i>Electrons</span>
       </div>
-      <div class="btn-row"><button class="btn" id="reset">Reset view</button></div>
     </div>
 
     <!-- ── Neutralization stage ──────────────────────────────────
@@ -1164,6 +1180,9 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
            - most of all on the electron view, where what a magnetized electron does is nothing
            like what a curve invites you to assume. -->
       <p class="ix-note" id="pot-vnote" style="margin-top:12px;margin-bottom:0"></p>
+      <!-- Reset rides with the View segment above it, not at the foot of the panel: the
+           sliders below move the MODEL and this one moves the camera. -->
+      <div class="btn-row"><button class="btn" id="pot-reset">Reset view</button></div>
       <!-- The two SHAPE parameters, and the supply. There is deliberately no amplitude knob: with
            the fall fixed at the discharge voltage, E_z proportional to B_r^2 depends only on the
            field's normalized shape, so a peak-field slider would be a control that provably
@@ -1219,7 +1238,6 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
         The peak field is drawn at 150&nbsp;G, the right order for a thruster this size. In
         hardware the peak is put where it is by the pole geometry, and moved from there by the
         balance between the inner and outer coils.</p>
-      <div class="btn-row"><button class="btn" id="pot-reset">Reset view</button></div>
     </div>
 
     <!-- ══ Efficiency stage (?mode=efficiency) ══
@@ -1254,6 +1272,8 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
            carries what the drawing is not claiming, which is the part a reader cannot check by
            looking at it. -->
       <p class="ix-note" id="eff-vnote" style="margin-top:12px;margin-bottom:0"></p>
+      <!-- Reset rides with the View segment, same as the Potential stage. -->
+      <div class="btn-row"><button class="btn" id="eff-reset">Reset view</button></div>
 
       <div class="ix-toglabel" style="margin-top:16px">Ionization</div>
       <div>
@@ -1334,7 +1354,6 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
         particular is the quantity real Hall thrusters are anomalous in. Nothing here charges for
         putting the fall outside the channel either, so pushing the peak downstream looks free on
         this ledger and is not.</p>
-      <div class="btn-row"><button class="btn" id="eff-reset">Reset view</button></div>
     </div>
 
     <!-- Collapsed by default: seven rows of key are reference, not a control, and
@@ -4593,6 +4612,10 @@ particlePts.visible = false;
 scene.add(particlePts);
 
 let showParticles = false;
+/* Reader's playback multiplier. VIEWING ONLY: it scales the timestep handed to
+   updateParticles and nothing else, so the ions fly the same trajectories at a different
+   pace. 1.0 is the tuning every other number in this file was written against. */
+let viewSpeed = 1;
 
 /* ── The axial profile, ONE model ─────────────────────────────
    Everything axial in this file hangs off these four numbers: the acceleration the 3-D ions
@@ -6775,6 +6798,11 @@ function resetView(){
   controls.update();
 }
 document.getElementById('reset').addEventListener('click', resetView);
+document.getElementById('sld-speed').addEventListener('input', e => {
+  viewSpeed = parseFloat(e.target.value);
+  document.getElementById('speed-val').textContent =
+    viewSpeed.toFixed(2).replace(/0$/, '') + '×';
+});
 
 function resize(){
   const w = viewport.clientWidth, h = viewport.clientHeight;
@@ -6832,7 +6860,14 @@ renderer.setAnimationLoop(() => {
   _last = now;
   updateTween(dt);
   updatePlume(dt, now / 1000);
-  if (showParticles && thrusterOn) updateParticles(dt);
+  /* Sub-stepped, because the particle update tests zone boundaries (the exit plane, the
+     plume fade, the wall clamps) against the step it is given: a 3x frame would let an ion
+     cross one without being seen there. The 0.05 cap is the frame cap already applied
+     above, so at 1x and below this is the single call it has always been. */
+  if (showParticles && thrusterOn){
+    let rem = dt * viewSpeed;
+    while (rem > 1e-4){ const s = Math.min(rem, 0.05); updateParticles(s); rem -= s; }
+  }
   controls.update();
   renderer.render(scene, orthoActive ? orthoCam : camera);
   renderAxisGizmo();                       // î ĵ k̂ triad — shown in BOTH views

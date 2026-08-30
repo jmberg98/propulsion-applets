@@ -1447,6 +1447,68 @@ a.applet-link {
 }
 a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 </style>
 </head>
 <body>
@@ -1637,7 +1699,32 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <summary>How were the <span class="hl-ve">Delta-V values $\Delta v$</span> decided for the solar system map? Don't different maneuvers have different <span class="hl-ve">Delta-V costs $\Delta v$</span>?</summary>
     <div class="clarify-body">
       For simplicity, all maneuvers are done without <span class="key">gravity assists</span>, which would reduce the required <span class="hl-ve">Delta-V $\Delta v$</span> for a given destination. All transfers are
-      assumed to be <span class="key">Hohmann transfers</span> with burns performed at the periapses.<sup class="cite"><a href="#ref-5">5</a></sup> These maneuvers are only possible with highly impulsive propulsion devices,
+      assumed to be <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-hohmann">Hohmann transfers</button> with burns performed at the periapses.<sup class="cite"><a href="#ref-5">5</a></sup>
+      <span class="nut-card" id="nut-hohmann" hidden>
+        <svg class="nut-svg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="Two circular orbits about a central star with an ellipse tangent to both. A burn marker sits where the ellipse touches the inner orbit and a second where it touches the outer.">
+    <circle cx="150" cy="100" r="36" fill="none" stroke="#9aa3b2" stroke-width="1.3" stroke-dasharray="5 5" opacity="0.65"/>
+    <circle cx="150" cy="100" r="72" fill="none" stroke="#9aa3b2" stroke-width="1.3" stroke-dasharray="5 5" opacity="0.65"/>
+    <ellipse cx="168.0" cy="100" rx="54.0" ry="50.9" fill="none" stroke="#3DBFFF" stroke-width="2.2"/>
+    <circle cx="150" cy="100" r="7" fill="#F5C518"/>
+    <circle cx="114" cy="100" r="5.5" fill="#3DBFFF"/>
+    <circle cx="222" cy="100" r="5.5" fill="#3DBFFF"/>
+    <text x="105" y="105" text-anchor="end" font-size="15" fill="#3DBFFF">&#916;v&#8321;</text>
+    <text x="224" y="86" text-anchor="middle" font-size="15" fill="#3DBFFF">&#916;v&#8322;</text>
+    <text x="150" y="82" text-anchor="middle" font-size="12" fill="#7a7a7a">start</text>
+    <text x="150" y="22" text-anchor="middle" font-size="12" fill="#7a7a7a">target</text>
+    <line x1="270" y1="76" x2="300" y2="76" stroke="#3DBFFF" stroke-width="2.2"/>
+    <text x="308" y="81" font-size="13" fill="#3DBFFF">transfer ellipse</text>
+    <circle cx="285" cy="106" r="5.5" fill="#3DBFFF"/>
+    <text x="308" y="111" font-size="13" fill="#3DBFFF">impulsive burn</text>
+    <line x1="270" y1="136" x2="300" y2="136" stroke="#9aa3b2" stroke-width="1.3" stroke-dasharray="5 5" opacity="0.65"/>
+    <text x="308" y="141" font-size="13" fill="#7a7a7a">circular orbits</text>
+  </svg>
+        <span class="nut-note">
+          Two burns and a coast. The first <span class="hl-ve">burn $\Delta v_1$</span> lifts the far side of the orbit out to the target radius, and the second <span class="hl-ve">burn $\Delta v_2$</span> circularizes on arrival. The Hohmann transfer is the most fuel-efficient two-impulse transfer between circular orbits, but requires a sharp impulse to do so.
+        </span>
+      </span> These maneuvers are only possible with highly impulsive propulsion devices,
       which have <span class="hl-ve">low specific impulse $I_{sp}$</span>. Devices with greater mass efficiency, however, cannot produce these high impulse burns, and must use low thrust spiral maneuvers.
       While these spiral maneuvers have higher <span class="hl-ve">Delta-V costs $\Delta v$</span>, the <span class="hl-ve">Delta-V budget $\Delta v$</span> of these devices far exceeds those of high impulse devices.<sup class="cite"><a href="#ref-6">6</a></sup>
     </div>
@@ -1657,7 +1744,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
       While <span class="hl-ve">specific impulse $I_{sp}$</span> has the strongest effect on increasing Delta-V, refueling a spacecraft in orbit can also be an effective method
       of increasing Delta-V. Accomplishing this, however, would require multiple launches and orbital rendezvous to replenish the propellant
-      of the spacecraft. This is by no means trivial, but could be revolutionary for high Delta-V, high <span class="hl-mass">payload $m_{\mathrm{payload}}$</span> missions.
+      of the spacecraft. This is by no means trivial, but it could be revolutionary for high Delta-V, high <span class="hl-mass">payload $m_{\mathrm{payload}}$</span> missions.
     </div>
   </details>
 
@@ -2842,5 +2929,18 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 })();
 </script>
 
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
+  });
+});
+</script>
 </body>
 </html>

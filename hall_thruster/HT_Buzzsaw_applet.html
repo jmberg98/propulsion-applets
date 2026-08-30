@@ -1287,6 +1287,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 /* Reset and friends, the viewers' .btn / .btn-row. */
 .fig-panel .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+
+/* A lone .sl-group, standing outside .fig-controls and so without the flex gap that
+   spaces the groups down there. Only the playback-speed slider uses it: it belongs
+   under Reset view with the viewing controls, not among the four sliders that set the
+   physics, and it takes the same spacing .btn-row takes from the switches above it. */
+.fig-panel .sl-group.sl-loose { margin-top: 14px; }
 .fig-panel .btn {
   flex: 1 1 0;
   font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 600;
@@ -1904,6 +1910,19 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         <span>3. E&times;B drift</span><span class="vsw"></span></button>
     </div>
     <div class="btn-row"><button type="button" class="btn" id="bz-reset">Reset view</button></div>
+    <!-- Playback speed. It sits here rather than in .fig-controls below because it is a
+         VIEWING control, like Reset view above it: the four sliders down there change the
+         electron's motion, and this one only changes how fast that motion is drawn. The
+         three timescales, the gyroradius and the tooth count are read off the model and
+         are unmoved by it. Slowing the path down is the only way to follow the gyration
+         and the mirror bounce separately once the drift has been switched on. -->
+    <div class="sl-group sl-loose">
+      <div class="sl-label">Playback speed<span class="sl-val" id="bz-sp-val">1.0&times;</span></div>
+      <div class="sl-row">
+        <input type="range" id="bz-sp" min="0.25" max="3" step="0.05" value="1"
+               aria-label="Playback speed, a viewing control that does not change the motion">
+      </div>
+    </div>
   </div>
 
   <div class="fig-controls">
@@ -2440,6 +2459,7 @@ const $  = id => document.getElementById(id);
 const el = {
   t1: $('bz-t1'), t2: $('bz-t2'), t3: $('bz-t3'),
   reset: $('bz-reset'),
+  sp: $('bz-sp'), spVal: $('bz-sp-val'),
   b: $('bz-b'), te: $('bz-te'), pa: $('bz-pa'), e: $('bz-e'),
   bVal: $('bz-b-val'), teVal: $('bz-te-val'), paVal: $('bz-pa-val'), eVal: $('bz-e-val'),
   oRL: $('bz-o-rl'), oFC: $('bz-o-fc'), oVD: $('bz-o-vd'),
@@ -3279,6 +3299,7 @@ function updateTrail(t){
 
 /* ── Frame ────────────────────────────────────────────────── */
 let simT = 0, last = 0;
+let viewSpeed = 1;              // viewing only — scales simulated time, never the model
 function step(now){
   const dt = last ? Math.min(0.1, (now - last) / 1000) : 0;
   last = now;
@@ -3288,7 +3309,11 @@ function step(now){
      machine draws the helix in slow motion instead, which is the failure worth having.
      Above FPS the cap does not bind and the pace stays true to the clock. */
   const adv = dt * (S.rate || RATE);
-  simT += on(el.t1) ? Math.min(adv, S.tauCavg / FPO) : adv;
+  /* viewSpeed multiplies what the frame advances AFTER the smoothness cap, not before it:
+     applied first, the cap would swallow the whole top half of the slider and speeding up
+     would do nothing whenever the gyration is switched on. Past 1x the helix is drawn with
+     proportionally fewer points per orbit, which is exactly what "faster" looks like. */
+  simT += (on(el.t1) ? Math.min(adv, S.tauCavg / FPO) : adv) * viewSpeed;
 
   // The blade draws the lap the electron is on, so it is re-laid when the electron crosses
   // into the next one. Once every 25 seconds or so of real time, not once a frame.
@@ -3334,6 +3359,13 @@ wireNumBox('bz-te', 'bz-te-val', recompute);
 wireNumBox('bz-pa', 'bz-pa-val', recompute);
 wireNumBox('bz-e',  'bz-e-val',  recompute);
 el.reset.addEventListener('click', home);
+/* Playback speed. It multiplies the SIMULATED TIME the frame advances and touches nothing
+   else - S.rate, the three periods and the geometry are all left where the model put them,
+   so the path drawn is the same path at a different pace. */
+el.sp.addEventListener('input', () => {
+  viewSpeed = parseFloat(el.sp.value);
+  el.spVal.textContent = viewSpeed.toFixed(2).replace(/0$/, '') + '×';
+});
 
 /* ── Field labels ─────────────────────────────────────────
    hall_thruster.html's floating field chips, ported: the glyph typeset through KaTeX so

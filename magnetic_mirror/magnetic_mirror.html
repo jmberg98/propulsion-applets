@@ -680,7 +680,7 @@ function makeParticle() {
   p.muArrow    = mkArrow(COL.mu,    SCENE_R*0.7);
 
   const mkLabel = (txt, hex) => {
-    const s = makeTextSprite(txt, hex, SCENE_R*0.22); s.visible = false; scene.add(s); return s;
+    const s = makeTextSprite(txt, hex, SCENE_R*0.30); s.visible = false; scene.add(s); return s;
   };
   p.velLabel   = mkLabel({base:'v', vec:true},  '#ffd54f');
   p.vparLabel  = mkLabel({base:'v', sub:'∥'}, '#66bb6a');
@@ -954,15 +954,15 @@ function buildMoment(d) {
   if (d.sign !== 0) makeCircArrows(extraGroup, 0, rDisp, momView.rotSign, COL.vel, 0.95, 6);
 
   if (showLabels) {
-    const vl = makeTextSprite({base:'v', vec:true}, '#ffd54f', SCENE_R*0.22);
+    const vl = makeTextSprite({base:'v', vec:true}, '#ffd54f', SCENE_R*0.30);
     vl.position.set(0, rDisp - SCENE_R*0.3, 0);
     guideGroup.add(vl);
-    const bl = makeTextSprite({base:'B', vec:true}, '#9fa8da', SCENE_R*0.26);
+    const bl = makeTextSprite({base:'B', vec:true}, '#9fa8da', SCENE_R*0.34);
     bl.position.set(bdir*H*0.92, SCENE_R*0.2, 0);
     guideGroup.add(bl);
     // label the induced field of the gyration current (the poloidal loops wrapping the wire)
     if (d.sign !== 0) {
-      const il = makeTextSprite({base:'B', sub:'induced,current', vec:true}, '#9fa8da', SCENE_R*0.2);
+      const il = makeTextSprite({base:'B', sub:'induced,current', vec:true}, '#9fa8da', SCENE_R*0.26);
       il.position.set(0, rDisp*1.26 + SCENE_R*0.34, 0);
       guideGroup.add(il);
     }
@@ -1241,7 +1241,7 @@ function animate() {
 
   // reference-frame gizmo: lower-left inset, orientation locked to the main camera
   const sz = renderer.getSize(new THREE.Vector2());
-  const inset = Math.round(Math.min(285, sz.x*0.45, sz.y*0.57));
+  const inset = Math.round(Math.min(165, sz.x*0.27, sz.y*0.33));
   axisCam.position.set(0,0,1).applyQuaternion(camera.quaternion).multiplyScalar(4.2);
   axisCam.quaternion.copy(camera.quaternion);
   renderer.autoClear = false;
@@ -1384,8 +1384,22 @@ function runUpdate() {
 
 function frameCamera() {
   controls.target.set(0,0,0);
-  if (mode === 'moment')
-    camera.position.set(SCENE_R*3.4, SCENE_R*1.2, SCENE_R*3.2);
+  if (mode === 'moment') {
+    // Frame the gyro-orbit itself, not the whole scene box: the applied-field arrows
+    // run the full width of the stage, so a fixed pull-back leaves the orbit, mu and
+    // the B_induced,current label tiny. Pull back only far enough to hold the orbit,
+    // its poloidal loops and the label band, which keeps the default view tight at
+    // the default |B| and still fits the much larger orbit at the low end of the range.
+    const rD    = momView ? momView.rDisp : SCENE_R*0.62;
+    const halfH = rD*1.26 + SCENE_R*0.80;              // orbit + loops + label band
+    const halfW = SCENE_R*1.35;                        // mu / B labels either side
+    const vFov  = camera.fov * Math.PI/180;
+    const need  = Math.max(halfH, halfW / Math.max(camera.aspect, 0.35));
+    // clamped: the label sprites are a fixed world size, so a very small orbit
+    // (high |B|) must not be closed in on until they swamp it.
+    const dist  = clamp(need / Math.tan(vFov/2), SCENE_R*3.4, SCENE_R*6.5);
+    camera.position.set(3.4, 1.2, 3.2).setLength(dist);
+  }
   else if (mode === 'induced')
     camera.position.set(SCENE_R*0.6, SCENE_R*1.5, SCENE_R*4.4);
   else
@@ -1439,8 +1453,10 @@ function setMode(m) {
   hideAllVectors();
   resetCycle(); tAccum = 0;
 
-  frameCamera();
+  // runUpdate() first: the moment-mode framing reads momView, which only exists once
+  // the new mode's scene has been built.
   runUpdate();
+  frameCamera();
 }
 
 // ── event wiring ───────────────────────────────────────────────────────────────

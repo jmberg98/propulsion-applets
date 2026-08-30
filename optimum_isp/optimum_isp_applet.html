@@ -119,6 +119,7 @@ footer {
 .hl-power, .hl-q, .hl-moment                { color: var(--c-power); }
 .hl-electron                                { color: var(--c-electron); }
 .hl-press, .hl-B                            { color: var(--c-press); }
+.hl-time                                    { color: var(--c-press); }  /* mission time t_m: no B field or pressure on this page */
 .hl-E, .hl-phi                              { color: var(--c-efield); }
 .hl-neutral                                 { color: var(--c-neutral); }
 .hl-photon                                  { color: var(--c-photon); }
@@ -830,6 +831,68 @@ a.applet-link {
 }
 a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 </style>
 </head>
 <body>
@@ -851,7 +914,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <p class="page-intro">
   Spacecraft and satellites are designed with <span class="key">mission requirements</span> in mind, namely a
   <span class="hl-ve">mission Delta-V $\Delta v$</span>, desired <span class="hl-mass">payload mass $m_{pay}$</span>, and
-  required <span class="key">mission time</span>.<sup class="cite"><a href="#ref-2">2</a></sup> While technological and physical constraints restrict
+  required <span class="hl-time">mission time $t_m$</span>.<sup class="cite"><a href="#ref-2">2</a></sup> While technological and physical constraints restrict
   <span class="key">propulsion device</span> choices, these mission requirements help guide what
   <span class="key">propulsion device</span> is best for the desired mission. Use the applet below to
   explore how different mission parameters and technology readiness impact our choice of propulsive device.
@@ -863,6 +926,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <span class="ck"><i style="background:var(--c-thrust)"></i>thrust, mass</span>
   <span class="ck"><i style="background:var(--c-ve)"></i>velocity</span>
   <span class="ck"><i style="background:var(--c-power)"></i>power</span>
+  <span class="ck"><i style="background:var(--c-press)"></i>mission time</span>
 </div>
 <!-- ════════════════ CONCEPTUAL QUESTIONS (BULLET POINTS) ════════════════ -->
 <div class="clarify-section">
@@ -871,7 +935,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <div class="clarify-plain">
     <span class="clarify-plain-marker">&#9670;</span>
     <span>Why isn't higher <span class="hl-ve">specific impulse $I_{sp}$</span> always better? How does higher
-    specific impulse affect <span class="key">mission time</span> for a given
+    specific impulse affect <span class="hl-time">mission time $t_m$</span> for a given
     power source?</span>
   </div>
 
@@ -1021,11 +1085,11 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
   <details class="clarify-detail">
     <summary>Why isn't higher <span class="hl-ve">specific impulse $I_{sp}$</span> always better? How does higher
-    specific impulse affect <span class="key">mission time</span> for a given
+    specific impulse affect <span class="hl-time">mission time $t_m$</span> for a given
     power source?</summary>
     <div class="clarify-body">
       <span class="key">Spacecraft propulsion systems</span> must satisfy a desired
-      <span class="hl-ve">mission Delta-V $\Delta v$</span>, a required <span class="key">mission time</span>, and a
+      <span class="hl-ve">mission Delta-V $\Delta v$</span>, a required <span class="hl-time">mission time $t_m$</span>, and a
       desired <span class="hl-mass">payload mass $m_{pay}$</span>. The best
       <span class="hl-ve">specific impulse $I_{sp}$</span> is therefore not simply the highest one available, but the one
       that best satisfies the full set of <span class="key">mission requirements</span>. If we arbitrarily increase
@@ -1033,10 +1097,10 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       power system, we must usually compromise somewhere else. For a fixed
       power source, higher specific impulse
       generally means lower <span class="hl-thrust">thrust $F_N$</span>, which increases
-      <span class="key">mission time</span>. For example, a spacecraft powered by
+      <span class="hl-time">mission time $t_m$</span>. For example, a spacecraft powered by
       solar panels may achieve excellent propellant efficiency, but only by
       accepting lower thrust and therefore a longer
-      <span class="key">mission time</span>.
+      <span class="hl-time">mission time $t_m$</span>.
     </div>
   </details>
 
@@ -1053,7 +1117,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       fixed, favors lower <span class="hl-thrust">thrust $F_N$</span>, higher
       <span class="hl-ve">specific impulse $I_{sp}$</span> propulsion because more time is available to build up the
       required change in velocity. Raising the required mission Delta-V for the same
-      <span class="key">mission time</span> instead favors higher thrust, lower
+      <span class="hl-time">mission time $t_m$</span> instead favors higher thrust, lower
       specific impulse propulsion, since less time is available for the
       power system to supply the needed energy. In that sense, higher
       mission Delta-V pushes the design toward shorter, more power-intensive burns,
@@ -1075,7 +1139,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       <span class="hl-mass">payload mass $m_{pay}$</span> so that the spacecraft can carry as much useful equipment or cargo
       as possible, such as telecommunications hardware, imaging instruments, telescopes, scientific packages, or crew
       supplies. However, some missions care more about other <span class="key">design objectives</span>, such as
-      shorter <span class="key">mission time</span>, lower total cost, or greater reliability. The
+      shorter <span class="hl-time">mission time $t_m$</span>, lower total cost, or greater reliability. The
       Stuhlinger curve is specifically useful for understanding how to maximize
       payload mass, but the underlying ideas and mathematics also provide a strong
       foundation for optimizing other <span class="key">mission parameters</span>.
@@ -1088,13 +1152,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <div class="clarify-body">
       MIT's 16.522 course notes capture the meaning of <span class="hl-ve">$v_{ch}$</span> well: if all
       <span class="hl-mass">power source mass $m_{ps}$</span> were accelerated by converting all available
-      electrical energy during time $t_m$, it would reach
+      electrical energy during <span class="hl-time">time $t_m$</span>, it would reach
       <span class="hl-ve">$v_{ch}$</span>, where
       $$
       \boxed{
       \textcolor{#3DBFFF}{v_{ch}}
       =
-      \sqrt{\frac{2\,\textcolor{#C060FF}{\eta}\,t_m}{\textcolor{#C060FF}{\alpha}}}
+      \sqrt{\frac{2\,\textcolor{#C060FF}{\eta}\,\textcolor{#00DDB5}{t_m}}{\textcolor{#C060FF}{\alpha}}}
       }
       $$
       It is therefore effectively the
@@ -1117,7 +1181,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     specific impulse most significantly increases the total
     <span class="hl-ve">Delta-V $\Delta v$</span> of the spacecraft, recall that higher
     specific impulses require higher total
-    <span class="hl-power">power $P$</span> to achieve the same <span class="key">mission time</span>.
+    <span class="hl-power">power $P$</span> to achieve the same <span class="hl-time">mission time $t_m$</span>.
     However, higher total power is not trivial, as higher
     power requirements necessitate higher
     <span class="hl-power">power + propulsion system mass $m_{ps}$</span> or greater technology levels.<sup class="cite"><a href="#ref-1">1</a></sup>
@@ -1199,7 +1263,46 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <span class="hl-power">power source $m_{ps}$</span>. Generally, the spacecraft is optimized for
     <span class="hl-mass">payload mass $m_{pay}$</span> so that it may perform useful tasks. The structural mass is
     treated as fixed by the design, while the propellant and
-    power source masses vary with the propulsion and power systems.
+    power source masses vary with the propulsion and power systems. The power source is sized by its
+    <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-alpha">specific mass $\alpha$</button>.
+    <span class="nut-card" id="nut-alpha" hidden>
+      <svg class="nut-svg" viewBox="0 0 420 140" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="A logarithmic strip of specific mass from ten to the minus four up to ten kilograms per watt, divided into fusion, fission, solar, RTG or deep space solar, chemical or RTG, and chemical bands.">
+    <text x="46" y="36" font-size="16" fill="#C060FF">&#945; = m / P</text>
+    <text x="142" y="36" font-size="14" fill="#7a7a7a">kg / W</text>
+    <line x1="385.5" y1="50" x2="385.5" y2="40" stroke="#7a7a7a" stroke-width="1"/>
+    <text x="385.5" y="36" text-anchor="middle" font-size="12" fill="#7a7a7a">Chem</text>
+    <rect x="46.0" y="50" width="70.0" height="30" fill="rgba(92,107,192,0.50)"/>
+    <rect x="116.0" y="50" width="70.0" height="30" fill="rgba(2,119,189,0.50)"/>
+    <rect x="186.0" y="50" width="70.0" height="30" fill="rgba(200,165,0,0.48)"/>
+    <rect x="256.0" y="50" width="70.0" height="30" fill="rgba(200,100,0,0.48)"/>
+    <rect x="326.0" y="50" width="48.9" height="30" fill="rgba(180,55,40,0.48)"/>
+    <rect x="374.9" y="50" width="21.1" height="30" fill="rgba(160,25,25,0.55)"/>
+    <text x="81.0" y="70" text-anchor="middle" font-size="12" fill="#e8e8e8">Fusion</text>
+    <text x="151.0" y="70" text-anchor="middle" font-size="12" fill="#e8e8e8">Fission</text>
+    <text x="221.0" y="70" text-anchor="middle" font-size="12" fill="#e8e8e8">Solar</text>
+    <text x="291.0" y="70" text-anchor="middle" font-size="12" fill="#e8e8e8">RTG/DS</text>
+    <text x="350.5" y="70" text-anchor="middle" font-size="11" fill="#e8e8e8">C/RTG</text>
+    <line x1="46.0" y1="80" x2="46.0" y2="86" stroke="#4a4a4a" stroke-width="1"/>
+    <text x="46.0" y="98" text-anchor="middle" font-size="11.5" fill="#7a7a7a">10&#8315;&#8308;</text>
+    <line x1="116.0" y1="80" x2="116.0" y2="86" stroke="#4a4a4a" stroke-width="1"/>
+    <text x="116.0" y="98" text-anchor="middle" font-size="11.5" fill="#7a7a7a">10&#8315;&#179;</text>
+    <line x1="186.0" y1="80" x2="186.0" y2="86" stroke="#4a4a4a" stroke-width="1"/>
+    <text x="186.0" y="98" text-anchor="middle" font-size="11.5" fill="#7a7a7a">10&#8315;&#178;</text>
+    <line x1="256.0" y1="80" x2="256.0" y2="86" stroke="#4a4a4a" stroke-width="1"/>
+    <text x="256.0" y="98" text-anchor="middle" font-size="11.5" fill="#7a7a7a">10&#8315;&#185;</text>
+    <line x1="326.0" y1="80" x2="326.0" y2="86" stroke="#4a4a4a" stroke-width="1"/>
+    <text x="326.0" y="98" text-anchor="middle" font-size="11.5" fill="#7a7a7a">1</text>
+    <line x1="396.0" y1="80" x2="396.0" y2="86" stroke="#4a4a4a" stroke-width="1"/>
+    <text x="396.0" y="98" text-anchor="middle" font-size="11.5" fill="#7a7a7a">10</text>
+    <text x="46" y="128" font-size="12.5" fill="#7a7a7a">lighter power plant</text>
+    <text x="396" y="128" text-anchor="end" font-size="12.5" fill="#7a7a7a">heavier</text>
+  </svg>
+      <span class="nut-note">
+        <span class="hl-power">Specific mass $\alpha$</span> is the kilograms of power plant carried per watt it delivers, $\alpha = m/P$.
+      </span>
+    </span>
   </p>
 
   <div class="eq-panel">
@@ -1232,20 +1335,20 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         <div class="eq-divider"></div>
         <span class="eq-step-label">Power Source Mass</span>
         $$ \textcolor{#C060FF}{m_{ps}}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}} $$
-        $$ \textcolor{#C060FF}{m_{ps}}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{m_0} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left[1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right] $$
+        $$ \textcolor{#C060FF}{m_{ps}}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{m_0} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}\left[1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right] $$
         <span class="eq-step-label">Derivation</span>
         $$ \text{Recall: }\textcolor{#C060FF}{\alpha}=\frac{\textcolor{#C060FF}{m}}{\textcolor{#C060FF}{P}}\quad [kg/W] $$
         $$ \textcolor{#C060FF}{P_j}=\frac12 \textcolor{#FF4400}{\dot m} \textcolor{#3DBFFF}{c}^2=\frac12 \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c} $$
         $$ \textcolor{#C060FF}{P_j}=\textcolor{#C060FF}{\eta} \textcolor{#C060FF}{P_{in}} $$
         $$ \textcolor{#C060FF}{m_{ps}}=\textcolor{#C060FF}{\alpha} \textcolor{#C060FF}{P_{in}}=\textcolor{#C060FF}{\alpha}\frac{\textcolor{#C060FF}{P_j}}{\textcolor{#C060FF}{\eta}}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}} $$
-        $$ =\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta}}\textcolor{#FF4400}{\dot m}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta}\,t_m}\textcolor{#FF4400}{m_0}\left[1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right] $$
+        $$ =\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta}}\textcolor{#FF4400}{\dot m}=\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta}\,\textcolor{#00DDB5}{t_m}}\textcolor{#FF4400}{m_0}\left[1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right] $$
         <div class="eq-divider"></div>
         <span class="eq-step-label">Propellant Mass</span>
-        $$ \textcolor{#FF4400}{m_p}=\frac{\textcolor{#FF4400}{F_N}}{\textcolor{#3DBFFF}{c}}t_m $$
+        $$ \textcolor{#FF4400}{m_p}=\frac{\textcolor{#FF4400}{F_N}}{\textcolor{#3DBFFF}{c}}\textcolor{#00DDB5}{t_m} $$
         $$ \textcolor{#FF4400}{m_p}=\textcolor{#FF4400}{m_0}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
         <span class="eq-step-label">Derivation</span>
-        $$ \textcolor{#FF4400}{m_p}=\textcolor{#FF4400}{\dot m} t_m=\frac{\textcolor{#FF4400}{F_N}}{\textcolor{#3DBFFF}{c}}t_m $$
-        $$ =\textcolor{#FF4400}{\dot m} t_m=\textcolor{#FF4400}{m_0}-\textcolor{#FF4400}{m_f}=\textcolor{#FF4400}{m_0}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
+        $$ \textcolor{#FF4400}{m_p}=\textcolor{#FF4400}{\dot m} \textcolor{#00DDB5}{t_m}=\frac{\textcolor{#FF4400}{F_N}}{\textcolor{#3DBFFF}{c}}\textcolor{#00DDB5}{t_m} $$
+        $$ =\textcolor{#FF4400}{\dot m} \textcolor{#00DDB5}{t_m}=\textcolor{#FF4400}{m_0}-\textcolor{#FF4400}{m_f}=\textcolor{#FF4400}{m_0}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
       </div>
     </details>
   </div>
@@ -1257,13 +1360,34 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
   <p class="th-body">
     For fixed initial mass, structural mass, and
-    <span class="key">mission time</span>, we seek to maximize
+    <span class="hl-time">mission time $t_m$</span>, we seek to maximize
     <span class="hl-mass">payload mass $m_{pay}$</span>. This is equivalent to minimizing the combined
     <span class="hl-mass">propellant mass $m_p$</span> and
     <span class="hl-mass">power source mass $m_{ps}$</span> with respect to
     <span class="hl-ve">exhaust velocity $c$</span>. The notes then use the
-    <span class="key">Stuhlinger approximation</span> for the case
+    <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-stuhlinger">Stuhlinger approximation</button> for the case
     $\textcolor{#3DBFFF}{\Delta v} \ll \textcolor{#3DBFFF}{c}$.
+    <span class="nut-card" id="nut-stuhlinger" hidden>
+      <svg class="nut-svg" viewBox="0 0 420 190" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="The curve one minus e to the minus delta v over c plotted against its straight line tangent delta v over c. The two lie on top of each other in a shaded band near the origin and separate as the ratio grows.">
+    <rect x="58.0" y="30.0" width="45.5" height="128.0" fill="#3DBFFF" fill-opacity="0.09"/>
+    <text x="80.8" y="22.0" text-anchor="middle" font-size="12.5" fill="#3DBFFF">&#916;v &#8810; c</text>
+    <line x1="58.0" y1="59.5" x2="396.0" y2="59.5" stroke="#9aa3b2" stroke-width="1" stroke-dasharray="3 5" opacity="0.5"/>
+    <text x="46.0" y="63.5" font-size="11.5" fill="#7a7a7a">1</text>
+    <path d="M58.0,26.0 L58.0,158.0 M58.0,158.0 L396.0,158.0" fill="none" stroke="#4a4a4a" stroke-width="1.2"/>
+    <path d="M 58.0,158.0 L 59.7,156.7 L 61.4,155.5 L 63.1,154.2 L 64.8,153.0 L 66.5,151.8 L 68.1,150.6 L 69.8,149.4 L 71.5,148.3 L 73.2,147.1 L 74.9,146.0 L 76.6,144.9 L 78.3,143.8 L 80.0,142.7 L 81.7,141.6 L 83.3,140.6 L 85.0,139.5 L 86.7,138.5 L 88.4,137.5 L 90.1,136.5 L 91.8,135.5 L 93.5,134.5 L 95.2,133.5 L 96.9,132.6 L 98.6,131.6 L 100.2,130.7 L 101.9,129.8 L 103.6,128.9 L 105.3,128.0 L 107.0,127.1 L 108.7,126.2 L 110.4,125.3 L 112.1,124.5 L 113.8,123.7 L 115.5,122.8 L 117.1,122.0 L 118.8,121.2 L 120.5,120.4 L 122.2,119.6 L 123.9,118.8 L 125.6,118.1 L 127.3,117.3 L 129.0,116.6 L 130.7,115.8 L 132.4,115.1 L 134.1,114.4 L 135.7,113.7 L 137.4,113.0 L 139.1,112.3 L 140.8,111.6 L 142.5,110.9 L 144.2,110.3 L 145.9,109.6 L 147.6,109.0 L 149.3,108.3 L 150.9,107.7 L 152.6,107.1 L 154.3,106.5 L 156.0,105.9 L 157.7,105.3 L 159.4,104.7 L 161.1,104.1 L 162.8,103.5 L 164.5,102.9 L 166.2,102.4 L 167.9,101.8 L 169.5,101.3 L 171.2,100.7 L 172.9,100.2 L 174.6,99.7 L 176.3,99.2 L 178.0,98.7 L 179.7,98.2 L 181.4,97.7 L 183.1,97.2 L 184.8,96.7 L 186.4,96.2 L 188.1,95.7 L 189.8,95.3 L 191.5,94.8 L 193.2,94.3 L 194.9,93.9 L 196.6,93.4 L 198.3,93.0 L 200.0,92.6 L 201.7,92.1 L 203.3,91.7 L 205.0,91.3 L 206.7,90.9 L 208.4,90.5 L 210.1,90.1 L 211.8,89.7 L 213.5,89.3 L 215.2,88.9 L 216.9,88.5 L 218.5,88.2 L 220.2,87.8 L 221.9,87.4 L 223.6,87.1 L 225.3,86.7 L 227.0,86.4 L 228.7,86.0 L 230.4,85.7 L 232.1,85.3 L 233.8,85.0 L 235.4,84.7 L 237.1,84.4 L 238.8,84.0 L 240.5,83.7 L 242.2,83.4 L 243.9,83.1 L 245.6,82.8 L 247.3,82.5 L 249.0,82.2 L 250.7,81.9 L 252.4,81.6 L 254.0,81.3 L 255.7,81.1 L 257.4,80.8 L 259.1,80.5 L 260.8,80.2 L 262.5,80.0 L 264.2,79.7 L 265.9,79.4 L 267.6,79.2 L 269.2,78.9 L 270.9,78.7 L 272.6,78.4 L 274.3,78.2 L 276.0,77.9 L 277.7,77.7 L 279.4,77.5 L 281.1,77.2 L 282.8,77.0 L 284.5,76.8 L 286.1,76.6 L 287.8,76.3 L 289.5,76.1 L 291.2,75.9 L 292.9,75.7 L 294.6,75.5 L 296.3,75.3 L 298.0,75.1 L 299.7,74.9 L 301.4,74.7 L 303.0,74.5 L 304.7,74.3 L 306.4,74.1 L 308.1,73.9 L 309.8,73.7 L 311.5,73.5 L 313.2,73.4 L 314.9,73.2 L 316.6,73.0 L 318.3,72.8 L 319.9,72.7 L 321.6,72.5 L 323.3,72.3 L 325.0,72.2 L 326.7,72.0 L 328.4,71.8 L 330.1,71.7 L 331.8,71.5 L 333.5,71.4 L 335.2,71.2 L 336.8,71.1 L 338.5,70.9 L 340.2,70.8 L 341.9,70.6 L 343.6,70.5 L 345.3,70.3 L 347.0,70.2 L 348.7,70.1 L 350.4,69.9 L 352.1,69.8 L 353.7,69.7 L 355.4,69.5 L 357.1,69.4 L 358.8,69.3 L 360.5,69.1 L 362.2,69.0 L 363.9,68.9 L 365.6,68.8 L 367.3,68.7 L 369.0,68.5 L 370.6,68.4 L 372.3,68.3 L 374.0,68.2 L 375.7,68.1 L 377.4,68.0 L 379.1,67.9 L 380.8,67.8 L 382.5,67.7 L 384.2,67.5 L 385.9,67.4 L 387.6,67.3 L 389.2,67.2 L 390.9,67.1 L 392.6,67.0 L 394.3,66.9 L 396.0,66.9" fill="none" stroke="#3DBFFF" stroke-width="2.4"/>
+    <path d="M58.0,158.0 L227.0,30.0" stroke="#9aa3b2" stroke-width="1.8" stroke-dasharray="6 5" fill="none"/>
+    <text x="227.0" y="180.0" text-anchor="middle" font-size="13" fill="#7a7a7a">&#916;v / c</text>
+    <line x1="228" y1="104" x2="256" y2="104" stroke="#3DBFFF" stroke-width="2.4"/>
+    <text x="264" y="109" font-size="13" fill="#3DBFFF">1 &#8722; e<tspan dy="-5" font-size="10">&#8722;&#916;v/c</tspan></text>
+    <line x1="228" y1="130" x2="256" y2="130" stroke="#9aa3b2" stroke-width="1.8" stroke-dasharray="6 5"/>
+    <text x="264" y="135" font-size="13" fill="#7a7a7a">&#916;v / c</text>
+  </svg>
+      <span class="nut-note">
+        When <span class="hl-ve">$\Delta v$</span> is small next to <span class="hl-ve">exhaust velocity $c$</span>, the rocket equation's exponential is nearly its own tangent, $1 - e^{-\Delta v/c} \approx \Delta v/c$.
+      </span>
+    </span>
   </p>
 
   <div class="eq-panel">
@@ -1272,7 +1396,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     \boxed{
     \textcolor{#3DBFFF}{v_{ch}}
     \equiv
-    \sqrt{\frac{2\,\textcolor{#C060FF}{\eta}\,t_m}{\textcolor{#C060FF}{\alpha}}}
+    \sqrt{\frac{2\,\textcolor{#C060FF}{\eta}\,\textcolor{#00DDB5}{t_m}}{\textcolor{#C060FF}{\alpha}}}
     }
     $$
 
@@ -1281,10 +1405,10 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       <div class="deriv-inner">
       <span class="eq-step-label">Derivation</span>
       <p>Seek to minimize mass of power + propulsion system w/ respect to <span class="hl-ve">$c$</span></p>
-      $$ \left.\frac{d(\textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p})}{d\textcolor{#3DBFFF}{c}}\right|_{\textcolor{#FF4400}{F_N},\textcolor{#C060FF}{\eta},t_m}=\frac{d}{d\textcolor{#3DBFFF}{c}}\left(\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}}+\frac{\textcolor{#FF4400}{F_N}}{c}t_m\right)=0 $$
-      $$ \rightarrow \frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N}}{2\textcolor{#C060FF}{\eta}}-\frac{\textcolor{#FF4400}{F_N} t_m}{\textcolor{#3DBFFF}{c}^2}=0 $$
-      $$ \rightarrow \textcolor{#3DBFFF}{c}^2=\frac{2\textcolor{#C060FF}{\eta} t_m}{\textcolor{#C060FF}{\alpha}} $$
-      $$ \rightarrow \textcolor{#3DBFFF}{v_{ch}}\equiv\sqrt{\frac{2\textcolor{#C060FF}{\eta} t_m}{\textcolor{#C060FF}{\alpha}}} $$
+      $$ \left.\frac{d(\textcolor{#C060FF}{m_{ps}}+\textcolor{#FF4400}{m_p})}{d\textcolor{#3DBFFF}{c}}\right|_{\textcolor{#FF4400}{F_N},\textcolor{#C060FF}{\eta},\textcolor{#00DDB5}{t_m}}=\frac{d}{d\textcolor{#3DBFFF}{c}}\left(\frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N} \textcolor{#3DBFFF}{c}}{2\textcolor{#C060FF}{\eta}}+\frac{\textcolor{#FF4400}{F_N}}{c}\textcolor{#00DDB5}{t_m}\right)=0 $$
+      $$ \rightarrow \frac{\textcolor{#C060FF}{\alpha} \textcolor{#FF4400}{F_N}}{2\textcolor{#C060FF}{\eta}}-\frac{\textcolor{#FF4400}{F_N} \textcolor{#00DDB5}{t_m}}{\textcolor{#3DBFFF}{c}^2}=0 $$
+      $$ \rightarrow \textcolor{#3DBFFF}{c}^2=\frac{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}{\textcolor{#C060FF}{\alpha}} $$
+      $$ \rightarrow \textcolor{#3DBFFF}{v_{ch}}\equiv\sqrt{\frac{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}{\textcolor{#C060FF}{\alpha}}} $$
       </div>
     </details>
 
@@ -1292,7 +1416,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
     <span class="eq-step-label">Optimum Exhaust Velocity Objective<sup class="cite"><a href="#ref-4">4</a>,<a href="#ref-5">5</a></sup></span>
     $$
-    \boxed{\mathrm{Obj}=e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)}
+    \boxed{\mathrm{Obj}=e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)}
     $$
     <span class="eq-caption">(Maximum at $\textcolor{#3DBFFF}{c_{opt}}$)</span>
 
@@ -1304,9 +1428,9 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       $$ \mathrm{Obj}=\frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}}{\textcolor{#FF4400}{m_0}} $$
       $$ =\frac{\textcolor{#FF4400}{m_{pay}}+\textcolor{#FF4400}{m_s}+\textcolor{#FF4400}{m_p}+\textcolor{#C060FF}{m_{ps}}-\textcolor{#C060FF}{m_{ps}}-\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_0}} $$
       $$ =\frac{\textcolor{#FF4400}{m_0}-\textcolor{#C060FF}{m_{ps}}-\textcolor{#FF4400}{m_p}}{\textcolor{#FF4400}{m_0}} $$
-      $$ =1-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)-\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
-      $$ =\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\left(\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
-      $$ =e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} t_m}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
+      $$ =1-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right)-\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
+      $$ =\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\left(\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
+      $$ =e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}-\frac{\textcolor{#C060FF}{\alpha} \textcolor{#3DBFFF}{c}^2}{2\textcolor{#C060FF}{\eta} \textcolor{#00DDB5}{t_m}}\left(1-e^{-\textcolor{#3DBFFF}{\Delta v}/\textcolor{#3DBFFF}{c}}\right) $$
       </div>
     </details>
   </div>
@@ -1843,6 +1967,19 @@ function update() {
 buildAlphaRegimeBar();
 ["eta","F","alpha","t","dv"].forEach(bindControl);
 update();
+</script>
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
+  });
+});
 </script>
 </body>
 </html>

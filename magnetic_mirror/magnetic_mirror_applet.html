@@ -722,6 +722,68 @@ a.applet-link {
 }
 a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 </style>
 </head>
 <body>
@@ -745,8 +807,36 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   interest. To do this, we must implement <span class="key">magnetic mirrors</span>, which trap particles that
   approach it at a specific angle. The &ldquo;how&rdquo; of <span class="key">magnetic mirrors</span> lies in how
   charged particles exhibiting <a class="applet-link" href="../larmor/larmor_applet.html">cyclotron motion</a> generate a
-  <span class="hl-moment">magnetic moment $\mu$</span> and act as a <span class="key">magnetic dipole</span> (think of a
-  bar magnet)! Explore the demos below to see how these orbiting charged particles act
+  <span class="hl-moment">magnetic moment $\mu$</span> and act as a
+  <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-dipole">magnetic dipole</button>!
+  <span class="nut-card" id="nut-dipole" hidden>
+    <svg class="nut-svg" viewBox="0 0 420 186" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="A charge circling in a loop, with its magnetic moment arrow along the loop axis, set equal to a bar magnet whose north to south axis carries the same arrow.">
+    <ellipse cx="98" cy="112" rx="54" ry="19" fill="none" stroke="#C060FF" stroke-width="2.2"/>
+    <polygon points="106.0,93.0 98.2,97.5 98.2,88.5" fill="#C060FF"/>
+    <circle cx="152" cy="112" r="10" fill="#C060FF"/>
+    <text x="152" y="118" text-anchor="middle" font-size="15" font-weight="700" fill="#0e0e0e">+</text>
+    <line x1="98.0" y1="112.0" x2="98.0" y2="50.0" stroke="#C060FF" stroke-width="2.4"/><polygon points="98.0,44.0 102.0,50.9 94.0,50.9" fill="#C060FF"/>
+    <text x="107" y="54" font-size="17" font-style="italic" fill="#C060FF">&#956;</text>
+    <text x="98" y="170" text-anchor="middle" font-size="14" fill="#7a7a7a">circling charge</text>
+    <text x="212" y="119" text-anchor="middle" font-size="26" fill="#7a7a7a">&#8801;</text>
+    <path d="M327,64 C381,44 381,168 327,150" fill="none" stroke="#00DDB5" stroke-width="1.3" opacity="0.45"/>
+    <polygon points="331.0,151.0 335.6,147.1 336.7,153.0" fill="#00DDB5"/>
+    <path d="M287,64 C233,44 233,168 287,150" fill="none" stroke="#00DDB5" stroke-width="1.3" opacity="0.45"/>
+    <polygon points="283.0,151.0 277.3,153.0 278.4,147.1" fill="#00DDB5"/>
+    <rect x="285" y="62" width="44" height="94" rx="4" fill="#9aa3b2" fill-opacity="0.16" stroke="#9aa3b2" stroke-width="1.6"/>
+    <line x1="285" y1="109" x2="329" y2="109" stroke="#9aa3b2" stroke-width="1.2" opacity="0.7"/>
+    <text x="307" y="92" text-anchor="middle" font-size="17" font-weight="700" fill="#9aa3b2">N</text>
+    <text x="307" y="139" text-anchor="middle" font-size="17" font-weight="700" fill="#9aa3b2">S</text>
+    <line x1="307.0" y1="109.0" x2="307.0" y2="50.0" stroke="#C060FF" stroke-width="2.4"/><polygon points="307.0,44.0 311.0,50.9 303.0,50.9" fill="#C060FF"/>
+    <text x="316" y="54" font-size="17" font-style="italic" fill="#C060FF">&#956;</text>
+    <text x="307" y="176" text-anchor="middle" font-size="14" fill="#7a7a7a">bar magnet</text>
+  </svg>
+    <span class="nut-note">
+      Think of a bar magnet. A charge going around a loop is a loop of current, and a loop of current has a <span class="hl-moment">magnetic moment $\mu$</span> along its axis, exactly like the pole axis of a magnet.
+    </span>
+  </span> Explore the demos below to see how these orbiting charged particles act
   as bar magnets. Then explore how they function in non-uniform <span class="hl-B">magnetic fields $\vec{B}$</span> to see
   <span class="key">magnetic mirrors</span> in action.
 </p>
@@ -1286,6 +1376,19 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';
       fb.style.color = '#ff8e8e';
     }
+  });
+});
+</script>
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
   });
 });
 </script>

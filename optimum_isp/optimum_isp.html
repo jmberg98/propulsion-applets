@@ -126,6 +126,17 @@ body {
 .cf-sym  { text-align: center; font-size: 13px; color: var(--text-secondary); }
 .cf-desc { font-size: 12px; color: #727272; line-height: 1.3; }
 .cf-unit { font-size: 11px; color: #444; white-space: nowrap; }
+/* The slot right of a box is for UNITS; a control's valid range goes on its own
+   line underneath, right aligned so it reads under the value box rather than
+   under the symbol. Same spelling as optimum_isp_applet.html, at this page's
+   smaller scale. */
+.cf-range {
+  font-size: 10px;
+  color: #5e5e5e;
+  letter-spacing: .3px;
+  text-align: right;
+  margin: 2px 0 0;
+}
 
 /* ↑ INPUT FONT: 13 → 15 px */
 .cf-inp  {
@@ -301,9 +312,10 @@ body {
           <span class="cf-sym">η</span>
           <span class="cf-desc">Efficiency</span>
           <input type="number" id="n-eta" class="cf-inp" value="0.65" min="0.10" max="1.00" step="0.01">
-          <span class="cf-unit">0–1</span>
+          <span class="cf-unit"></span>
         </div>
         <input type="range" id="s-eta" class="cf-slider" min="0.10" max="1.00" step="0.01" value="0.65">
+        <div class="cf-range">0.10 &ndash; 1.00</div>
       </div>
 
       <div class="cf-param">
@@ -314,6 +326,7 @@ body {
           <span class="cf-unit">N</span>
         </div>
         <input type="range" id="s-F" class="cf-slider" min="0.01" max="20.0" step="0.01" value="1.0">
+        <div class="cf-range">0.01 &ndash; 20.0 N</div>
       </div>
 
       <div class="cf-param">
@@ -324,6 +337,7 @@ body {
           <span class="cf-unit">days</span>
         </div>
         <input type="range" id="s-t" class="cf-slider" min="10" max="2000" step="1" value="180">
+        <div class="cf-range">1 &ndash; 2000 days</div>
       </div>
 
       <div class="cf-param">
@@ -334,6 +348,7 @@ body {
           <span class="cf-unit">m/s</span>
         </div>
         <input type="range" id="s-dv" class="cf-slider" min="100" max="60000" step="100" value="3000">
+        <div class="cf-range">100 &ndash; 60000 m/s</div>
       </div>
     </div>
 
@@ -349,6 +364,7 @@ body {
           <span class="cf-unit">kg/W</span>
         </div>
         <input type="range" id="s-alpha" class="cf-slider" min="-4" max="1" step="0.01">
+        <div class="cf-range">0.0001 &ndash; 10 kg/W</div>
       </div>
 
       <div class="regbox">

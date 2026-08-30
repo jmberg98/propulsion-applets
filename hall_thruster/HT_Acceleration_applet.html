@@ -1116,6 +1116,11 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 /* Reset and friends, the viewers' .btn / .btn-row. */
 .fig-panel .btn-row { display: flex; gap: 8px; margin-top: 10px; }
+
+/* A lone .sl-group, standing outside a .fig-controls and so without the flex gap that
+   spaces the groups inside one. Only the playback-speed slider uses it: it belongs under
+   the buttons with the viewing controls, not among the sliders that set the physics. */
+.fig-panel .sl-group.sl-loose { margin-top: 14px; }
 .fig-panel .btn {
   flex: 1 1 0;
   font-family: 'Barlow', sans-serif; font-size: 15px; font-weight: 600;
@@ -1225,6 +1230,68 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   margin-top: 2px;
   color: var(--text-muted);
 }
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 </style>
 </head>
 <body>
@@ -1598,6 +1665,19 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       <button type="button" class="btn" id="dz-pause">Pause</button>
       <button type="button" class="btn" id="dz-reset">Reset</button>
     </div>
+    <!-- Playback speed, a VIEWING control and nothing else: it scales SPEEDUP, the thruster
+         seconds the scene advances per second of animation, so the electrons walk the same
+         random walk at a different pace. Every number on the page is computed from the
+         sliders above and never from the clock, so none of them move when this does.
+         Reset leaves it alone on purpose - Reset restores the MODEL's defaults, and how
+         fast the reader wants to watch it is not one of them. -->
+    <div class="sl-group sl-loose">
+      <div class="sl-label">Playback speed<span class="sl-val" id="dz-sp-val">1.0&times;</span></div>
+      <div class="sl-row">
+        <input type="range" id="dz-sp" min="0.25" max="3" step="0.05" value="1"
+               aria-label="Playback speed, a viewing control that does not change the simulation">
+      </div>
+    </div>
   </div>
 
   <!-- Five entries, not four, and every one of them names a thing the reader can point at in
@@ -1667,9 +1747,35 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 <p class="page-intro">
   Experiment with the variables and notice the speed at which the
   <span class="hl-electron">electron</span> of interest drifts toward the <span class="key">anode</span>. The
-  <span class="key">anomalous transport</span> setting includes an observed, not well understood mechanism that
+  <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-anomalous">anomalous transport</button> setting includes an observed, not well understood mechanism that
   causes charged particle diffusion across <span class="hl-B">magnetic field lines $\vec{B}$</span> to be faster than
-  expected. This is a challenge in both electric propulsion and fusion devices. For modeling purposes, it is
+  expected.
+  <span class="nut-card" id="nut-anomalous" hidden>
+    <svg class="nut-svg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg"
+       role="img" font-family="Barlow, sans-serif"
+       aria-label="Two electron paths hopping left across magnetic field lines toward the anode. The collisional path takes small steps and stalls partway; the observed path takes much larger steps and reaches the anode.">
+    <rect x="18" y="34" width="16" height="140" fill="#FF4400" fill-opacity="0.3" stroke="#FF4400" stroke-width="1.4"/>
+    <text x="26" y="192" text-anchor="middle" font-size="12" fill="#FF4400">anode</text>
+    <line x1="70" y1="34" x2="70" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <line x1="110" y1="34" x2="110" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <line x1="150" y1="34" x2="150" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <line x1="190" y1="34" x2="190" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <line x1="230" y1="34" x2="230" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <line x1="270" y1="34" x2="270" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <line x1="310" y1="34" x2="310" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <line x1="350" y1="34" x2="350" y2="174" stroke="#00DDB5" stroke-width="1.1" stroke-dasharray="5 6" opacity="0.45"/>
+    <text x="398" y="28" text-anchor="end" font-size="12" fill="#00DDB5">B lines</text>
+    <path d="M 366.0,76.0 L 358.4,67.0 L 349.0,76.0 L 341.4,67.0 L 332.0,76.0 L 324.4,67.0 L 315.0,76.0 L 307.4,67.0 L 298.0,76.0 L 290.4,67.0 L 281.0,76.0 L 273.4,67.0 L 264.0,76.0" fill="none" stroke="#ffe94d" stroke-width="2" opacity="0.95"/>
+    <polygon points="264.0,76.0 266.2,68.3 271.8,74.1" fill="#ffe94d"/>
+    <text x="248" y="70" text-anchor="end" font-size="13" fill="#ffe94d">collisions only</text>
+    <path d="M 366.0,142.0 L 338.1,133.0 L 304.0,142.0 L 276.1,133.0 L 242.0,142.0 L 214.1,133.0 L 180.0,142.0 L 152.1,133.0 L 118.0,142.0 L 90.1,133.0 L 56.0,142.0" fill="none" stroke="#ffe94d" stroke-width="2.4"/>
+    <line x1="56.0" y1="142.0" x2="46.8" y2="142.0" stroke="#ffe94d" stroke-width="2.4"/><polygon points="40.0,142.0 47.8,137.5 47.8,146.5" fill="#ffe94d"/>
+    <text x="62" y="130" font-size="13" fill="#ffe94d">observed</text>
+  </svg>
+    <span class="nut-note">
+      Collisions alone let an <span class="hl-electron">electron</span> hop about one <span class="hl-ve">Larmor radius $r_L$</span> across the <span class="hl-B">field $\vec{B}$</span> per collision, which is slow. Real thrusters leak electrons to the <span class="key">anode</span> far faster than that, so models carry an extra diffusion term in place of the missing physics.
+    </span>
+  </span> This is a challenge in both electric propulsion and fusion devices. For modeling purposes, it is
   treated as another diffusion
   component.<sup class="cite"><a href="#ref-5">5</a>,<a href="#ref-6">6</a>,<a href="#ref-7">7</a></sup>
 </p>
@@ -2787,6 +2893,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     m: $('dz-m'), b: $('dz-b'), te: $('dz-te'), cb: $('dz-cb'), anom: $('dz-anom'),
     mVal: $('dz-m-val'), bVal: $('dz-b-val'), teVal: $('dz-te-val'), cbVal: $('dz-cb-val'),
     cbGroup: $('dz-cb-group'), pause: $('dz-pause'), reset: $('dz-reset'),
+    sp: $('dz-sp'), spVal: $('dz-sp-val'),
     status: $('dz-status'),
     oNh: $('dz-o-nh'), oNu: $('dz-o-nu'), oNuSub: $('dz-o-nu-sub'), oBeta: $('dz-o-beta'),
     oDperp: $('dz-o-dperp'), oLeak: $('dz-o-leak'), oEta: $('dz-o-eta')
@@ -2950,6 +3057,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
   // ── State ─────────────────────────────────────────────────────────────────
   let P = null, anomOn = true, paused = false, nNeut = 0;
+  let viewSpeed = 1;            // viewing only — scales simulated time, never the model
 
   const expHTML = (v, d) => {
     if (!isFinite(v) || v <= 0) return '0';
@@ -3058,7 +3166,11 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     last = ts;
     if (paused || !P) { renderFlash(0); return; }
 
-    const dtr   = dt * SPEEDUP;                 // thruster seconds elapsed this frame
+    /* viewSpeed rides on SPEEDUP and stops there: the hop count is drawn from the same
+       Poisson rates over a longer or shorter stretch of thruster time, so the walk is the
+       walk the model describes either way. The flashes below are timed off the REAL dt,
+       because a spark is an annotation on the frame and not part of the simulation. */
+    const dtr   = dt * SPEEDUP * viewSpeed;     // thruster seconds elapsed this frame
     const dyM   = P.vTheta * dtr;               // azimuthal advance, meters
     const lamC  = P.nu_en * dtr, lamA = P.nu_an * dtr;
 
@@ -3148,6 +3260,10 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   el.pause.addEventListener('click', () => {
     paused = !paused;
     el.pause.textContent = paused ? 'Run' : 'Pause';
+  });
+  el.sp.addEventListener('input', () => {
+    viewSpeed = parseFloat(el.sp.value);
+    el.spVal.textContent = viewSpeed.toFixed(2).replace(/0$/, '') + '×';
   });
   el.reset.addEventListener('click', () => {
     el.m.value = 5; el.b.value = 200; el.te.value = 10; el.cb.value = 100;
@@ -3255,6 +3371,19 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';
       fb.style.color = '#ff8e8e';
     }
+  });
+});
+</script>
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
   });
 });
 </script>
