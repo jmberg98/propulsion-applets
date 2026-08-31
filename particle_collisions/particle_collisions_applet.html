@@ -228,6 +228,62 @@ footer { width: var(--page-w); }
   background: var(--bg-canvas);
 }
 
+/* ── Citation superscripts ─────────────────────────── */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Sources list ──────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 17px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
 /* ── Inline applet link ─────────────────────────────── */
 a.applet-link {
   color: var(--text-heading);
@@ -593,7 +649,7 @@ footer .foot-cred {
   energy to cause a <span class="hl-neutral">neutral atom</span> to break into a positively charged
   <span class="hl-ion">ion</span> and a negatively charged <span class="hl-electron">electron</span>. Electron
   bombardment uses the kinetic energy of electrons to provide the required energy for
-  a neutral atom to be ionized, also known as the <span class="key">ionization energy</span>.
+  a neutral atom to be ionized, also known as the <span class="key">ionization energy</span>.<sup class="cite"><a href="#ref-1">1</a></sup>
 </p>
 
 <!-- ════════════════════ IONIZATION QUIZ ════════════════════ -->
@@ -667,7 +723,7 @@ footer .foot-cred {
   neutral atom. This minimizes the amount of energy to ionize our propellant so it can be accelerated. However, we seek
   a <span class="key">high second ionization energy</span>, the energy required to remove another electron from the
   positively charged ion. That energy could have been used to ionize another neutral atom, rather than increasing the
-  charge of the ion.
+  charge of the ion.<sup class="cite"><a href="#ref-2">2</a></sup>
 </p>
 
 <div class="quiz-section">
@@ -697,7 +753,8 @@ footer .foot-cred {
 <div class="theory-block">
   <div class="th-hdr">Choice of Propellant</div>
   <p class="th-body">
-    Let&rsquo;s explore the pros/cons of the most commonly used propellants in electric propulsion devices.
+    Let&rsquo;s explore the pros/cons of the most commonly used propellants in electric propulsion
+    devices.<sup class="cite"><a href="#ref-2">2</a>,<a href="#ref-3">3</a></sup>
   </p>
 
   <div class="propellant-grid">
@@ -818,6 +875,21 @@ footer .foot-cred {
     </div>
   </details>
 </div>
+
+<!-- ════════════════════ SOURCES ════════════════════ -->
+<details class="refs" id="sources">
+  <summary class="refs-hdr">Sources</summary>
+  <ol>
+    <li id="ref-1">D. M. Goebel &amp; I. Katz, <em>Fundamentals of Electric Propulsion: Ion and Hall Thrusters</em>, JPL
+      Space Science and Technology Series, Wiley, 2008. Ch. 3&ndash;4.</li>
+    <li id="ref-2">A. Kramida, Yu. Ralchenko, J. Reader, and NIST ASD Team, <em>NIST Atomic Spectra Database</em>
+      (ver. 5.11), National Institute of Standards and Technology, 2023,
+      <a href="https://physics.nist.gov/asd" target="_blank" rel="noopener">physics.nist.gov/asd</a>.</li>
+    <li id="ref-3">A. Kieckhafer &amp; L. B. King, &ldquo;Energetics of Propellant Options for High-Power Hall
+      Thrusters,&rdquo; <em>J. Propuls. Power</em> <b>23</b>(1), 21&ndash;26 (2007),
+      <a href="https://doi.org/10.2514/1.16376" target="_blank" rel="noopener">doi:10.2514/1.16376</a>.</li>
+  </ol>
+</details>
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">

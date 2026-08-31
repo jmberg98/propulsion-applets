@@ -774,7 +774,7 @@ footer .foot-cred {
     ions and not the electrons?</summary>
     <div class="clarify-body">
       Recall that <span class="hl-electron">electrons</span> have far less mass than
-      <span class="hl-ion">ions</span>, by three to four orders of magnitude. While they can be accelerated extremely
+      <span class="hl-ion">ions</span>, by about five orders of magnitude for xenon. While they can be accelerated extremely
       fast, their minuscule mass means that the <span class="hl-thrust">thrust $F_N$</span> an
       electron jet produces is near zero.
     </div>
@@ -785,9 +785,12 @@ footer .foot-cred {
     grids) is, the higher <span class="hl-thrust">thrust density $F/A$</span> we can achieve. Why can&rsquo;t $V_T/d$ be
     arbitrarily high?</summary>
     <div class="clarify-body">
-      $V_T$ is determined by the desired mission and thus desired <span class="hl-ve">exhaust velocity $v_{ex}$</span> or
-      <a class="applet-link" href="../optimum_isp/optimum_isp_applet.html">specific impulse</a>, as related by
-      $v_{ex} = \sqrt{2qV_T/m}$. Thus, to maximize $V_T/d$, we want to minimize $d$, the distance between the screen
+      The desired mission and thus desired <span class="hl-ve">exhaust velocity $v_{ex}$</span> or
+      <a class="applet-link" href="../optimum_isp/optimum_isp_applet.html">specific impulse</a> set $V_{net}$, the
+      voltage the ion actually keeps once it&rsquo;s slowed back down past the decelerator grid, as related by
+      $v_{ex} = \sqrt{2qV_{net}/m}$. $V_T$, the full screen&ndash;accelerator gap voltage, must be at least as large as
+      $V_{net}$, so a mission&rsquo;s exhaust-velocity requirement puts a floor under $V_T$ too. Beyond that floor, to
+      maximize $V_T/d$, we want to minimize $d$, the distance between the screen
       and accelerator grids. However, if $d$ is too small, then the risk of the screen&ndash;accelerator grid circuit
       shorting is high. This is especially true after vibrations during launch, as grids might shift, causing a short.
       Additionally, recall that $V_T/d$ is the <span class="hl-E">electric field $E$</span> strength between the screen and
@@ -845,13 +848,19 @@ footer .foot-cred {
 
         $$ \rightarrow\; \left(\frac{d\phi}{dx}\right)^{2}
            = \frac{-2\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}\,(-2)\left(\textcolor{#F5C518}{V_T}-\phi\right)^{1/2} $$
-        $$ \rightarrow\; \frac{d\phi}{dx} = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}
+
+        <p>$\phi$ falls monotonically from $\textcolor{#F5C518}{V_T}$ at the screen grid to $0$ at the accelerator
+        grid, so $d\phi/dx \le 0$ across the whole gap &mdash; take the negative root:</p>
+
+        $$ \rightarrow\; \frac{d\phi}{dx} = -\sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}
            \left(\textcolor{#F5C518}{V_T}-\phi\right)^{1/4} $$
 
         <span class="eq-step-label">Separate &amp; Integrate</span>
         $$ \int_{V_T}^{\phi}\frac{d\phi'}{\left(\textcolor{#F5C518}{V_T}-\phi'\right)^{1/4}}
-           = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\int_{0}^{x}dx' $$
+           = -\sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\int_{0}^{x}dx' $$
         $$ \rightarrow\; -\frac{4}{3}\left(\textcolor{#F5C518}{V_T}-\phi\right)^{3/4}\Big|_{V_T}^{\phi}
+           = -\sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\;x $$
+        $$ \rightarrow\; \frac{4}{3}\left(\textcolor{#F5C518}{V_T}-\phi\right)^{3/4}
            = \sqrt{\frac{4\textcolor{#3DBFFF}{j}}{\varepsilon_0\sqrt{\tfrac{2q}{m}}}}\;x $$
 
         <span class="eq-step-label">Square Both Sides</span>
@@ -885,7 +894,8 @@ footer .foot-cred {
     $$ \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0\,
        \frac{\textcolor{#F5C518}{V_T}^{3/2}\sqrt{\textcolor{#F5C518}{V_{net}}}}{d^{2}}
        = \frac{8}{9}\,\varepsilon_0
-       \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\sqrt{\textcolor{#F5C518}{R}}\;} $$
+       \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\sqrt{\textcolor{#F5C518}{R}}\;}
+       \qquad \textcolor{#F5C518}{R} \equiv \textcolor{#F5C518}{V_{net}}/\textcolor{#F5C518}{V_T} $$
 
     <details class="deriv-detail">
       <summary>Show derivation</summary>
@@ -914,14 +924,28 @@ footer .foot-cred {
         <span class="eq-step-label">Substitute into Electric Pressure (at $x=d$)</span>
         $$ \frac{\textcolor{#FF4400}{F}}{A} = \tfrac{1}{2}\varepsilon_0 \textcolor{#F5C518}{E}^{2}
            = \tfrac{1}{2}\varepsilon_0\left(\frac{4}{3}\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2} $$
-        $$ \rightarrow\; \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0
-           \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\;} $$
+        $$ \rightarrow\; \frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0
+           \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}
+           = \textcolor{#3DBFFF}{j}\,\frac{m}{q}\sqrt{\frac{2q\textcolor{#F5C518}{V_T}}{m}} $$
 
-        <span class="eq-step-label">Substitute the Volts the Ion Keeps: $V_T \rightarrow V_{net}$</span>
-        $$ \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \frac{8}{9}\,\varepsilon_0\,
+        <p class="th-body" style="margin-top:8px;margin-bottom:8px;">
+          That last form is the momentum flux <em>at the accelerator grid</em>, using the velocity the ion has
+          <em>there</em>, $\sqrt{2q\textcolor{#F5C518}{V_T}/m}$. But past the decelerator grid the ion is slowed
+          back down toward spacecraft potential, so it actually leaves with
+          $\textcolor{#3DBFFF}{v_{ex}}=\sqrt{2q\textcolor{#F5C518}{V_{net}}/m}$ instead. The particle flux
+          $\textcolor{#3DBFFF}{j}$ doesn&rsquo;t change downstream &mdash; only the velocity does &mdash; so the thrust
+          density actually delivered to the spacecraft swaps that one velocity factor,
+          $V_T \rightarrow V_{net}$:
+        </p>
+
+        <span class="eq-step-label">Swap in the Velocity the Ion Actually Leaves With</span>
+        $$ \boxed{\;\frac{\textcolor{#FF4400}{F}}{A} = \textcolor{#3DBFFF}{j}\,\frac{m}{q}
+           \sqrt{\frac{2q\textcolor{#F5C518}{V_{net}}}{m}}
+           = \frac{8}{9}\,\varepsilon_0\,
            \frac{\textcolor{#F5C518}{V_T}^{3/2}\sqrt{\textcolor{#F5C518}{V_{net}}}}{d^{2}}
            = \frac{8}{9}\,\varepsilon_0
-           \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\sqrt{\textcolor{#F5C518}{R}}\;} $$
+           \left(\frac{\textcolor{#F5C518}{V_T}}{d}\right)^{2}\sqrt{\textcolor{#F5C518}{R}}\;}
+           \qquad \textcolor{#F5C518}{R} \equiv \textcolor{#F5C518}{V_{net}}/\textcolor{#F5C518}{V_T} $$
       </div>
     </details>
   </div>

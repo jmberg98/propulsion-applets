@@ -557,7 +557,7 @@ details.deriv-detail > summary:focus-visible {
   margin-top: 3px; min-height: 18px;
 }
 
-/* ── secondary output values (Error, Payload ratio) ── */
+/* ── secondary output values (Error, structure+payload fraction) ── */
 .cf-oval {
   font-family: 'Courier New', monospace;
   font-size: 20px; font-weight: 700; color: var(--text-heading);
@@ -1066,8 +1066,8 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
       <div class="res-cell secondary">
         <div class="res-name-row">
-          <span class="res-sym">λ</span>
-          <span class="res-label">Payload ratio at C<sub>opt</sub></span>
+          <span class="res-sym">Obj</span>
+          <span class="res-label">Structure+payload fraction at C<sub>opt</sub></span>
         </div>
         <div class="cf-out-value-row">
           <span class="cf-oval" id="o-lam">—</span>
@@ -1922,7 +1922,7 @@ function update() {
 
   /* ══════════════  OBJECTIVE PLOT  ════════════════════════════════════ */
   Plotly.react("plot-obj", [
-    { x:ispArr, y:lamArr, name:"λ(c)",
+    { x:ispArr, y:lamArr, name:"Obj(c)",
       type:"scatter", mode:"lines", line:{color:"#51cf66", width:2.2} },
     { x:[ISP_AXIS_MIN, ISP_DATA_MAX], y:[0, 0],
       type:"scatter", mode:"lines",
@@ -1951,7 +1951,7 @@ function update() {
       ...GRID
     },
     yaxis:{
-      title:"Payload ratio  m<sub>payload</sub>/m₀",
+      title:"Structure + payload fraction  (m<sub>s</sub>+m<sub>payload</sub>)/m₀",
       range:[0, 1], fixedrange:true,
       ...GRID
     },

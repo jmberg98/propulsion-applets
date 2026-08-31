@@ -713,6 +713,62 @@ footer .foot-cred {
     max-height: none;
   }
 }
+/* ── Citation superscripts ─────────────────────────── */
+.cite {
+  font-size: 0.58em;
+  vertical-align: super;
+  line-height: 0;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.cite a {
+  color: var(--c-accent);
+  text-decoration: none;
+  padding: 0 .5px;
+}
+.cite a:hover { color: var(--text-heading); text-decoration: underline; }
+
+/* ── Sources list ──────────────────────────────────── */
+.refs {
+  width: var(--page-w); font-size: 17px; line-height: 1.6;
+  color: var(--text-muted); margin-bottom: 16px;
+}
+.refs > summary.refs-hdr {
+  cursor: pointer;
+  list-style: none;
+  display: block;
+  font-size: 13px; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase;
+  color: var(--c-accent);
+  padding: 2px 0 2px 16px;
+  user-select: none;
+}
+.refs > summary.refs-hdr::-webkit-details-marker { display: none; }
+.refs > summary.refs-hdr::before {
+  content: '\25B6';
+  font-size: 8px;
+  display: inline-block;
+  width: 10px;
+  margin-left: -16px;
+  margin-right: 6px;
+  text-align: center;
+  transition: transform 0.15s ease;
+  transform-origin: 50% 50%;
+}
+.refs[open] > summary.refs-hdr::before { transform: rotate(90deg); }
+.refs > summary.refs-hdr:hover { color: var(--text-heading); }
+.refs > summary.refs-hdr:focus-visible { outline: 1px solid var(--c-accent); outline-offset: 2px; }
+.refs ol { margin-top: 6px; }
+.refs ul { margin-top: 6px; list-style: none; }
+.refs li { margin-left: 30px; margin-bottom: 3px; }
+.refs li::marker { color: var(--c-accent); }
+.refs li:target { color: var(--text-main); }
+.refs li:target::marker { color: var(--text-heading); }
+.refs a[href^="http"] {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--c-accent);
+}
+.refs a[href^="http"]:hover { color: var(--text-heading); border-bottom-color: var(--text-heading); }
 /* ── Inline applet link ─────────────────────────────── */
 a.applet-link {
   color: var(--text-heading);
@@ -838,7 +894,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     </span>
   </span> Explore the demos below to see how these orbiting charged particles act
   as bar magnets. Then explore how they function in non-uniform <span class="hl-B">magnetic fields $\vec{B}$</span> to see
-  <span class="key">magnetic mirrors</span> in action.
+  <span class="key">magnetic mirrors</span> in action.<sup class="cite"><a href="#ref-1">1</a></sup>
 </p>
 
 <div class="color-key">
@@ -1046,7 +1102,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     particle&rsquo;s kinetic energy. Because the magnetic moment is constant, a
     varying <span class="hl-B">magnetic field $\vec{B}$</span> will affect the <span class="hl-v">parallel velocity $v_\parallel$</span>
     of the particle, allowing us to &ldquo;speed up&rdquo; and &ldquo;slow down&rdquo; the particle without adding or
-    removing energy.
+    removing energy.<sup class="cite"><a href="#ref-1">1</a>,<a href="#ref-2">2</a></sup>
   </p>
 
   $$
@@ -1304,6 +1360,18 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     </div>
   </details>
 </div>
+
+<!-- ════════════════════ SOURCES ════════════════════ -->
+<details class="refs" id="sources">
+  <summary class="refs-hdr">Sources</summary>
+  <ol>
+    <li id="ref-1">F. F. Chen, <em>Introduction to Plasma Physics and Controlled Fusion</em>, 3rd ed., Springer, 2016.
+      Ch. 2.</li>
+    <li id="ref-2">A. S. Richardson, <em>NRL Plasma Formulary</em>, Naval Research Laboratory, 2019,
+      <a href="https://www.nrl.navy.mil/Portals/38/PDF%20Files/NRL_Plasma_Formulary_2019.pdf" target="_blank"
+      rel="noopener">nrl.navy.mil</a>.</li>
+  </ol>
+</details>
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">

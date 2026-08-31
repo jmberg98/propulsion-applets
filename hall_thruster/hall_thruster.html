@@ -1257,15 +1257,15 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
            field's normalized shape, so a peak-field slider would be a control that provably
            cannot move two of the three views. See the note under PROF. -->
       <div style="margin-top:16px">
-        <label class="ix-slider">Peak position
+        <label class="ix-slider">Magnetic distribution peak position
           <input type="range" id="pot-zpk" min="20" max="70" step="1" value="47"
-                 aria-label="Position of the radial field peak, in millimeters downstream of the anode face">
+                 aria-label="Position of the magnetic distribution peak, in millimeters downstream of the anode face">
           <span class="ix-val"><input class="ix-num" id="pot-zpk-val" type="text" inputmode="decimal"
                 autocomplete="off" spellcheck="false" value="47"><span class="ix-unit">mm</span></span>
         </label>
-        <label class="ix-slider">Peak width
+        <label class="ix-slider">Magnetic distribution peak width
           <input type="range" id="pot-sig" min="8" max="30" step="1" value="22"
-                 aria-label="Standard deviation of the radial field peak, in millimeters">
+                 aria-label="Standard deviation of the magnetic distribution peak, in millimeters">
           <span class="ix-val"><input class="ix-num" id="pot-sig-val" type="text" inputmode="decimal"
                 autocomplete="off" spellcheck="false" value="22"><span class="ix-unit">mm</span></span>
         </label>
@@ -1282,31 +1282,23 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
         <div class="out-cell">
           <div class="out-label">Acceleration region</div>
           <div class="out-val" id="pot-o-band" style="color:#ffd98a">0</div>
-          <div class="out-sub">mm downstream of the anode face</div>
+          <div class="out-sub">measured from the anode face; where the middle 80% of the voltage drop happens</div>
         </div>
         <div class="out-cell">
-          <div class="out-label">Fall inside the channel</div>
+          <div class="out-label">Voltage drop completed before the exit</div>
           <div class="out-val" id="pot-o-inside" style="color:#ffd98a">0</div>
-          <div class="out-sub">% of the drop upstream of the exit plane</div>
+          <div class="out-sub">% of the total drop that happens before the exit plane</div>
         </div>
         <div class="out-cell">
           <div class="out-label" id="pot-o-3-label">Beam energy</div>
           <div class="out-val" id="pot-o-3" style="color:#4d9bff">0</div>
-          <div class="out-sub" id="pot-o-3-sub">eV, for an ion born at the anode</div>
+          <div class="out-sub" id="pot-o-3-sub">the kinetic energy an ion gains if born right at the anode</div>
         </div>
       </div>
       <div class="legend" style="margin-top:12px">
         <span class="lg"><i style="background:#4d9bff;color:#fff">+</i>Ion</span>
         <span class="lg"><i style="background:#ffe94d;color:#2a2405">&minus;</i>Electron</span>
       </div>
-      <p class="footer-note" style="margin-top:14px">The profile is a MODEL, not a measurement:
-        a Gaussian <b>B<sub>r</sub></b>(z) and the classical closure <b>E<sub>z</sub></b> &prop;
-        <b>B<sub>r</sub></b><sup>2</sup>, which follows from electron mobility across the field
-        going as 1/B<sup>2</sup> at fixed discharge current. Real cross-field transport is
-        anomalous and faster, so the shape here is qualitatively right and quantitatively soft.
-        The peak field is drawn at 150&nbsp;G, the right order for a thruster this size. In
-        hardware the peak is put where it is by the pole geometry, and moved from there by the
-        balance between the inner and outer coils.</p>
     </div>
 
     <!-- ══ Efficiency stage (?mode=efficiency) ══
@@ -6158,20 +6150,20 @@ function refreshPotProfile(){
   // ── panel readouts ───────────────────────────────────────────
   const inside = potFrac(Z_EXIT_PLANE) * 100;
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-  set('pot-o-band', pf(zA - Z_ANODE_FACE) + ' to ' + pf(zB - Z_ANODE_FACE));
+  set('pot-o-band', pf(zA - Z_ANODE_FACE) + ' to ' + pf(zB - Z_ANODE_FACE) + ' mm');
   set('pot-o-inside', Math.round(inside) + '%');
   const o3 = document.getElementById('pot-o-3');
   if (POT.view === 'bfield'){
-    set('pot-o-3-label', 'Peak radial field');  set('pot-o-3', PROF.bmax);
-    set('pot-o-3-sub', 'G, ' + pf(Z_EXIT_PLANE - PROF.zpk) + ' mm inside the exit plane');
+    set('pot-o-3-label', 'Magnetic distribution peak field');  set('pot-o-3', PROF.bmax + ' G');
+    set('pot-o-3-sub', 'the peak sits ' + pf(Z_EXIT_PLANE - PROF.zpk) + ' mm before the exit plane');
     if (o3) o3.style.color = 'var(--c-bfield)';
   } else if (POT.view === 'electron'){
-    set('pot-o-3-label', 'Climb to the anode'); set('pot-o-3', Math.round(L.vd));
-    set('pot-o-3-sub', 'V, cathode to anode: the whole supply');
+    set('pot-o-3-label', "Electron's climb to the anode"); set('pot-o-3', Math.round(L.vd) + ' V');
+    set('pot-o-3-sub', 'the full voltage an electron climbs from the cathode to the anode');
     if (o3) o3.style.color = '#ffe94d';
   } else {
-    set('pot-o-3-label', 'Beam energy');        set('pot-o-3', Math.round(L.anode));
-    set('pot-o-3-sub', 'eV, for an ion born at the anode');
+    set('pot-o-3-label', 'Beam energy');        set('pot-o-3', Math.round(L.anode) + ' eV');
+    set('pot-o-3-sub', 'the kinetic energy an ion gains if born right at the anode');
     if (o3) o3.style.color = '#4d9bff';
   }
 

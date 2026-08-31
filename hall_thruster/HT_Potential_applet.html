@@ -1168,6 +1168,68 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   margin-top: 2px;
   color: var(--text-muted);
 }
+
+/* ── Nutshell: an aside that opens inside the sentence ─
+   After Nicky Case's "Nutshell". The phrase itself is the handle: click it
+   and the explanation unfolds in place, so the reader never leaves the
+   sentence they were reading. The card is NOT wrapped around the handle. It
+   sits after the SENTENCE that contains the phrase, so unfolding never cuts
+   a clause or a comma in half. That is also why this is a button plus a
+   hidden card and not <details>/<summary>, which can only open where its own
+   summary sits. The card is a block box inside running text, so it splits
+   the paragraph where it lands, which is the behavior we want. */
+.nut-h {
+  font: inherit;
+  color: var(--hi-blue-soft);
+  background: none;
+  border: 0;
+  border-bottom: 1px dashed rgba(159,230,255,0.42);
+  padding: 0;
+  cursor: pointer;
+}
+.nut-h::after {
+  content: '\25B8';
+  display: inline-block;
+  font-size: .62em;
+  margin-left: 4px;
+  vertical-align: 2px;
+  color: var(--hi-blue);
+  transition: transform 0.15s ease;
+}
+.nut-h[aria-expanded="true"]::after { transform: rotate(90deg); }
+.nut-h[aria-expanded="true"] { border-bottom-style: solid; }
+.nut-h:hover { color: #ffffff; border-bottom-color: var(--hi-blue); }
+.nut-h:focus-visible { outline: 1px solid var(--hi-blue); outline-offset: 2px; }
+.nut-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 22px;
+  width: 100%;
+  margin: 12px 0 14px;
+  padding: 12px 16px 13px;
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--hi-blue);
+  border-radius: 4px;
+  background: var(--bg-panel-2);
+}
+/* the UA rule for [hidden] is display:none, which .nut-card would outrank */
+.nut-card[hidden] { display: none; }
+.nut-svg {
+  flex: 0 1 430px;
+  width: 100%;
+  max-width: 430px;
+  height: auto;
+}
+.nut-note {
+  flex: 1 1 300px;
+  max-width: 46em;
+  font-size: 18.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 </style>
 </head>
 <body>
@@ -1208,9 +1270,12 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 </div>
 
 <!-- ════════════════════ Q1: WHERE ACCELERATION HAPPENS ════════════════════
-     BOTH options are marked correct, because both are marked correct in the layout
-     document this page is written from. Flagged for Jordan: if only one was meant to
-     be, flip the other to data-correct="false" here and the quiz JS does the rest. -->
+     Both options are correct. The interactive figure below models E_z proportional to B_r^2 with a
+     symmetric B_r(z) — the classical-mobility closure — so at typical slider settings the accelerating
+     voltage drop splits roughly evenly across the peak rather than sitting entirely downstream of it; the
+     page-intro paragraph above was rewritten to match (shielding weakens gradually approaching the peak,
+     it doesn't hold perfectly right up to it). An earlier version of this quiz marked only "after" correct,
+     which fought both the demo directly below it and the real classical-mobility picture; reverted. -->
 <div class="quiz-section">
   <div class="quiz-hdr">Guiding Question</div>
   <div class="quiz-block" data-quiz="multi">
@@ -1239,10 +1304,11 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <svg id="mf-svg" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" role="img"
          font-family="Barlow, sans-serif"
          aria-label="Two stacked plots against distance along the channel. The upper one is the radial
-                     magnetic field, a peak whose position can be dragged. The lower one is the axial
-                     potential falling from the discharge voltage at the anode to zero downstream, together
-                     with the axial electric field. A shaded band marks the acceleration region, and it
-                     tracks the magnetic peak wherever the peak is dragged.">
+                     magnetic field, whose magnetic distribution peak position can be dragged. The lower
+                     one is the axial potential falling from the discharge voltage at the anode to zero
+                     downstream, together with the axial electric field. A shaded band marks the
+                     acceleration region, and it tracks the magnetic distribution peak wherever it is
+                     dragged.">
 
       <rect width="900" height="560" fill="#0e0e0e"/>
 
@@ -1338,25 +1404,23 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
   <aside class="fig-panel">
   <div class="fig-controls">
+    <!-- No amplitude knob, matching hall_thruster.html's own Potential stage: with the fall fixed
+         at the discharge voltage, E_z proportional to B_r^2 depends only on the field's normalized
+         SHAPE, so a peak-field slider could not move the potential curve, the band or any of the
+         four readouts below - only the raw height of this B_r(z) curve, which is drawn fixed at
+         150 G, the illustrative order the hardware note used to carry here. -->
     <div class="sl-group">
-      <div class="sl-label">Field peak position<span class="sl-val" id="mf-zpk-val">18.0 mm</span></div>
+      <div class="sl-label">Magnetic distribution peak position<span class="sl-val" id="mf-zpk-val">18.0 mm</span></div>
       <div class="sl-row">
         <input type="range" id="mf-zpk" min="2" max="28" step="0.5" value="18"
-               aria-label="Position of the magnetic field peak, in millimeters from the anode">
+               aria-label="Position of the magnetic distribution peak, in millimeters from the anode">
       </div>
     </div>
     <div class="sl-group">
-      <div class="sl-label">Peak field<span class="sl-val" id="mf-bmax-val">150 G</span></div>
-      <div class="sl-row">
-        <input type="range" id="mf-bmax" min="50" max="250" step="5" value="150"
-               aria-label="Peak radial magnetic field in gauss">
-      </div>
-    </div>
-    <div class="sl-group">
-      <div class="sl-label">Peak width<span class="sl-val" id="mf-sig-val">5.00 mm</span></div>
+      <div class="sl-label">Magnetic distribution peak width<span class="sl-val" id="mf-sig-val">5.00 mm</span></div>
       <div class="sl-row">
         <input type="range" id="mf-sig" min="2" max="9" step="0.25" value="5"
-               aria-label="Width of the magnetic field peak in millimeters">
+               aria-label="Standard deviation of the magnetic distribution peak, in millimeters">
       </div>
     </div>
     <div class="sl-group">
@@ -1374,22 +1438,22 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <div class="out-cell">
       <div class="out-label">Acceleration region</div>
       <div class="out-val" id="mf-o-band" style="color:#F5C518">0</div>
-      <div class="out-sub">mm from the anode, middle 80% of the fall</div>
+      <div class="out-sub">measured from the anode; where the middle 80% of the voltage drop happens</div>
     </div>
     <div class="out-cell">
-      <div class="out-label">Region length</div>
+      <div class="out-label">Acceleration region length</div>
       <div class="out-val" id="mf-o-len" style="color:#F5C518">0</div>
-      <div class="out-sub">mm, against a 20 mm channel</div>
+      <div class="out-sub">out of the 20 mm discharge channel</div>
     </div>
     <div class="out-cell">
-      <div class="out-label">Peak axial field</div>
+      <div class="out-label">Peak axial electric field</div>
       <div class="out-val" id="mf-o-emax" style="color:#F5C518">0</div>
-      <div class="out-sub">V/mm at the top of the fall</div>
+      <div class="out-sub">the strongest push on ions, where the voltage drops fastest</div>
     </div>
     <div class="out-cell">
-      <div class="out-label">Fall inside the channel</div>
+      <div class="out-label">Voltage drop completed before the exit</div>
       <div class="out-val" id="mf-o-inside">0</div>
-      <div class="out-sub" id="mf-o-inside-sub">% of the drop upstream of the exit</div>
+      <div class="out-sub" id="mf-o-inside-sub">% of the total drop that happens before the exit plane</div>
     </div>
   </div>
 
@@ -1397,20 +1461,72 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <p class="page-intro">
   The <span class="hl-phi">electric potential $V$</span> and <span class="hl-B">radial magnetic field $B_r$</span>
-  distributions of the thruster are very closely linked. Before the peak magnetic field strength,
-  <span class="hl-ion">ions</span> and <span class="hl-electron">electrons</span> are both free moving. Even
-  though the <span class="key">anode</span> is set at a high potential, the ions cannot experience a
-  <span class="hl-phi">potential drop $V$</span> due to the shielding provided by the nearby, mobile electrons. As
-  the ion drifts toward the peak <span class="hl-B">$B_r$</span> strength, however, a greater number of the
-  electrons are trapped in the <span class="key">Hall current</span>'s
-  <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirrors</a>. The
-  electrons can no longer shield the ions from the anode voltage. Most of the ions have already been or are just
-  ionized from the electron ring and incoming electrons, so they accelerate into the exhaust
+  distributions of the thruster are very closely linked. Far from the peak <span class="hl-B">$B_r$</span>
+  strength, <span class="hl-electron">electrons</span> are still mobile enough along the channel to shield most of
+  the <span class="key">anode</span> voltage from the <span class="hl-ion">ions</span>. As an ion drifts toward the
+  peak, though, a growing share of the electrons get trapped in the <span class="key">Hall current</span>'s
+  <a class="applet-link" href="../magnetic_mirror/magnetic_mirror_applet.html">magnetic mirrors</a>, so the
+  shielding weakens and the <span class="hl-phi">potential drop $V$</span> steepens &mdash; the same
+  <span class="hl-B">$B_r$</span> that traps electrons chokes their cross-field mobility, so the field has to grow
+  wherever $B_r$ is largest to keep pushing the discharge current through. That makes the drop steepest right
+  around the peak itself, not only downstream of it: an ion born on either side of the peak falls through a real
+  share of the total voltage crossing this region, so acceleration happens on both sides of the peak, with most of
+  it concentrated close to where <span class="hl-B">$B_r$</span> is strongest. Most of the ions have already been
+  or are just ionized from the electron ring and incoming electrons, so they accelerate into the exhaust
   plume.<sup class="cite"><a href="#ref-4">4</a>,<a href="#ref-5">5</a>,<a href="#ref-7">7</a></sup>
 </p>
 
+<p class="page-intro">
+  The <span class="hl-phi">potential drop $V$</span> should finish somewhat downstream of the thruster exit. Too
+  early, and the <span class="hl-ion">ions</span> reach full speed while still in close proximity to the ceramic
+  walls. They have a high chance of sputtering the walls, eroding them and decreasing thruster efficiency (and
+  lifetime).<sup class="cite"><a href="#ref-7">7</a></sup> Too late, and the ions leave at a wider angle. Due to
+  the <button type="button" class="nut-h" aria-expanded="false" aria-controls="nut-cosine">cosine law</button>,
+  less <span class="hl-thrust">thrust $F$</span> is produced.
+  <span class="nut-card" id="nut-cosine" hidden>
+    <svg class="nut-svg" viewBox="0 0 420 200" xmlns="http://www.w3.org/2000/svg"
+         role="img" font-family="Barlow, sans-serif"
+         aria-label="An ion's exit velocity vector drawn at an angle from the thrust axis, decomposed into an
+                     axial component that contributes to thrust and a perpendicular component that does not.">
+      <line x1="30" y1="150" x2="390" y2="150" stroke="#5f5f5f" stroke-width="1.4"/>
+      <polygon points="390,150 378,145.5 378,154.5" fill="#5f5f5f"/>
+      <text x="386" y="168" text-anchor="end" font-size="13" fill="#8a8a8a">thrust axis</text>
+
+      <line x1="214.1" y1="78.2" x2="214.1" y2="150" stroke="#9aa3b2" stroke-width="1.3" stroke-dasharray="4 4"/>
+      <text x="222" y="118" font-size="14" fill="#9aa3b2"><tspan font-family="KaTeX_Math, serif"
+        font-style="italic">v</tspan><tspan font-family="KaTeX_Main, serif" dx="3">sin</tspan><tspan
+        font-family="KaTeX_Math, serif" font-style="italic" dx="1">&#952;</tspan><tspan
+        font-family="Barlow, sans-serif" dx="5">(wasted)</tspan></text>
+
+      <line x1="60" y1="158" x2="214.1" y2="158" stroke="#FF4400" stroke-width="3"/>
+      <line x1="60" y1="155" x2="60" y2="161" stroke="#FF4400" stroke-width="2"/>
+      <line x1="214.1" y1="155" x2="214.1" y2="161" stroke="#FF4400" stroke-width="2"/>
+      <text x="137" y="178" text-anchor="middle" font-size="14" fill="#FF4400"><tspan
+        font-family="KaTeX_Math, serif" font-style="italic">v</tspan><tspan font-family="KaTeX_Main, serif"
+        dx="3">cos</tspan><tspan font-family="KaTeX_Math, serif" font-style="italic" dx="1">&#952;</tspan><tspan
+        font-family="Barlow, sans-serif" dx="5">(thrust)</tspan></text>
+
+      <line x1="60" y1="150" x2="214.1" y2="78.2" stroke="#3DBFFF" stroke-width="2.6"/>
+      <polygon points="214.1,78.2 205.1,87.4 201.3,79.2" fill="#3DBFFF"/>
+      <text x="131" y="97" text-anchor="middle" font-size="15" font-family="KaTeX_Math, serif"
+        font-style="italic" fill="#3DBFFF">v</text>
+
+      <text x="130" y="140" text-anchor="middle" font-size="15" font-family="KaTeX_Math, serif"
+        font-style="italic" fill="#9a9a9a">&#952;</text>
+      <circle cx="60" cy="150" r="3" fill="#3DBFFF"/>
+    </svg>
+    <span class="nut-note">
+      Only the velocity component along the thrust axis, <span class="hl-ve">$v\cos\theta$</span>, contributes to
+      thrust. The perpendicular component <span class="hl-ve">$v\sin\theta$</span> pushes the ion sideways and is
+      wasted. A more divergent beam has more ions leaving at larger angles $\theta$, so the same exhaust speed
+      produces less net thrust.
+    </span>
+  </span>
+  Thrusters aim to produce the acceleration region just outside the thruster exit.
+</p>
+
 <div class="theory-block applet-host">
-  <div class="th-hdr">The Distributions on the Hardware</div>
+  <div class="th-hdr">Distributions Overlayed w/ Thruster</div>
   <iframe class="applet-frame" src="hall_thruster.html?mode=potential&amp;v=4"
           title="Axial potential and radial magnetic field registered against the thruster cross-section"
           loading="lazy"></iframe>
@@ -1702,8 +1818,8 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     handle: $('mf-handle'), handleLbl: $('mf-handle-lbl'), hit: $('mf-hit'),
     efill: $('mf-efill'), phi: $('mf-phi'),
     phiMid: $('mf-phi-mid'), phiTop: $('mf-phi-top'),
-    zpk: $('mf-zpk'), bmax: $('mf-bmax'), sig: $('mf-sig'), vd: $('mf-vd'),
-    zpkVal: $('mf-zpk-val'), bmaxVal: $('mf-bmax-val'), sigVal: $('mf-sig-val'), vdVal: $('mf-vd-val'),
+    zpk: $('mf-zpk'), sig: $('mf-sig'), vd: $('mf-vd'),
+    zpkVal: $('mf-zpk-val'), sigVal: $('mf-sig-val'), vdVal: $('mf-vd-val'),
     oBand: $('mf-o-band'), oLen: $('mf-o-len'), oEmax: $('mf-o-emax'),
     oInside: $('mf-o-inside'), oInsideSub: $('mf-o-inside-sub')
   };
@@ -1711,6 +1827,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   const Z_MAX = 30;          // mm of channel plus near plume that the axis covers
   const Z_EXIT = 20;         // mm, exit plane
   const X0 = 80, X1 = 860;
+  const BMAX = 150;          // G, fixed - see the no-amplitude-knob note on the panel above
   const B_TOP = 250;         // G, full scale of the upper panel
   const BY0 = 50, BY1 = 200; // upper panel, top and baseline
   const PY0 = 300, PY1 = 490;
@@ -1721,10 +1838,9 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   const yB  = B => BY1 - Math.min(B, B_TOP) / B_TOP * (BY1 - BY0);
 
   function draw(){
-    const zpk = +el.zpk.value, bmax = +el.bmax.value, sig = +el.sig.value, Vd = +el.vd.value;
+    const zpk = +el.zpk.value, sig = +el.sig.value, Vd = +el.vd.value;
 
     el.zpkVal.textContent  = zpk.toFixed(1) + ' mm';
-    el.bmaxVal.textContent = bmax + ' G';
     el.sigVal.textContent  = sig.toFixed(2) + ' mm';
     el.vdVal.textContent   = Vd + ' V';
 
@@ -1736,9 +1852,31 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     let area = 0;
     for (let i = 0; i <= N; i++){
       const z = i * dz;
-      B[i] = bmax * Math.exp(-((z - zpk) ** 2) / (2 * sig * sig));
+      B[i] = BMAX * Math.exp(-((z - zpk) ** 2) / (2 * sig * sig));
       E[i] = B[i] * B[i];
       area += E[i] * dz;
+    }
+    /* The peak can sit close enough to Z_MAX, and wide enough, that a real slice of E(z) falls
+       past the right edge of the axis - at the sliders' far corner (zpk 28, sig 9) barely a third
+       of a standard deviation separates the peak from Z_MAX, and only 62% of the field's true area
+       is inside the plotted domain. Left uncorrected, `scale` below would force the WHOLE discharge
+       voltage to fall inside that truncated slice, understating how much of the drop actually
+       spills into the plume off the right edge. Extend the accounting (not the plot) out to 12
+       sigma past the peak - many multiples of the widest slider setting, so the omitted tail is
+       below float64 noise - and fold that into `area` before normalizing. There is no matching
+       correction on the left: z=0 is the anode face, and there genuinely is no field upstream of
+       it, so truncating there is physics, not a truncation error. */
+    const zTailEnd = zpk + 12 * sig;
+    if (zTailEnd > Z_MAX){
+      const TAIL_N = 400, dzTail = (zTailEnd - Z_MAX) / TAIL_N;
+      let prevE = E[N];
+      for (let i = 1; i <= TAIL_N; i++){
+        const z = Z_MAX + i * dzTail;
+        const b = BMAX * Math.exp(-((z - zpk) ** 2) / (2 * sig * sig));
+        const e = b * b;
+        area += (prevE + e) * 0.5 * dzTail;
+        prevE = e;
+      }
     }
     const scale = Vd / area;                       // V per mm per unit of B^2
     let run = 0;
@@ -1760,9 +1898,9 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     el.bline.setAttribute('d', bl);
     el.bfill.setAttribute('d', bf);
     el.handle.setAttribute('cx', xOf(zpk));
-    el.handle.setAttribute('cy', yB(bmax));
+    el.handle.setAttribute('cy', yB(BMAX));
     el.handleLbl.setAttribute('x', xOf(zpk));
-    el.handleLbl.setAttribute('y', yB(bmax) - 14);
+    el.handleLbl.setAttribute('y', yB(BMAX) - 14);
     el.handleLbl.textContent = zpk.toFixed(1) + ' mm';
 
     // ── Lower panel: phi and E
@@ -1801,14 +1939,14 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     const iExit = Math.round(Z_EXIT / dz);
     const inside = cum[iExit] / Vd * 100;
 
-    el.oBand.textContent = zA.toFixed(1) + ' to ' + zB.toFixed(1);
-    el.oLen.textContent  = (zB - zA).toFixed(1);
-    el.oEmax.textContent = eMax.toFixed(1);
+    el.oBand.textContent = zA.toFixed(1) + ' to ' + zB.toFixed(1) + ' mm';
+    el.oLen.textContent  = (zB - zA).toFixed(1) + ' mm';
+    el.oEmax.textContent = eMax.toFixed(1) + ' V/mm';
     el.oInside.textContent = inside.toFixed(0) + '%';
     el.oInside.style.color = inside > 85 ? '#ff8e8e' : (inside < 40 ? '#ff8e8e' : '#51cf66');
-    el.oInsideSub.textContent = inside > 85 ? 'ions born deep in the channel, wall losses climb'
-                              : inside < 40 ? 'the beam is born outside, poorly confined'
-                              : '% of the drop upstream of the exit';
+    el.oInsideSub.textContent = inside > 85 ? 'most ions are born deep in the channel; wall losses climb'
+                              : inside < 40 ? 'most acceleration happens outside the channel; the beam is poorly confined'
+                              : '% of the total drop that happens before the exit plane';
   }
 
   /* Dragging the peak is the point of the figure, so the whole upper panel is a
@@ -1830,7 +1968,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   el.hit.addEventListener('pointermove', ev => { if (dragging) setFromEvent(ev); });
   el.hit.addEventListener('pointerup',   ev => { dragging = false; el.hit.releasePointerCapture(ev.pointerId); });
 
-  [el.zpk, el.bmax, el.sig, el.vd].forEach(s => s.addEventListener('input', draw));
+  [el.zpk, el.sig, el.vd].forEach(s => s.addEventListener('input', draw));
   draw();
 })();
 </script>
@@ -1898,6 +2036,19 @@ document.querySelectorAll('.quiz-block[data-quiz="multi"]').forEach(block => {
       fb.textContent = 'Not quite. The correct choices are highlighted in green.';
       fb.style.color = '#ff8e8e';
     }
+  });
+});
+</script>
+<script>
+/* Nutshell asides: the handle is a button beside the phrase and its card is a
+   hidden block after that sentence, so the two are tied by aria-controls
+   rather than by nesting. */
+document.querySelectorAll('.nut-h').forEach(h => {
+  h.addEventListener('click', () => {
+    const card = document.getElementById(h.getAttribute('aria-controls'));
+    const open = h.getAttribute('aria-expanded') === 'true';
+    h.setAttribute('aria-expanded', open ? 'false' : 'true');
+    card.hidden = open;
   });
 });
 </script>
