@@ -1442,7 +1442,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   Hall thruster.
 </p>
 
-<!-- ════════════════════ EFFICIENCY COMPONENTS ════════════════════ -->
+<!-- ════════════════════ EFFICIENCY COMPONENTS ════════════════════
+     Grouped by factor of eta = eta_u eta_a eta_E, from Martinez-Sanchez & Lozano
+     16.522 Session 38 (ref-4): the leak-current chain is eqs. 18 through 20, and the
+     birth-potential integral is the lecture's energy-efficiency factor. Each
+     component's definition paragraph sits directly above its own equation and
+     derivation, then the total-efficiency product closes the section.
+     Jordan's own derivations replace these later. -->
 <div class="theory-block">
   <div class="th-hdr">Mass Utilization</div>
 
@@ -1461,7 +1467,8 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 </div>
 
 <div class="theory-block">
-  <div class="th-hdr">Backstreaming</div>
+  <div class="th-hdr">Anode Efficiency</div>
+
   <p class="th-body">
     The more <span class="hl-electron">electron current $I_B$</span> directed toward the
     <span class="hl-ion">ion beam</span> as opposed to leaking to the <span class="key">anode</span>, the more
@@ -1469,51 +1476,6 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     Additionally, power is wasted on electrons that <span class="key">backstream</span> and yet do not ionize any
     <span class="hl-neutral">neutral particles</span>.
   </p>
-</div>
-
-<div class="theory-block">
-  <div class="th-hdr">Energy Efficiency</div>
-  <p class="th-body">
-    Not all <span class="hl-ion">ions</span> are born before or at the
-    <span class="hl-phi">potential drop $V$</span> of the thruster, some are born afterward. These constitute a loss.
-    As the fraction of ions formed before or at the potential drop increases, so does the
-    <span class="key">energy efficiency</span> of the thruster.
-  </p>
-</div>
-
-<p class="page-intro">
-  The total efficiency of the thruster is the product of all three.
-</p>
-
-<div class="theory-block">
-  <div class="eq-panel">
-    $$ \boxed{\;\eta \;=\; \eta_u\,\eta_a\,\eta_E\;} $$
-  </div>
-</div>
-
-<!-- ════════════════════ EFFICIENCY ════════════════════
-     A stage of the same viewer (?mode=efficiency), framed about twice as close as the Potential
-     stage above and cropped to the upper half of the section, because the whole argument happens
-     between the anode face and a few centimeters past the exit plane.
-
-     It is on THIS page and not a page of its own because f(phi) is the subject of both, and
-     because eta_E cannot be computed without the fall this page has just derived. The stage does
-     not re-derive it: it calls the Potential stage's own potPhi/potFrac, so the two figures bin
-     and draw the same curve and cannot drift apart. -->
-<div class="theory-block applet-host" id="efficiency-fig">
-  <div class="th-hdr">Efficiency</div>
-  <iframe class="applet-frame" src="hall_thruster.html?mode=efficiency&amp;v=4"
-          title="Ion birth potential, propellant utilization and the discharge current split, drawn on the thruster cross-section"
-          loading="lazy"></iframe>
-</div>
-
-<!-- ════════════════════ EFFICIENCY DERIVATIONS ════════════════════
-     One block per factor of eta = eta_u eta_a eta_E, from Martinez-Sanchez & Lozano
-     16.522 Session 38 (ref-4): the leak-current chain is eqs. 18 through 20, and the
-     birth-potential integral is the lecture's energy-efficiency factor.
-     Jordan's own derivations replace these later. -->
-<div class="theory-block">
-  <div class="th-hdr">Anode Efficiency</div>
 
   <p class="th-body">
     <span class="hl-electron">Electrons</span> that cross the magnetic barrier and
@@ -1599,7 +1561,14 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 </div>
 
 <div class="theory-block">
-  <div class="th-hdr">Energy Efficiency Factor</div>
+  <div class="th-hdr">Energy Efficiency</div>
+
+  <p class="th-body">
+    Not all <span class="hl-ion">ions</span> are born before or at the
+    <span class="hl-phi">potential drop $V$</span> of the thruster, some are born afterward. These constitute a loss.
+    As the fraction of ions formed before or at the potential drop increases, so does the
+    <span class="key">energy efficiency</span> of the thruster.
+  </p>
 
   <p class="th-body">
     An <span class="hl-ion">ion</span> is created wherever its parent
@@ -1660,6 +1629,19 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         </div>
       </div>
     </details>
+  </div>
+</div>
+
+<div class="theory-block">
+  <div class="th-hdr">Total Efficiency</div>
+
+  <p class="th-body">
+    The total efficiency of the thruster is the product of all three efficiency factors: mass utilization, anode
+    efficiency, and energy efficiency.
+  </p>
+
+  <div class="eq-panel">
+    $$ \boxed{\;\eta \;=\; \eta_u\,\eta_a\,\eta_E\;} $$
   </div>
 </div>
 

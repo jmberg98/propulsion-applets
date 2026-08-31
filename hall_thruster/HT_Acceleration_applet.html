@@ -1587,34 +1587,54 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <div class="theory-block applet-host">
   <div class="th-hdr">Electron Diffusion</div>
+
+  <!-- Mechanism, on the real geometry, in hall_thruster.html's own dedicated stage
+       (?mode=diffusion): a reader gets a camera they can move instead of a flattened
+       abstraction. Its panel is a second, independent model of the same physics as the
+       graph below - see that stage's own footer note for why that is not a gap, the same
+       relationship the Potential stage's 2-D and 3-D figures already have to each other. -->
+  <iframe class="applet-frame" src="hall_thruster.html?mode=diffusion&amp;v=1"
+          title="The Hall thruster channel, with electrons drifting azimuthally and creeping
+                 toward the anode by collisions"
+          loading="lazy"></iframe>
+
+  <p class="page-intro" style="margin-top:16px;margin-bottom:40px">
+    Though the radial magnetic field strength is sufficient to sustain magnetic mirroring, recall
+    that magnetic mirrors rely on the magnetic moment being constant. If the cyclotron motion of
+    the electron is disrupted by a collision, then it will stop being confined to the magnetic
+    mirror. It will fall toward higher potential, closer to the <span class="key">anode</span>,
+    and gain velocity. After one Larmor radius, it gains enough velocity to start gyrating about
+    the magnetic field lines, and is thus confined by the magnetic field lines. Likewise, another
+    collision with a neutral will cause the electron to diffuse to the <span class="key">anode</span>
+    until it is collected.
+  </p>
+
+  <p class="page-intro">
+    The chart below asks the same question in the terms a designer actually budgets against:
+    every electron that leaks to the anode this way is discharge current spent on nothing, so
+    as propellant flow rises, the <span class="hl-electron">electron</span> leak fraction rises
+    with it and anode efficiency falls. The dashed red line marks the customary design target,
+    a leak no worse than one-fifth of the beam current; drag the mass flow slider until the
+    solid curve crosses it; and watch the status line below the sliders call out whether the
+    current setting is inside or past that target.
+  </p>
+
   <div class="fig-app">
   <div class="fig-frame">
-    <!-- Two panels, one argument, stacked in one SVG the way HT_Buzzsaw_applet.html's "Who
-         Is Magnetized" figure carries a scene over a ruler: the mechanism above, and the
-         consequence for the whole thruster below. Splitting them into two figures would put
-         a caption between a cause and its effect.
-
-         Everything inside is script-built. The group stack IS the draw order, and it is
-         chosen so nothing the reader needs to keep reading can be buried by a particle:
-         static scene, then neutrals, then trails, then collision marks, then electrons,
-         then the labels that must stay legible over all of it. -->
-    <svg id="dz-svg" viewBox="0 0 900 808" xmlns="http://www.w3.org/2000/svg" role="img"
+    <svg id="dz-svg" viewBox="0 0 900 340" xmlns="http://www.w3.org/2000/svg" role="img"
          font-family="'Barlow','Segoe UI',Tahoma,Geneva,Verdana,sans-serif"
-         aria-label="Top: the acceleration region of the channel unrolled into a rectangle, with the anode
-                     at the left edge and the exit plane at the right, the radial magnetic field pointing out
-                     of the page and the axial electric field pointing right. Electrons drift steadily down the
-                     frame on their $\textcolor{#F5C518}{\vec{E}} \times \textcolor{#00DDB5}{\vec{B}}$ orbits, wrapping around the annulus, and make no axial progress
-                     until they collide. Each collision with one of the drawn neutrals, and each scattering off
-                     a plasma fluctuation, jumps an electron about one Larmor radius, biased toward the anode,
-                     so the population random-walks slowly leftward and is collected. Raising the propellant
-                     flow fills the frame with neutrals, raises the collision rate and visibly speeds the walk;
-                     raising the magnetic field slows it steeply.
-                     Bottom: the electron leak current as a fraction of the beam current, and the anode
-                     efficiency it implies, both against propellant mass flow rate, with a second axis along
-                     the top converting that flow into thrust density. The leak fraction rises linearly with
-                     flow and the anode efficiency falls with it. A dotted line marks the customary design
-                     target of a leak no worse than one fifth of the beam current, and where the collisional
-                     curve crosses it is marked as the flow ceiling and its thrust density."></svg>
+         aria-label="The electron leak current as a fraction of the beam current, or the anode
+                     efficiency it implies, against thrust density; a toggle beneath the figure
+                     switches which of the two the y axis shows. The leak fraction rises with
+                     flow and the anode efficiency falls with it. A dotted line marks the
+                     customary design target of a leak no worse than one fifth of the beam
+                     current, and where the theoretical, collisions-only curve crosses it is
+                     marked as the design target collisional ceiling and its thrust density."></svg>
+    <div class="fig-controls" style="justify-content:center">
+      <button type="button" class="fig-toggle" id="dz-yseg-leak" aria-pressed="true">Leak Fraction</button>
+      <button type="button" class="fig-toggle" id="dz-yseg-eta" aria-pressed="false">Anode Efficiency <span
+              style="font-style:italic;text-transform:none">&eta;<sub>a</sub></span></button>
+    </div>
   </div>
 
   <aside class="fig-panel">
@@ -1646,7 +1666,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   </div>
 
   <div>
-    <div class="sect-hdr">Transport</div>
+    <div class="sect-hdr">Anomalous Transport</div>
     <div class="vtoglist">
       <button type="button" class="vtog" id="dz-anom" aria-pressed="true">
         <span>Anomalous scattering</span><span class="vsw"></span></button>
@@ -1662,40 +1682,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       </div>
     </div>
     <div class="btn-row">
-      <button type="button" class="btn" id="dz-pause">Pause</button>
       <button type="button" class="btn" id="dz-reset">Reset</button>
-    </div>
-    <!-- Playback speed, a VIEWING control and nothing else: it scales SPEEDUP, the thruster
-         seconds the scene advances per second of animation, so the electrons walk the same
-         random walk at a different pace. Every number on the page is computed from the
-         sliders above and never from the clock, so none of them move when this does.
-         Reset leaves it alone on purpose - Reset restores the MODEL's defaults, and how
-         fast the reader wants to watch it is not one of them. -->
-    <div class="sl-group sl-loose">
-      <div class="sl-label">Playback speed<span class="sl-val" id="dz-sp-val">1.0&times;</span></div>
-      <div class="sl-row">
-        <input type="range" id="dz-sp" min="0.25" max="3" step="0.05" value="1"
-               aria-label="Playback speed, a viewing control that does not change the simulation">
-      </div>
-    </div>
-  </div>
-
-  <!-- Five entries, not four, and every one of them names a thing the reader can point at in
-       the frame. The first two exist because the scene draws one electron heavily and the
-       rest faintly, and a reader who notices that difference and is not told what it encodes
-       will reasonably assume it is physics. It is not: all nine obey the same equations, and
-       the weight is emphasis so that "follow one electron" has an answer.
-       The last entry deliberately reuses the word on the switch above it. It said
-       "fluctuation" here and "Anomalous scattering" on the toggle, which are the same event
-       under two names, and nothing on the page joined them up. -->
-  <div>
-    <div class="sect-hdr">Scene key</div>
-    <div class="dz-legend">
-      <span><i style="background:#ffe94d;border:2px solid #ffffff"></i>the traced electron</span>
-      <span><i style="background:#ffe94d;opacity:.5"></i>the other eight, drawn faint</span>
-      <span><i style="background:#9aa3b2"></i>neutral atom</span>
-      <span><i style="background:none;border:2px solid #e8ecf2"></i>collision with a neutral</span>
-      <span><i style="background:none;border:2px solid #cbb2ff"></i>anomalous scatter, no neutral</span>
     </div>
   </div>
 
@@ -1928,11 +1915,14 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   <p class="th-body">
     <span class="hl-electron">Electrons</span> are eventually all collected by the
     <span class="key">anode</span>. The goal is to maximize their lifetime so that they have as many chances as
-    possible to make an ionizing collision with a <span class="hl-neutral">neutral</span> on the way. How long
-    that takes is set by the <span class="key">cross-field diffusivity</span>
-    <span class="hl-electron">$D_\perp$</span>, and the striking result is that switching the
-    <span class="hl-B">magnetic field $\vec{B}$</span> on reverses the role collisions
-    play.<sup class="cite"><a href="#ref-3">3</a>,<a href="#ref-4">4</a></sup>
+    possible to make an ionizing collision with a <span class="hl-neutral">neutral</span> on the way. The
+    diffusion of <span class="hl-electron">electrons</span> toward the <span class="key">anode</span>
+    is set by their <span class="key">cross-field diffusivity</span>
+    <span class="hl-electron">$D_\perp$</span>. The Hall parameter indicates the path an
+    <span class="hl-electron">electron</span> takes after colliding with a heavy particle. A high
+    Hall parameter means the path is highly curved (think $\vec{E}\times\vec{B}$ motion) whereas a
+    low Hall parameter means the path is relatively straight (think straight toward the
+    <span class="key">anode</span>).<sup class="cite"><a href="#ref-3">3</a>,<a href="#ref-4">4</a></sup>
   </p>
 
   <div class="eq-panel">
@@ -1966,7 +1956,7 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
         <div class="eq-callout">
           The collision frequency sits in the <strong>denominator</strong>. Collisions
           <em>impede</em> diffusion, so a more collisional plasma would give the longest electron lifetimes.
-          Hold on to that, because the field is about to invert it.
+          However, this won't stay true when we apply a magnetic field.
         </div>
 
         <div class="eq-divider"></div>
@@ -2038,12 +2028,14 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
         <div class="eq-divider"></div>
 
-        <span class="eq-step-label">Anomalous, or Bohm, Diffusion<sup class="cite"><a href="#ref-5">5</a>,<a href="#ref-6">6</a></sup></span>
+        <span class="eq-step-label">Anomalous Electron Transport<sup class="cite"><a href="#ref-5">5</a>,<a href="#ref-6">6</a></sup></span>
         <span class="eq-note">
-          Electrons are measured crossing the field faster than this. The reason appears to be the
+          Electrons diffuse to the anode faster than predicted with cross-field diffusivity due to
+          collisions. This is due to anomalous, or &ldquo;Bohm,&rdquo; diffusion. The reason appears to be the
           <em>equivalent collisionality</em> produced by scattering off small-scale plasma density fluctuations,
           which are almost always present. This is the same situation that has kept tokamaks from delivering
-          fusion power. Bohm's empirical form, and the tunable version fitted to data, are:
+          fusion power. This factor can be treated as another diffusion component. See the empirical Bohm
+          diffusion term and more generalized anomalous term:
         </span>
         $$ D_\mathrm{Bohm} = \frac{kT_e}{16\,\textcolor{#C060FF}{e}\textcolor{#00DDB5}{B}}
            \qquad\qquad
@@ -2591,8 +2583,6 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
   const D_MEAN = 0.085, W_CH = 0.015;         // m, SPT-100-class channel: mean diameter, width
   const A_CH   = Math.PI * D_MEAN * W_CH;     // 4.0e-3 m², the annulus the propellant crosses
-  const C_ANN  = Math.PI * D_MEAN;            // 0.267 m, one lap of the annulus
-  const L_ACC  = 0.025;                       // m, anode face to exit plane
   const E_AX   = 5000;                        // V/m, axial field in the high-B region
   const V_I    = 16000;                       // m/s, SPT-100 exhaust speed
   const Q_EH   = 3e-19;                       // m², electron-neutral scattering cross-section
@@ -2611,8 +2601,11 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   const FAof  = mdot => ETA_U * mdot * 1e-6 * V_I / A_CH;
   const LEAK_TARGET = 0.2;
 
-  /* One function for the whole chain, so the animation, the plot and the six output cells
-     are reading the same numbers and no quantity is computed twice. */
+  /* One function for the whole chain, so the plot and the six output cells are reading
+     the same numbers and no quantity is computed twice. The mechanism this cell once also
+     animated lives in hall_thruster.html's own ?mode=diffusion stage now, on the real
+     geometry; that stage's diffPhys() is this same derivation ported rather than shared,
+     the relationship the Potential stage's 2-D and 3-D figures already have. */
   function phys(mdot, Bg, Te, anomOn, cB){
     const B     = Bg * 1e-4;                       // gauss to tesla
     const wce   = QE * B / ME;
@@ -2620,35 +2613,25 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     const nu_en = nH * cbar(Te) * Q_EH;
     const nu_an = anomOn ? wce / cB : 0;
     const nu    = nu_en + nu_an;
-    const vth   = Math.sqrt(2 * QE * Te / ME);
     const De    = QE * Te / (ME * nu);
     const beta  = wce / nu;
     const vTheta = E_AX / B;
     const vex   = vTheta * nu / wce;               // (E/B)(nu/omega_ce)
     const leak  = 2 * vex / V_I;                   // v_ex / (v_i/2)
+    const leakClassical = 2 * (vTheta * nu_en / wce) / V_I;   // collisions alone, no anomalous term
     return {
       B, wce, nH, nu_en, nu_an, nu, beta, De, Dperp: De / (1 + beta * beta),
       vTheta, vex, leak, eta: 1 / (1 + leak),
-      leakClassical: 2 * (vTheta * nu_en / wce) / V_I,
-      rL: ME * vth / (QE * B),                     // random-walk step, one Larmor radius
-      rD: vTheta / wce                             // the systematic part of one step
+      leakClassical, etaClassical: 1 / (1 + leakClassical)
     };
   }
 
   /* ── Layout ───────────────────────────────────────────────────────────────
-     Scene and plot share their left and right edges, so the anode edge, the exit plane and
-     the two axis ends line up down the figure. */
+     Just the plot: the mechanism this XL/XR/PY0/PY1 once shared a canvas with is the
+     hall_thruster.html iframe above now, so this figure keeps only what a plot needs. */
   const XL = 116, XR = 852;
-  const BAND_Y = 40;                                  // the "how to read this" strip
-  const SX0 = 130, SX1 = 820, SY0 = 94, SY1 = 424;   // the unrolled channel
-  const RULE_Y = 436;                                 // axial ruler under the scene
-  const DIV_Y  = 496;                                 // rule between the two panels
-  const PY0 = 549, PY1 = 749;                         // plot box
-  const M_MAX = 30;                                   // mg/s, the plot's full span
-
-  const SXm = (SX1 - SX0) / L_ACC;      // px per meter, axial (true scale)
-  const SYm = (SY1 - SY0) / C_ANN;      // px per meter, azimuthal (compressed ~30x)
-  const SPEEDUP = 1e-6;                 // thruster seconds per second of animation
+  const PY0 = 46, PY1 = 270;
+  const M_MAX = 30;                                    // mg/s, the plot's full span
 
   const xOfM  = m => XL + m / M_MAX * (XR - XL);
   const yOfR  = r => PY1 - clamp(r, -0.2, 1.4) * (PY1 - PY0);
@@ -2661,208 +2644,84 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     axis:   { color: '#bcbcbc', size: 17 },
     muted:  '#7a7a7a'
   };
-  const C_ELEC = '#ffe94d', C_NEUT = '#9aa3b2', C_B = '#00DDB5', C_E = '#F5C518',
-        C_HIT  = '#e8ecf2', C_ANOM = '#cbb2ff', C_ETA = '#e8e8e8',
-        C_WARN = 'rgba(255,142,142,0.55)';
+  const C_ELEC = '#ffe94d', C_ETA = '#e8e8e8', C_WARN = 'rgba(255,142,142,0.55)';
 
-  /* ── Groups. The stack is the draw order, and the two label groups exist so that a
-     legend never ends up under a particle. ─────────────────────────────────────────── */
-  svg.appendChild(mk('rect', { width: 900, height: 808, fill: '#0e0e0e' }));
-  const gScene  = svg.appendChild(mk('g', {}));
-  const gNeut   = svg.appendChild(mk('g', {}));
-  const gTrail  = svg.appendChild(mk('g', { fill: 'none', 'stroke-linecap': 'round' }));
-  const gFlash  = svg.appendChild(mk('g', {}));
-  const gElec   = svg.appendChild(mk('g', {}));
-  const gLabel  = svg.appendChild(mk('g', {}));
+  svg.appendChild(mk('rect', { width: 900, height: 340, fill: '#0e0e0e' }));
+  // A static title, td-svg's own move (see "Gridded Ceiling Against Hall" on the figure
+  // above): the rotated axis title names whichever quantity the y toggle currently shows,
+  // not the figure as a whole, so the figure needs a title of its own that stays put
+  // across both settings of that toggle.
+  svg.appendChild(mk('text', { x: (XL + XR) / 2, y: 24, fill: '#e8e8e8', 'font-size': 17,
+    'font-weight': 700, 'text-anchor': 'middle' }, 'Electron Leak & Anode Efficiency'));
   const gPlot   = svg.appendChild(mk('g', {}));
   const gCurve  = svg.appendChild(mk('g', { fill: 'none', 'stroke-linejoin': 'round' }));
   const gCursor = svg.appendChild(mk('g', {}));
-
-  /* A line with a solid head, rather than a marker on a def: three of these exist in the
-     figure and a def would be more machinery than the arrows are worth. */
-  function arrow(g, x1, y1, x2, y2, color, w, head, op){
-    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
-    g.appendChild(mk('line', { x1, y1, x2: x2 - ux * head * 0.9, y2: y2 - uy * head * 0.9,
-      stroke: color, 'stroke-width': w, 'stroke-opacity': op }));
-    const px = -uy, py = ux;
-    g.appendChild(mk('path', { fill: color, 'fill-opacity': op,
-      d: `M${x2} ${y2} L${x2 - ux * head + px * head * 0.42} ${y2 - uy * head + py * head * 0.42}` +
-         ` L${x2 - ux * head - px * head * 0.42} ${y2 - uy * head - py * head * 0.42} Z` }));
-  }
-
-  /* ── How to read this ─────────────────────────────────────────────────────
-     A strip above the frame carrying the two things a reader has to be told before the
-     scene means anything, each as a drawing rather than a sentence: what the rectangle IS
-     (an annulus cut open and flattened) and what a mark in it MEANS (one collision, one
-     hop of about a Larmor radius toward the anode). Both were in the caption and only in
-     the caption, which is the wrong place for them: a reader looking at a moving figure is
-     not reading a paragraph two hundred pixels below it. */
-  function buildBand(){
-    const g = gScene, cy = BAND_Y;
-
-    // 1. The annulus, with the radius it is cut along picked out
-    const cx1 = 140;
-    g.appendChild(mk('circle', { cx: cx1, cy, r: 18.5, fill: 'none', stroke: '#1c1c1c',
-      'stroke-width': 11 }));
-    g.appendChild(mk('circle', { cx: cx1, cy, r: 24, fill: 'none', stroke: '#4a4a4a',
-      'stroke-width': 1.2 }));
-    g.appendChild(mk('circle', { cx: cx1, cy, r: 13, fill: 'none', stroke: '#4a4a4a',
-      'stroke-width': 1.2 }));
-    g.appendChild(mk('line', { x1: cx1, y1: cy - 24, x2: cx1, y2: cy - 13,
-      stroke: '#e8ecf2', 'stroke-width': 2.2 }));
-    g.appendChild(mk('text', { x: 174, y: cy - 5, fill: STYLE.tick.color, 'font-size': 13 },
-      'the channel annulus, cut along one radius'));
-    g.appendChild(mk('text', { x: 174, y: cy + 12, fill: STYLE.tick.color, 'font-size': 13 },
-      'and unrolled into the frame below'));
-
-    // 2. One collision, one hop. Drawn at the size the scene draws it, not magnified.
-    const cx2 = 500;
-    g.appendChild(mk('circle', { cx: cx2, cy, r: 11, fill: 'none', stroke: C_ELEC,
-      'stroke-opacity': 0.35, 'stroke-width': 1.4, 'stroke-dasharray': '3 3' }));
-    g.appendChild(mk('circle', { cx: cx2 - 26, cy, r: 11, fill: 'none', stroke: C_ELEC,
-      'stroke-opacity': 0.8, 'stroke-width': 1.4 }));
-    g.appendChild(mk('circle', { cx: cx2 - 13, cy: cy - 11, r: 3.6, fill: 'none',
-      stroke: C_HIT, 'stroke-width': 1.6 }));
-    arrow(g, cx2, cy + 19, cx2 - 26, cy + 19, C_ELEC, 1.6, 7, 0.8);
-    g.appendChild(mk('text', { x: 524, y: cy - 5, fill: STYLE.tick.color, 'font-size': 13 },
-      'one collision hops the orbit about one Larmor'));
-    g.appendChild(mk('text', { x: 524, y: cy + 12, fill: STYLE.tick.color, 'font-size': 13 },
-      'radius, biased toward the anode by E'));
-  }
-
-  // ── Scene chrome ──────────────────────────────────────────────────────────
-  function buildScene(){
-    buildBand();
-    gScene.appendChild(mk('rect', { x: SX0, y: SY0, width: SX1 - SX0, height: SY1 - SY0,
-      fill: STYLE.plotBg }));
-    // Beyond the exit plane: the plume the cathode feeds, and where a wandering electron came from
-    gScene.appendChild(mk('rect', { x: SX1, y: SY0, width: XR - SX1, height: SY1 - SY0,
-      fill: '#0b0b0b' }));
-    gScene.appendChild(mk('line', { x1: SX1, y1: SY0, x2: SX1, y2: SY1,
-      stroke: '#4a4a4a', 'stroke-width': 1.2, 'stroke-dasharray': '5 5' }));
-
-    // The anode: a bar with its collecting face picked out in the potential color
-    gScene.appendChild(mk('rect', { x: XL, y: SY0, width: SX0 - XL, height: SY1 - SY0,
-      fill: '#242424', stroke: '#3f3f3f', 'stroke-width': 1 }));
-    gScene.appendChild(mk('line', { x1: SX0, y1: SY0, x2: SX0, y2: SY1,
-      stroke: C_E, 'stroke-width': 2, 'stroke-opacity': 0.5 }));
-
-    /* The cut. Top and bottom are the same line of the annulus, so the dashes say "this is
-       not a wall" and the chevrons say which way the drift carries an electron through it. */
-    [SY0, SY1].forEach(y => gScene.appendChild(mk('line', { x1: SX0, y1: y, x2: SX1, y2: y,
-      stroke: '#3a3a3a', 'stroke-width': 1, 'stroke-dasharray': '3 6' })));
-
-    gScene.appendChild(mk('text', { x: XL - 12, y: (SY0 + SY1) / 2, fill: '#d0d0d0',
-      'font-size': 15, 'font-weight': 700, 'letter-spacing': 1.3, 'text-anchor': 'middle',
-      transform: `rotate(-90 ${XL - 12} ${(SY0 + SY1) / 2})` }, 'ANODE'));
-    gScene.appendChild(mk('text', { x: XL - 32, y: (SY0 + SY1) / 2, fill: STYLE.muted,
-      'font-size': 12.5, 'text-anchor': 'middle',
-      transform: `rotate(-90 ${XL - 32} ${(SY0 + SY1) / 2})` },
-      'azimuthal: one lap, and it wraps'));
-    gScene.appendChild(mk('text', { x: XR - 9, y: (SY0 + SY1) / 2, fill: STYLE.muted,
-      'font-size': 12.5, 'text-anchor': 'middle',
-      transform: `rotate(-90 ${XR - 9} ${(SY0 + SY1) / 2})` }, 'EXIT PLANE'));
-
-    gScene.appendChild(mk('text', { x: SX0, y: SY0 - 12, fill: C_ELEC, 'font-size': 14 },
-      'collected here, and paid for at the full discharge voltage'));
-    gScene.appendChild(mk('text', { x: XR, y: SY0 - 12, fill: STYLE.muted, 'font-size': 14,
-      'text-anchor': 'end' }, 'from the cathode'));
-
-    /* The two fields, drawn once each rather than tiled: the scene is small and a field of
-       glyphs would compete with the particles the figure is actually about. */
-    const by = SY0 + 34;
-    [SX0 + 92, SX0 + 330, SX0 + 568].forEach(x => {
-      gScene.appendChild(mk('circle', { cx: x, cy: by, r: 8.5, fill: 'none', stroke: C_B,
-        'stroke-width': 1.4, 'stroke-opacity': 0.55 }));
-      gScene.appendChild(mk('circle', { cx: x, cy: by, r: 2.2, fill: C_B, 'fill-opacity': 0.55 }));
-    });
-    gScene.appendChild(mk('text', { x: SX0 + 92, y: by - 16, fill: C_B, 'font-size': 14,
-      'fill-opacity': 0.85, 'text-anchor': 'middle' }, 'B out of the page'));
-
-    arrow(gScene, SX0 + 30, SY0 + 74, SX0 + 150, SY0 + 74, C_E, 2, 10, 0.85);
-    gScene.appendChild(mk('text', { x: SX0 + 90, y: SY0 + 64, fill: C_E, 'font-size': 14,
-      'text-anchor': 'middle' }, 'E, and the ions go this way'));
-
-    arrow(gScene, SX1 - 74, SY0 + 40, SX1 - 74, SY0 + 132, C_ELEC, 2, 10, 0.8);
-    gScene.appendChild(mk('text', { x: SX1 - 74, y: SY0 + 28, fill: C_ELEC, 'font-size': 14,
-      'text-anchor': 'middle' }, 'E × B drift'));
-
-    // Axial ruler. True scale, and the one thing in the frame that is.
-    gScene.appendChild(mk('line', { x1: SX0, y1: RULE_Y, x2: SX1, y2: RULE_Y,
-      stroke: '#3a3a3a', 'stroke-width': 1 }));
-    for (let mm = 0; mm <= 25; mm += 5){
-      const x = SX0 + mm / 25 * (SX1 - SX0);
-      gScene.appendChild(mk('line', { x1: x, y1: RULE_Y, x2: x, y2: RULE_Y + 6,
-        stroke: '#4a4a4a', 'stroke-width': 1 }));
-      gScene.appendChild(mk('text', { x: x, y: RULE_Y + 22, fill: STYLE.tick.color,
-        'font-size': 13.5, 'text-anchor': 'middle' }, String(mm)));
-    }
-    /* Left-aligned rather than centered on the ruler, so the two notes on this line can sit
-       side by side. The clock belongs here, under the only true scale in the frame. */
-    gScene.appendChild(mk('text', { x: SX0, y: RULE_Y + 42, fill: STYLE.axis.color,
-      'font-size': 15 }, 'Axial Distance From the Anode Face  [mm]'));
-    gScene.appendChild(mk('text', { x: XR, y: RULE_Y + 42, fill: STYLE.muted, 'font-size': 12.5,
-      'text-anchor': 'end' },
-      'azimuthal compressed ~30×; 1 second here ≈ 1 microsecond in the channel'));
-
-    gScene.appendChild(mk('line', { x1: XL, y1: DIV_Y, x2: XR, y2: DIV_Y,
-      stroke: '#282828', 'stroke-width': 1 }));
-  }
 
   // ── Plot chrome ───────────────────────────────────────────────────────────
   function buildPlot(){
     gPlot.appendChild(mk('rect', { x: XL, y: PY0, width: XR - XL, height: PY1 - PY0,
       fill: STYLE.plotBg }));
 
-    for (let m = 0; m <= M_MAX; m += 5){
-      const x = xOfM(m);
-      gPlot.appendChild(mk('line', { x1: x, y1: PY0, x2: x, y2: PY1,
-        stroke: STYLE.grid, 'stroke-width': 1 }));
-      gPlot.appendChild(mk('text', { x: x, y: PY1 + 20, fill: STYLE.tick.color,
-        'font-size': STYLE.tick.size, 'text-anchor': 'middle' }, String(m)));
+    /* The X axis reads only in thrust density now: a flow-rate reading used to live behind
+       a toggle here, but it read as a second independent variable even with a note saying
+       it wasn't. It is one multiply away in the panel controls below, and the collisional-
+       ceiling annotation further down still prints both numbers for anyone who wants them
+       side by side. */
+    const gAxisX = gPlot.appendChild(mk('g', {}));
+    function buildXAxis(){
+      while (gAxisX.firstChild) gAxisX.removeChild(gAxisX.firstChild);
+      const ticks = [0, 25, 50, 75, 100].map(fa => ({ v: fa, x: xOfM(fa / FAof(1)) }))
+        .filter(t => t.x <= XR + 0.5);
+      ticks.forEach(t => {
+        gAxisX.appendChild(mk('line', { x1: t.x, y1: PY0, x2: t.x, y2: PY1,
+          stroke: STYLE.grid, 'stroke-width': 1.4 }));
+        gAxisX.appendChild(mk('text', { x: t.x, y: PY1 + 20, fill: STYLE.tick.color,
+          'font-size': STYLE.tick.size, 'text-anchor': 'middle' }, String(t.v)));
+      });
+      const title = gAxisX.appendChild(mk('text', { x: (XL + XR) / 2, y: PY1 + 44,
+        fill: STYLE.axis.color, 'font-size': STYLE.axis.size, 'text-anchor': 'middle' }));
+      title.innerHTML = 'Thrust Density&#160;&#160;<tspan font-family="KaTeX_Math, serif" font-style="italic">F</tspan>/' +
+        '<tspan font-family="KaTeX_Math, serif" font-style="italic">A</tspan>&#160;&#160;[N&#8202;/&#8202;m' +
+        '<tspan font-size="12" dy="-6">2</tspan><tspan dy="6">]</tspan>';
     }
+
     for (let r = 0; r <= 1.0001; r += 0.25){
       const y = yRaw(r);
       gPlot.appendChild(mk('line', { x1: XL, y1: y, x2: XR, y2: y,
-        stroke: STYLE.grid, 'stroke-width': 1 }));
+        stroke: STYLE.grid, 'stroke-width': 1.4 }));
       gPlot.appendChild(mk('text', { x: XL - 10, y: y, fill: STYLE.tick.color,
         'font-size': STYLE.tick.size, 'text-anchor': 'end',
         'dominant-baseline': 'middle' }, r.toFixed(2)));
     }
 
-    /* A second scale on the same axis rather than a second y-axis: thrust density is
-       strictly proportional to the flow rate in this model, so it is the SAME axis read in
-       other units, and drawing it as a curve of its own would imply otherwise. */
-    for (let fa = 0; fa <= 100; fa += 25){
-      const x = xOfM(fa / (FAof(1)));
-      if (x > XR + 0.5) continue;
-      gPlot.appendChild(mk('line', { x1: x, y1: PY0 - 7, x2: x, y2: PY0,
-        stroke: '#4a4a4a', 'stroke-width': 1 }));
-      gPlot.appendChild(mk('text', { x: x, y: PY0 - 11, fill: STYLE.tick.color,
-        'font-size': 13.5, 'text-anchor': 'middle' }, String(fa)));
-    }
-    gPlot.appendChild(mk('text', { x: (XL + XR) / 2, y: PY0 - 29, fill: STYLE.axis.color,
-      'font-size': STYLE.axis.size, 'text-anchor': 'middle' })).innerHTML =
-      'Thrust Density&#160;&#160;<tspan font-family="KaTeX_Math, serif" font-style="italic">F</tspan>/' +
-      '<tspan font-family="KaTeX_Math, serif" font-style="italic">A</tspan>&#160;&#160;[N&#8202;/&#8202;m' +
-      '<tspan font-size="12" dy="-6">2</tspan><tspan dy="6">]</tspan>';
+    buildXAxis();
 
-    gPlot.appendChild(mk('text', { x: (XL + XR) / 2, y: PY1 + 44, fill: STYLE.axis.color,
-      'font-size': STYLE.axis.size, 'text-anchor': 'middle' })).innerHTML =
-      'Propellant Mass Flow Rate&#160;&#160;<tspan font-family="KaTeX_Math, serif" ' +
-      'font-style="italic">&#7745;</tspan>&#160;&#160;[mg&#8202;/&#8202;s]';
-
-    gPlot.appendChild(mk('text', { x: 34, y: (PY0 + PY1) / 2, fill: STYLE.axis.color,
+    // The rotated Y title, built by buildYAxis() (hoisted to the outer scope, above, since
+    // which quantity it names depends on yMode and the toggle that sets yMode now lives in
+    // the HTML below the figure, outside buildPlot()).
+    const gAxisY = gPlot.appendChild(mk('text', { x: 34, y: (PY0 + PY1) / 2, fill: STYLE.axis.color,
       'font-size': STYLE.axis.size, 'text-anchor': 'middle',
-      transform: `rotate(-90 34 ${(PY0 + PY1) / 2})` }, 'Current Ratio'));
+      transform: `rotate(-90 34 ${(PY0 + PY1) / 2})` }));
+    buildYAxis = function(){
+      gAxisY.innerHTML = yMode === 'eta'
+        ? 'Anode Efficiency&#160;&#160;<tspan font-family="KaTeX_Math, serif" font-style="italic">&#951;</tspan>' +
+          '<tspan font-size="12" dy="5">a</tspan>'
+        : 'Electron Leak Fraction&#160;&#160;<tspan font-family="KaTeX_Math, serif" font-style="italic">I</tspan>' +
+          '<tspan font-size="12" dy="5">leak</tspan><tspan dy="-5">/</tspan>' +
+          '<tspan font-family="KaTeX_Math, serif" font-style="italic">I</tspan><tspan font-size="12" dy="5">B</tspan>';
+    };
+    buildYAxis();
 
     /* The design target reads BELOW its own line: above it is where the total leak curve
        runs at every setting worth looking at, and a label there sits on the data. Below it,
-       at the left, is the one corner of this plot nothing ever occupies. */
-    gPlot.appendChild(mk('line', { x1: XL, y1: yRaw(LEAK_TARGET), x2: XR, y2: yRaw(LEAK_TARGET),
+       at the left, is the one corner of this plot nothing ever occupies. Grouped so it, and
+       the ceiling annotation below, can be hidden together in eta mode: 0.2 is a statement
+       about the leak fraction, and has no reading on the efficiency axis. */
+    gLeakTarget = gPlot.appendChild(mk('g', {}));
+    gLeakTarget.appendChild(mk('line', { x1: XL, y1: yRaw(LEAK_TARGET), x2: XR, y2: yRaw(LEAK_TARGET),
       stroke: C_WARN, 'stroke-width': 1.4, 'stroke-dasharray': '2 4' }));
-    const tgBg = gPlot.appendChild(mk('rect', { rx: 2, fill: 'rgba(9,9,9,0.92)' }));
-    const tgTx = gPlot.appendChild(mk('text', { x: XL + 12, y: yRaw(LEAK_TARGET) + 18,
+    const tgBg = gLeakTarget.appendChild(mk('rect', { rx: 2, fill: 'rgba(9,9,9,0.92)' }));
+    const tgTx = gLeakTarget.appendChild(mk('text', { x: XL + 12, y: yRaw(LEAK_TARGET) + 18,
       fill: '#ff8e8e', 'font-size': 13.5, 'fill-opacity': 0.85 },
       'design target on the collisional leak, 0.2'));
     // Its own ground, the same move the bands on the figure above make: the collisional curve
@@ -2872,29 +2731,35 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     tgBg.setAttribute('width', tgW + 8); tgBg.setAttribute('height', 18);
 
     /* The flight point the whole page is calibrated on, hung from the top axis rather than
-       standing on the bottom one, where the collisional curve runs along the floor. */
-    gPlot.appendChild(mk('path', { fill: '#bcbcbc', 'fill-opacity': 0.55,
+       standing on the bottom one, where the collisional curve runs along the floor. Fixed
+       in place rather than redrawn every frame, so it gets the same static chip the
+       design-target label above uses instead of the dynamic fitChip() the curve labels need.
+       Lives in gCursor rather than gPlot, unlike the design-target label, because the
+       theoretical eta curve runs close to 1.0 at low flow and would otherwise draw over it. */
+    gCursor.appendChild(mk('path', { fill: '#bcbcbc', 'fill-opacity': 0.55,
       d: `M${xOfM(5)} ${PY0 + 11} l-5 -9 l10 0 Z` }));
-    gPlot.appendChild(mk('text', { x: xOfM(5) + 9, y: PY0 + 12, fill: STYLE.muted,
+    const nomBg = gCursor.appendChild(mk('rect', { rx: 2, fill: 'rgba(9,9,9,0.82)' }));
+    const nomTx = gCursor.appendChild(mk('text', { x: xOfM(5) + 9, y: PY0 + 12, fill: STYLE.muted,
       'font-size': 13 }, 'SPT-100 nominal'));
+    const nomW = nomTx.getComputedTextLength();
+    nomBg.setAttribute('x', xOfM(5) + 5); nomBg.setAttribute('y', PY0 + 2);
+    nomBg.setAttribute('width', nomW + 8); nomBg.setAttribute('height', 16);
 
     /* Created here, AFTER the ground and the gridlines, and not with the other series
        further down: appended before buildPlot() runs, they end up under the plot's own
-       background rect and never appear at all. */
+       background rect and never appear at all. Only the shading and its edge live here now;
+       ceilTx is declared with the other direct labels, in gCursor, above the curves. */
     shade  = gPlot.appendChild(mk('rect', { fill: '#ff8e8e', 'fill-opacity': 0.05 }));
     ceilLn = gPlot.appendChild(mk('line', { stroke: '#ff8e8e', 'stroke-width': 1.2,
       'stroke-opacity': 0.6, 'stroke-dasharray': '4 4' }));
-    ceilTx = gPlot.appendChild(mk('text', { fill: '#ff8e8e', 'font-size': 13.5,
-      'fill-opacity': 0.9 }));
   }
 
   // ── Series, cursor, and the ceiling annotation ────────────────────────────
   const el = {
     m: $('dz-m'), b: $('dz-b'), te: $('dz-te'), cb: $('dz-cb'), anom: $('dz-anom'),
     mVal: $('dz-m-val'), bVal: $('dz-b-val'), teVal: $('dz-te-val'), cbVal: $('dz-cb-val'),
-    cbGroup: $('dz-cb-group'), pause: $('dz-pause'), reset: $('dz-reset'),
-    sp: $('dz-sp'), spVal: $('dz-sp-val'),
-    status: $('dz-status'),
+    cbGroup: $('dz-cb-group'), reset: $('dz-reset'),
+    status: $('dz-status'), yLeak: $('dz-yseg-leak'), yEta: $('dz-yseg-eta'),
     oNh: $('dz-o-nh'), oNu: $('dz-o-nu'), oNuSub: $('dz-o-nu-sub'), oBeta: $('dz-o-beta'),
     oDperp: $('dz-o-dperp'), oLeak: $('dz-o-leak'), oEta: $('dz-o-eta')
   };
@@ -2902,13 +2767,18 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   const pathLeak  = gCurve.appendChild(mk('path', { stroke: C_ELEC, 'stroke-width': 2.4 }));
   const pathClass = gCurve.appendChild(mk('path', { stroke: C_ELEC, 'stroke-width': 1.8,
     'stroke-opacity': 0.5, 'stroke-dasharray': '6 5' }));
-  const pathEta   = gCurve.appendChild(mk('path', { stroke: C_ETA, 'stroke-width': 2.2 }));
+  const pathEta      = gCurve.appendChild(mk('path', { stroke: C_ETA, 'stroke-width': 2.2 }));
+  const pathEtaClass = gCurve.appendChild(mk('path', { stroke: C_ETA, 'stroke-width': 1.8,
+    'stroke-opacity': 0.5, 'stroke-dasharray': '6 5' }));
 
-  let shade, ceilLn, ceilTx;            // built in buildPlot(), which is where the order matters
+  let shade, ceilLn, gLeakTarget;       // built in buildPlot(), which is where the order matters
 
   /* Direct labels rather than a legend box, and each carries the symbol it is under a second
      line, because the two curves are ratios of different pairs of currents and the axis
-     title cannot say so for both at once. */
+     title cannot say so for both at once. Every one of them now sits on its own chip
+     (td-svg's device-band pattern, borrowed rather than reinvented) instead of floating
+     bare over the grid and the other curve, which is what made two ratios sharing one
+     color family read as a smudge rather than two labeled lines. */
   function symbols(parts, attrs){
     const t = gCursor.appendChild(mk('text', attrs));
     let sub = false;
@@ -2919,20 +2789,56 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     });
     return t;
   }
+  /* Sized after the fact from the rendered text's own bbox rather than measured out by
+     hand, because every one of these moves every frame: the chip has to follow wherever
+     place()/under() put the label this time, including off (display:none) when its label
+     is. */
+  function fitChip(chip, els, padX, padY){
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    els.forEach(node => {
+      if (!node || node.getAttribute('display') === 'none') return;
+      const b = node.getBBox();
+      if (b.width === 0 && b.height === 0) return;
+      x0 = Math.min(x0, b.x); y0 = Math.min(y0, b.y);
+      x1 = Math.max(x1, b.x + b.width); y1 = Math.max(y1, b.y + b.height);
+    });
+    if (x0 === Infinity){ chip.setAttribute('display', 'none'); return; }
+    chip.setAttribute('display', 'inline');
+    chip.setAttribute('x', (x0 - padX).toFixed(1)); chip.setAttribute('y', (y0 - padY).toFixed(1));
+    chip.setAttribute('width', (x1 - x0 + padX * 2).toFixed(1));
+    chip.setAttribute('height', (y1 - y0 + padY * 2).toFixed(1));
+  }
+  const mkChip = () => mk('rect', { rx: 3, fill: 'rgba(9,9,9,0.82)' });
+
+  const chipLeak = gCursor.appendChild(mkChip());
   const lblLeak  = gCursor.appendChild(mk('text', { fill: C_ELEC, 'font-size': 14,
-    'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'electron leak fraction'));
+    'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'observed'));
   const symLeak  = symbols([['I', 0], ['leak', 1], [' / I', 0], ['B', 1]],
     { fill: C_ELEC, 'fill-opacity': 0.7, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+  const chipClass = gCursor.appendChild(mkChip());
   const lblClass = gCursor.appendChild(mk('text', { fill: C_ELEC, 'font-size': 13,
-    'fill-opacity': 0.6, 'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'collisions alone'));
+    'fill-opacity': 0.6, 'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'theoretical'));
+  const chipEta  = gCursor.appendChild(mkChip());
   const lblEta   = gCursor.appendChild(mk('text', { fill: C_ETA, 'font-size': 14,
-    'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'anode efficiency'));
+    'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'observed'));
   const symEta   = symbols([['η', 0], ['a', 1], [' = I', 0], ['B', 1], [' / I', 0], ['a', 1]],
     { fill: C_ETA, 'fill-opacity': 0.7, 'text-anchor': 'end', 'dominant-baseline': 'middle' });
+  const chipEtaClass = gCursor.appendChild(mkChip());
+  const lblEtaClass  = gCursor.appendChild(mk('text', { fill: C_ETA, 'font-size': 13,
+    'fill-opacity': 0.6, 'text-anchor': 'end', 'dominant-baseline': 'middle' }, 'theoretical'));
+  /* The ceiling annotation used to live in gPlot, under the curve group, on the theory
+     that the shaded band and its edge belong with the plot's own ground. The TEXT does
+     not: gPlot draws under gCurve, so the one label in this figure most likely to sit
+     near the anode-efficiency curve was the one label with no way to stay above it. Text
+     promoted to the same top annotation layer as every other direct label; the shading
+     and its edge line stay in gPlot, where a background belongs. */
+  const chipCeil = gCursor.appendChild(mkChip());
+  const ceilTx   = gCursor.appendChild(mk('text', { fill: '#ff8e8e', 'font-size': 13.5,
+    'fill-opacity': 0.9 }));
 
-  /* The operating cursor rises through the top axis so the flow rate can be read off as a
-     thrust density without a second readout. White and light, the same mark the figure above
-     this one uses for "a place the reader put". */
+  /* The operating cursor rises a few px above the plot into the title margin, so it reads
+     as a full-height marker rather than stopping short at the top gridline. White and light,
+     the same mark the figure above this one uses for "a place the reader put". */
   const cursor = gCursor.appendChild(mk('line', { stroke: '#ffffff', 'stroke-opacity': 0.28,
     'stroke-width': 1, y1: PY0 - 7, y2: PY1 }));
   const CROSS = 'M-6 -6 L6 6 M-6 6 L6 -6';
@@ -2954,110 +2860,9 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     return out.join(' ');
   }
 
-  // ── Particles ─────────────────────────────────────────────────────────────
-  /* Nine, which is as many as can be followed individually and enough that the spread of the
-     walk is visible. Position is kept in METERS and converted on the way to the screen, so
-     the two axis scales never leak into the physics. */
-  /* The trail is long on purpose, a couple of seconds of history rather than a streak. Over
-     that long an electron laps the annulus two or three times, and the trail draws those
-     laps as a row of near-vertical strokes each one a little further left than the last.
-     That marching-left row IS the diffusion, and it is the one thing in the figure a
-     still frame can show; at the short trail this started with, all a reader could see was
-     dots moving down. */
-  /* ONE of them is traced: a white ring, a heavier line, and several seconds of history,
-     against eight others drawn as a faint background population. Nine equally weighted
-     trails at this length is a scribble nobody can follow, and the instruction the caption
-     gives ("follow one electron") then has no answer to the reader's next question, which is
-     which one. The eight still carry the argument, because the spread of where they have got
-     to IS the diffusion; they just do not compete with the one being followed.
-
-     Stroke weights are set by looking at the figure at the size it is published, not at the
-     size it is convenient to debug at. The 1.2-wide, 0.3-opacity line this started with is a
-     clean path when you zoom into the scene and invisible at 1:1, which made the one thing
-     the figure exists to show the one thing a reader could not see. */
-  const NE = 9;
-  const elecs = [], TAU = Math.PI * 2;
-  for (let i = 0; i < NE; i++){
-    const lead = i === 0;
-    elecs.push({
-      x: 0, y: 0, trail: [], cap: lead ? 210 : 44,
-      dot: gElec.appendChild(mk('circle', lead
-        ? { r: 5.4, fill: C_ELEC, stroke: '#ffffff', 'stroke-width': 1.5 }
-        : { r: 4.2, fill: C_ELEC, 'fill-opacity': 0.75 })),
-      path: gTrail.appendChild(mk('path', lead
-        ? { stroke: C_ELEC, 'stroke-width': 2.2, 'stroke-opacity': 0.8 }
-        : { stroke: C_ELEC, 'stroke-width': 1.3, 'stroke-opacity': 0.22 }))
-    });
-  }
-  /* Placed as well as seeded. A circle with no cx/cy sits at the origin, so between the page
-     laying the figure out and the first animation frame arriving the whole population would
-     otherwise be stacked in the corner of the SVG; the loop does not start until the figure
-     is scrolled into view, which can be a while, and Pause on the first frame would hold it
-     there. */
-  function seed(){
-    elecs.forEach(e => {
-      e.x = L_ACC * (0.25 + 0.72 * Math.random());
-      e.y = C_ANN * Math.random();
-      e.trail.length = 0;
-      e.path.setAttribute('d', '');
-      e.dot.setAttribute('cx', (SX0 + e.x * SXm).toFixed(1));
-      e.dot.setAttribute('cy', (SY0 + e.y * SYm).toFixed(1));
-    });
-  }
-
-  /* Neutrals are drawn once and revealed by count, so raising the flow ADDS gas rather than
-     reshuffling all of it, and the reader can see the field thicken instead of blink. They
-     are static because they are: 284 m/s against an electron drift of 2.5e5 m/s means a
-     neutral moves about a pixel while an electron crosses the frame twice. */
-  const NEUT_MAX = 220, neut = [];
-  for (let i = 0; i < NEUT_MAX; i++){
-    const x = SX0 + Math.random() * (SX1 - SX0), y = SY0 + Math.random() * (SY1 - SY0);
-    neut.push({ x, y, node: gNeut.appendChild(mk('circle', { cx: x, cy: y, r: 2.3,
-      fill: C_NEUT, 'fill-opacity': 0.45, display: 'none' })) });
-  }
-  function showNeutrals(mdot){
-    const n = clamp(Math.round(7 * mdot), 4, NEUT_MAX);
-    neut.forEach((p, i) => p.node.setAttribute('display', i < n ? 'inline' : 'none'));
-    return n;
-  }
-
-  /* A ring buffer of marks. Past a few hundred events a second the individual marks stop
-     being distinguishable and only the walk carries information, so the buffer is allowed to
-     recycle its oldest rather than growing without bound; that recycling IS the subsampling
-     the caption owns up to. */
-  const NF = 84, flash = [];
-  for (let i = 0; i < NF; i++)
-    flash.push({ t: 1e9, kind: 0, node: gFlash.appendChild(mk('circle', { r: 0, fill: 'none',
-      'stroke-width': 2.2, display: 'none' })) });
-  let fi = 0;
-  function spark(x, y, kind){
-    const f = flash[fi]; fi = (fi + 1) % NF;
-    f.t = 0; f.kind = kind; f.x = x; f.y = y;
-  }
-  /* Two kinds of scattering event, drawn differently because they are different things and
-     the reader is asked to tell them apart: a white ring is a real collision and sits on the
-     neutral it hit, a violet one is an anomalous scatter off a plasma fluctuation with no
-     neutral involved at all. The violet is the palette's --c-photon, borrowed here for "not
-     a particle" rather than for light; nothing in this figure emits any. */
-  const FKIND = [
-    { color: C_HIT,  r0: 3.2, r1: 9.5,  life: 0.45 },   // a real collision, on the neutral it hit
-    { color: C_ANOM, r0: 2.0, r1: 5.5,  life: 0.30 },   // an anomalous scatter off a fluctuation
-    { color: C_ELEC, r0: 4.0, r1: 15.0, life: 0.70 }    // collected by the anode
-  ];
-
-  // Poisson counts, so the collisions arrive in the bunches they actually arrive in.
-  function poisson(lam){
-    if (lam <= 0) return 0;
-    if (lam > 30) return Math.round(lam);
-    const L = Math.exp(-lam);
-    let k = 0, p = 1;
-    do { k++; p *= Math.random(); } while (p > L);
-    return k - 1;
-  }
-
   // ── State ─────────────────────────────────────────────────────────────────
-  let P = null, anomOn = true, paused = false, nNeut = 0;
-  let viewSpeed = 1;            // viewing only — scales simulated time, never the model
+  let P = null, anomOn = true, yMode = 'leak';   // yMode: 'leak' or 'eta', read by the y-axis toggle below
+  let buildYAxis;   // assigned inside buildPlot(), called again from the toggle's own wiring
 
   const expHTML = (v, d) => {
     if (!isFinite(v) || v <= 0) return '0';
@@ -3079,20 +2884,26 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     el.cb.disabled = !anomOn;
     el.anom.setAttribute('aria-pressed', anomOn ? 'true' : 'false');
 
-    nNeut = showNeutrals(mdot);
-
     // Curves. Only the flow rate varies along the axis; everything else is held at the panel.
+    // Only one family (leak or eta) is ever on screen, matched to the y-axis toggle.
     const at = m => phys(m, Bg, Te, anomOn, cB);
-    pathLeak.setAttribute('d',  curveOf(m => at(m).leak));
-    pathEta.setAttribute('d',   curveOf(m => at(m).eta));
-    pathClass.setAttribute('d', anomOn ? curveOf(m => at(m).leakClassical) : '');
-    pathClass.setAttribute('display', anomOn ? 'inline' : 'none');
+    const showLeak = yMode === 'leak';
+    pathLeak.setAttribute('d',  showLeak ? curveOf(m => at(m).leak) : '');
+    pathLeak.setAttribute('display', showLeak ? 'inline' : 'none');
+    pathClass.setAttribute('d', (showLeak && anomOn) ? curveOf(m => at(m).leakClassical) : '');
+    pathClass.setAttribute('display', (showLeak && anomOn) ? 'inline' : 'none');
+    pathEta.setAttribute('d',  showLeak ? '' : curveOf(m => at(m).eta));
+    pathEta.setAttribute('display', showLeak ? 'none' : 'inline');
+    pathEtaClass.setAttribute('d', (!showLeak && anomOn) ? curveOf(m => at(m).etaClassical) : '');
+    pathEtaClass.setAttribute('display', (!showLeak && anomOn) ? 'inline' : 'none');
 
     const rEnd = at(M_MAX);
     /* The top 36 px of the box is reserved for the ceiling annotation, which is anchored to
        a place on the axis and cannot move out of the way; a curve label can, so it does. The
        symbol line is hung off whatever y the name ended up at rather than clamped on its
-       own, or the two collide the moment both hit the same stop. */
+       own, or the two collide the moment both hit the same stop. Only one family is on
+       screen at a time now, so its observed and theoretical curve reuse the same pair of
+       offsets (14, 15) the leak family always used, rather than needing a per-family stop. */
     const place = (node, val, dy) => {
       const y = clamp(yRaw(val) + dy, PY0 + 36, PY1 - 26);
       node.setAttribute('x', XR - 10);
@@ -3103,22 +2914,33 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       node.setAttribute('x', XR - 10);
       node.setAttribute('y', y + 17);
     };
-    /* The two solid curves converge at the right-hand edge at some settings, so one label
-       hangs under its curve and the other over its own; both on the same side collide. Each
-       symbol line follows its own name. */
-    under(symLeak, place(lblLeak, rEnd.leak,  14));
-    under(symEta,  place(lblEta,  rEnd.eta,  -32));
-    lblClass.setAttribute('display', anomOn ? 'inline' : 'none');
-    if (anomOn) place(lblClass, rEnd.leakClassical, 15);
+    lblLeak.setAttribute('display', showLeak ? 'inline' : 'none');
+    symLeak.setAttribute('display', showLeak ? 'inline' : 'none');
+    lblEta.setAttribute('display', showLeak ? 'none' : 'inline');
+    symEta.setAttribute('display', showLeak ? 'none' : 'inline');
+    if (showLeak) under(symLeak, place(lblLeak, rEnd.leak, 14));
+    else          under(symEta,  place(lblEta,  rEnd.eta,  14));
+    fitChip(chipLeak, [lblLeak, symLeak], 6, 3);
+    fitChip(chipEta,  [lblEta,  symEta],  6, 3);
+
+    lblClass.setAttribute('display',    (showLeak && anomOn)  ? 'inline' : 'none');
+    lblEtaClass.setAttribute('display', (!showLeak && anomOn) ? 'inline' : 'none');
+    if (showLeak  && anomOn) place(lblClass,    rEnd.leakClassical, 15);
+    if (!showLeak && anomOn) place(lblEtaClass, rEnd.etaClassical,  15);
+    fitChip(chipClass,    [lblClass],    5, 3);
+    fitChip(chipEtaClass, [lblEtaClass], 5, 3);
 
     /* The ceiling is read off the COLLISIONAL curve, because the 0.2 target is a statement
-       about collisions and the anomalous term is not a knob a designer has. When the
-       collisional leak never reaches the target inside the axis, there is no ceiling to
-       mark and nothing is drawn rather than a marker pinned to the frame edge. */
+       about collisions and the anomalous term is not a knob a designer has. It is also a
+       statement about the leak fraction specifically, so it and the design-target line
+       (gLeakTarget) only show in leak mode. When the collisional leak never reaches the
+       target inside the axis, there is no ceiling to mark and nothing is drawn rather than
+       a marker pinned to the frame edge. */
+    gLeakTarget.setAttribute('display', showLeak ? 'inline' : 'none');
     const slope = at(1).leakClassical;
     const mCeil = LEAK_TARGET / slope;
-    const on = mCeil < M_MAX;
-    [shade, ceilLn, ceilTx].forEach(n => n.setAttribute('display', on ? 'inline' : 'none'));
+    const on = showLeak && mCeil < M_MAX;
+    [shade, ceilLn, ceilTx, chipCeil].forEach(n => n.setAttribute('display', on ? 'inline' : 'none'));
     if (on){
       const xc = xOfM(mCeil);
       shade.setAttribute('x', xc); shade.setAttribute('y', PY0);
@@ -3129,15 +2951,17 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       ceilTx.setAttribute('x', xc + (right ? -8 : 8));
       ceilTx.setAttribute('y', PY0 + 18);
       ceilTx.setAttribute('text-anchor', right ? 'end' : 'start');
-      ceilTx.textContent = 'collisional ceiling: ' + mCeil.toFixed(0) + ' mg/s, '
+      ceilTx.textContent = 'design target collisional ceiling: ' + mCeil.toFixed(0) + ' mg/s, '
                          + FAof(mCeil).toFixed(0) + ' N/m²';
+      fitChip(chipCeil, [ceilTx], 6, 4);
     }
 
     const xc = xOfM(mdot);
     cursor.setAttribute('x1', xc); cursor.setAttribute('x2', xc);
     dotLeak.setAttribute('transform', `translate(${xc} ${yOfR(P.leak)})`);
-    dotLeak.setAttribute('display', P.leak <= 1.05 ? 'inline' : 'none');
+    dotLeak.setAttribute('display', (showLeak && P.leak <= 1.05) ? 'inline' : 'none');
     dotEta.setAttribute('transform',  `translate(${xc} ${yOfR(P.eta)})`);
+    dotEta.setAttribute('display', showLeak ? 'none' : 'inline');
 
     el.oNh.innerHTML    = expHTML(P.nH, 1);
     el.oNu.innerHTML    = expHTML(P.nu, 1);
@@ -3158,117 +2982,27 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       : 'Leaking ' + (P.leak * 100).toFixed(0) + '% of the beam current, past the 0.2 target.';
   }
 
-  // ── Animation ─────────────────────────────────────────────────────────────
-  let last = 0;
-  function step(ts){
-    raf = requestAnimationFrame(step);
-    const dt = last ? clamp((ts - last) / 1000, 0, 0.05) : 0;
-    last = ts;
-    if (paused || !P) { renderFlash(0); return; }
-
-    /* viewSpeed rides on SPEEDUP and stops there: the hop count is drawn from the same
-       Poisson rates over a longer or shorter stretch of thruster time, so the walk is the
-       walk the model describes either way. The flashes below are timed off the REAL dt,
-       because a spark is an annotation on the frame and not part of the simulation. */
-    const dtr   = dt * SPEEDUP * viewSpeed;     // thruster seconds elapsed this frame
-    const dyM   = P.vTheta * dtr;               // azimuthal advance, meters
-    const lamC  = P.nu_en * dtr, lamA = P.nu_an * dtr;
-
-    for (const e of elecs){
-      e.y = (e.y + dyM) % C_ANN;
-
-      /* One event, one displacement: about a Larmor radius in a random direction, plus the
-         systematic piece the electric field adds. The random part is the diffusion the
-         D_perp cell reports and the systematic part is the drift the leak cell reports; they
-         are applied together because in the channel they are one motion. */
-      let drew = 0;
-      const hop = n => {
-        for (let i = 0; i < n; i++){
-          const a = Math.random() * TAU;
-          e.x += P.rL * Math.cos(a) - P.rD;
-          e.y += P.rL * Math.sin(a);
-        }
-      };
-      const nC = poisson(lamC), nA = poisson(lamA);
-      hop(nC); hop(nA);
-      if (e.y < 0) e.y += C_ANN; else if (e.y >= C_ANN) e.y %= C_ANN;
-
-      let sx = SX0 + e.x * SXm, sy = SY0 + e.y * SYm;
-      // Marks land on the neutral that was hit whenever one is close enough to have been it
-      for (let i = 0; i < nC && drew < 3; i++, drew++){
-        let bx = sx, by = sy, best = 26 * 26;
-        for (let k = 0; k < nNeut; k++){
-          const d = (neut[k].x - sx) ** 2 + (neut[k].y - sy) ** 2;
-          if (d < best){ best = d; bx = neut[k].x; by = neut[k].y; }
-        }
-        spark(bx, by, 0);
-      }
-      for (let i = 0; i < nA && drew < 4; i++, drew++) spark(sx, sy, 1);
-
-      if (e.x <= 0){
-        spark(SX0, sy, 2);
-        e.x = L_ACC * 0.985;
-        e.y = C_ANN * Math.random();
-        e.trail.length = 0;
-        sx = SX0 + e.x * SXm; sy = SY0 + e.y * SYm;
-      } else if (e.x > L_ACC){
-        // Past the exit plane is the plume the cathode feeds, which hands the electron back
-        e.x = L_ACC;
-        sx = SX1;
-      }
-
-      e.dot.setAttribute('cx', sx.toFixed(1));
-      e.dot.setAttribute('cy', sy.toFixed(1));
-      e.trail.push(sx, sy);
-      if (e.trail.length > e.cap * 2) e.trail.splice(0, e.trail.length - e.cap * 2);
-
-      // A trail that spans the cut would draw a line the electron never took, so it breaks there
-      let d = '', prev = null;
-      for (let i = 0; i < e.trail.length; i += 2){
-        const px = e.trail[i], py = e.trail[i + 1];
-        d += (prev === null || Math.abs(py - prev) > (SY1 - SY0) / 2 ? 'M' : 'L')
-           + px.toFixed(1) + ' ' + py.toFixed(1) + ' ';
-        prev = py;
-      }
-      e.path.setAttribute('d', d);
-    }
-    renderFlash(dt);
-  }
-
-  function renderFlash(dt){
-    for (const f of flash){
-      const K = FKIND[f.kind];
-      f.t += dt;
-      if (f.t >= K.life){ if (f.node.getAttribute('display') !== 'none') f.node.setAttribute('display', 'none'); continue; }
-      const u = f.t / K.life;
-      f.node.setAttribute('display', 'inline');
-      f.node.setAttribute('cx', f.x.toFixed(1));
-      f.node.setAttribute('cy', f.y.toFixed(1));
-      f.node.setAttribute('r', (K.r0 + (K.r1 - K.r0) * u).toFixed(1));
-      f.node.setAttribute('stroke', K.color);
-      f.node.setAttribute('stroke-opacity', (0.85 * (1 - u)).toFixed(3));
-    }
-  }
-
   // ── Wiring ────────────────────────────────────────────────────────────────
-  buildScene();
   buildPlot();
-  seed();
 
   [el.m, el.b, el.te, el.cb].forEach(s => s.addEventListener('input', draw));
   el.anom.addEventListener('click', () => { anomOn = !anomOn; draw(); });
-  el.pause.addEventListener('click', () => {
-    paused = !paused;
-    el.pause.textContent = paused ? 'Run' : 'Pause';
-  });
-  el.sp.addEventListener('input', () => {
-    viewSpeed = parseFloat(el.sp.value);
-    el.spVal.textContent = viewSpeed.toFixed(2).replace(/0$/, '') + '×';
-  });
+
+  // The y-axis toggle: two plain .fig-toggle buttons under the figure, not a segmented
+  // control, so only one of the pair reads aria-pressed="true" at a time.
+  const pickY = mode => {
+    if (yMode === mode) return;
+    yMode = mode;
+    el.yLeak.setAttribute('aria-pressed', yMode === 'leak' ? 'true' : 'false');
+    el.yEta.setAttribute('aria-pressed',  yMode === 'eta'  ? 'true' : 'false');
+    buildYAxis();
+    draw();
+  };
+  el.yLeak.addEventListener('click', () => pickY('leak'));
+  el.yEta.addEventListener('click',  () => pickY('eta'));
   el.reset.addEventListener('click', () => {
     el.m.value = 5; el.b.value = 200; el.te.value = 10; el.cb.value = 100;
     anomOn = true;
-    seed();
     draw();
   });
 
@@ -3296,15 +3030,6 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   hit.addEventListener('pointercancel', () => { dragging = false; });
 
   draw();
-
-  // Off-screen the loop is pure waste, and this page carries a second animated figure above it.
-  let raf = null;
-  new IntersectionObserver(es => {
-    for (const e of es){
-      if (e.isIntersecting && raf === null){ last = 0; raf = requestAnimationFrame(step); }
-      else if (!e.isIntersecting && raf !== null){ cancelAnimationFrame(raf); raf = null; }
-    }
-  }, { threshold: 0 }).observe(svg.parentNode);
 })();
 </script>
 

@@ -107,6 +107,33 @@ body{
   width:100%; height:100%;
   overflow:visible;
 }
+/* The diffusion stage's own overlay - see the HTML comment on #diff-annot. No opacity
+   fade and no .show gate: each of its three chips is display:none until placeDiffChip
+   turns it on, so the container itself can just sit at opacity 1 the whole time. */
+#diff-annot{
+  position:absolute; inset:0;
+  z-index:4;
+  pointer-events:none;
+}
+/* gridded_ion.html's #ion-caption, ported class for class (position, width, background,
+   border, padding, font-size all unchanged) - see the HTML comment on #diff-caption. */
+#diff-caption{
+  position:absolute;
+  top:14px; left:20px;
+  display:none;
+  box-sizing:border-box;
+  width:272px; max-width:52%; text-align:left;
+  background:rgba(8,8,8,0.82);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 16px;
+  font-size:14px; line-height:1.4;
+  color:var(--text-muted);
+  pointer-events:none; user-select:none;
+  z-index:5;
+}
+#diff-caption .dred{ color:#ff4400; font-weight:700; }
+#app.mode-diffusion #diff-caption{ display:block; }
 .mlabel{
   position:absolute;
   transform:translate(-50%, -50%);
@@ -279,6 +306,12 @@ body{
 .mlabel.fieldlabel .katex{ color:inherit; }
 .fieldlabel-B{ color:var(--c-bfield); }
 .fieldlabel-E{ color:var(--c-efield); }
+/* The diffusion stage's own three vector chips - same borderless .fieldlabel pill, colors
+   matching the checkboxes and arrows in the panel (and ECrossB.html's own vel/drift colors,
+   for the total and E x B terms specifically - see the DIFF_VEC_LABELS comment). */
+.difflabel-vel { color:#ffd54f; }
+.difflabel-exb { color:#66bb6a; }
+.difflabel-diff{ color:#ff4400; }
 /* The same two colors on the B and E in the panel's opening sentence, so the prose names
    the overlay rather than sitting beside it - gridded_ion.html color-codes its physics
    quantities in running text the same way. */
@@ -593,6 +626,18 @@ body{
 .vtog:disabled:hover{ color:var(--text-secondary); }
 .vtog.on:disabled:hover{ color:var(--text-heading); }
 
+/* Plain checkbox row - magnetic_mirror.html's / ECrossB.html's .chk, ported class for class
+   (background/border/radius/padding all unchanged) rather than another vtog switch: those
+   two applets' velocity-component toggles are the direct precedent for the diffusion stage's
+   own vectors, so the control reads the same way in all three places. */
+.chk{
+  display:flex; align-items:center; gap:8px; font-size:14px; color:var(--text-secondary);
+  cursor:pointer; user-select:none; background:var(--bg-panel-2); border:1px solid var(--border);
+  border-radius:5px; padding:7px 10px; transition:background 0.15s, border-color 0.15s;
+}
+.chk:hover{ background:var(--bg-panel-3); border-color:#333; }
+.chk input{ accent-color:var(--c-ve); width:14px; height:14px; flex-shrink:0; }
+
 .btn-row{ display:flex; gap:8px; margin-top:10px; }
 .btn{
   flex:1 1 0; font-family:'Barlow',sans-serif; font-size:13px; font-weight:600;
@@ -619,6 +664,12 @@ body{
    .ix-dd (the in-note aside) because what folds here is a whole section, and an
    open one has to read exactly like the section it replaced. */
 .dd-block{ display:block; }
+/* The Components key is shared across every stage's panel (it isn't inside any one ix-panel),
+   but the diffusion stage's own #diff-caption plus its checkboxes already name every part
+   worth naming for that demo, and the full hardware key just pushed the panel's own controls
+   further down a short window for no reason this stage needed. Hidden here rather than
+   removed from the markup, so the other stages (which still want it) are untouched. */
+#app.mode-diffusion .dd-block{ display:none; }
 .dd-block > summary{
   display:flex; align-items:center; gap:6px;
   cursor:pointer; list-style:none; user-select:none;
@@ -652,6 +703,7 @@ body{
 #app.mode-neu #ix-neu{ display:flex; }
 #app.mode-potential #ix-pot{ display:flex; }
 #app.mode-efficiency #ix-eff{ display:flex; }
+#app.mode-diffusion #ix-diffusion{ display:flex; }
 /* Segmented control carrying THREE choices with a gloss under each, so it goes down the panel
    instead of across it: "Electrons" alone is 62px of Barlow at 14px and three of those do not
    fit 170px of panel. The gloss is the mode-tab strip's <small> in gridded_ion.html - the same
@@ -970,6 +1022,23 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
          built at boot, one set per distinct component label. aria-hidden because the
          Components key in the panel already carries every name as real text. -->
     <div id="annot" aria-hidden="true"><svg></svg></div>
+    <!-- The diffusion stage's own velocity-vector chips get THEIR OWN overlay rather than
+         joining #annot: every other chip pool in #annot (component callouts, B/E field
+         labels, the magnetic-circuit label, the circuit's current/voltage/mdot labels) is
+         only ever hidden by its OWN update function, which early-returns without touching
+         display whenever !orthoActive - safe as long as #annot itself stays at opacity 0,
+         which is what every mode but this one relies on. Showing #annot for diffusion would
+         have un-hidden all of those at once (they default to visible, parked at (0,0) since
+         nothing ever positions them outside the cross-section), not just this stage's own
+         three labels. -->
+    <div id="diff-annot" aria-hidden="true"></div>
+    <!-- gridded_ion.html's #ion-caption, ported class for class: an in-VIEWPORT card telling
+         the reader what the flash they are about to see means, rather than the panel's own
+         longer prose (a callout the reader is watching the model for shows up ON the model,
+         the same reasoning #ion-caption itself gives). Shown for this stage only, see the
+         #app.mode-diffusion rule in the CSS above. -->
+    <div id="diff-caption">Each time the traced electron collides with a neutral, a
+      <span class="dred">red</span> hoop flashes.</div>
     <!-- Axial profile (Potential stage): inline SVG, painted by refreshPotProfile() into the
          groups below and pinned over the cross-section by positionPotOverlay(). The viewBox
          aspect is derived from the model footprint, so the fit is exact and the drawing never
@@ -1356,6 +1425,116 @@ body.embed-magcircuit #viewport{ pointer-events:none; }
         this ledger and is not.</p>
     </div>
 
+    <!-- ══ Electron-drift stage (?mode=diffusion) ══
+         HT_Acceleration_applet.html's own hand-drawn figure derives and animates this same
+         mechanism against an unrolled strip; diffPhys() below is that derivation ported
+         rather than re-derived, driving the real geometry instead of an abstraction. It is
+         independently modeled against this file's own (more accurate) annulus area rather
+         than reading the lesson page's numbers, the same relationship the Potential stage's
+         2-D and 3-D figures already have to each other.
+
+         Unlike Potential and Efficiency, this stage does not enter the settled cross-section:
+         jumpToSection's pan+zoom-only camera exists because those two stages are flat 2-D
+         curves registered pixel-for-pixel onto one fixed viewing angle, and rotating away
+         from it would desync the drawing from the hardware it is drawn on. This stage draws
+         nothing but real points in the scene, so there is no registration to break and free
+         orbit is left on; the body is ghosted with the ordinary Transparent toggle instead of
+         a cutaway, so the reader sees the channel through the housing rather than through a
+         slice of it. -->
+    <div class="block ix-panel" id="ix-diffusion">
+      <!-- No ix-title, no ix-note: the explanation moved to a paragraph below the demo on
+           the lesson page (HT_Acceleration_applet.html), under the iframe. -->
+      <div class="btn-row"><button class="btn" id="diff-reset">Reset view</button></div>
+      <!-- Same slider-row the main panel puts directly under ITS OWN Reset view - a VIEWING
+           control (see #speed-row's own note), not scene content, which is why it sits here
+           rather than down with the mass-flow/field/temperature sliders below. Scales
+           DIFF_SPEEDUP's already-slow default; the physics (diffPhys, the collision model,
+           every readout) is untouched. -->
+      <div class="slider-row" id="diff-speed-row" style="margin-top:12px">
+        <div class="sl-lbl"><span>Particle speed</span><span id="diff-speed-val">1.0&times;</span></div>
+        <input type="range" id="diff-sld-speed" min="0.25" max="3" step="0.05" value="1"
+               aria-label="Particle playback speed, a viewing control that does not change the simulation">
+        <div class="sl-ends"><span>Slow</span><span>Fast</span></div>
+      </div>
+
+      <div style="margin-top:16px">
+        <label class="ix-slider">Propellant mass flow
+          <input type="range" id="diff-m" min="1" max="30" step="0.5" value="5"
+                 aria-label="Propellant mass flow rate in milligrams per second">
+          <span class="ix-val"><input class="ix-num" id="diff-m-val" type="text" inputmode="decimal"
+                autocomplete="off" spellcheck="false" value="5.0" readonly><span class="ix-unit">mg/s</span></span>
+        </label>
+        <label class="ix-slider">Radial magnetic field
+          <input type="range" id="diff-b" min="50" max="400" step="5" value="200"
+                 aria-label="Radial magnetic field strength in gauss">
+          <span class="ix-val"><input class="ix-num" id="diff-b-val" type="text" inputmode="decimal"
+                autocomplete="off" spellcheck="false" value="200" readonly><span class="ix-unit">G</span></span>
+        </label>
+        <label class="ix-slider">Electron temperature
+          <input type="range" id="diff-te" min="4" max="25" step="0.5" value="10"
+                 aria-label="Electron temperature in electronvolts">
+          <span class="ix-val"><input class="ix-num" id="diff-te-val" type="text" inputmode="decimal"
+                autocomplete="off" spellcheck="false" value="10.0" readonly><span class="ix-unit">eV</span></span>
+        </label>
+      </div>
+
+      <button type="button" class="vtog on" id="diff-anom" role="switch" aria-checked="true"
+              style="margin-top:14px">
+        <span>Anomalous Transport</span><span class="vsw"></span></button>
+      <div style="margin-top:10px" id="diff-cb-group">
+        <label class="ix-slider">Coefficient c<sub>B</sub>
+          <input type="range" id="diff-cb" min="16" max="200" step="2" value="100"
+                 aria-label="Anomalous transport coefficient c sub B">
+          <span class="ix-val"><input class="ix-num" id="diff-cb-val" type="text" inputmode="decimal"
+                autocomplete="off" spellcheck="false" value="100" readonly></span>
+        </label>
+      </div>
+
+      <!-- magnetic_mirror.html's / ECrossB.html's own checkboxes, class and wording ported:
+           plain <input type="checkbox"> in a .chk row, one per vector, rather than this
+           panel's own vtog switches - those two applets are where a reader has already met
+           a traced particle's velocity broken into components, and this is the same idea
+           (E x B drift and the net diffusive creep toward the anode, the same two terms
+           diffPhys() already keeps separate) so it takes the same control. Three checkboxes,
+           not two: those applets group v-parallel/v-perpendicular into one switch because
+           they are always shown together, but the two terms here are worth toggling apart -
+           the drift alone is what "make no progress" means, the diffusion alone is what
+           finally gets the electron to the anode. All three default on. -->
+      <div class="ix-toglabel" style="margin-top:14px">Velocity</div>
+      <label class="chk" for="chk-diff-vel">
+        <input type="checkbox" id="chk-diff-vel">
+        Show velocity <b style="color:#ffd54f">v</b>
+      </label>
+      <label class="chk" for="chk-diff-exb" style="margin-top:6px">
+        <input type="checkbox" id="chk-diff-exb" checked>
+        Show <b style="color:#66bb6a">v<sub>E&#215;B</sub></b> (drift)
+      </label>
+      <label class="chk" for="chk-diff-diff" style="margin-top:6px">
+        <input type="checkbox" id="chk-diff-diff" checked>
+        Show <b style="color:#ff4400">v<sub>diffusion</sub></b>
+      </label>
+
+      <div class="out-bar">
+        <div class="out-cell">
+          <div class="out-label">Hall Parameter</div>
+          <div class="out-val" id="diff-o-beta">0</div>
+          <div class="out-sub">&beta; = &omega;<sub>ce</sub> / &nu;<sub>e</sub></div>
+        </div>
+        <div class="out-cell">
+          <div class="out-label">Electron Leak Ratio</div>
+          <div class="out-val" id="diff-o-leak" style="color:#ffe94d">0</div>
+          <div class="out-sub">I<sub>leak</sub> / I<sub>B</sub></div>
+        </div>
+      </div>
+      <div class="legend" style="margin-top:12px">
+        <span class="lg"><i style="background:#e6edf8"></i>Neutral</span>
+        <span class="lg"><i style="background:#ffe94d;color:#2a2405">&minus;</i>Electron</span>
+      </div>
+      <!-- No separate vector legend: the three checkboxes above already carry their own
+           colored swatch (the bold "v" itself), the same way ECrossB.html's and
+           magnetic_mirror.html's checkbox rows double as their own legend. -->
+    </div>
+
     <!-- Collapsed by default: seven rows of key are reference, not a control, and
          closing them keeps the stage panels above the fold on a short window. -->
     <details class="block dd-block">
@@ -1445,13 +1624,21 @@ if (EMBED_MODE) document.body.classList.add('embed-locked');
 const appMode = EMBED_MODE === 'neu'        ? 'neu'
               : EMBED_MODE === 'potential'  ? 'potential'
               : EMBED_MODE === 'efficiency' ? 'efficiency'
+              : EMBED_MODE === 'diffusion'  ? 'diffusion'
               : 'overview';
 document.getElementById('app').classList.add('mode-' + appMode);
 /* The stages that lay a DRAWING across the same pixels as the hardware, rather than annotating
-   it. Both have to push the body back further than the transparency toggle does and pull the
-   plume's glow down out of the way of the curve, and both for the same reason - see the notes at
-   applyTransparent and updatePlume, which are the two places this is read. */
+   it. Both have to push the body back further than the transparency toggle does, pull the
+   plume's glow down out of the way of the curve, AND give up the bottom-left corner their own
+   axis/legend already occupies - see the notes at applyTransparent, updatePlume and
+   renderAxisGizmo, the three places this is read. */
 const STAGE_OVERLAY = appMode === 'potential' || appMode === 'efficiency';
+/* Diffusion wants the SAME deep ghost as those two (its whole subject is the particle pool,
+   not the housing), but draws nothing in the corner and doesn't dim its own plume - it has no
+   2-D drawing to protect there, so the gizmo and the plume both stay exactly as every other
+   free-orbit stage leaves them. Kept separate from STAGE_OVERLAY so adding a third "ghost this
+   deeply" stage never has to touch the corner-clash logic again by accident. */
+const DEEP_GHOST = STAGE_OVERLAY || appMode === 'diffusion';
 
 /* Locked circuit embed (?circuit=1) - gridded_ion.html's EMBED_CIRCUIT, ported flag for
    flag: the whole-device viewer, dropped straight into the cross-section with the circuit
@@ -1889,10 +2076,14 @@ function applyTransparent(){
      a silhouette behind the curve rather than sit level with it. gridded_ion.html splits the two
      the same way and by the same amount (0.07 opacity / 0.12 emissive against the toggle's 0.20 /
      0.25); what it calls "just a silhouette behind the curve" is this. */
-  const deep = STAGE_OVERLAY;
+  const deep = DEEP_GHOST;
   const on = showTransparent || deep;
   const ghostOp  = deep ? 0.07 : 0.20;
   const ghostEm  = deep ? 0.12 : 0.25;
+  // Diffusion goes another 30% more transparent than the shared 0.07 ghost, on top of
+  // everything else already special-cased for this stage below - a further explicit request,
+  // not derived from the Potential/Efficiency value the other two stages still share.
+  const ghostOpEff = appMode === 'diffusion' ? ghostOp * 0.7 : ghostOp;
   for (const c of comps){
     // The small functional pieces stay OPAQUE (the gridded-ion applet does the same
     // for its grids and magnet rings): they are what you turned the body translucent
@@ -1905,17 +2096,41 @@ function applyTransparent(){
        take a middle opacity there and nowhere else: present, not shouting. */
     const solid = on && (c.role === 'anode' || (c.role === 'coil' && !deep));
     const ghost = on && !solid;
-    const mid   = deep && c.role === 'coil';
+    // The mid-ghost is the Potential/Efficiency stages' own compromise (the coil IS the
+    // field's source there). Diffusion has no B-field overlay to explain and no reason to
+    // hold the coils back from the same 0.07 as the rest of the body - at mid-ghost they
+    // read as four solid copper blocks sitting in front of the very particles this stage
+    // exists to show.
+    const mid   = deep && c.role === 'coil' && appMode !== 'diffusion';
     const m = c.mesh.material, cap = c.cap.material;
     // Lightness comes from OPACITY (so the body reads pale, not dark) while a low
     // EMISSIVE FLOOR keeps edge-on faces — like the shell's rear wall — from going
     // black and reading as a strip disjoint from the body.
     if (ghost){ m.emissive.copy(c.color); m.emissiveIntensity = mid ? 0.30 : ghostEm; }
     else      { m.emissive.set(0x000000); m.emissiveIntensity = 1; }
-    m.transparent = ghost; m.opacity = ghost ? (mid ? 0.34 : ghostOp) : 1.0;
+    m.transparent = ghost; m.opacity = ghost ? (mid ? 0.34 : ghostOpEff) : 1.0;
+    // The coil's own material is far shinier than everything else here (ROLE_MAT.coil:
+    // metalness 0.45 / roughness 0.40, against 0-0.3 / 0.48-0.92 for every other role) - a
+    // moving specular highlight on a metal surface swings in brightness with the view angle
+    // FAR more than a matte one does, and on top of the depth-order fix above it was still
+    // reading as "the coils flicker" while orbiting. A ghosted part is meant to read as a
+    // flat, uniform silhouette, not a shiny one, so diffusion flattens metalness/roughness
+    // for every ghosted comp (mostly changes the coil; harmless for the already-matte rest).
+    if (appMode === 'diffusion'){
+      if (ghost){ m.metalness = 0; m.roughness = 1; }
+      else      { m.metalness = c.tune.metalness; m.roughness = c.tune.roughness; }
+    }
     // depthWrite stays ON so overlapping housing parts don't additively STACK into
     // brighter seams: each pixel shows a single layer and the body reads as one tone.
-    m.depthWrite = true;
+    // Diffusion is the one exception: every component here is a DOUBLE-SIDED shell, and at
+    // 7% opacity with depthWrite on, whichever face (inner wall or outer wall of the SAME
+    // part) happens to be nearer the camera wins the pixel outright - a hard, all-or-nothing
+    // swap between two differently-lit surfaces. Orbiting past the angle where that winner
+    // flips reads as a sudden jump in how opaque the whole body looks, which is worse here
+    // than the mild brightening this stage risks at genuine overlaps (the Potential and
+    // Efficiency stages keep depthWrite, since their camera is LOCKED and never crosses that
+    // angle in the first place - this artifact is specific to a stage a reader can orbit).
+    m.depthWrite = appMode !== 'diffusion';
     // cap.transparent stays permanently TRUE (pass parity, see createPlaneStencilGroup);
     // only its opacity moves.
     //
@@ -2426,6 +2641,7 @@ const CALLOUTS = {
 
 const annot  = document.getElementById('annot');
 const annSvg = annot.querySelector('svg');
+const diffAnnot = document.getElementById('diff-annot');
 const SVGNS  = 'http://www.w3.org/2000/svg';
 const calloutEls = [];
 
@@ -4118,7 +4334,13 @@ function updatePlume(dt, t){
      drawing it over a dead thruster would be a different kind of lie. The Potential stage went
      further and cut the discharge outright (see enterPotentialStage), so for that one this factor
      only holds the glow down over the few frames the plume takes to fade. */
-  const op = plumeFade * smoothstep(igniteLevel) * (STAGE_OVERLAY ? 0.30 : 1);
+  /* Diffusion cuts the glow outright rather than turning it down: the plume torus, its
+     cones AND the cathode's own puff jet (see plumeGroup.add(nMesh) below) are all children
+     of plumeGroup, so op=0 clears the whole family in one place - this stage's subject is
+     the annulus close up, and a plume filling half the frame behind it is pure distraction,
+     not context to preserve at a dimmer level the way the overlay stages keep it. */
+  const op = appMode === 'diffusion' ? 0
+    : plumeFade * smoothstep(igniteLevel) * (STAGE_OVERLAY ? 0.30 : 1);
   plumeGroup.visible = op > 0.001;
   // One normalized sweep, two shapes of clip: a half-space for the cones, a slab for the
   // ring. Both are fully open at cutFrac 1 (the 3-D view) and fully closed at 0.
@@ -4186,6 +4408,21 @@ const GLYPH_CELLS = [
   { core:'#e6edf8', sym:null, symCol:null      },   // 0 neutral
   { core:'#4d9bff', sym:'+',  symCol:'#ffffff' },   // 1 ion
   { core:'#ffe94d', sym:'−', symCol:'#2a2405' },   // 2 electron
+  { core:'#c9c3ad', sym:'−', symCol:'#5c5847' },   // 3 electron, desaturated - the diffusion
+                                                     // stage's own untraced pool, see DIFF_G_DIM.
+                                                     // Kept close to cell 2's LIGHTNESS (only
+                                                     // saturation drops) so it still reads against
+                                                     // the ghosted body at low alpha rather than
+                                                     // sinking into its shadow.
+  { core:'#ff4400', sym:null, symCol:null, ring:true },   // 4 collisional impact - diffusion
+                                                     // stage only, see DIFF_G_IMPACT. Same red-
+                                                     // orange as the anode elsewhere on this page.
+                                                     // `ring` gets it a fading, EXPANDING HOOP in
+                                                     // makeGlyphAtlas (a soft annulus, not a
+                                                     // filled disc) instead of the plain gradient
+                                                     // dot every other cell uses - this site's own
+                                                     // collision convention, a ring that grows and
+                                                     // fades rather than a static spark.
 ];
 
 // Channel stations, CAD mm. R_* are build_thruster.py's plasma annulus.
@@ -4291,6 +4528,8 @@ const NEU_ION_N = 260;
 const NEU_ELE_N = Math.round(NEU_ION_N * (P_Z_FADE - P_CATH.z) / (P_Z_FADE - P_Z_EXIT));
 const P_COUNT = appMode === 'neu'
   ? { neutral:0,   hall:0,   beamion:NEU_ION_N, beam:NEU_ELE_N, back:34 }
+  : appMode === 'diffusion'
+  ? { neutral:0,   hall:0,   beamion:0,         beam:0,         back:0 }
   : { neutral:420, hall:150, beamion:0,         beam:66,        back:24 };
 const P_SIZE  = 6.0;           // sprite diameter in MODEL units, so it scales with the body
 
@@ -4536,6 +4775,24 @@ function makeGlyphAtlas(){
   const g = cv.getContext('2d');
   GLYPH_CELLS.forEach((c, i) => {
     const cx = i * S + S / 2, cy = S / 2, r = S * 0.44;
+    /* The impact's own glyph: a soft HOOP (an annulus, transparent both inside and out) rather
+       than every other cell's filled disc - a filled dot reads as just another faded particle,
+       which is exactly what the untraced electrons already look like. Drawn small and off-
+       center in its own transparent margin on purpose: diffAlpha and diffSizeMul (see
+       spawnDiffImpact / updateDiffusionStage) grow this cell's own SPRITE SIZE over the flash's
+       life, and because the ring sits well inside the cell rather than filling it, that size
+       growth reads as the ring itself expanding outward - the "fading circular hoop" this
+       site's collision visuals use elsewhere, not a static spark. */
+    if (c.ring){
+      const rIn = r * 0.30, rOut = r * 0.62;
+      const grd = g.createRadialGradient(cx, cy, rIn, cx, cy, rOut);
+      grd.addColorStop(0,   'rgba(0,0,0,0)');
+      grd.addColorStop(0.5, c.core);
+      grd.addColorStop(1,   'rgba(0,0,0,0)');
+      g.fillStyle = grd;
+      g.beginPath(); g.arc(cx, cy, rOut, 0, 6.283); g.fill();
+      return;
+    }
     const grd = g.createRadialGradient(cx, cy, r * 0.08, cx, cy, r);
     grd.addColorStop(0, c.core); grd.addColorStop(0.82, c.core);
     grd.addColorStop(1, 'rgba(0,0,0,0)');
@@ -4557,10 +4814,17 @@ function makeGlyphAtlas(){
 const pPos   = new Float32Array(PARTS.length * 3);
 const pGlyph = new Float32Array(PARTS.length);
 const pAlpha = new Float32Array(PARTS.length).fill(1);
+// Every point's own size multiplier against uWorldSize - 1 for every particle in this main
+// pool, always. Only the diffusion stage's impact-flash pool below ever sets this above 1;
+// the attribute lives here, on the material's other geometry, only because both share one
+// shader and a shader attribute either exists on a geometry or doesn't - it costs this pool
+// nothing to carry a column that never varies.
+const pSizeMul = new Float32Array(PARTS.length).fill(1);
 const particleGeo = new THREE.BufferGeometry();
 particleGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
 particleGeo.setAttribute('glyph',    new THREE.BufferAttribute(pGlyph, 1));
 particleGeo.setAttribute('alpha',    new THREE.BufferAttribute(pAlpha, 1));
+particleGeo.setAttribute('sizeMul',  new THREE.BufferAttribute(pSizeMul, 1));
 
 const vpDeviceH = () => viewport.clientHeight * renderer.getPixelRatio();
 
@@ -4579,6 +4843,7 @@ const particleMat = new THREE.ShaderMaterial({
   vertexShader: `
     attribute float glyph;
     attribute float alpha;
+    attribute float sizeMul;
     varying float vGlyph;
     varying float vAlpha;
     uniform float uWorldSize;
@@ -4587,8 +4852,8 @@ const particleMat = new THREE.ShaderMaterial({
       vGlyph = glyph; vAlpha = alpha;
       vec4 mv = modelViewMatrix * vec4(position, 1.0);
       gl_Position = projectionMatrix * mv;
-      float px = uWorldSize * projectionMatrix[1][1] * (uViewportH * 0.5) / max(gl_Position.w, 1e-4);
-      gl_PointSize = clamp(px, 2.0, 54.0);
+      float px = uWorldSize * sizeMul * projectionMatrix[1][1] * (uViewportH * 0.5) / max(gl_Position.w, 1e-4);
+      gl_PointSize = clamp(px, 2.0, 54.0 * sizeMul);
     }`,
   fragmentShader: `
     precision mediump float;
@@ -4605,6 +4870,15 @@ const particleMat = new THREE.ShaderMaterial({
       gl_FragColor = vec4(t.rgb, t.a * vAlpha);
     }`,
 });
+/* Diffusion only: the ghosted housing still WRITES DEPTH (applyTransparent's own note - it
+   is what keeps overlapping housing panels from stacking into brighter seams), and every
+   OTHER stage wants that, because their particles are meant to look like they are really
+   inside the body, hidden behind it except through the exit plane. This stage is the one
+   exception - its whole subject is the particle pool, seen from an orbit that swings the
+   housing between the camera and the annulus on every pass - so depth-testing against a
+   7%-opaque wall that still reads as "in front" would hide the electrons it exists to show.
+   Both pools share this one material, but only diffPts is ever visible in this mode. */
+if (appMode === 'diffusion'){ particleMat.depthTest = false; particleMat.depthWrite = false; }
 const particlePts = new THREE.Points(particleGeo, particleMat);
 particlePts.renderOrder = 60;
 particlePts.frustumCulled = false;
@@ -6781,6 +7055,18 @@ function resetView(){
   // The Neutralization stage has one pose and reset means "back to its default framing",
   // undoing a scroll-zoom. It never reaches the section or 3-D branches below.
   if (appMode === 'neu'){ frameNeu(false); neuPx0 = neuPxAtDefault(); return; }
+  // The diffusion stage never enters the section, so it is never caught by the
+  // sectionMode branch below - it needs its own, back to the channel-framed perspective
+  // pose rather than the whole-device one the fallthrough at the end of this function sets.
+  if (appMode === 'diffusion'){
+    camera.fov = FOV_SOLID;
+    camera.aspect = viewAspect();
+    camera.updateProjectionMatrix();
+    camera.position.copy(DIFF_TARGET).addScaledVector(DIFF_DIR, DIFF_DIST);
+    controls.target.copy(DIFF_TARGET);
+    controls.update();
+    return;
+  }
   if (sectionMode && orthoActive){
     orthoCam.zoom = 1.0;
     // frameOrtho re-centers the orbit target itself, on the FOCUS box when a stage has set one
@@ -6826,12 +7112,505 @@ function resize(){
 }
 addEventListener('resize', resize);
 
+/* ══ Electron-drift stage (?mode=diffusion) ══ - see the doc comment on #ix-diffusion in
+   the HTML for why this stage keeps free orbit rather than copying jumpToSection the way
+   Potential and Efficiency do. Its physics is HT_Acceleration_applet.html's dz-svg phys(),
+   ported rather than shared, against this file's own true annulus area - the diff- prefix
+   throughout keeps every binding clear of that other, independent model. */
+const DIFF_QE = 1.602176634e-19, DIFF_ME = 9.1093837015e-31, DIFF_MXE = 2.1801714e-25;
+const DIFF_A_CH = Math.PI * (P_R_OUT * P_R_OUT - P_R_IN * P_R_IN) * 1e-6;   // m^2, true annulus
+const DIFF_E_AX = 5000, DIFF_VN = 284, DIFF_FRES = 0.35, DIFF_QEH = 3e-19;  // V/m, m/s, frac, m^2
+const diffNH   = mdot => DIFF_FRES * (mdot * 1e-6 / DIFF_MXE) / (DIFF_A_CH * DIFF_VN);
+const diffCbar = Te   => Math.sqrt(8 * DIFF_QE * Te / (Math.PI * DIFF_ME));
+function diffPhys(mdot, Bg, Te, anomOn, cB){
+  const B = Bg * 1e-4, wce = DIFF_QE * B / DIFF_ME;
+  const nH = diffNH(mdot), nu_en = nH * diffCbar(Te) * DIFF_QEH;
+  const nu_an = anomOn ? wce / cB : 0, nu = nu_en + nu_an;
+  const vth = Math.sqrt(2 * DIFF_QE * Te / DIFF_ME), vTheta = DIFF_E_AX / B;
+  return {
+    nu, nu_en, beta: wce / nu,
+    rL: DIFF_ME * vth / (DIFF_QE * B) * 1000,   // mm, one Larmor radius
+    rD: (vTheta / wce) * 1000,                  // mm, systematic step per event
+    vTheta: vTheta * 1000,                      // mm/s, azimuthal drift speed
+    leak: 2 * (vTheta * nu / wce) / 16000
+  };
+}
+
+/* Its own particle pool, entirely separate from PARTS/updateParticles: neutrals static in
+   the channel band (284 m/s is slow enough against the frame's own timescale that dz-svg's
+   figure draws them static too), electrons doing the collision-hop walk. Sharing particleMat
+   means an electron or a neutral looks like the same object here as everywhere else on this
+   site, at none of the cost of routing a fourth kind through the shared update loop - this
+   pool never runs unless appMode is 'diffusion', and showParticles never turns on for it, so
+   the main pool costs nothing whether or not this one is present. */
+const DIFF_NNEUT = 90, DIFF_NELEC = 60, DIFF_NIMPACT = 10,
+      DIFF_N = DIFF_NNEUT + DIFF_NELEC + DIFF_NIMPACT;
+// This stage's own two atlas cells (see GLYPH_CELLS): DIFF_G_DIM is the desaturated look every
+// electron but one wears, DIFF_G_IMPACT the flash a collision on the TRACED one leaves behind.
+const DIFF_G_DIM = 3, DIFF_G_IMPACT = 4;
+// diffElecP[0] is the one electron the reader follows: full electron-yellow and full alpha,
+// against the rest desaturated and faint, so its own hop-by-hop path reads against the crowd
+// instead of blending into sixty identical dots doing the same E x B drift.
+const DIFF_TRACE = 0;
+const DIFF_UNTRACED_ALPHA = 0.32;
+const diffNeutP = [], diffElecP = [];
+// Same fade as the untraced electrons: neutrals aren't the subject either, and there is no
+// reason for the two species drawn as "background" here to read at two different depths.
+const DIFF_NEUTRAL_ALPHA = DIFF_UNTRACED_ALPHA;
+const diffPos = new Float32Array(DIFF_N * 3), diffGlyph = new Float32Array(DIFF_N),
+      diffAlpha = new Float32Array(DIFF_N).fill(1);
+for (let i = 0; i < DIFF_NNEUT; i++){
+  const p = {};
+  pPlace(p, _prand(P_Z_ANODE, P_Z_EXIT), _prand(P_R_IN + 2, P_R_OUT - 2), _prand(0, 6.283));
+  diffNeutP.push(p);
+  diffGlyph[i] = P_SPECIES.NEUTRAL;
+  diffAlpha[i] = DIFF_NEUTRAL_ALPHA;
+}
+for (let i = 0; i < DIFF_NELEC; i++){
+  diffElecP.push({ z: _prand(P_Z_ANODE, P_Z_EXIT), r: _prand(P_R_IN + 2, P_R_OUT - 2), th: _prand(0, 6.283) });
+  const traced = i === DIFF_TRACE;
+  diffGlyph[DIFF_NNEUT + i] = traced ? P_SPECIES.ELECTRON : DIFF_G_DIM;
+  diffAlpha[DIFF_NNEUT + i] = traced ? 1 : DIFF_UNTRACED_ALPHA;
+}
+// One entry per electron: real seconds until it is next ALLOWED to register a collision,
+// so a single encounter with a neutral (see updateDiffusionStage's proximity check) can't
+// re-fire every frame for as long as the two happen to stay close.
+const diffCollideCooldown = new Float32Array(DIFF_NELEC).fill(0);
+const _diffElecPos = {};   // scratch for the pre-hop position the proximity check reads
+// The impact-flash pool: a ring buffer of slots the TRACED electron's own REAL collisions
+// borrow one at a time (spawnDiffImpact), each fading out over DIFF_IMPACT_DUR real seconds.
+// A hop credited to anomalous transport never borrows a slot - see the nu_en/nu split in
+// updateDiffusionStage. Alpha starts at 0 - nothing to show - so a freshly booted stage has
+// no flash sitting live before the first real collision actually fires.
+// The ring's own sizeMul, spawn -> fully faded: it EXPANDS as it fades rather than sitting at
+// one fixed size, which is what makes it read as a ripple and not a dot that dims in place.
+const DIFF_IMPACT_SIZE0 = 1.3, DIFF_IMPACT_SIZE1 = 3.2;
+const diffSizeMul = new Float32Array(DIFF_N).fill(1);
+for (let i = 0; i < DIFF_NIMPACT; i++){
+  diffGlyph[DIFF_NNEUT + DIFF_NELEC + i] = DIFF_G_IMPACT;
+  diffSizeMul[DIFF_NNEUT + DIFF_NELEC + i] = DIFF_IMPACT_SIZE0;
+}
+const diffImpactAlpha = new Float32Array(DIFF_NIMPACT).fill(0);
+let diffImpactNext = 0;
+const DIFF_IMPACT_DUR = 0.4;   // real seconds a flash takes to fade - independent of DIFF_SPEEDUP.
+                                // Long enough next to DIFF_FLASH_MIN_GAP below that the fade
+                                // itself is the thing a reader sees, not just an on/off blink.
+/* The physics collides the traced electron roughly 15-20 times a SECOND (real Hall-thruster
+   electron-neutral rates, not a display artifact) - flashing every one of them would paint a
+   solid smear over the electron instead of a legible marker. DIFF_FLASH_MIN_GAP throttles the
+   VISUAL only: the electron still hops on every real collision, but a new flash only lands once
+   the last one has had time to read as its own event. */
+const DIFF_FLASH_MIN_GAP = 0.15;   // real seconds, floor on the gap between visible flashes
+let diffFlashCooldown = 0;
+const diffGeo = new THREE.BufferGeometry();
+diffGeo.setAttribute('position', new THREE.BufferAttribute(diffPos, 3));
+diffGeo.setAttribute('glyph',    new THREE.BufferAttribute(diffGlyph, 1));
+diffGeo.setAttribute('alpha',    new THREE.BufferAttribute(diffAlpha, 1));
+diffGeo.setAttribute('sizeMul',  new THREE.BufferAttribute(diffSizeMul, 1));
+const diffPts = new THREE.Points(diffGeo, particleMat);
+diffPts.renderOrder = 60;
+diffPts.visible = false;
+diffPts.frustumCulled = false;
+scene.add(diffPts);
+// Neutrals never move once placed, so their slots in the buffer are written once, here.
+for (let i = 0; i < DIFF_NNEUT; i++){
+  const p = diffNeutP[i];
+  diffPos[3*i] = p.x; diffPos[3*i+1] = p.y; diffPos[3*i+2] = p.z;
+}
+// Every impact slot needs a real position before its first spawn, or the buffer's (0,0,0)
+// default would sit at the thrust axis - harmless behind alpha 0, but placed in the annulus
+// anyway so a slot pressed into use before its first fade-out reads as plasma, not the origin.
+const _diffImpactTmp = {};
+for (let i = 0; i < DIFF_NIMPACT; i++){
+  pPlace(_diffImpactTmp, P_Z_ANODE, P_R_IN, 0);
+  const idx = DIFF_NNEUT + DIFF_NELEC + i;
+  diffPos[3*idx] = _diffImpactTmp.x; diffPos[3*idx+1] = _diffImpactTmp.y; diffPos[3*idx+2] = _diffImpactTmp.z;
+}
+// One event, one flash: spawned at the NEUTRAL the traced electron actually reached (see
+// the proximity check in updateDiffusionStage - this is no longer a timer's own guess at
+// where to draw a marker, it is the struck particle's real position), reusing the oldest
+// slot round-robin rather than tracking which slot is idlest - DIFF_NIMPACT is sized well
+// past what one electron's collision rate needs live at once, so the ring never laps a
+// flash still fading.
+function spawnDiffImpact(x, y, z){
+  const slot = diffImpactNext; diffImpactNext = (diffImpactNext + 1) % DIFF_NIMPACT;
+  const idx = DIFF_NNEUT + DIFF_NELEC + slot;
+  diffPos[3*idx] = x; diffPos[3*idx+1] = y; diffPos[3*idx+2] = z;
+  diffImpactAlpha[slot] = 1;
+  diffAlpha[idx] = 1;
+  diffSizeMul[idx] = DIFF_IMPACT_SIZE0;
+}
+
+/* Velocity vector, on the traced electron only - magnetic_mirror.html's v / v-parallel /
+   v-perpendicular arrows, ported: a total-velocity arrow plus its two physical components,
+   here the steady azimuthal E x B drift and the net axial creep collisions add toward the
+   anode (diffPhys()'s vTheta and rD*nu). The two components are NOT drawn to a shared true
+   scale - at the default sliders the drift is ~90x the diffusion speed (that ratio IS the
+   Hall parameter in the panel above), and a true-scale diffusion arrow would be a fraction
+   of a millimeter, invisible under its own arrowhead. Each component gets its own reference
+   speed -> reference length instead, the same compromise HT_Buzzsaw_applet.html's gyro-orbit
+   magnification makes for the same reason; the Hall Parameter readout is where the true
+   ratio lives, not this diagram. The total arrow is the vector SUM of the two (already-
+   rescaled) components, so it shows the right shape - drift bent anode-ward - without
+   claiming a magnitude of its own. */
+const DIFF_VEC_REF_VEXB  = 2.5e8;   // mm/s: vTheta at the default 200 G / 5000 V/m sliders
+const DIFF_VEC_LEN_EXB   = 26;      // mm, arrow length at that reference speed
+const DIFF_VEC_REF_VDIFF = 2.64e6;  // mm/s: rD*nu at the default sliders (leak ratio ~0.33)
+const DIFF_VEC_LEN_DIFF  = 16;      // mm - shorter than the drift arrow on purpose: still the
+                                     // visibly smaller piece, just no longer sub-pixel
+const DIFF_VEC_MIN = 6, DIFF_VEC_MAX = 42;   // mm, clamp so extreme sliders stay legible
+function mkDiffArrow(color, len){
+  const a = new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(),
+                                   len, color, len * 0.30, len * 0.18);
+  a.line.material.transparent = true; a.line.material.depthTest = false;
+  a.cone.material.transparent = true; a.cone.material.depthTest = false;
+  a.line.renderOrder = a.cone.renderOrder = 61;
+  a.visible = false;
+  scene.add(a);
+  return a;
+}
+const diffVelArrow    = mkDiffArrow(0xffd54f, DIFF_VEC_LEN_EXB);
+const diffExBArrow    = mkDiffArrow(0x66bb6a, DIFF_VEC_LEN_EXB);
+const diffDiffArrow   = mkDiffArrow(0xff4400, DIFF_VEC_LEN_DIFF);
+/* Real KaTeX, not the axis gizmo's plain canvas glyph: this file already carries that exact
+   contract for every other 3-D-anchored label (see typesetFieldLabels / typesetMagLabels) - an
+   HTML .mlabel chip that starts as plain text and is replaced once the deferred KaTeX script
+   lands. Those all project through the ORTHO camera; updateNeuCallout is this file's own
+   precedent for running the identical chip through the live PERSPECTIVE camera instead (see
+   its own note on why Neutralization needs that), which is the move this stage borrows rather
+   than inventing a third way to park a label on a moving 3-D point. */
+const DIFF_VEC_LABELS = [
+  { id:'vel',  tex:'\\vec{v}',                     cls:'difflabel-vel'  },
+  { id:'exb',  tex:'\\vec{v}_{E\\times B}',        cls:'difflabel-exb'  },
+  { id:'diff', tex:'\\vec{v}_{\\text{diffusion}}', cls:'difflabel-diff' },
+];
+const diffVecChips = {};
+for (const l of DIFF_VEC_LABELS){
+  const chip = document.createElement('div');
+  chip.className = 'mlabel fieldlabel ' + l.cls;
+  chip.textContent = l.id;
+  chip.style.display = 'none';
+  diffAnnot.appendChild(chip);
+  diffVecChips[l.id] = { chip, tex: l.tex };
+}
+function typesetDiffVecLabels(){
+  if (!window.katex) return;
+  for (const k in diffVecChips){
+    const e = diffVecChips[k];
+    e.chip.textContent = '';
+    katex.render(e.tex, e.chip, { throwOnError:false });
+  }
+}
+typesetDiffVecLabels();
+if (!window.katex) window.addEventListener('load', typesetDiffVecLabels, { once:true });
+let diffShowVel = false, diffShowExB = true, diffShowDiff = true;
+const _diffVExB = new THREE.Vector3(), _diffVDiff = new THREE.Vector3(), _diffVTot = new THREE.Vector3();
+const _diffUExB = new THREE.Vector3(), _diffUDiff = new THREE.Vector3(), _diffUTot = new THREE.Vector3();
+const _diffTip = new THREE.Vector3(), _diffLblXY = [0, 0];
+
+// Orbit target: the thrust axis at the channel's own midpoint, not the whole device's
+// bounding-sphere center - this stage is about the annulus, not the hardware around it.
+const DIFF_TARGET = new THREE.Vector3((P_Z_ANODE + P_Z_EXIT) / 2 - CENTER[0], -CENTER[1], -CENTER[2]);
+// Side-on by default - purely +z, no x or y at all, so ĵ (+z, per the axis gizmo below)
+// points straight OUT of the screen at the reader and k̂ (+x, the thrust axis) runs exactly
+// horizontal: the channel's own length runs across the screen the way a Hall thruster's
+// usual side-profile photo does, with no perspective skew off that axis. Free orbit is
+// still on (see enterDiffusionStage's own note on why this stage never locks the camera the
+// way Neutralization's photo does) - this is only where the reader STARTS.
+const DIFF_DIR = new THREE.Vector3(0, 0, 1);
+const DIFF_DIST = 210;
+const DIFF_SPEEDUP = 0.26e-6;  // thruster seconds per second of animation - slowed from dz-svg's
+                                // own 2e-6 (this stage's own free orbit gives a reader time to
+                                // actually watch one hop happen, where dz-svg's flatter figure
+                                // could afford to move faster), then slowed again by half and
+                                // then by another 35% on request once the free-orbit view was
+                                // actually being watched. diffViewSpeed (below) is the reader's
+                                // own further multiplier on top of this default.
+let diffViewSpeed = 1;   // the reader's own Particle speed slider, #diff-sld-speed below
+const DIFF_RL_VIS_SCALE = 6;   // draws each collisional hop 6x its true Larmor radius - see
+                                // the note where rLvis is built, in updateDiffusionStage
+
+/* An electron hops ONLY when it is actually near a drawn neutral - see the proximity check
+   in updateDiffusionStage. Before this, the hop was timed purely off diffPoisson(nu*dtr), a
+   dice roll with no reference to where any neutral actually was; a reader watching the scene
+   had no way to see WHY a given hop happened, and the flash could land nowhere near the
+   electron's own drawn position.
+
+   A first pass tried folding nu into the interaction radius itself (bigger nu, bigger
+   target), but that meant inflating the radius to ~20 mm just to keep a lively pace - most
+   of the channel's own 24 mm width, so a "collision" routinely fired well clear of the
+   neutral it was credited to, which is the same complaint in a new shape. The radius has
+   to stay small enough to actually LOOK like contact; DIFF_RCOLL is fixed at that size and
+   never grows with nu.
+
+   nu still drives the rate, but as a PROBABILITY at the moment of a genuine encounter
+   rather than as the encounter's own size: nu*dtr is the expected count of collisions in
+   this frame's time slice (the same quantity diffPoisson used to sample directly), so
+   Math.random() < nu*dtr is that same rate applied as a coin flip, conditioned on the
+   electron actually having reached a neutral first. Te, B, cB and Anomalous Transport all
+   still move nu and so still matter; mdot now matters TWICE over - through nu (nu_en) and,
+   far more visibly, through how many of the 90 neutral slots diffDraw() has switched on,
+   which is what actually decides how often "near a neutral" is even true.
+
+   nu itself is nu_en + nu_an, and only the nu_en share is an actual electron-neutral
+   encounter - nu_an is anomalous transport, folded in at the rate level purely so the HOP
+   happens at the right frequency, with no neutral really struck. The flash marker says "hit
+   this neutral", so it is only earned by a second draw weighted nu_en/nu, in
+   updateDiffusionStage; an nu_an-attributed hop still moves the electron, just silently. */
+const DIFF_RCOLL = 6;   // mm, fixed - close to the 6 mm sprite size, so a hit reads as contact
+const DIFF_COLLIDE_MIN_GAP = 0.1;      // real seconds, floor on one electron's own hop rate -
+                                       // without it, lingering inside DIFF_RCOLL of one
+                                       // neutral for several frames could re-roll every frame
+
+let diffP = null;   // last diffPhys() result - null until the first diffDraw(), read by the panel
+// Propellant mass flow sets the neutral density in the physics (diffNH), but the pool's
+// SLOT COUNT is fixed at DIFF_NNEUT - without this, the slider changed how fast the traced
+// electron collides without changing anything a reader could see and connect that to. The
+// slider's own range is the HTML's (1 to 30 mg/s); a floor keeps the chamber from reading as
+// nearly empty at the low end, where the physics really would thin it out that far.
+const DIFF_M_MIN = 1, DIFF_M_MAX = 30, DIFF_NEUT_VIS_FLOOR = 0.15;
+// How many of the DIFF_NNEUT slots are currently real (see diffDraw) - read by
+// updateDiffusionStage's proximity check, which must never collide an electron against a
+// neutral the mass-flow slider has hidden (that neutral is not really there any more).
+let diffNeutVisCount = DIFF_NNEUT;
+function diffDraw(){
+  const el = id => document.getElementById(id);
+  const mdot = +el('diff-m').value, Bg = +el('diff-b').value, Te = +el('diff-te').value,
+        cB = +el('diff-cb').value, anomOn = el('diff-anom').getAttribute('aria-checked') === 'true';
+  diffP = diffPhys(mdot, Bg, Te, anomOn, cB);
+  el('diff-m-val').value  = mdot.toFixed(1);
+  el('diff-b-val').value  = String(Bg);
+  el('diff-te-val').value = Te.toFixed(1);
+  el('diff-cb-val').value = String(cB);
+  el('diff-cb-group').classList.toggle('is-off', !anomOn);
+  el('diff-cb').disabled = !anomOn;
+  el('diff-o-beta').textContent = diffP.beta >= 100 ? diffP.beta.toFixed(0) : diffP.beta.toFixed(1);
+  el('diff-o-leak').textContent = diffP.leak < 0.1 ? diffP.leak.toFixed(3) : diffP.leak.toFixed(2);
+
+  const visFrac  = DIFF_NEUT_VIS_FLOOR + (1 - DIFF_NEUT_VIS_FLOOR) *
+    (mdot - DIFF_M_MIN) / (DIFF_M_MAX - DIFF_M_MIN);
+  diffNeutVisCount = Math.round(DIFF_NNEUT * visFrac);
+  for (let i = 0; i < DIFF_NNEUT; i++) diffAlpha[i] = i < diffNeutVisCount ? DIFF_NEUTRAL_ALPHA : 0;
+  diffGeo.attributes.alpha.needsUpdate = true;
+}
+
+function updateDiffusionStage(dt){
+  if (!diffP) return;
+  const dtr = dt * DIFF_SPEEDUP * diffViewSpeed;   // thruster seconds elapsed this frame
+  // rL itself (0.3-0.8 mm across the whole Electron temperature slider, at the default
+  // field) is too small next to a 24 mm-wide annulus for that slider to read as doing
+  // ANYTHING - the temperature dependence is real (vth, and so rL, scale with Te; rD does
+  // not, so the systematic anode-ward creep is deliberately left at its true size below),
+  // it just isn't visible at true scale. DIFF_RL_VIS_SCALE is the same move
+  // HT_Buzzsaw_applet.html's gyro-orbit magnification makes for the same reason: this
+  // stage has no numeric readout of rL for a magnified draw to contradict.
+  const rLvis = diffP.rL * DIFF_RL_VIS_SCALE;
+  const rCollSq = DIFF_RCOLL * DIFF_RCOLL;
+  for (let i = 0; i < DIFF_NELEC; i++){
+    const p = diffElecP[i];
+    const traced = i === DIFF_TRACE;
+    // Steady E x B drift, always the same sense around the annulus.
+    p.th += (diffP.vTheta / p.r) * dtr;
+    // A collision needs a real GEOMETRIC encounter now, not just a dice roll: the electron
+    // only hops once it is actually within DIFF_RCOLL of one of the drawn (visible)
+    // neutrals, and even then only with probability nu*dtr (see the note above) - that
+    // neutral's own position is what the traced electron's flash marks, in spawnDiffImpact.
+    // Only the traced electron drops a flash: marking all sixty hopping at once would read
+    // as noise rather than one path standing out from the crowd.
+    diffCollideCooldown[i] -= dt;
+    if (diffCollideCooldown[i] <= 0){
+      pPlace(_diffElecPos, p.z, p.r, p.th);
+      let hitJ = -1, hitD2 = rCollSq;
+      for (let j = 0; j < diffNeutVisCount; j++){
+        const np = diffNeutP[j];
+        const dx = _diffElecPos.x - np.x, dy = _diffElecPos.y - np.y, dz = _diffElecPos.z - np.z;
+        const d2 = dx*dx + dy*dy + dz*dz;
+        if (d2 < hitD2){ hitD2 = d2; hitJ = j; }
+      }
+      if (hitJ >= 0 && Math.random() < diffP.nu * dtr){
+        // nu pools a real rate (nu_en, an actual electron-neutral encounter) with a modeling
+        // stand-in (nu_an, anomalous/turbulent scattering that has no neutral to hit) so the
+        // HOP RATE reads correctly either way. Which one this particular hop was is a second,
+        // independent draw weighted by their share of nu - only a nu_en hop struck the neutral
+        // the flash would be drawn on, so only that case gets the marker; an nu_an-caused hop
+        // still moves the electron, silently.
+        if (traced && diffFlashCooldown <= 0 && Math.random() < diffP.nu_en / diffP.nu){
+          const np = diffNeutP[hitJ];
+          spawnDiffImpact(np.x, np.y, np.z);
+          diffFlashCooldown = DIFF_FLASH_MIN_GAP;
+        }
+        const a = Math.random() * 6.283185;
+        // Axial step is capped at 0: rD (the true systematic piece) is only ~1/5 to 1/12 of
+        // rL even before DIFF_RL_VIS_SCALE, so an UNcapped random cos(a) already sends more
+        // than half of all hops net +k (away from the anode) even in the true, un-magnified
+        // physics - and six times more of them once the hop is drawn 6x bigger. The
+        // paragraph below the demo narrates every collision as a step CLOSER to the anode,
+        // so a visible step the other way reads as a bug against that text, not as the
+        // random walk it technically is. Capping the axial component (never the azimuthal
+        // one - p.th keeps its full random spread) keeps every collision at worst neutral,
+        // never backward.
+        p.z  += Math.min(0, rLvis * Math.cos(a) - diffP.rD);
+        p.th += (rLvis * Math.sin(a)) / p.r;
+        diffCollideCooldown[i] = DIFF_COLLIDE_MIN_GAP;
+      }
+    }
+    // Collected at the anode: paid for at the full discharge voltage, and re-emitted at
+    // the exit plane rather than tracked further - dz-svg's own reset.
+    if (p.z <= P_Z_ANODE){
+      p.z = P_Z_EXIT - 1; p.r = _prand(P_R_IN + 2, P_R_OUT - 2); p.th = _prand(0, 6.283);
+    } else if (p.z > P_Z_EXIT) p.z = P_Z_EXIT;   // parked at the rim until a hop brings it back
+    const q = {}; pPlace(q, p.z, p.r, p.th);
+    const idx = DIFF_NNEUT + i;
+    diffPos[3*idx] = q.x; diffPos[3*idx+1] = q.y; diffPos[3*idx+2] = q.z;
+    if (traced) updateDiffVectors(q, p.th);
+  }
+  diffFlashCooldown -= dt;
+  // Impact flashes fade on the REAL clock, not dtr's compressed thruster time - DIFF_SPEEDUP
+  // already runs the physics millions of times faster than it should look, and a flash timed
+  // off dtr would be over before the frame that drew it ever reached the screen.
+  for (let j = 0; j < DIFF_NIMPACT; j++){
+    if (diffImpactAlpha[j] <= 0) continue;
+    diffImpactAlpha[j] = Math.max(0, diffImpactAlpha[j] - dt / DIFF_IMPACT_DUR);
+    const idx = DIFF_NNEUT + DIFF_NELEC + j;
+    diffAlpha[idx] = diffImpactAlpha[j];
+    // The hoop grows as it fades - age 0 at the spawn size, age 1 (fully faded, about to
+    // go invisible) at the widest - so the ring EXPANDS outward rather than just dimming
+    // in place, same as this site's other collision markers.
+    const age = 1 - diffImpactAlpha[j];
+    diffSizeMul[idx] = DIFF_IMPACT_SIZE0 + age * (DIFF_IMPACT_SIZE1 - DIFF_IMPACT_SIZE0);
+  }
+  diffGeo.attributes.position.needsUpdate = true;
+  diffGeo.attributes.alpha.needsUpdate = true;
+  diffGeo.attributes.sizeMul.needsUpdate = true;
+}
+
+// Projects the tip of one vector through the LIVE camera (toScreen's cam override -
+// updateNeuCallout's own move) and parks that vector's chip a FIXED gap past the arrowhead.
+// A flat mm gap rather than a multiple of the arrow's own length: v_diffusion's arrow often
+// clamps down near DIFF_VEC_MIN (a high Hall parameter shrinks it), and a multiplier that
+// looked fine on the 26 mm drift arrow put the label almost on top of a 6 mm diffusion one.
+const DIFF_LABEL_GAP = 5;   // mm, clearance past the cone tip - same for all three vectors
+// v_diffusion's own chip needs more room than that flat gap gives it: the label sits wide
+// (the word "diffusion" itself), and because the arrow points straight down -k̂ (axial,
+// toward the anode - see the axis gizmo), a reader orbiting square-on to that axis can put
+// the chip right back over the arrowhead at just 5 mm of clearance. Pushed further out
+// along the SAME -k̂ direction instead of a sideways nudge, so it still reads as "this label
+// belongs to this arrow" rather than floating off to one side of it.
+const DIFF_LABEL_GAP_DIFF = 16;
+function placeDiffChip(id, originObj, dirUnit, len, show, gap){
+  const e = diffVecChips[id];
+  e.chip.style.display = show ? '' : 'none';
+  if (!show) return;
+  _diffTip.set(originObj.x, originObj.y, originObj.z).addScaledVector(dirUnit, len + (gap ?? DIFF_LABEL_GAP));
+  toScreen(_diffTip, viewport.clientWidth, viewport.clientHeight, _diffLblXY, camera);
+  e.chip.style.transform = 'translate(-50%, -50%)';
+  e.chip.style.left = _diffLblXY[0].toFixed(1) + 'px';
+  e.chip.style.top  = _diffLblXY[1].toFixed(1) + 'px';
+}
+
+/* Anchors the velocity arrows on the traced electron's just-updated position. th sets the
+   E x B arrow's tangent direction (perpendicular to the radius, in the drift's own sense);
+   the diffusion arrow always points -x (axial, toward the anode) since rD is defined that
+   way in diffPhys. See the DIFF_VEC_* block above for why the two are not one shared scale. */
+function updateDiffVectors(pos, th){
+  const lenExB  = THREE.MathUtils.clamp(
+    DIFF_VEC_LEN_EXB * (diffP.vTheta / DIFF_VEC_REF_VEXB), DIFF_VEC_MIN, DIFF_VEC_MAX);
+  const vDiffTrue = diffP.rD * diffP.nu;   // mm/s, average axial creep - not the per-hop rD
+  const lenDiff = THREE.MathUtils.clamp(
+    DIFF_VEC_LEN_DIFF * (vDiffTrue / DIFF_VEC_REF_VDIFF), DIFF_VEC_MIN, DIFF_VEC_MAX);
+
+  _diffVExB.set(0, -Math.sin(th), Math.cos(th)).multiplyScalar(lenExB);
+  _diffVDiff.set(-1, 0, 0).multiplyScalar(lenDiff);
+  _diffVTot.copy(_diffVExB).add(_diffVDiff);
+  const origin = pos;   // {x,y,z} plain object - Vector3 methods below only READ x/y/z off it
+
+  diffExBArrow.position.set(origin.x, origin.y, origin.z);
+  diffExBArrow.setDirection(_diffUExB.copy(_diffVExB).normalize());
+  diffExBArrow.setLength(lenExB, lenExB * 0.30, lenExB * 0.18);
+  diffExBArrow.visible = diffShowExB;
+  placeDiffChip('exb', origin, _diffUExB, lenExB, diffShowExB);
+
+  diffDiffArrow.position.set(origin.x, origin.y, origin.z);
+  diffDiffArrow.setDirection(_diffUDiff.copy(_diffVDiff).normalize());
+  diffDiffArrow.setLength(lenDiff, lenDiff * 0.30, lenDiff * 0.18);
+  diffDiffArrow.visible = diffShowDiff;
+  placeDiffChip('diff', origin, _diffUDiff, lenDiff, diffShowDiff, DIFF_LABEL_GAP_DIFF);
+
+  const totLen = Math.max(_diffVTot.length(), 0.01);
+  diffVelArrow.position.set(origin.x, origin.y, origin.z);
+  diffVelArrow.setDirection(_diffUTot.copy(_diffVTot).normalize());
+  diffVelArrow.setLength(totLen, totLen * 0.30, totLen * 0.18);
+  diffVelArrow.visible = diffShowVel;
+  placeDiffChip('vel', origin, _diffUTot, totLen, diffShowVel);
+}
+
+function enterDiffusionStage(){
+  setShowParticles(false);         // this stage's own pool, not the shared one
+  setShowTransparent(true);        // the ordinary ghost, so the channel shows through the shell
+  camera.fov = FOV_SOLID;
+  camera.aspect = viewAspect();
+  camera.updateProjectionMatrix();
+  camera.position.copy(DIFF_TARGET).addScaledVector(DIFF_DIR, DIFF_DIST);
+  controls.object = camera;
+  controls.target.copy(DIFF_TARGET);
+  // Explicit rather than assumed: nothing else on this page's boot path restricts these for
+  // the plain 3-D view, but stating them here means this stage cannot inherit a stale
+  // restriction from wherever OrbitControls happened to be left.
+  controls.enabled = true;
+  controls.enableRotate = true;
+  controls.enablePan = true;
+  controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
+  controls.touches.ONE = THREE.TOUCH.ROTATE;
+  controls.update();
+  diffPts.visible = true;
+  diffDraw();
+  setHint('Drag to orbit · scroll to zoom');
+}
+['diff-m', 'diff-b', 'diff-te', 'diff-cb'].forEach(id => {
+  const s = document.getElementById(id);
+  if (s) s.addEventListener('input', diffDraw);
+});
+document.getElementById('diff-sld-speed').addEventListener('input', e => {
+  diffViewSpeed = parseFloat(e.target.value);
+  document.getElementById('diff-speed-val').textContent =
+    diffViewSpeed.toFixed(2).replace(/0$/, '') + '×';
+});
+{
+  const t = document.getElementById('diff-anom');
+  if (t) t.addEventListener('click', () => {
+    const on = t.getAttribute('aria-checked') !== 'true';
+    t.setAttribute('aria-checked', on ? 'true' : 'false');
+    t.classList.toggle('on', on);
+    diffDraw();
+  });
+  const r = document.getElementById('diff-reset');
+  if (r) r.addEventListener('click', resetView);
+}
+[
+  ['chk-diff-vel',  on => diffShowVel  = on, () => [diffVelArrow,  diffVecChips.vel.chip]],
+  ['chk-diff-exb',  on => diffShowExB  = on, () => [diffExBArrow,  diffVecChips.exb.chip]],
+  ['chk-diff-diff', on => diffShowDiff = on, () => [diffDiffArrow, diffVecChips.diff.chip]],
+].forEach(([id, set, els]) => {
+  const t = document.getElementById(id);
+  if (!t) return;
+  t.addEventListener('change', () => {
+    set(t.checked);
+    // Vector visibility is otherwise only touched once a frame, inside updateDiffVectors -
+    // a click while the electron is between updates would otherwise sit un-applied until
+    // the next one, which is imperceptible but needless to leave to chance.
+    const [arrow, chip] = els();
+    arrow.visible = t.checked;
+    if (!t.checked) chip.style.display = 'none';
+  });
+});
+
 resize();
 resetView();
 applySectionBlend(0);
 if (appMode === 'neu') enterNeuStage();
 else if (appMode === 'potential') enterPotentialStage();
 else if (appMode === 'efficiency') enterEfficiencyStage();
+else if (appMode === 'diffusion') enterDiffusionStage();
 /* Locked circuit embed: the same two calls a reader would make with the panel, in the order
    they would make them - Cross-Section, then the circuit switch. Driven from here rather
    than from setShowCircuit (where gridded_ion.html puts the section entry) because this
@@ -6878,6 +7657,7 @@ renderer.setAnimationLoop(() => {
   if (appMode === 'neu') updateNeuStage(dt);   // same contract again: the stage's own layer
   if (appMode === 'potential') updatePotStage(dt);   // and again: projected after the render
   if (appMode === 'efficiency') updateEffStage(dt);  // and its twin, on the tighter box
+  if (appMode === 'diffusion') updateDiffusionStage(dt);   // its own pool, stepped after render too
 });
 </script>
 </body>

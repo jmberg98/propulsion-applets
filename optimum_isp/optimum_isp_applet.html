@@ -371,22 +371,27 @@ details.deriv-detail > summary:focus-visible {
 
 
 /* ════════════════════════════════════════════════════════
-   APPLET — SIDE-BY-SIDE LAYOUT
+   APPLET — GRID LAYOUT
+   Charts top-left, results spread out beneath them, and the
+   controls panel a full-height column to the right — so the
+   results stay under the graphs regardless of how tall the
+   input panel grows. Below the stacking breakpoint the three
+   areas collapse to one column, results last (under inputs).
    ════════════════════════════════════════════════════════ */
 .applet-body {
-  display: flex;
-  flex-direction: row;
+  display: grid;
+  grid-template-columns: 62% 38%;
+  grid-template-areas:
+    "charts  inputs"
+    "results inputs";
   align-items: stretch;
 }
 
 /* ════════════════════════════════════════════════════════
-   APPLET — CHARTS (left column)
+   APPLET — CHARTS
    ════════════════════════════════════════════════════════ */
 #charts {
-  /* 62 + 38, not 62 + 40. The old pair summed to 102% and the
-     control frame's last 2% was silently eaten by the block's
-     overflow:hidden, so its right padding rendered short.     */
-  flex: 1 1 62%;
+  grid-area: charts;
   min-width: 0;
   display: grid;
   grid-template-columns: 1fr;
@@ -403,10 +408,10 @@ details.deriv-detail > summary:focus-visible {
 }
 
 /* ════════════════════════════════════════════════════════
-   APPLET — CONTROL FRAME (right column)
+   APPLET — CONTROL FRAME (inputs column)
    ════════════════════════════════════════════════════════ */
 .control-frame {
-  flex: 1 1 38%;
+  grid-area: inputs;
   min-width: 0;
   overflow-y: auto;
   margin: 0;
@@ -431,33 +436,14 @@ details.deriv-detail > summary:focus-visible {
 }
 .cf-subtitle { font-size: 14px; color: #505050; font-style: italic; }
 
-/* ── Two-panel body ── */
+/* ── Inputs panel (only panel left in the control frame — the
+   outputs live in .results-bar, under the charts) ── */
 .cf-body {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: block;
 }
-/* The inputs panel cannot usefully go below 240px: the parameter
-   row is 24 + 84 + 36 px of fixed columns plus three 8px gaps plus
-   whatever "Mission time" needs. Declaring that as min-width means
-   a too-narrow frame pushes the outputs panel out (and, with wrap,
-   onto its own line) instead of letting the two draw on top of
-   each other, which is what used to happen.                      */
 .cf-panel {
-  flex: 1 1 auto;
-  min-width: 240px;
   display: flex;
   flex-direction: column;
-  padding-right: 16px;
-}
-.cf-panel:last-child {
-  flex: 0 1 200px;
-  min-width: 190px;
-  max-width: 200px;
-  padding-right: 0;
-  padding-left: 16px;
-  border-left: 1px solid var(--border);
 }
 .cf-panel-divider {
   height: 1px;
@@ -519,11 +505,45 @@ details.deriv-detail > summary:focus-visible {
   cursor: pointer;
 }
 
+/* ════════════════════════════════════════════════════════
+   APPLET — RESULTS BAR (spread out beneath the charts)
+   One row of cells, each carrying its own symbol + name
+   (so the reading stays clear even once the section headers
+   above have scrolled out of view) and its value with the
+   unit right next to it, not stranded in the header above.
+   ════════════════════════════════════════════════════════ */
+.results-bar {
+  grid-area: results;
+  display: flex;
+  background: rgba(8,8,8,0.97);
+  border-top: 1px solid #252525;
+}
+.res-cell {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 14px 16px;
+  border-right: 1px solid var(--border);
+}
+.res-cell:last-child { border-right: none; }
+/* V_ch and C_opt carry a wider value ("31794.34 m/s") than the
+   dimensionless/percent cells beside them, so they need a bigger
+   share of the row to keep the unit on the same line as the number. */
+.res-cell.primary { flex: 1.3 1 0; }
+.res-cell.secondary { flex: 0.7 1 0; }
+
+.res-name-row {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 6px;
+}
+.res-sym { font-size: 17px; color: var(--text-secondary); }
+.res-label {
+  font-size: 14px; font-weight: 700; letter-spacing: 1px;
+  text-transform: uppercase; color: #545454;
+}
+
 /* ── primary output blocks ── */
-.cf-out-block { margin-bottom: 16px; }
-.cf-out-label {
-  font-size: 15px; font-weight: 700; letter-spacing: 1px;
-  text-transform: uppercase; color: #545454; margin-bottom: 4px;
+.cf-out-value-row {
+  display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px;
 }
 .cf-out-value {
   font-family: 'Courier New', monospace;
@@ -531,18 +551,13 @@ details.deriv-detail > summary:focus-visible {
   color: var(--text-heading); letter-spacing: .5px; line-height: 1.2;
 }
 .cf-out-value.bad { color: #ff8e8e; font-size: 17px; line-height: 1.6; }
+.cf-out-unit { font-size: 15px; font-weight: 600; color: #545454; }
 .cf-out-hint {
   font-size: 19px; color: var(--hi-blue);
   margin-top: 3px; min-height: 18px;
 }
 
-/* ── secondary output rows ── */
-/* ── secondary output rows ── */
-.cf-orow {
-  display: flex; justify-content: flex-start; align-items: baseline;
-  flex-wrap: wrap; gap: 4px 8px; margin-top: 10px;
-}
-.cf-olbl { font-size: 16px; color: #545454; }
+/* ── secondary output values (Error, Payload ratio) ── */
 .cf-oval {
   font-family: 'Courier New', monospace;
   font-size: 20px; font-weight: 700; color: var(--text-heading);
@@ -613,69 +628,31 @@ details.deriv-detail > summary:focus-visible {
 }
 
 /* ── Responsive ───────────────────────────────────────────
-   Two wide things sit side by side here: 62% of charts, and a
-   control frame that is itself two columns. Both columns have a
-   floor (240px of inputs grid, 200px of Courier output values),
-   so below ~1680px of viewport they no longer fit and used to
-   overlap. Give up one axis at a time instead:
-
-     > 1680px   charts | inputs | outputs      (unchanged)
-     ≤ 1680px   charts | inputs / outputs
-     ≤ 1150px   charts / inputs | outputs      (applet stacks)
-     ≤  780px   charts / inputs / outputs
-
-   The first and last stages stack the control frame the same
-   way, so they share one rule set. Specificity, not the media
-   query, decides who wins: .cf-panel:last-child beats .cf-panel
-   regardless of the query, so every property the base last-child
-   rule sets has to be re-stated here rather than in .cf-panel. */
-@media (max-width: 1680px) and (min-width: 1151px),
-       (max-width: 780px) {
-  /* One column of controls is taller than 720px of charts, so let
-     the charts stretch to the frame instead of leaving a band of
-     dead ground under them. Overridden again below 1150px, where
-     the applet stacks and the charts get an explicit height.     */
-  #charts { height: auto; align-self: stretch; }
-  .cf-body { flex-direction: column; align-items: stretch; }
-  .cf-panel { flex: 0 0 auto; min-width: 0; padding-right: 0; }
-  .cf-panel:last-child {
-    flex: 0 0 auto;
-    min-width: 0;
-    max-width: none;
-    padding-left: 0;
-    padding-top: 12px;
-    margin-top: 12px;
-    border-left: none;
-    border-top: 1px solid var(--border);
-  }
-}
-
+   Two columns by default: charts-with-results-underneath
+   (62%) beside a full-height inputs column (38%), via the
+   grid-template-areas on .applet-body. Below 1150px that
+   collapses to one column, in reading order charts / inputs
+   / results — so results end up underneath the inputs, per
+   the same grid-area names, no DOM reordering needed. */
 @media (max-width: 1150px) {
-  .applet-body { flex-direction: column; }
+  .applet-body {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "charts"
+      "inputs"
+      "results";
+  }
   #charts {
-    flex: 0 0 auto;
-    width: 100%;
     /* Full page width, so the plots need less height to stay
        readable and the stacked applet stays a sane length. */
     height: 640px;
     min-height: 0;
   }
   .control-frame {
-    flex: 0 0 auto;
-    width: 100%;
     overflow-y: visible;
     border-left: none;
     border-top: 1px solid #252525;
   }
-}
-
-/* Full page width to share, so the outputs get more than the 200px
-   they are rationed to when they sit beside the charts. Ranged, not
-   just capped at 1150: 240 + 32 + 320 needs a 900px page to sit on
-   one line, and below 781px the panels stack anyway, where a 320px
-   cap would leave the outputs a short block in a wide frame.      */
-@media (max-width: 1150px) and (min-width: 900px) {
-  .cf-panel:last-child { flex: 0 1 320px; max-width: 320px; }
 }
 
 @media (max-width: 780px) {
@@ -687,6 +664,13 @@ details.deriv-detail > summary:focus-visible {
     column-gap: 6px;
   }
   #charts { height: 560px; }
+  /* Four results cells no longer fit in a row this narrow. */
+  .results-bar { flex-direction: column; }
+  .res-cell {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .res-cell:last-child { border-bottom: none; }
 }
 
 /* ── Plotly modebar dark skin ── */
@@ -1037,44 +1021,59 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
           </div>
 
           <div class="cf-info-box regime" id="h-psrc">—</div>
-        </div><!-- /.cf-panel (left) -->
-
-        <!-- Right panel: outputs -->
-        <div class="cf-panel">
-          <div class="cf-sect">Stuhlinger Velocity</div>
-
-          <div class="cf-out-block">
-            <div class="cf-out-label">V<sub>ch</sub> [m/s]</div>
-            <div class="cf-out-value" id="o-vch">—</div>
-            <div class="cf-out-hint" id="h-vch-isp">Isp = — s</div>
-          </div>
-
-          <div class="cf-orow">
-            <span class="cf-olbl">Error E [%]</span>
-            <span class="cf-oval" id="o-err">—</span>
-          </div>
-
-          <div class="cf-panel-divider"></div>
-
-          <div class="cf-sect">True Optimum Exhaust Velocity</div>
-
-          <div class="cf-out-block">
-            <div class="cf-out-label">C<sub>opt</sub> [m/s]</div>
-            <div class="cf-out-value" id="o-copt">—</div>
-            <div class="cf-out-hint" id="h-copt-isp">Isp = — s</div>
-          </div>
-
-          <div class="cf-info-box" id="h-thr">—</div>
-
-          
-          <div class="cf-orow">
-            <span class="cf-olbl">Payload ratio λ at C<sub>opt</sub></span>
-            <span class="cf-oval" id="o-lam">—</span>
-          </div>
-        </div><!-- /.cf-panel (right) -->
+        </div><!-- /.cf-panel -->
 
       </div><!-- /.cf-body -->
     </div><!-- /.control-frame -->
+
+    <!-- Results: spread out beneath the charts -->
+    <div class="results-bar">
+      <div class="res-cell primary">
+        <div class="res-name-row">
+          <span class="res-sym">V<sub>ch</sub></span>
+          <span class="res-label">Stuhlinger velocity</span>
+        </div>
+        <div class="cf-out-value-row">
+          <span class="cf-out-value" id="o-vch">—</span>
+          <span class="cf-out-unit">m/s</span>
+        </div>
+        <div class="cf-out-hint" id="h-vch-isp">Isp = — s</div>
+      </div>
+
+      <div class="res-cell secondary">
+        <div class="res-name-row">
+          <span class="res-sym">E</span>
+          <span class="res-label">Error</span>
+        </div>
+        <div class="cf-out-value-row">
+          <span class="cf-oval" id="o-err">—</span>
+          <span class="cf-out-unit">%</span>
+        </div>
+      </div>
+
+      <div class="res-cell primary">
+        <div class="res-name-row">
+          <span class="res-sym">C<sub>opt</sub></span>
+          <span class="res-label">True optimum exhaust velocity</span>
+        </div>
+        <div class="cf-out-value-row">
+          <span class="cf-out-value" id="o-copt">—</span>
+          <span class="cf-out-unit">m/s</span>
+        </div>
+        <div class="cf-out-hint" id="h-copt-isp">Isp = — s</div>
+        <div class="cf-info-box" id="h-thr">—</div>
+      </div>
+
+      <div class="res-cell secondary">
+        <div class="res-name-row">
+          <span class="res-sym">λ</span>
+          <span class="res-label">Payload ratio at C<sub>opt</sub></span>
+        </div>
+        <div class="cf-out-value-row">
+          <span class="cf-oval" id="o-lam">—</span>
+        </div>
+      </div>
+    </div><!-- /.results-bar -->
 
   </div><!-- /.applet-body -->
 </div><!-- /.theory-block.applet-host -->
