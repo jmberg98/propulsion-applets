@@ -7135,7 +7135,7 @@ function diffPhys(mdot, Bg, Te, anomOn, cB){
    site, at none of the cost of routing a fourth kind through the shared update loop - this
    pool never runs unless appMode is 'diffusion', and showParticles never turns on for it, so
    the main pool costs nothing whether or not this one is present. */
-const DIFF_NNEUT = 90, DIFF_NELEC = 60, DIFF_NIMPACT = 10,
+const DIFF_NNEUT = 280, DIFF_NELEC = 60, DIFF_NIMPACT = 10,
       DIFF_N = DIFF_NNEUT + DIFF_NELEC + DIFF_NIMPACT;
 // This stage's own two atlas cells (see GLYPH_CELLS): DIFF_G_DIM is the desaturated look every
 // electron but one wears, DIFF_G_IMPACT the flash a collision on the TRACED one leaves behind.
@@ -7151,12 +7151,44 @@ const diffNeutP = [], diffElecP = [];
 const DIFF_NEUTRAL_ALPHA = DIFF_UNTRACED_ALPHA;
 const diffPos = new Float32Array(DIFF_N * 3), diffGlyph = new Float32Array(DIFF_N),
       diffAlpha = new Float32Array(DIFF_N).fill(1);
+// The first DIFF_GRID_M slots sit on a jittered grid spanning the full (z, r) rectangle
+// instead of being placed purely at random. diffDraw() only keeps the FIRST
+// diffNeutVisCount slots lit at any given mdot, and DIFF_NEUT_VIS_FLOOR never lets that
+// count drop under DIFF_GRID_M - so this grid is always fully visible, at every mass-flow
+// setting, sized so no point in the rectangle sits farther than DIFF_RCOLL from its
+// nearest cell even after jitter. Without it, thinning down to a handful of purely-random
+// neutrals at low mdot could leave a whole stretch of z (or r) with nothing in hop range,
+// stranding an electron born there spinning at fixed z forever - see the proximity check
+// in updateDiffusionStage, it never moves z without a collision, so it would never reach
+// the anode. Slots past the grid are placed purely at random, the way every slot once was;
+// they only thicken the field as mdot rises past the floor and carry no coverage guarantee.
+const DIFF_GRID_NZ = 10, DIFF_GRID_NR = 4, DIFF_GRID_M = DIFF_GRID_NZ * DIFF_GRID_NR;
+// Every neutral drifts slowly downstream (see updateDiffusionStage), so each pool entry
+// keeps its own axial STATION (p.zc) plus r/th apart from the derived scene x/y/z pPlace
+// writes into it - the same split diffElecP already uses, and for the same reason:
+// something has to survive from one frame to the next for a position to advance from.
+// diffNeutOn is the mdot-driven on/off flag diffDraw() used to write straight into
+// diffAlpha before neutrals could move; now that alpha also carries the near-exit fade
+// (recomputed every frame), the on/off state has to live somewhere both diffDraw and
+// updateDiffusionStage can reach.
+const diffNeutOn = new Uint8Array(DIFF_NNEUT);
 for (let i = 0; i < DIFF_NNEUT; i++){
-  const p = {};
-  pPlace(p, _prand(P_Z_ANODE, P_Z_EXIT), _prand(P_R_IN + 2, P_R_OUT - 2), _prand(0, 6.283));
+  let zc, r;
+  if (i < DIFF_GRID_M){
+    const iz = i % DIFF_GRID_NZ, ir = Math.floor(i / DIFF_GRID_NZ);
+    const cellZ = (P_Z_EXIT - P_Z_ANODE) / DIFF_GRID_NZ,
+          cellR = ((P_R_OUT - 2) - (P_R_IN + 2)) / DIFF_GRID_NR;
+    zc = P_Z_ANODE + (iz + 0.5) * cellZ + _prand(-0.2, 0.2) * cellZ;
+    r  = (P_R_IN + 2) + (ir + 0.5) * cellR + _prand(-0.2, 0.2) * cellR;
+  } else {
+    zc = _prand(P_Z_ANODE, P_Z_EXIT);
+    r  = _prand(P_R_IN + 2, P_R_OUT - 2);
+  }
+  const p = { zc, r, th: _prand(0, 6.283), x: 0, y: 0, z: 0 };
+  pPlace(p, zc, r, p.th);
   diffNeutP.push(p);
   diffGlyph[i] = P_SPECIES.NEUTRAL;
-  diffAlpha[i] = DIFF_NEUTRAL_ALPHA;
+  diffNeutOn[i] = 1;
 }
 for (let i = 0; i < DIFF_NELEC; i++){
   diffElecP.push({ z: _prand(P_Z_ANODE, P_Z_EXIT), r: _prand(P_R_IN + 2, P_R_OUT - 2), th: _prand(0, 6.283) });
@@ -7184,9 +7216,15 @@ for (let i = 0; i < DIFF_NIMPACT; i++){
 }
 const diffImpactAlpha = new Float32Array(DIFF_NIMPACT).fill(0);
 let diffImpactNext = 0;
-const DIFF_IMPACT_DUR = 0.4;   // real seconds a flash takes to fade - independent of DIFF_SPEEDUP.
-                                // Long enough next to DIFF_FLASH_MIN_GAP below that the fade
-                                // itself is the thing a reader sees, not just an on/off blink.
+const DIFF_IMPACT_DUR = 0.12;  // real seconds a flash takes to fade - independent of DIFF_SPEEDUP.
+                                // Short on purpose: at the default E x B drift the traced
+                                // electron sweeps a visible arc of its own orbit in well
+                                // under a second, so a longer-lived ring (this used to be
+                                // 0.4 s) ends up looking like a stray hoop stranded in empty
+                                // space rather than a flash tied to the electron that just
+                                // caused it. Still comfortably longer than one frame, next to
+                                // DIFF_FLASH_MIN_GAP below, so the fade itself is the thing a
+                                // reader sees, not just an on/off blink.
 /* The physics collides the traced electron roughly 15-20 times a SECOND (real Hall-thruster
    electron-neutral rates, not a display artifact) - flashing every one of them would paint a
    solid smear over the electron instead of a legible marker. DIFF_FLASH_MIN_GAP throttles the
@@ -7204,19 +7242,28 @@ diffPts.renderOrder = 60;
 diffPts.visible = false;
 diffPts.frustumCulled = false;
 scene.add(diffPts);
-// Neutrals never move once placed, so their slots in the buffer are written once, here.
+// Bootstraps the buffer before the first post-render updateDiffusionStage() call writes
+// real positions and alpha - see the drift/fade note above for why neutrals move now.
 for (let i = 0; i < DIFF_NNEUT; i++){
   const p = diffNeutP[i];
   diffPos[3*i] = p.x; diffPos[3*i+1] = p.y; diffPos[3*i+2] = p.z;
+  diffAlpha[i] = DIFF_NEUTRAL_ALPHA;
 }
 // Every impact slot needs a real position before its first spawn, or the buffer's (0,0,0)
 // default would sit at the thrust axis - harmless behind alpha 0, but placed in the annulus
 // anyway so a slot pressed into use before its first fade-out reads as plasma, not the origin.
+// diffAlpha itself defaults to 1 (see .fill(1) above) for every slot, impact ring slots
+// included, and updateDiffusionStage's own fade loop only ever touches diffAlpha[idx] for a
+// slot whose diffImpactAlpha is already > 0 - an untouched slot never gets a first write, so
+// without this it sat at full opacity, permanently, all DIFF_NIMPACT of them stacked at this
+// same placeholder spot: a red hoop nothing had actually spawned, never fading because
+// nothing was fading it.
 const _diffImpactTmp = {};
 for (let i = 0; i < DIFF_NIMPACT; i++){
   pPlace(_diffImpactTmp, P_Z_ANODE, P_R_IN, 0);
   const idx = DIFF_NNEUT + DIFF_NELEC + i;
   diffPos[3*idx] = _diffImpactTmp.x; diffPos[3*idx+1] = _diffImpactTmp.y; diffPos[3*idx+2] = _diffImpactTmp.z;
+  diffAlpha[idx] = 0;
 }
 // One event, one flash: spawned at the NEUTRAL the traced electron actually reached (see
 // the proximity check in updateDiffusionStage - this is no longer a timer's own guess at
@@ -7321,12 +7368,25 @@ const DIFF_SPEEDUP = 0.26e-6;  // thruster seconds per second of animation - slo
 let diffViewSpeed = 1;   // the reader's own Particle speed slider, #diff-sld-speed below
 const DIFF_RL_VIS_SCALE = 6;   // draws each collisional hop 6x its true Larmor radius - see
                                 // the note where rLvis is built, in updateDiffusionStage
+// The propellant itself drifts downstream too, at true scale imperceptibly slowly - 284 m/s
+// (DIFF_VN above) would take about ten real MINUTES to cross this 52 mm channel at
+// DIFF_SPEEDUP, which is exactly why it used to be drawn static. DIFF_NEUT_TRANSIT_S picks a
+// frankly non-physical but SLIGHT pace instead, the same readability compromise
+// DIFF_RL_VIS_SCALE makes above: slow enough to still read as background flow rather than a
+// moving swarm, fast enough that a reader watching for a few seconds actually sees it happen.
+const DIFF_NEUT_TRANSIT_S = 22;   // real seconds to drift the full channel length, at the
+                                   // default Particle-speed slider
+const DIFF_NEUT_VZ = (P_Z_EXIT - P_Z_ANODE) / DIFF_NEUT_TRANSIT_S / DIFF_SPEEDUP;   // mm per
+                                   // thruster-second - see updateDiffusionStage
+const DIFF_NEUT_FADE_LEN = 6;   // mm past the exit plane a neutral fades out over before
+                                 // recycling back to the anode - short on purpose, so it
+                                 // reads as leaving rather than lingering at the rim
 
-/* An electron hops ONLY when it is actually near a drawn neutral - see the proximity check
-   in updateDiffusionStage. Before this, the hop was timed purely off diffPoisson(nu*dtr), a
-   dice roll with no reference to where any neutral actually was; a reader watching the scene
-   had no way to see WHY a given hop happened, and the flash could land nowhere near the
-   electron's own drawn position.
+/* A REAL collision hops the electron only when it is actually near a drawn neutral - see the
+   proximity check in updateDiffusionStage. Before this, the hop was timed purely off
+   diffPoisson(nu*dtr), a dice roll with no reference to where any neutral actually was; a
+   reader watching the scene had no way to see WHY a given hop happened, and the flash could
+   land nowhere near the electron's own drawn position.
 
    A first pass tried folding nu into the interaction radius itself (bigger nu, bigger
    target), but that meant inflating the radius to ~20 mm just to keep a lively pace - most
@@ -7335,20 +7395,24 @@ const DIFF_RL_VIS_SCALE = 6;   // draws each collisional hop 6x its true Larmor 
    to stay small enough to actually LOOK like contact; DIFF_RCOLL is fixed at that size and
    never grows with nu.
 
-   nu still drives the rate, but as a PROBABILITY at the moment of a genuine encounter
-   rather than as the encounter's own size: nu*dtr is the expected count of collisions in
+   nu_en still drives the rate, but as a PROBABILITY at the moment of a genuine encounter
+   rather than as the encounter's own size: nu_en*dtr is the expected count of collisions in
    this frame's time slice (the same quantity diffPoisson used to sample directly), so
-   Math.random() < nu*dtr is that same rate applied as a coin flip, conditioned on the
-   electron actually having reached a neutral first. Te, B, cB and Anomalous Transport all
-   still move nu and so still matter; mdot now matters TWICE over - through nu (nu_en) and,
-   far more visibly, through how many of the 90 neutral slots diffDraw() has switched on,
-   which is what actually decides how often "near a neutral" is even true.
+   Math.random() < nu_en*dtr is that same rate applied as a coin flip, conditioned on the
+   electron actually having reached a neutral first. Te, B and mdot all still move nu_en and
+   so still matter; mdot now matters TWICE over - through nu_en itself and, far more visibly,
+   through how many of the DIFF_NNEUT neutral slots diffDraw() has switched on, which is what
+   actually decides how often "near a neutral" is even true.
 
-   nu itself is nu_en + nu_an, and only the nu_en share is an actual electron-neutral
-   encounter - nu_an is anomalous transport, folded in at the rate level purely so the HOP
-   happens at the right frequency, with no neutral really struck. The flash marker says "hit
-   this neutral", so it is only earned by a second draw weighted nu_en/nu, in
-   updateDiffusionStage; an nu_an-attributed hop still moves the electron, just silently. */
+   nu_an (anomalous transport) is deliberately NOT gated behind that same proximity check.
+   It represents scattering off small-scale density fluctuations rather than a real
+   electron-neutral encounter - no neutral is ever really struck - so it has no geometric
+   encounter to wait for in the first place. Gating it behind hitJ>=0 anyway was a real bug:
+   an electron that never happened to drift near a drawn neutral would never hop AT ALL,
+   Anomalous Transport slider or not, and so could spin at fixed z forever without ever
+   reaching the anode. nu_an*dtr is checked independently, every cooldown-elapsed frame,
+   regardless of what the proximity search above found; a hop it causes moves the electron
+   exactly like a real collision does, just silently - no flash, since no neutral was hit. */
 const DIFF_RCOLL = 6;   // mm, fixed - close to the 6 mm sprite size, so a hit reads as contact
 const DIFF_COLLIDE_MIN_GAP = 0.1;      // real seconds, floor on one electron's own hop rate -
                                        // without it, lingering inside DIFF_RCOLL of one
@@ -7382,8 +7446,10 @@ function diffDraw(){
   const visFrac  = DIFF_NEUT_VIS_FLOOR + (1 - DIFF_NEUT_VIS_FLOOR) *
     (mdot - DIFF_M_MIN) / (DIFF_M_MAX - DIFF_M_MIN);
   diffNeutVisCount = Math.round(DIFF_NNEUT * visFrac);
-  for (let i = 0; i < DIFF_NNEUT; i++) diffAlpha[i] = i < diffNeutVisCount ? DIFF_NEUTRAL_ALPHA : 0;
-  diffGeo.attributes.alpha.needsUpdate = true;
+  // Alpha itself is written every frame in updateDiffusionStage now (it also carries the
+  // near-exit fade), so a slider change only has to update the on/off flags here - the very
+  // next frame picks them up on its own.
+  for (let i = 0; i < DIFF_NNEUT; i++) diffNeutOn[i] = i < diffNeutVisCount ? 1 : 0;
 }
 
 function updateDiffusionStage(dt){
@@ -7398,6 +7464,22 @@ function updateDiffusionStage(dt){
   // stage has no numeric readout of rL for a magnified draw to contradict.
   const rLvis = diffP.rL * DIFF_RL_VIS_SCALE;
   const rCollSq = DIFF_RCOLL * DIFF_RCOLL;
+  // Propellant drifts slowly downstream (DIFF_NEUT_VZ - a deliberately non-physical but
+  // SLIGHT pace, see the note by DIFF_NEUT_TRANSIT_S) and fades out over the last
+  // DIFF_NEUT_FADE_LEN mm past the exit plane before recycling back to the anode. Only zc
+  // (axial station) moves - r and th stay fixed for the neutral's whole life - so the
+  // DIFF_GRID_M coverage grid keeps the even (z, r) spread it was built with: every grid
+  // neutral drifts and recycles at the identical rate, so the group stays evenly spaced the
+  // whole time, the way evenly-spaced cars on a single-lane loop stay evenly spaced.
+  for (let i = 0; i < DIFF_NNEUT; i++){
+    const p = diffNeutP[i];
+    p.zc += DIFF_NEUT_VZ * dtr;
+    if (p.zc > P_Z_EXIT + DIFF_NEUT_FADE_LEN) p.zc = P_Z_ANODE;   // recycled, like real injected flow
+    pPlace(p, p.zc, p.r, p.th);
+    diffPos[3*i] = p.x; diffPos[3*i+1] = p.y; diffPos[3*i+2] = p.z;
+    const fade = p.zc <= P_Z_EXIT ? 1 : Math.max(0, 1 - (p.zc - P_Z_EXIT) / DIFF_NEUT_FADE_LEN);
+    diffAlpha[i] = diffNeutOn[i] ? DIFF_NEUTRAL_ALPHA * fade : 0;
+  }
   for (let i = 0; i < DIFF_NELEC; i++){
     const p = diffElecP[i];
     const traced = i === DIFF_TRACE;
@@ -7415,22 +7497,29 @@ function updateDiffusionStage(dt){
       let hitJ = -1, hitD2 = rCollSq;
       for (let j = 0; j < diffNeutVisCount; j++){
         const np = diffNeutP[j];
+        if (np.zc > P_Z_EXIT) continue;   // already drifted past the exit - nothing left to hit
         const dx = _diffElecPos.x - np.x, dy = _diffElecPos.y - np.y, dz = _diffElecPos.z - np.z;
         const d2 = dx*dx + dy*dy + dz*dz;
         if (d2 < hitD2){ hitD2 = d2; hitJ = j; }
       }
-      if (hitJ >= 0 && Math.random() < diffP.nu * dtr){
-        // nu pools a real rate (nu_en, an actual electron-neutral encounter) with a modeling
-        // stand-in (nu_an, anomalous/turbulent scattering that has no neutral to hit) so the
-        // HOP RATE reads correctly either way. Which one this particular hop was is a second,
-        // independent draw weighted by their share of nu - only a nu_en hop struck the neutral
-        // the flash would be drawn on, so only that case gets the marker; an nu_an-caused hop
-        // still moves the electron, silently.
-        if (traced && diffFlashCooldown <= 0 && Math.random() < diffP.nu_en / diffP.nu){
+      // A real electron-neutral collision: needs the geometric proximity found above, on
+      // top of the nu_en rate itself. Only this kind of hop earns the traced electron's
+      // flash - it marks the neutral actually struck.
+      let hopped = false;
+      if (hitJ >= 0 && Math.random() < diffP.nu_en * dtr){
+        hopped = true;
+        if (traced && diffFlashCooldown <= 0){
           const np = diffNeutP[hitJ];
           spawnDiffImpact(np.x, np.y, np.z);
           diffFlashCooldown = DIFF_FLASH_MIN_GAP;
         }
+      }
+      // Anomalous transport: independent of proximity - see the note above on why it never
+      // needed a neutral to hit in the first place. Silent even when it fires: no flash,
+      // since nothing was really struck.
+      const nu_an = diffP.nu - diffP.nu_en;
+      if (!hopped && Math.random() < nu_an * dtr) hopped = true;
+      if (hopped){
         const a = Math.random() * 6.283185;
         // Axial step is capped at 0: rD (the true systematic piece) is only ~1/5 to 1/12 of
         // rL even before DIFF_RL_VIS_SCALE, so an UNcapped random cos(a) already sends more

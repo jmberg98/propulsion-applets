@@ -663,6 +663,96 @@ details.deriv-detail > summary:focus-visible {
 }
 .applet-nav .nav-home { text-transform: uppercase; letter-spacing: 1px; }
 .applet-nav .nav-disabled { opacity: 0.3; cursor: default; }
+.applet-nav-bottom { margin-top: 34px; margin-bottom: 0; padding-top: 26px; border-top: 1px solid var(--border); }
+.applet-nav .nav-fallback { display: none; }
+@media (max-width: 900px) {
+  .applet-nav .nav-label { display: none; }
+  .applet-nav .nav-fallback { display: inline; }
+}
+
+/* -- Floating section TOC ------------------------------ */
+.toc-tab {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 7px;
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  background: var(--bg-panel-1);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.toc-tab:hover, .toc-tab[aria-expanded="true"] {
+  border-color: var(--c-accent);
+  background: var(--bg-panel-3);
+  color: var(--text-heading);
+}
+.toc-tab .toc-tab-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  text-transform: uppercase;
+}
+.toc-tab .toc-tab-count { font-size: 11px; color: var(--text-muted); }
+.toc-panel {
+  position: fixed;
+  right: 46px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 41;
+  width: 240px;
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel-1);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
+}
+.toc-panel[hidden] { display: none; }
+.toc-panel .toc-hdr {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.toc-panel ol { list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.toc-panel a, .toc-panel .toc-current {
+  display: block;
+  padding: 7px 9px;
+  border-radius: 4px;
+  font-size: 15px;
+  line-height: 1.35;
+  text-decoration: none;
+  color: var(--text-secondary);
+  border-left: 2px solid transparent;
+}
+.toc-panel a:hover { background: var(--bg-panel-3); color: var(--text-heading); }
+.toc-panel .toc-current {
+  color: var(--text-heading);
+  font-weight: 600;
+  border-left-color: var(--c-accent);
+  background: var(--bg-panel-2);
+}
+@media (max-width: 900px) {
+  .toc-tab, .toc-panel { display: none; }
+}
 
 /* ── Footer ─────────────────────────────────────────── */
 footer {
@@ -849,10 +939,53 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 
 <!-- ════════════════════ APPLET NAV ════════════════════ -->
 <nav class="applet-nav">
-  <a class="nav-prev" href="../larmor/larmor_applet.html">&larr; Prev</a>
+  <a class="nav-prev" href="../larmor/larmor_applet.html">&larr; <span class="nav-label">Larmor Motion</span><span class="nav-fallback">Previous</span></a>
   <a class="nav-home" href="../index.html">Home</a>
-  <a class="nav-next" href="../magnetic_mirror/magnetic_mirror_applet.html">Next &rarr;</a>
+  <a class="nav-next" href="../magnetic_mirror/magnetic_mirror_applet.html"><span class="nav-label">Magnetic Mirror</span><span class="nav-fallback">Next</span> &rarr;</a>
 </nav>
+
+<!-- ==================== SECTION TOC ==================== -->
+<button class="toc-tab" id="toc-tab" aria-expanded="false" aria-controls="toc-panel">
+  <span class="toc-tab-label">Plasma Physics</span>
+  <span class="toc-tab-count">3 / 5</span>
+</button>
+<nav class="toc-panel" id="toc-panel" aria-label="Plasma Physics section contents" hidden>
+  <div class="toc-hdr">Plasma Physics</div>
+  <ol>
+    <li><a href="../electrostatic/electrostatic_applet.html">Electrostatic</a></li>
+    <li><a href="../larmor/larmor_applet.html">Larmor Motion</a></li>
+    <li><span class="toc-current" aria-current="page">E &times; B Drift</span></li>
+    <li><a href="../magnetic_mirror/magnetic_mirror_applet.html">Magnetic Mirror</a></li>
+    <li><a href="../particle_collisions/particle_collisions_applet.html">Particle Collisions</a></li>
+  </ol>
+</nav>
+<script>
+"use strict";
+(function () {
+  var tab = document.getElementById('toc-tab');
+  var panel = document.getElementById('toc-panel');
+  if (!tab || !panel) return;
+
+  function close() {
+    panel.hidden = true;
+    tab.setAttribute('aria-expanded', 'false');
+  }
+  function open() {
+    panel.hidden = false;
+    tab.setAttribute('aria-expanded', 'true');
+  }
+
+  tab.addEventListener('click', function () {
+    if (panel.hidden) { open(); } else { close(); }
+  });
+  document.addEventListener('click', function (e) {
+    if (!panel.hidden && !panel.contains(e.target) && e.target !== tab) close();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !panel.hidden) { close(); tab.focus(); }
+  });
+})();
+</script>
 
 <!-- ════════════════════ HEADER ════════════════════ -->
 <div id="hdr">
@@ -1099,6 +1232,13 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
       Space Science and Technology Series, Wiley, 2008. Ch. 7.</li>
   </ol>
 </details>
+
+<!-- ==================== APPLET NAV (BOTTOM) ==================== -->
+<nav class="applet-nav applet-nav-bottom">
+  <a class="nav-prev" href="../larmor/larmor_applet.html">&larr; <span class="nav-label">Larmor Motion</span><span class="nav-fallback">Previous</span></a>
+  <a class="nav-home" href="../index.html">Home</a>
+  <a class="nav-next" href="../magnetic_mirror/magnetic_mirror_applet.html"><span class="nav-label">Magnetic Mirror</span><span class="nav-fallback">Next</span> &rarr;</a>
+</nav>
 
 <footer>
   <a href="https://aeroastro.mit.edu/" target="_blank" rel="noopener">
