@@ -231,12 +231,61 @@
   .legend-row i.dot { width:11px; height:11px; border-radius:50%; }
 
   .katex { color:inherit; }
+
+  /* ── Full-screen toggle ──────────────────────────────────────────────────
+     Top-RIGHT of the stage, the one corner no demo overlay uses. It expands the
+     WHOLE sub-demo (stage plus the controls panel with its inputs and readouts),
+     not just the canvas, so the button targets the document element in JS. The
+     card chrome matches the drag-hint so the two corners read as one family. */
+  #fs-btn {
+    position       : absolute;
+    top            : 16px;
+    right          : 16px;
+    display        : flex;
+    align-items    : center;
+    justify-content: center;
+    width          : 38px;
+    height         : 38px;
+    padding        : 0;
+    background     : rgba(8,8,8,0.82);
+    border         : 1px solid var(--border);
+    border-radius  : 8px;
+    color          : var(--text-secondary);
+    cursor         : pointer;
+    /* A locked figure embed can switch the stage's pointer events off wholesale
+       (hall_thruster.html's ?magcircuit=1 does); the toggle stays live through it. */
+    pointer-events : auto;
+    z-index        : 30;
+    transition     : color .15s, border-color .15s, background .15s;
+  }
+  #fs-btn:hover {
+    color       : var(--text-heading);
+    border-color: var(--c-accent);
+    background  : rgba(8,8,8,0.95);
+  }
+  #fs-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+  #fs-btn svg { width: 19px; height: 19px; display: block; }
+  /* One button, two glyphs: brackets point outward to enter, inward to exit. */
+  #fs-btn .fs-i-exit { display: none; }
+  body.fs-on #fs-btn .fs-i-exit  { display: block; }
+  body.fs-on #fs-btn .fs-i-enter { display: none; }
 </style>
 </head>
 <body>
 <div id="app">
   <!-- ── Scene ─────────────────────────────────────────────── -->
   <div id="viewport">
+    <!-- Full-screen toggle for the whole sub-demo: stage, inputs and readouts. -->
+    <button id="fs-btn" type="button" title="Full screen" aria-label="Enter full screen">
+      <svg class="fs-i-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/>
+      </svg>
+      <svg class="fs-i-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5"/>
+      </svg>
+    </button>
     <canvas id="scene-canvas"></canvas>
     <!-- KaTeX overlay: governing equation + caption -->
     <div id="scene-ui" aria-hidden="true">
@@ -1520,6 +1569,44 @@ function installPanelFade(){
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { init(); installPanelFade(); });
 else { init(); installPanelFade(); }
+</script>
+
+<!-- ── Full-screen mode ────────────────────────────────────────────────────────
+     Kept in a plain script, outside the module that drives the scene, so it boots
+     whether or not the 3-D pipeline does. The target is documentElement, not the
+     canvas: full screen has to carry the controls panel along with the stage, and
+     the page already lays itself out at 100vw x 100vh so the fullscreen box needs
+     no extra sizing rules. Embedded, this depends on `allowfullscreen` on the host
+     <iframe>, which every lesson page now sets. Entering and leaving both fire a
+     resize, which is the same signal the canvas already sizes itself from. -->
+<script>
+(function () {
+  var btn = document.getElementById('fs-btn');
+  if (!btn) return;
+  var root = document.documentElement;
+  var req  = root.requestFullscreen || root.webkitRequestFullscreen;
+  var exit = document.exitFullscreen || document.webkitExitFullscreen;
+  /* Safari on iPhone exposes neither; drop the affordance rather than show a dead button. */
+  if (!req || !exit) { btn.style.display = 'none'; return; }
+
+  function isFs() { return document.fullscreenElement || document.webkitFullscreenElement; }
+
+  btn.addEventListener('click', function () {
+    if (isFs()) exit.call(document);
+    else Promise.resolve(req.call(root)).catch(function () {});
+  });
+
+  function syncFsUi() {
+    var on = !!isFs();
+    document.body.classList.toggle('fs-on', on);
+    var label = on ? 'Exit full screen' : 'Full screen';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+    window.dispatchEvent(new Event('resize'));
+  }
+  document.addEventListener('fullscreenchange', syncFsUi);
+  document.addEventListener('webkitfullscreenchange', syncFsUi);
+})();
 </script>
 </body>
 </html>

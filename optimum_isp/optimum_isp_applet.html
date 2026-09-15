@@ -967,6 +967,60 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   color: var(--text-muted);
 }
 
+
+/* ── Full-screen toggle ─────────────────────────────────
+   Every other demo parks this card in the top-right of its
+   stage, but Plotly draws its modebar in exactly that corner
+   of each plot. So here the button rides the controls header
+   instead, which is the top-right of the sub-demo box all the
+   same. It expands the whole box: charts, inputs and results. */
+#fs-btn {
+  margin-left    : auto;
+  flex           : 0 0 auto;
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  width          : 30px;
+  height         : 30px;
+  padding        : 0;
+  background     : rgba(8,8,8,0.82);
+  border         : 1px solid var(--border);
+  border-radius  : 6px;
+  color          : var(--text-secondary);
+  cursor         : pointer;
+  transition     : color .15s, border-color .15s, background .15s;
+}
+#fs-btn:hover {
+  color       : var(--text-heading);
+  border-color: var(--c-accent);
+  background  : rgba(8,8,8,0.95);
+}
+#fs-btn:focus-visible { outline: 2px solid var(--c-accent); outline-offset: 2px; }
+#fs-btn svg { width: 17px; height: 17px; display: block; }
+/* One button, two glyphs: brackets point outward to enter, inward to exit. */
+#fs-btn .fs-i-exit { display: none; }
+.applet-body.fs-on #fs-btn .fs-i-exit  { display: block; }
+.applet-body.fs-on #fs-btn .fs-i-enter { display: none; }
+
+/* ── Full-screen layout ─────────────────────────────────
+   .applet-body is normally an auto-height grid in the page
+   flow, so full screen has to give it the box and say which
+   row absorbs the slack: the charts row, not the results
+   strip. #charts drops its 720px so the plots stretch, and
+   the inputs column, which is one grid row tall across both,
+   scrolls if the screen is short. Plotly is told to re-measure
+   from the fullscreenchange handler. */
+.applet-body.fs-on {
+  height            : 100%;
+  background        : var(--bg-page);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+.applet-body.fs-on #charts        { height: auto; min-height: 0; }
+.applet-body.fs-on .control-frame { overflow-y: auto; }
+/* Below the stacking breakpoint the grid is three rows, not two. */
+@media (max-width: 1150px) {
+  .applet-body.fs-on { grid-template-rows: minmax(280px, 1fr) auto auto; }
+}
 </style>
 </head>
 <body>
@@ -1078,6 +1132,17 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
     <div class="control-frame">
       <div class="cf-header">
         <span class="cf-title">Specific Impulse Optimizer</span>
+        <!-- Full-screen toggle for the whole sub-demo: charts, inputs and results. -->
+        <button id="fs-btn" type="button" title="Full screen" aria-label="Enter full screen">
+          <svg class="fs-i-enter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/>
+          </svg>
+          <svg class="fs-i-exit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 8h5V3M21 8h-5V3M3 16h5v5M21 16h-5v5"/>
+          </svg>
+        </button>
       </div>
 
       <div class="cf-body">
@@ -2117,6 +2182,50 @@ document.querySelectorAll('.nut-h').forEach(h => {
     card.hidden = open;
   });
 });
+</script>
+
+<!-- ── Full-screen mode ──────────────────────────────────────────────────────
+     The sub-demo is the two charts, the inputs column and the results strip, so
+     the element taken full screen is .applet-body, which holds all three. The
+     layout override rides on an `fs-on` class rather than on :fullscreen, so one
+     rule body covers the prefixed and unprefixed pseudo-classes alike. Plotly is
+     resized explicitly: `responsive: true` only watches the window, and the grid
+     row the plots sit in changes size here without the window doing so. -->
+<script>
+(function () {
+  var btn = document.getElementById('fs-btn');
+  var box = document.querySelector('.applet-body');
+  if (!btn || !box) return;
+  var req  = box.requestFullscreen || box.webkitRequestFullscreen;
+  var exit = document.exitFullscreen || document.webkitExitFullscreen;
+  /* Safari on iPhone exposes neither; drop the affordance rather than show a dead button. */
+  if (!req || !exit) { btn.style.display = 'none'; return; }
+
+  function current() { return document.fullscreenElement || document.webkitFullscreenElement; }
+
+  btn.addEventListener('click', function () {
+    if (current() === box) exit.call(document);
+    else Promise.resolve(req.call(box)).catch(function () {});
+  });
+
+  function syncFsUi() {
+    var on = current() === box;
+    box.classList.toggle('fs-on', on);
+    var label = on ? 'Exit full screen' : 'Full screen';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
+    /* One frame later, so the grid has already re-laid-out at the new size. */
+    requestAnimationFrame(function () {
+      if (!window.Plotly) return;
+      ['plot-mass', 'plot-obj'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) Plotly.Plots.resize(el);
+      });
+    });
+  }
+  document.addEventListener('fullscreenchange', syncFsUi);
+  document.addEventListener('webkitfullscreenchange', syncFsUi);
+})();
 </script>
 </body>
 </html>
