@@ -653,12 +653,19 @@ else { init(); installPanelFade(); }
 
 <!-- ── Full-screen mode ────────────────────────────────────────────────────────
      Kept in a plain script, outside the module that drives the scene, so it boots
-     whether or not the 3-D pipeline does. The target is documentElement, not the
-     canvas: full screen has to carry the controls panel along with the stage, and
-     the page already lays itself out at 100vw x 100vh so the fullscreen box needs
-     no extra sizing rules. Embedded, this depends on `allowfullscreen` on the host
-     <iframe>, which every lesson page now sets. Entering and leaving both fire a
-     resize, which is the same signal the canvas already sizes itself from. -->
+     whether or not the 3-D pipeline does. The preferred path takes documentElement
+     full screen, not the canvas: full screen has to carry the controls panel along
+     with the stage, and the page already lays itself out at 100vw x 100vh so the
+     fullscreen box needs no extra sizing rules.
+
+     The Fullscreen API is not always there to use. A managed Chrome can withhold
+     it, an iframe without `allowfullscreen` has its request refused, and iOS
+     Safari has never had the element-level one at all. Rather than feature-detect
+     and hide the button - which made the whole feature quietly absent on exactly
+     the machines that could least afford a mystery - we fall back: ask the lesson
+     page to pin this iframe over its viewport, which is the same result for the
+     reader and uses no API. Entering and leaving either way fire a resize, the
+     signal the canvas already sizes itself from. -->
 <script>
 (function () {
   var btn = document.getElementById('fs-btn');
@@ -666,26 +673,66 @@ else { init(); installPanelFade(); }
   var root = document.documentElement;
   var req  = root.requestFullscreen || root.webkitRequestFullscreen;
   var exit = document.exitFullscreen || document.webkitExitFullscreen;
-  /* Safari on iPhone exposes neither; drop the affordance rather than show a dead button. */
-  if (!req || !exit) { btn.style.display = 'none'; return; }
+  var embedded = (function () {
+    try { return window.self !== window.top; } catch (e) { return true; }
+  })();
+  var pinned = false;   /* the fallback is showing */
 
-  function isFs() { return document.fullscreenElement || document.webkitFullscreenElement; }
+  function realFs() { return document.fullscreenElement || document.webkitFullscreenElement; }
+  function isOn()   { return !!realFs() || pinned; }
 
-  btn.addEventListener('click', function () {
-    if (isFs()) exit.call(document);
-    else Promise.resolve(req.call(root)).catch(function () {});
-  });
-
-  function syncFsUi() {
-    var on = !!isFs();
+  function paint() {
+    var on = isOn();
     document.body.classList.toggle('fs-on', on);
     var label = on ? 'Exit full screen' : 'Full screen';
     btn.title = label;
     btn.setAttribute('aria-label', label);
     window.dispatchEvent(new Event('resize'));
   }
-  document.addEventListener('fullscreenchange', syncFsUi);
-  document.addEventListener('webkitfullscreenchange', syncFsUi);
+
+  /* Standalone there is nothing above us to expand, so the fallback only means
+     something inside a lesson page. '*' as the target origin is safe here: the
+     message carries no secret, and the page acts only on a frame whose
+     contentWindow matches e.source. */
+  function askHost(on) {
+    if (!embedded) return false;
+    try { window.parent.postMessage({ appletFullscreen: on }, '*'); return true; }
+    catch (e) { return false; }
+  }
+
+  function enter() {
+    if (req && exit) {
+      var r;
+      try { r = req.call(root); } catch (e) { r = null; }
+      if (r && r.catch) {
+        r.catch(function () { pinned = askHost(true); paint(); });
+        return;
+      }
+      /* Older WebKit returns nothing, so there is no rejection to catch: give it
+         a moment and fall back only if it plainly did not take. */
+      setTimeout(function () { if (!realFs()) { pinned = askHost(true); paint(); } }, 120);
+      return;
+    }
+    pinned = askHost(true);
+    paint();
+  }
+
+  function leave() {
+    if (realFs()) { try { exit.call(document); } catch (e) {} return; }
+    pinned = false;
+    askHost(false);
+    paint();
+  }
+
+  btn.addEventListener('click', function () { if (isOn()) leave(); else enter(); });
+
+  /* Esc leaves real full screen on its own; in the fallback we have to do it. */
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'Escape' || e.keyCode === 27) && pinned) leave();
+  });
+
+  document.addEventListener('fullscreenchange', paint);
+  document.addEventListener('webkitfullscreenchange', paint);
 })();
 </script>
 </body>

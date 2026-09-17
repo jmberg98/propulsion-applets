@@ -933,6 +933,27 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
   color: var(--text-muted);
 }
 
+
+/* A demo whose own full-screen request cannot be honored (managed Chrome can
+   withhold the API outright) asks this page to pin its iframe over the viewport
+   instead. Same result for the reader, no Fullscreen API involved. The !important
+   flags are here because .applet-frame carries an aspect-ratio and a max-height
+   that would otherwise keep shaping the frame while it is pinned. */
+iframe.applet-pinned {
+  position     : fixed !important;
+  top          : 0 !important;
+  left         : 0 !important;
+  width        : 100vw !important;
+  height       : 100vh !important;
+  min-height   : 0 !important;
+  max-height   : none !important;
+  aspect-ratio : auto !important;
+  margin       : 0 !important;
+  border       : 0 !important;
+  border-radius: 0 !important;
+  z-index      : 9999;
+}
+body.applet-pinned-host { overflow: hidden; }
 </style>
 </head>
 <body>
@@ -1325,6 +1346,25 @@ document.querySelectorAll('.nut-h').forEach(h => {
     h.setAttribute('aria-expanded', open ? 'false' : 'true');
     card.hidden = open;
   });
+});
+</script>
+
+<!-- ── Full-screen fallback host ───────────────────────────────────────────────
+     See the matching block in the demo file. A demo that could not take itself
+     full screen asks us to pin its frame over the viewport. Act only on a frame
+     of our own whose contentWindow is the sender, so the handler cannot be driven
+     from anywhere else. -->
+<script>
+window.addEventListener('message', function (e) {
+  var d = e.data;
+  if (!d || typeof d.appletFullscreen !== 'boolean') return;
+  var frames = document.querySelectorAll('iframe'), hit = null;
+  for (var i = 0; i < frames.length; i++) {
+    if (frames[i].contentWindow === e.source) { hit = frames[i]; break; }
+  }
+  if (!hit) return;
+  hit.classList.toggle('applet-pinned', d.appletFullscreen);
+  document.body.classList.toggle('applet-pinned-host', d.appletFullscreen);
 });
 </script>
 </body>

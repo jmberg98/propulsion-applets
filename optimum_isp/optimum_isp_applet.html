@@ -1021,6 +1021,19 @@ a.applet-link:hover { border-bottom-color: var(--text-heading); }
 @media (max-width: 1150px) {
   .applet-body.fs-on { grid-template-rows: minmax(280px, 1fr) auto auto; }
 }
+
+/* Fallback when the Fullscreen API is unavailable or refused (a managed Chrome
+   can withhold it outright): pin the box over the viewport by hand. Pairs with
+   .fs-on, which already says how the box lays itself out at full size. */
+.applet-body.fs-pinned {
+  position: fixed;
+  top     : 0;
+  left    : 0;
+  width   : 100vw;
+  height  : 100vh;
+  z-index : 9999;
+}
+body.applet-pinned-host { overflow: hidden; }
 </style>
 </head>
 <body>
@@ -2184,13 +2197,16 @@ document.querySelectorAll('.nut-h').forEach(h => {
 });
 </script>
 
-<!-- ── Full-screen mode ──────────────────────────────────────────────────────
-     The sub-demo is the two charts, the inputs column and the results strip, so
-     the element taken full screen is .applet-body, which holds all three. The
-     layout override rides on an `fs-on` class rather than on :fullscreen, so one
-     rule body covers the prefixed and unprefixed pseudo-classes alike. Plotly is
-     resized explicitly: `responsive: true` only watches the window, and the grid
-     row the plots sit in changes size here without the window doing so. -->
+<!-- ── Full-screen mode ──────────────────────────────────────
+     The sub-demo is the two charts, the inputs column and the results strip, so full screen has to carry all of it, not just the
+     stage: the element that goes full screen is .applet-body. The layout override rides
+     on an `fs-on` class rather than on :fullscreen, so one rule body covers the
+     prefixed and unprefixed pseudo-classes alike.
+
+     The Fullscreen API is not always there to use - a managed Chrome can withhold
+     it, and iOS Safari has never had the element-level one. Rather than hide the
+     button, which made the feature quietly absent on exactly those machines, we
+     pin the box over the viewport by hand and carry on. -->
 <script>
 (function () {
   var btn = document.getElementById('fs-btn');
@@ -2198,22 +2214,23 @@ document.querySelectorAll('.nut-h').forEach(h => {
   if (!btn || !box) return;
   var req  = box.requestFullscreen || box.webkitRequestFullscreen;
   var exit = document.exitFullscreen || document.webkitExitFullscreen;
-  /* Safari on iPhone exposes neither; drop the affordance rather than show a dead button. */
-  if (!req || !exit) { btn.style.display = 'none'; return; }
+  var pinned = false;   /* the fallback is showing */
 
-  function current() { return document.fullscreenElement || document.webkitFullscreenElement; }
+  function realFs() {
+    var fe = document.fullscreenElement || document.webkitFullscreenElement;
+    return fe === box;
+  }
+  function isOn() { return realFs() || pinned; }
 
-  btn.addEventListener('click', function () {
-    if (current() === box) exit.call(document);
-    else Promise.resolve(req.call(box)).catch(function () {});
-  });
-
-  function syncFsUi() {
-    var on = current() === box;
+  function paint() {
+    var on = isOn();
     box.classList.toggle('fs-on', on);
+    box.classList.toggle('fs-pinned', pinned);
+    document.body.classList.toggle('applet-pinned-host', pinned);
     var label = on ? 'Exit full screen' : 'Full screen';
     btn.title = label;
     btn.setAttribute('aria-label', label);
+    window.dispatchEvent(new Event('resize'));
     /* One frame later, so the grid has already re-laid-out at the new size. */
     requestAnimationFrame(function () {
       if (!window.Plotly) return;
@@ -2223,8 +2240,36 @@ document.querySelectorAll('.nut-h').forEach(h => {
       });
     });
   }
-  document.addEventListener('fullscreenchange', syncFsUi);
-  document.addEventListener('webkitfullscreenchange', syncFsUi);
+
+  function enter() {
+    if (req && exit) {
+      var r;
+      try { r = req.call(box); } catch (e) { r = null; }
+      if (r && r.catch) { r.catch(function () { pinned = true; paint(); }); return; }
+      /* Older WebKit returns nothing, so there is no rejection to catch: give it a
+         moment and fall back only if it plainly did not take. */
+      setTimeout(function () { if (!realFs()) { pinned = true; paint(); } }, 120);
+      return;
+    }
+    pinned = true;
+    paint();
+  }
+
+  function leave() {
+    if (realFs()) { try { exit.call(document); } catch (e) {} return; }
+    pinned = false;
+    paint();
+  }
+
+  btn.addEventListener('click', function () { if (isOn()) leave(); else enter(); });
+
+  /* Esc leaves real full screen on its own; in the fallback we have to do it. */
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'Escape' || e.keyCode === 27) && pinned) leave();
+  });
+
+  document.addEventListener('fullscreenchange', paint);
+  document.addEventListener('webkitfullscreenchange', paint);
 })();
 </script>
 </body>
